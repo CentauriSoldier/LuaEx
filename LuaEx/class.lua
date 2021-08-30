@@ -126,6 +126,20 @@ function is_instance_of(object, base)
 	return false;
 end
 
+function get_base(class_object)
+	local ret = class_object;
+
+	local parent = getmetatable(class_object).__parent;
+
+	while (parent) do
+		ret = parent;
+		parent = getmetatable(parent).__parent;
+	end
+
+	return ret;
+end
+
+
 -- define a new class
 function class(name)
 	local class_meta   = { __type = name, __parent = nil };
