@@ -3,7 +3,7 @@ MATH 		= const("MATH");
 MATH.UNDEF	= "undefined";
 
 --the Eucclidian algorithm for finding the gcf
-local function eucclidiangcf(nDividend, nDivisor)
+--[[local function eucclidiangcf(nDividend, nDivisor)
 	local nRet = 0;
 
 	local nRemainder = nDividend % nDivisor;
@@ -16,6 +16,13 @@ local function eucclidiangcf(nDividend, nDivisor)
 	end
 
 	return nRet;
+end]]
+
+local function eucclidiangcf(nDividend, nDivisor)
+	local nRemainder = nDividend % nDivisor;
+	local nQuotient	= (nDividend - nRemainder) / nDivisor;
+
+	return nRemainder == 0 and nDivisor or eucclidiangcf(nDivisor, nRemainder);
 end
 
 function math.clamp(nValue, nMinValue, nMaxValue)
@@ -30,6 +37,9 @@ function math.clamp(nValue, nMinValue, nMaxValue)
 	return nRet;
 end
 
+--[[Usage: To get the Width/Height Input Factors of the original rectangle use math.ratio(w, h)/math.ratio(h, w) respectively]]
+
+--TODO put a safety switch in here
 --gets the largest rectangle of the specified ratio that will fit within the given rectangle (then, optionally, scales it and centers it if requested)
 function math.fitrect(nRectWidth, nRectHeight, nRectX, nRectY, nWidthFactor, nHeightFactor, nScale, bCenter)
 	--the final, resultant values
@@ -46,9 +56,12 @@ function math.fitrect(nRectWidth, nRectHeight, nRectX, nRectY, nWidthFactor, nHe
 	local nTestWidth	= nWidth;
 	local nTestHeight	= nHeight;
 
-	if (type(nScale) ~= "number") then
-		nScale = 1;
-	end
+	--check and clamp the scale value
+	nScale = (type(nScale) == "number") 	and nScale or 1;
+	nScale = (nScale >= 0) 					and nScale or -nScale;
+
+	--check the center value
+	bCenter = type(bCenter) == "boolean" and bCenter or false;
 
 	while (bIsSmaller) do
 		--increment the counter
@@ -69,14 +82,12 @@ function math.fitrect(nRectWidth, nRectHeight, nRectX, nRectY, nWidthFactor, nHe
 			--...or, end the loop (using the last, viable size) if it does not fit
 			bIsSmaller = false;
 
-			--scale the rectangle (if requested)
-			if (nScale > 0 and nScale < 1) then
-				nWidth 	= nWidth  * nScale;
-				nHeight = nHeight * nScale;
-			end
+			--scale the rectangle
+			nWidth 	= nWidth  * nScale;
+			nHeight = nHeight * nScale;
 
 			--calculate the centered position of the rectangle inside the parent
-			if (type(bCenter) == "boolean" and bCenter == true) then
+			if (bCenter) then
 				nX = nRectX + (nRectWidth 	- nWidth) 	/ 2;
 				nY = nRectY + (nRectHeight 	- nHeight) 	/ 2;
 			end

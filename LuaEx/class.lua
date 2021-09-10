@@ -89,6 +89,17 @@ local function class_extends(class, other)
 	return class;
 end;
 
+
+iTest = {
+	MyFunction,
+}
+--todo implement children detection for this to work
+local function class_implements(class, interface)
+
+
+
+end
+
 -- is_object returns true if `instance` is an object of a class
 function is_object(instance)
 	local mt = getmetatable(instance);
@@ -140,6 +151,7 @@ function get_base(class_object)
 end
 
 
+
 -- define a new class
 function class(name)
 	local class_meta   = { __type = name, __parent = nil };
@@ -149,7 +161,7 @@ function class(name)
 	-- with the method table. i.e. this is the stage that handles `class "name"`
 	-- the returned object allows for `class "name" : extends(other)`
 	return setmetatable(class_object, {
-		__index = { extends = class_extends };
+		__index = { extends = class_extends, implements = class_implements };
 		__type  = "iclass"; 						-- intermediate class
 		__call  = function(class_object, members)	-- the actual definer, this puts the class in _G and adds the methods
 			-- add all methods to the class, possibly overloading members that were copied by `extends`
@@ -254,4 +266,4 @@ function bothObjects(...)
 	return (sLeftType == sObjType and sRightType == sObjType);
 end
 
-return class;
+return class, interface;

@@ -1,4 +1,3 @@
---TODO move this to a utility class or table
 function table.clone(tTable)
 	local tRet = {};
 
