@@ -87,5 +87,5 @@ import("table");
 serialize 			= import("serialize");
 deserialize 		= import("deserialize");
 
---useful if using CoG as a dependency in multiple modules to prevent the need for loading multilple times
+--useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 LUAEX_INIT = true;
