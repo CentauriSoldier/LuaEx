@@ -2,54 +2,37 @@ local serialize = {};
 
 --TODO Move these to util
 local tEscapeChars = {
-	[1] 	= "\a",
-	[2] 	= "\b",
-	[3] 	= "\f",
-	[4] 	= "\n",
-	[5] 	= "\r",
-	[6] 	= "\t",
-	[7] 	= "\v",
-	[8] 	= "\\",
+	[1] 	= "\\",
+	[2] 	= "\a",
+	[3] 	= "\b",
+	[4] 	= "\f",
+	[5] 	= "\n",
+	[6] 	= "\r",
+	[7] 	= "\t",
+	[8] 	= "\v",
 	[9] 	= "\"",
 	[10] 	= "\'",
 };
-local nEscapeChars 			= #tEscapeChars;
+local nEscapeChars = #tEscapeChars;
 
 local tEscapeCharsConverted = {
-	[1] 	= "\\\a",
-	[2] 	= "\\\b",
-	[3] 	= "\\\f",
-	[4] 	= "\\\n",
-	[5] 	= "\\\r",
-	[6] 	= "\\\t",
-	[7] 	= "\\\v",
-	[8] 	= "\\\\",
+	[1] 	= "\\\\",
+	[2] 	= "\\a",
+	[3] 	= "\\b",
+	[4] 	= "\\f",
+	[5] 	= "\\n",
+	[6] 	= "\\r",
+	[7] 	= "\\t",
+	[8] 	= "\\v",
 	[9] 	= "\\\"",
-	[10] 	= "\\\'",
+	[10] 	= "\\'",
 };
-local nEscapeCharsConverted	= #tEscapeCharsConverted;
 
-local tMagicChars 			= {
-	[1] 	= "%(",
-	[2] 	= "%)",
-	[3] 	= "%.",
-	[4] 	= "%%",
-	[5] 	= "%+",
-	[6] 	= "%-",
-	[7] 	= "%*",
-	[8] 	= "%?",
-	[9] 	= "%[",
-	[10] 	= "%]",
-	[11] 	= "%^",
-	[12] 	= "%$",
-};
-local nMagicChars 			= #tMagicChars;
-
-local tMagicCharsConverted 	= {
-	[1] 	= "%%%(",
-	[2] 	= "%%%)",
-	[3] 	= "%%%.",
-	[4] 	= "%%%%",
+local tMagicChars = {
+	[1] 	= "%%%%",
+	[2] 	= "%%%(",
+	[3] 	= "%%%)",
+	[4] 	= "%%%.",
 	[5] 	= "%%%+",
 	[6] 	= "%%%-",
 	[7] 	= "%%%*",
@@ -59,7 +42,22 @@ local tMagicCharsConverted 	= {
 	[11] 	= "%%%^",
 	[12] 	= "%%%$",
 };
-local nMagicCharsConverted 	= #tMagicCharsConverted;
+local nMagicChars = #tMagicChars;
+
+local tMagicCharsConverted = {
+	[1] 	= "%%%%%%%%",
+	[2] 	= "%%%%%%%(",
+	[3] 	= "%%%%%%%)",
+	[4] 	= "%%%%%%%.",
+	[5] 	= "%%%%%%%+",
+	[6] 	= "%%%%%%%-",
+	[7] 	= "%%%%%%%*",
+	[8] 	= "%%%%%%%?",
+	[9] 	= "%%%%%%%[",
+	[10] 	= "%%%%%%%]",
+	[11] 	= "%%%%%%%^",
+	[12] 	= "%%%%%%%$",
+};
 
 
 
@@ -80,20 +78,18 @@ function serialize.string(sString)
 
 	if (type(sString) == "string") then
 		sRet = sString;
-		local sPrefix = "\"";
-		local sSuffix = "\"";
 
 		--look for escape characters
 		for x = 1, nEscapeChars do
-			sRet = sRet:gsub(tEscapeChars[x], "");
+			sRet = sRet:gsub(tEscapeChars[x], tEscapeCharsConverted[x]);
 		end
 
 		--look for magic characters
 		for x = 1, nMagicChars do
-			sRet = sRet:gsub(tMagicChars[x], "");
+			sRet = sRet:gsub(tMagicChars[x], tMagicCharsConverted[x]);
 		end
 
-		sRet = sPrefix..sRet..sSuffix;
+		sRet = "\""..sRet.."\"";
 	end
 
 	return sRet;

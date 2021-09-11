@@ -76,9 +76,11 @@ end
 --core modules
 const 				= import("const");
 class, interface 	= import("class");
+base64				= import("base64");
 
 --lua extension modules
 import("math");
+import("string");
 import("table");
 
 --other modules
