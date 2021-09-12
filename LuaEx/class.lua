@@ -30,6 +30,10 @@ function print(...)
 	oldPrint(table.concat(t, "\t").."\r\n");
 end;
 
+local setmetatable	= setmetatable;
+local getmetatable 	= getmetatable;
+local assert 		= assert;
+
 -- names of metamethods, should be treated as such
 local metanames = {
 	__add 		= true;
@@ -148,6 +152,11 @@ function get_base(class_object)
 	end
 
 	return ret;
+end
+
+
+function is_base(class_object)
+	return getmetatable(class_object).__parent == nil;
 end
 
 
