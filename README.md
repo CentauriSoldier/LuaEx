@@ -1,16 +1,16 @@
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
-🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
+# 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
 
 Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
 
-🆅🅴🆁🆂🅸🅾🅽
+# 🆅🅴🆁🆂🅸🅾🅽
 
 Alpha 0.2
 
-🅻🅸🅲🅴🅽🆂🅴
+# 🅻🅸🅲🅴🅽🆂🅴
 
-All code is placed in the public domain except where otherwise noted.
+All code is placed in the public domain except where otherwise noted using [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense").
 
 
 # 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
