@@ -64,6 +64,10 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 --create a couple of enums
 enum("ANIMAL", 	{"DOG", "FROG", "MONKEY", "GIANT_SNAKE"});
 enum("AUTO", 	{"CAR", "TRUCK", "BIKE"});
+--create oen with custom values
+enum("TOOL", 	{"HAMMER", "DRILL", "TAPE"}, {"Framing", "Mega Drill", 50});
+
+local maDrill = TOOL.DRILL;
 
 print("Printing All Items in the "..ANIMAL.__name.." enum:\r\n");
 for nID, oItem in ANIMAL() do
@@ -71,6 +75,7 @@ for nID, oItem in ANIMAL() do
 end
 
 print("Fact-check: A car is an animal - "..AUTO.CAR:typeOf(ANIMAL));
+print("Fact-check: A "..TOOL.DRILL.." is a "..TOOL.." - "..TOOL.__hasType(maDrill));
 
 ```
 
