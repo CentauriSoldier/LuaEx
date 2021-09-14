@@ -61,6 +61,9 @@ All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
 
 ```lua
 
+--init all LuaEx modules
+require("LuaEx.init");
+
 --create a few of enums
 enum("CREATURE",{"HUMAN", "MONSTER", "FROG", "DRAGON"});
 enum("AUTO", 	{"CAR", "TRUCK", "BIKE"});

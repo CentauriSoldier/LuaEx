@@ -256,7 +256,7 @@ local function enum(sName, tInput, tValues)
 			valueType 	= sValueType,
 		};
 
-		--create the item obejct
+		--create the item object
 		local tItemObject = setmetatable(tItemShadow,
 			{
 				__index 	= function(tTable, vKey)
@@ -270,7 +270,7 @@ local function enum(sName, tInput, tValues)
 			}
 		);
 
-		--make it visible to the enum data table
+		--make it visible to the enum's data table (both by name and ordinal)
 		tEnumData[sItem] = tItemObject;
 		tEnumData[nID] = tItemObject;
 	end
