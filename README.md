@@ -9,6 +9,9 @@
 
 ## Modules
 
+
+**I'M CURRENTLY WORKING ON THIS PAGE (Updating every few hours at most until done)**
+
 ### enum
 
 #### Features
@@ -39,11 +42,13 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **__len** Same as the property, __count
 - **__tostring** Return a pretty, formatted string of the enum name
 
-Item Properties
+#### Item Properties
+- id
 
 Item Methods
 
 Item Metamethods
+
 
 ### base64 Module License
  -- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
