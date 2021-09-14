@@ -61,8 +61,16 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 
 ```lua
 
+--create a couple of enums
 enum("ANIMAL", 	{"DOG", "FROG", "MONKEY", "GIANT_SNAKE"});
 enum("AUTO", 	{"CAR", "TRUCK", "BIKE"});
+
+print("Printing All Items in the "..ANIMAL.__name.." enum:\r\n");
+for nID, oItem in ANIMAL() do
+	print(oItem.name.." is a "..oItem.type);
+end
+
+print("Fact-check: A car is an animal - "..AUTO.CAR:typeOf(ANIMAL));
 
 ```
 
