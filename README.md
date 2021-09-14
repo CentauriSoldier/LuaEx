@@ -74,8 +74,8 @@ for nID, oItem in ANIMAL() do
 	print(oItem.name.." is a "..oItem.type);
 end
 
-print("Fact-check: A car is an animal - "..AUTO.CAR:typeOf(ANIMAL));
-print("Fact-check: A "..maDrill.." is a "..TOOL.." - "..TOOL.__hasType(maDrill));
+print("Fact-check: A car is an animal - "..tostring(AUTO.CAR:typeOf(ANIMAL)));
+print("Fact-check: A "..maDrill.." is a "..TOOL.." - "..tostring(TOOL.__hasType(maDrill)));
 
 ```
 
