@@ -23,7 +23,7 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **__count**
 - **__first**
 - **__getByOrdinal**
-- **__hasType**
+- **__hasA**
 - **__last**
 - **__name**
 
@@ -33,7 +33,7 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 
 #### Enum Methods
 - **__first** Returns the first ordinal item 
-- **__hasType**	Determines whether or not a given enum item belongs to this enum 
+- **__hasA**	Determines whether or not this enum has a a given item 
 - **__getByOrdinal** Returns the item with the given ordinal value
 - **__last** Returns the last ordinal item 
 
@@ -45,14 +45,14 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 #### Item Properties
 - **id** The ordinal value of the item
 - **name** The given name of the item (as a string)
-- **type** The enum which owns this item
+- **type** The name of the enum which owns this item (as a string)
 - **value** The given (or default) value of the item
 - **valueType** The type of the value property
 
 #### Item Methods
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
 - **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
-- **typeOf** Determines whether or not the item is owned by a given enum 
+- **isA** Determines whether or not the item exists in a given enum 
  
 #### Item Metamethods
 - **__tostring** Returns a pretty, formatted string of the item name
@@ -61,9 +61,10 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 
 ```lua
 
---create a couple of enums
-enum("ANIMAL", 	{"DOG", "FROG", "MONKEY", "GIANT_SNAKE"});
+--create a few of enums
+enum("CREATURE",{"HUMAN", "MONSTER", "FROG", "DRAGON"});
 enum("AUTO", 	{"CAR", "TRUCK", "BIKE"});
+enum("ANIMAL", 	{"DOG", "FROG", "MONKEY", "GIANT_SNAKE"});
 --create oen with custom values
 enum("TOOL", 	{"HAMMER", "DRILL", "TAPE"}, {"Framing", "Mega Drill", 50});
 
@@ -71,11 +72,17 @@ local maDrill = TOOL.DRILL;
 
 print("Printing All Items in the "..ANIMAL.__name.." enum:\r\n");
 for nID, oItem in ANIMAL() do
-	print(tostring(oItem).." ("..oItem.name..") is an "..tostring(oItem.type)..".");
+	print(tostring(oItem).." ("..oItem.name..") is an "..tostring(oItem.enum)..".");
 end
 print("\r\n");
-print("Fact-check: A car is an "..tostring(ANIMAL).." - "..tostring(AUTO.CAR:typeOf(ANIMAL)));
-print("Fact-check: A "..tostring(maDrill).." is a "..tostring(TOOL).." - "..tostring(TOOL.__hasType(maDrill)));
+print("Fact-check: A "..AUTO.CAR.name.." is an "..tostring(ANIMAL).." - "..tostring(AUTO.CAR:isA(ANIMAL)));
+print("Fact-check: A "..tostring(TOOL).." has a "..tostring(maDrill).." - "..tostring(TOOL.__hasA(maDrill)));
+print("Fact-check: A "..AUTO.TRUCK.name.." is an "..tostring(AUTO).." - "..tostring(AUTO.TRUCK:isA(AUTO)));
+print("Fact-check: An "..tostring(AUTO.TRUCK.enum).." is an "..tostring(AUTO).." - "..tostring(AUTO.TRUCK.enum == AUTO));
+print("Fact-check: A "..ANIMAL.FROG.name.." and "..ANIMAL.MONKEY.name.." are in the same enum - "..tostring(ANIMAL.FROG.enum == ANIMAL.MONKEY.enum));
+print("Fact-check: A "..AUTO.BIKE.name.." and "..TOOL.HAMMER.name.." are in the same enum - "..tostring(AUTO.BIKE.enum == TOOL.HAMMER.enum));
+print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Animal) "..ANIMAL.FROG.name.." are in the same enum - "..tostring(CREATURE.FROG.enum == ANIMAL.FROG.enum));
+print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Animal) "..ANIMAL.FROG.name.." are the same - "..tostring(type(CREATURE.FROG) == type(ANIMAL.FROG)));
 
 ```
 

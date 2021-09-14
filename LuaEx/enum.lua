@@ -64,7 +64,7 @@ local tReservedIndices = {
 	"__count",
 	"__first",
 	"__getByOrdinal",
-	"__hasType",
+	"__hasA",
 	"__last",
 	"__name",
 };
@@ -254,9 +254,10 @@ local function enum(sName, tInput, tValues)
 
 		--create the item
 		local tItemData = {
+			enum		= tEnum,
 			id			= nID,
 			isA 		= function(tEnumItem, tEnumObject)
-				return (type(tEnumItem) == sName and type(tEnumObject) == "enum" and tEnumItem.type == tEnumObject.__name);
+				return (type(tEnumItem) == sName and type(tEnumObject) == "enum" and tEnumItem.enum == tEnumObject);
 			end,
 			previous 	= function(oItem)
 				local nIndex = oItem.id - 1;
@@ -267,7 +268,6 @@ local function enum(sName, tInput, tValues)
 				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
 			end,
 			name 		= sItem,
-			type		= sName,
 			value 		= vValue,
 			valueType 	= sValueType,
 		};
@@ -276,7 +276,7 @@ local function enum(sName, tInput, tValues)
 		tEnumData[sItem] = setmetatable(tItemShadow,
 			{
 				__index 	= function(tTable, vKey)
-					return tItemData[vKey] or error("The enum property '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sName.."'.");
+					return tItemData[vKey] or error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sName.."'.");
 				end,
 				__newindex 	= modifyError;
 				__tostring 	= function() return sFormattedName; end,
