@@ -4,6 +4,7 @@
 ██║░░░░░██║░░░██║██╔══██║██╔══╝░░░██╔██╗░
 ███████╗╚██████╔╝██║░░██║███████╗██╔╝╚██╗
 ╚══════╝░╚═════╝░╚═╝░░╚═╝╚══════╝╚═╝░░╚═╝
+
  A collection of scripts that extend Lua's functionality.
 
  All code is placed in the public domain except where otherwise noted.
