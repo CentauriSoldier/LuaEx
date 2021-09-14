@@ -45,9 +45,15 @@ For more information, please refer to <http://unlicense.org/>
 @todo
 @usage
 	<h2>Coming Soon</h2>
-@version 0.1
+@version 0.2
 @versionhistory
 <ul>
+	<li>
+		<b>0.2/b>
+		<br>
+		<p>Added the enum object.</p>
+		<p>Updated a few modules.</p>
+	</li>
 	<li>
 		<b>0.1</b>
 		<br>

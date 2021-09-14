@@ -1,9 +1,16 @@
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
-A collection of scripts that extend Lua's functionality.
+🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
+
+Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
+
+🆅🅴🆁🆂🅸🅾🅽
+
+Alpha 0.2
+
+🅻🅸🅲🅴🅽🆂🅴
 
 All code is placed in the public domain except where otherwise noted.
-
 
 
 # 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
@@ -23,13 +30,13 @@ base64 Module License
 
 
 ## 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
-Desciption in Progess 
+Description in Progress 
 
 ## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​
-Desciption in Progess 
+Description in Progress 
 
 ## 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
-Desciption in Progess 
+Description in Progress 
 
 ## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
 
@@ -118,13 +125,13 @@ print("Get the first ("..AUTO[1].name..") and last ("..AUTO[AUTO.__count].name..
 ```
 
 ## 🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​
-Desciption in Progess 
+Description in Progress
 
 ## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
-Desciption in Progess 
+Description in Progress
 
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
-Desciption in Progess 
+Description in Progress
 
 ## 🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​
-Desciption in Progess 
+Description in Progress
