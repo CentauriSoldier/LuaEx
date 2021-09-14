@@ -52,6 +52,7 @@ All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
 - **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
 - **isA** Determines whether or not the item exists in a given enum 
+- **isSibling** Determines whether or not the first item and the second item are in the same enum
  
 #### Item Metamethods
 - **__tostring** Returns a pretty, formatted string of the item name
@@ -64,15 +65,18 @@ All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
 enum("CREATURE",{"HUMAN", "MONSTER", "FROG", "DRAGON"});
 enum("AUTO", 	{"CAR", "TRUCK", "BIKE"});
 enum("ANIMAL", 	{"DOG", "FROG", "MONKEY", "GIANT_SNAKE"});
---create oen with custom values
+--create one with custom values
 enum("TOOL", 	{"HAMMER", "DRILL", "TAPE"}, {"Framing", "Mega Drill", 50});
 
 local maDrill = TOOL.DRILL;
 
+--print every item in an enum
 print("Printing All Items in the "..ANIMAL.__name.." enum:\r\n");
 for nID, oItem in ANIMAL() do
 	print(tostring(oItem).." ("..oItem.name..") is an "..tostring(oItem.enum)..".");
 end
+
+--print some test cases
 print("\r\n");
 print("Fact-check: A "..AUTO.CAR.name.." is an "..tostring(ANIMAL).." - "..tostring(AUTO.CAR:isA(ANIMAL)));
 print("Fact-check: A "..tostring(TOOL).." has a "..tostring(maDrill).." - "..tostring(TOOL.__hasA(maDrill)));
@@ -81,7 +85,8 @@ print("Fact-check: An "..tostring(AUTO.TRUCK.enum).." is an "..tostring(AUTO).."
 print("Fact-check: A "..ANIMAL.FROG.name.." and "..ANIMAL.MONKEY.name.." are in the same enum - "..tostring(ANIMAL.FROG.enum == ANIMAL.MONKEY.enum));
 print("Fact-check: A "..AUTO.BIKE.name.." and "..TOOL.HAMMER.name.." are in the same enum - "..tostring(AUTO.BIKE.enum == TOOL.HAMMER.enum));
 print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Animal) "..ANIMAL.FROG.name.." are in the same enum - "..tostring(CREATURE.FROG.enum == ANIMAL.FROG.enum));
-print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Animal) "..ANIMAL.FROG.name.." are the same - "..tostring(type(CREATURE.FROG) == type(ANIMAL.FROG)));
+print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Animal) "..ANIMAL.FROG.name.." are in the same enum - "..tostring(CREATURE.FROG.enum == ANIMAL.FROG.enum));
+print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Creature) "..CREATURE.DRAGON.name.." are siblings (in the same enum)- "..tostring(CREATURE.FROG:isSibling(CREATURE.DRAGON)));
 print("Get a "..CREATURE.FROG.name.." by name ("..CREATURE.FROG.name..") and by ordinal ("..CREATURE[3].id..")");
 print("Get the first ("..AUTO[1].name..") and last ("..AUTO[AUTO.__count].name..") items in "..AUTO.__name..".");
 

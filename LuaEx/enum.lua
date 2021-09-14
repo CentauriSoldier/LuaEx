@@ -240,6 +240,9 @@ local function enum(sName, tInput, tValues)
 			isA 		= function(tEnumItem, tEnumObject)
 				return (type(tEnumItem) == sName and type(tEnumObject) == "enum" and tEnumItem.enum == tEnumObject);
 			end,
+			isSibling	= function(oItem, oOther) --TODO if the sName variable must be unique in the global env, must I check for enum equality as well?
+				return (type(oItem) == sName and type(oOther) == sName) and oItem.enum == oOther.enum;
+			end,
 			previous 	= function(oItem)
 				local nIndex = oItem.id - 1;
 				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
