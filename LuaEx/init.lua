@@ -87,5 +87,7 @@ import("table");
 serialize 			= import("serialize");
 deserialize 		= import("deserialize");
 
+enum 				= import("enum");
+
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 LUAEX_INIT = true;
