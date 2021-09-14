@@ -18,6 +18,7 @@
 - **Optional User-defined String/Number Item Values**
 - **Iterator For Each Enum**
 - **Strict Ordinal Positioning**
+- **Enum Items Accessible By Either Name Or Ordinal**
 
 
 #### Reserved Enum Names
@@ -25,10 +26,7 @@ All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
 
 #### Reserved Enum Item Names
 - **__count**
-- **__first**
-- **__getByOrdinal**
 - **__hasA**
-- **__last**
 - **__name**
 
 #### Enum Properties
@@ -36,10 +34,7 @@ All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
 - **__name** The name of the enum (*string*)
 
 #### Enum Methods
-- **__first** Returns the first ordinal item (*enum item*)
 - **__hasA**	Determines whether or not this enum has a a given item (*boolean*)
-- **__getByOrdinal** Returns the item with the given ordinal value (*enum item*)
-- **__last** Returns the last ordinal item (*enum item*)
 
 #### Enum Metamethods
 - **__call** Returns an iterator which returns the ordinal value and item object for each enum item (*iterator*)
@@ -87,6 +82,8 @@ print("Fact-check: A "..ANIMAL.FROG.name.." and "..ANIMAL.MONKEY.name.." are in 
 print("Fact-check: A "..AUTO.BIKE.name.." and "..TOOL.HAMMER.name.." are in the same enum - "..tostring(AUTO.BIKE.enum == TOOL.HAMMER.enum));
 print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Animal) "..ANIMAL.FROG.name.." are in the same enum - "..tostring(CREATURE.FROG.enum == ANIMAL.FROG.enum));
 print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Animal) "..ANIMAL.FROG.name.." are the same - "..tostring(type(CREATURE.FROG) == type(ANIMAL.FROG)));
+print("Get a "..CREATURE.FROG.name.." by name ("..CREATURE.FROG.name..") and by ordinal ("..CREATURE[3].id..")");
+print("Get the first ("..AUTO[1].name..") and last ("..AUTO[AUTO.__count].name..") items in "..AUTO.__name..".");
 
 ```
 

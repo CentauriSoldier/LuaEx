@@ -62,10 +62,7 @@ end
 
 local tReservedIndices = {
 	"__count",
-	"__first",
-	"__getByOrdinal",
 	"__hasA",
-	"__last",
 	"__name",
 };
 local nReservedIndices = #tReservedIndices;
@@ -182,26 +179,10 @@ local function enum(sName, tInput, tValues)
 
 	--set all reserved item values for the enum object
 	tEnumData.__count	= nItemCount;
-	tEnumData.__first = function()
-		return tShadow[tItemsByOrdinal[1]];
-	end;
 	tEnumData.__hasA = function(oItem)
 		return type(oItem) == sName;
 	end;
-	tEnumData.__getByOrdinal = function(nID)
-		local oRet = nil;
-
-		if (type(nID) == "number" and type(tItemsByOrdinal[nID]) ~= "nil") then
-			oRet = tShadow[tItemsByOrdinal[nID]];
-		end
-
-		return oRet;
-	end;
-	tEnumData.__last = function() --gets the last item of the enum
-		return tShadow[tItemsByOrdinal[tEnumData.__count]];
-	end;
 	tEnumData.__name 	= sName;
-
 
 	--allows for quick determination of items' value
 	local tCheckedValues		= valuesAreValid(tValues) and tValues or {};
@@ -231,7 +212,7 @@ local function enum(sName, tInput, tValues)
 		__newindex 	= modifyError,
 		__call 		= items,
 		__tostring 	= function() return sFormattedEnumName; end,
-		__len		= tEnumData.__count;
+		__len		= nItemCount;
 		__type		= "enum",
 	});
 
@@ -252,7 +233,7 @@ local function enum(sName, tInput, tValues)
 		local vValue = tCheckedValues[nID] or nID;
 		local sValueType = type(vValue);
 
-		--create the item
+		--create the item data table
 		local tItemData = {
 			enum		= tEnum,
 			id			= nID,
@@ -272,8 +253,8 @@ local function enum(sName, tInput, tValues)
 			valueType 	= sValueType,
 		};
 
-		--set the item entry's metatable (in the tEnumData table)
-		tEnumData[sItem] = setmetatable(tItemShadow,
+		--create the item obejct
+		local tItemObject = setmetatable(tItemShadow,
 			{
 				__index 	= function(tTable, vKey)
 					return tItemData[vKey] or error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sName.."'.");
@@ -285,6 +266,10 @@ local function enum(sName, tInput, tValues)
 				--__sub
 			}
 		);
+
+		--make it visible to the enum data table
+		tEnumData[sItem] = tItemObject;
+		tEnumData[nID] = tItemObject;
 	end
 
 	--put the enum into the global environment
