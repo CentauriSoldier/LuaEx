@@ -12,9 +12,16 @@
 ### enum
 
 #### Features
+- **Immutability**
+- **Robust Type Checking**
+- **Helper Methods/Metamethods**
+- **Optional User-defined String/Number Item Values**
+- **Iterator For Each Enum**
+- **Strict Ordinal Positioning**
+
 
 #### Reserved Enum Names
-All Lua Keywords plus LuaEx keywords (const, enum) 
+All Lua Keywords plus LuaEx keywords (***const***, ***enum***) 
 
 #### Reserved Enum Item Names
 - **__count**
@@ -25,26 +32,26 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **__name**
 
 #### Enum Properties
-- **__count** The total number of items in the enum
-- **__name** The name of the enum (as a string)
+- **__count** The total number of items in the enum (*number*)
+- **__name** The name of the enum (*string*)
 
 #### Enum Methods
-- **__first** Returns the first ordinal item 
-- **__hasA**	Determines whether or not this enum has a a given item 
-- **__getByOrdinal** Returns the item with the given ordinal value
-- **__last** Returns the last ordinal item 
+- **__first** Returns the first ordinal item (*enum item*)
+- **__hasA**	Determines whether or not this enum has a a given item (*boolean*)
+- **__getByOrdinal** Returns the item with the given ordinal value (*enum item*)
+- **__last** Returns the last ordinal item (*enum item*)
 
 #### Enum Metamethods
-- **__call** Returns an iterator which returns the ordinal value and item object for each enum item
-- **__len** Same as the property, __count
-- **__tostring** Returns a pretty, formatted string of the enum name
+- **__call** Returns an iterator which returns the ordinal value and item object for each enum item (*iterator*)
+- **__len** Same as the property, __count (*number*)
+- **__tostring** Returns a pretty, formatted string of the enum name (*string*)
 
 #### Item Properties
-- **enum** The enum which owns this item (as an enum)
-- **id** The ordinal value of the item
-- **name** The given name of the item (as a string)
-- **value** The given (or default) value of the item
-- **valueType** The type of the value property
+- **enum** The enum which owns this item (*enum*)
+- **id** The ordinal value of the item (*number*)
+- **name** The given name of the item (*string*)
+- **value** The given (or default) value of the item (string or number)
+- **valueType** The type of the value property (string or number)
 
 #### Item Methods
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
