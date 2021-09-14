@@ -89,7 +89,7 @@ local function namesAreValid(tInput)
 	--iterate through each name in the table
 	for k, v in pairs(tInput) do
 		nCount = nCount + 1;
-		local bIsValid = __type__(k) == "number" and k == nCount and __type__(v) == "string" and v:isvariablecompliant(true);
+		local bIsValid = type(k) == "number" and k == nCount and type(v) == "string" and v:isvariablecompliant(true);
 
 		--check the entry
 		if (not bIsValid) then
@@ -105,7 +105,7 @@ local function namesAreValid(tInput)
 end
 
 local function valuesAreValid(tValues)
-	local sValuesType = __type__(tValues);
+	local sValuesType = type(tValues);
 	local bRet = sValuesType == "table";
 
 	if (sValuesType == "table") then
@@ -114,7 +114,7 @@ local function valuesAreValid(tValues)
 		for vIndex, vItem in pairs(tValues) do
 			nIndexChecker = nIndexChecker + 1;
 
-			if (__type__(vIndex) ~= "number") then
+			if (type(vIndex) ~= "number") then
 				bRet = false;
 				break;
 			end
@@ -124,7 +124,7 @@ local function valuesAreValid(tValues)
 				break;
 			end
 
-			local sItemType = __type__(vItem);
+			local sItemType = type(vItem);
 
 			if (sItemType ~= "string"  	and sItemType ~= "number") then
 			--and sItemType ~= "table" 	and sItemType ~= "function") then
@@ -155,14 +155,14 @@ local function enum(sName, tInput, tValues)
 		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
 
 	--insure the name input is a string
-	assert(__type__(sName) == "string" and sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
+	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
 	--check that the name string can be a valid variable
 	assert(sName:isvariablecompliant(), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
 	--make sure the variable doesn't alreay exist
-	assert(__type__(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.")
+	assert(type(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.")
 	--check the names table
 	local bNamesAreValid, nItemCount = namesAreValid(tInput);
-	assert(__type__(tInput) == "table" and bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
+	assert(type(tInput) == "table" and bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
 
 	--keeps track of items by their id for simpler and quicker access
 	local tItemsByOrdinal	= {};
@@ -185,13 +185,13 @@ local function enum(sName, tInput, tValues)
 	tEnumData.__first = function()
 		return tShadow[tItemsByOrdinal[1]];
 	end;
-	tEnumData.__hasType = function(oType)
-		return type(oType) == sName;
+	tEnumData.__hasA = function(oItem)
+		return type(oItem) == sName;
 	end;
 	tEnumData.__getByOrdinal = function(nID)
 		local oRet = nil;
 
-		if (__type__(nID) == "number" and __type__(tItemsByOrdinal[nID]) ~= "nil") then
+		if (type(nID) == "number" and type(tItemsByOrdinal[nID]) ~= "nil") then
 			oRet = tShadow[tItemsByOrdinal[nID]];
 		end
 
@@ -200,7 +200,7 @@ local function enum(sName, tInput, tValues)
 	tEnumData.__last = function() --gets the last item of the enum
 		return tShadow[tItemsByOrdinal[tEnumData.__count]];
 	end;
-	tEnumData.__name 	= sName;--gets the last item of the enum
+	tEnumData.__name 	= sName;
 
 
 	--allows for quick determination of items' value
@@ -250,24 +250,24 @@ local function enum(sName, tInput, tValues)
 
 		--get the value to be set
 		local vValue = tCheckedValues[nID] or nID;
-		local sValueType = __type__(vValue);
+		local sValueType = type(vValue);
 
 		--create the item
 		local tItemData = {
 			id			= nID,
+			isA 		= function(tEnumItem, tEnumObject)
+				return (type(tEnumItem) == sName and type(tEnumObject) == "enum" and tEnumItem.type == tEnumObject.__name);
+			end,
 			previous 	= function(oItem)
 				local nIndex = oItem.id - 1;
-				return __type__(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
+				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
 			end,
 			next 		= function(oItem)
 				local nIndex = oItem.id + 1;
-				return __type__(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
+				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
 			end,
 			name 		= sItem,
-			type		= tEnum,
-			typeOf 		= function(tEnumItem, tEnumObject)
-							return (__type__(tEnumObject) == "table") and (__type__(tEnumItem) == "table") and (tEnum == tEnumObject);
-						end,
+			type		= sName,
 			value 		= vValue,
 			valueType 	= sValueType,
 		};
