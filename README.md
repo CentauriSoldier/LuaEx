@@ -9,9 +9,6 @@
 
 ## Modules
 
-
-**I'M CURRENTLY WORKING ON THIS PAGE (Updating every few hours at most until done)**
-
 ### enum
 
 #### Features
