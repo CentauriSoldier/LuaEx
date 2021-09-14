@@ -57,6 +57,16 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 #### Item Metamethods
 #### None
 
+#### Usage Examples
+
+```lua
+
+enum("ANIMAL", 	{"DOG", "FROG", "MONKEY", "GIANT_SNAKE"});
+enum("AUTO", 	{"CAR", "TRUCK", "BIKE"});
+
+```
+
+
 ----------
 
 ### base64 Module License
