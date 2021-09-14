@@ -11,6 +11,13 @@
 
 ----------
 
+# 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
+In order to push all the code in LuaEx into the global environment, place the LuaEx folder into your package path and run the following code:
+```lua
+require("LuaEx.ini");
+``` 
+Now, all modules of LuaEx will be available in the global environment.
+
 # 🅼🅾🅳🆄🅻🅴🆂
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
