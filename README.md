@@ -11,6 +11,8 @@
 
 ### enum
 
+#### Features
+
 #### Reserved Enum Names
 All Lua Keywords plus LuaEx keywords (const, enum) 
 
@@ -23,6 +25,8 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - __name
 
 Enum Properties
+
+- **__count** Gets the total number of items in the enum
 
 Enum Methods
 
