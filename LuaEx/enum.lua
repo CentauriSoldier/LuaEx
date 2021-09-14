@@ -1,9 +1,11 @@
-local pairs 		= pairs;
+local error			= error;
+local getmetatable	= getmetatable;
 local ipairs 		= ipairs;
-local type 			= type;
+local pairs 		= pairs;
 local string		= string;
-local tostring 		= tostring;
 local setmetatable 	= setmetatable;
+local tostring 		= tostring;
+local type 			= type;
 
 --[[
 ██╗░░░░░░█████╗░░█████╗░░█████╗░██╗░░░░░  ███████╗██╗░░░██╗███╗░░██╗░█████╗░████████╗██╗░█████╗░███╗░░██╗░██████╗
@@ -13,11 +15,29 @@ local setmetatable 	= setmetatable;
 ███████╗╚█████╔╝╚█████╔╝██║░░██║███████╗  ██║░░░░░╚██████╔╝██║░╚███║╚█████╔╝░░░██║░░░██║╚█████╔╝██║░╚███║██████╔╝
 ╚══════╝░╚════╝░░╚════╝░╚═╝░░╚═╝╚══════╝  ╚═╝░░░░░░╚═════╝░╚═╝░░╚══╝░╚════╝░░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═════╝░
 ]]
+
+local __type__ = type;
+
+function type(vObject)
+	local sType = __type__(vObject);
+
+	if (sType == "table") then
+		local tMeta = getmetatable(vObject);
+
+		if (tMeta and tMeta.__type) then
+			sType = tMeta.__type;
+		end
+
+	end
+
+	return sType;
+end
+
 local function formatName(sName)
 	local sRet = "";
 	local tString = sName:gsub("_", "_|"):delmitedtotable("|");
 
-	--go through string in the table
+	--go through each string in the table
 	for x = 1, #tString do
 		local sSubString = tString[x];
 
@@ -29,7 +49,6 @@ local function formatName(sName)
 
 			--lower or upper the char based on whether or not it's the first one of this substring
 			sRet = sRet..((y == 1) and sChar:upper() or sChar:lower());
-
 		end
 
 	end
@@ -70,7 +89,7 @@ local function namesAreValid(tInput)
 	--iterate through each name in the table
 	for k, v in pairs(tInput) do
 		nCount = nCount + 1;
-		local bIsValid = type(k) == "number" and k == nCount and type(v) == "string" and v:isvariablecompliant(true);
+		local bIsValid = __type__(k) == "number" and k == nCount and __type__(v) == "string" and v:isvariablecompliant(true);
 
 		--check the entry
 		if (not bIsValid) then
@@ -86,7 +105,7 @@ local function namesAreValid(tInput)
 end
 
 local function valuesAreValid(tValues)
-	local sValuesType = type(tValues);
+	local sValuesType = __type__(tValues);
 	local bRet = sValuesType == "table";
 
 	if (sValuesType == "table") then
@@ -95,7 +114,7 @@ local function valuesAreValid(tValues)
 		for vIndex, vItem in pairs(tValues) do
 			nIndexChecker = nIndexChecker + 1;
 
-			if (type(vIndex) ~= "number") then
+			if (__type__(vIndex) ~= "number") then
 				bRet = false;
 				break;
 			end
@@ -105,7 +124,7 @@ local function valuesAreValid(tValues)
 				break;
 			end
 
-			local sItemType = type(vItem);
+			local sItemType = __type__(vItem);
 
 			if (sItemType ~= "string"  	and sItemType ~= "number") then
 			--and sItemType ~= "table" 	and sItemType ~= "function") then
@@ -120,22 +139,7 @@ local function valuesAreValid(tValues)
 	return bRet;
 end
 
-local __type__ = type;
 
-function type(vObject)
-	local sType = __type__(vObject);
-
-	if (sType == "table") then
-		local tMeta = getmetatable(vObject);
-
-		if (tMeta and tMeta.__type) then
-			sType = tMeta.__type;
-		end
-
-	end
-
-	return sType;
-end
 
 --[[
 ███████╗███╗░░██╗██╗░░░██╗███╗░░░███╗
@@ -151,14 +155,14 @@ local function enum(sName, tInput, tValues)
 		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
 
 	--insure the name input is a string
-	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
+	assert(__type__(sName) == "string" and sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
 	--check that the name string can be a valid variable
 	assert(sName:isvariablecompliant(), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
 	--make sure the variable doesn't alreay exist
-	assert(type(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.")
+	assert(__type__(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.")
 	--check the names table
 	local bNamesAreValid, nItemCount = namesAreValid(tInput);
-	assert(type(tInput) == "table" and bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
+	assert(__type__(tInput) == "table" and bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
 
 	--keeps track of items by their id for simpler and quicker access
 	local tItemsByOrdinal	= {};
@@ -187,7 +191,7 @@ local function enum(sName, tInput, tValues)
 	tEnumData.__getByOrdinal = function(nID)
 		local oRet = nil;
 
-		if (type(nID) == "number" and type(tItemsByOrdinal[nID]) ~= "nil") then
+		if (__type__(nID) == "number" and __type__(tItemsByOrdinal[nID]) ~= "nil") then
 			oRet = tShadow[tItemsByOrdinal[nID]];
 		end
 
@@ -246,23 +250,23 @@ local function enum(sName, tInput, tValues)
 
 		--get the value to be set
 		local vValue = tCheckedValues[nID] or nID;
-		local sValueType = type(vValue);
+		local sValueType = __type__(vValue);
 
 		--create the item
 		local tItemData = {
 			id			= nID,
 			previous 	= function(oItem)
 				local nIndex = oItem.id - 1;
-				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
+				return __type__(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
 			end,
 			next 		= function(oItem)
 				local nIndex = oItem.id + 1;
-				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
+				return __type__(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
 			end,
 			name 		= sItem,
 			type		= tEnum,
 			typeOf 		= function(tEnumItem, tEnumObject)
-							return (type(tEnumObject) == "table") and (type(tEnumItem) == "table") and (tEnum == tEnumObject);
+							return (__type__(tEnumObject) == "table") and (__type__(tEnumItem) == "table") and (tEnum == tEnumObject);
 						end,
 			value 		= vValue,
 			valueType 	= sValueType,
@@ -286,3 +290,5 @@ local function enum(sName, tInput, tValues)
 	--put the enum into the global environment
 	_G[sName] = tEnum;
 end
+
+return enum;

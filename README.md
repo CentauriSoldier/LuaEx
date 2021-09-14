@@ -71,11 +71,11 @@ local maDrill = TOOL.DRILL;
 
 print("Printing All Items in the "..ANIMAL.__name.." enum:\r\n");
 for nID, oItem in ANIMAL() do
-	print(oItem.name.." is a "..oItem.type);
+	print(tostring(oItem).." ("..oItem.name..") is an "..tostring(oItem.type)..".");
 end
-
-print("Fact-check: A car is an animal - "..tostring(AUTO.CAR:typeOf(ANIMAL)));
-print("Fact-check: A "..maDrill.." is a "..TOOL.." - "..tostring(TOOL.__hasType(maDrill)));
+print("\r\n");
+print("Fact-check: A car is an "..tostring(ANIMAL).." - "..tostring(AUTO.CAR:typeOf(ANIMAL)));
+print("Fact-check: A "..tostring(maDrill).." is a "..tostring(TOOL).." - "..tostring(TOOL.__hasType(maDrill)));
 
 ```
 
