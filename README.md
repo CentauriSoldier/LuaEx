@@ -49,7 +49,7 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **value** The given (or default) value of the item
 - **valueType** The type of the value property
 
-### Item Methods
+#### Item Methods
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
 - **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
 - **typeOf** Determines whether or not the item is owned by a given enum 
