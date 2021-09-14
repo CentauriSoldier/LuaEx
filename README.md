@@ -43,9 +43,9 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **__tostring** Returns a pretty, formatted string of the enum name
 
 #### Item Properties
+- **enum** The enum which owns this item (as an enum)
 - **id** The ordinal value of the item
 - **name** The given name of the item (as a string)
-- **type** The name of the enum which owns this item (as a string)
 - **value** The given (or default) value of the item
 - **valueType** The type of the value property
 
