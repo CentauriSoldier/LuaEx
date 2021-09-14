@@ -43,12 +43,21 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **__tostring** Return a pretty, formatted string of the enum name
 
 #### Item Properties
-- id
+- **id** The ordinal value of the item
+- **name** The given name of the item (as a string)
+- **type** The enum which owns this item
+- **value** The given (or default) value of the item
+- **valueType** The type of the value property
 
-Item Methods
+### Item Methods
+- **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
+- **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
+- **typeOf** Determines whether or not the item is owned by a given enum 
+ 
+#### Item Metamethods
+#### None
 
-Item Metamethods
-
+----------
 
 ### base64 Module License
  -- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>

@@ -277,6 +277,8 @@ local function enum(sName, tInput, tValues)
 				__newindex 	= modifyError;
 				__tostring 	= function() return sFormattedName; end,
 				__type		= sName,
+				--__add
+				--__sub
 			}
 		);
 	end
