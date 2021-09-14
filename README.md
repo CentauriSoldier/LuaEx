@@ -55,7 +55,7 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **typeOf** Determines whether or not the item is owned by a given enum 
  
 #### Item Metamethods
-#### None
+- **__tostring** Return a pretty, formatted string of the item name
 
 #### Usage Examples
 
