@@ -40,7 +40,7 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 #### Enum Metamethods
 - **__call** Returns an iterator which returns the ordinal value and item object for each enum item
 - **__len** Same as the property, __count
-- **__tostring** Return a pretty, formatted string of the enum name
+- **__tostring** Returns a pretty, formatted string of the enum name
 
 #### Item Properties
 - **id** The ordinal value of the item
@@ -55,7 +55,7 @@ All Lua Keywords plus LuaEx keywords (const, enum)
 - **typeOf** Determines whether or not the item is owned by a given enum 
  
 #### Item Metamethods
-- **__tostring** Return a pretty, formatted string of the item name
+- **__tostring** Returns a pretty, formatted string of the item name
 
 #### Usage Examples
 
