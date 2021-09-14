@@ -9,7 +9,7 @@
 
  All code is placed in the public domain except where otherwise noted.
 
-----------
+
 
 # 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
 In order to push all the code in LuaEx into the global environment, place the LuaEx folder into your package path and run the following code:
@@ -17,6 +17,7 @@ In order to push all the code in LuaEx into the global environment, place the Lu
 require("LuaEx.init");
 ``` 
 From here on out, all modules of LuaEx will be available in the global environment.
+
 
 # 🅼🅾🅳🆄🅻🅴🆂
 
