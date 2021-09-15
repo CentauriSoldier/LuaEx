@@ -31,7 +31,7 @@ base64 Module License
  -- licensed under the terms of the LGPL2
 
 
-## <a href="#">🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸</a>​​​​​
+## <a name="class">🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸</a>​​​​​
 Description in Progress 
 
 ## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​
@@ -135,7 +135,7 @@ Description in Progress
 ## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
 #### Description
-As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
+As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](#class) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
 
 #### Functions
 
