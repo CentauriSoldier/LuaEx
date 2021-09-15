@@ -1,21 +1,21 @@
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
-# 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
+#🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
 
 Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
 
-# 🆅🅴🆁🆂🅸🅾🅽
+#🆅🅴🆁🆂🅸🅾🅽
 
 Alpha 0.2
 
-# 🅻🅸🅲🅴🅽🆂🅴
+#🅻🅸🅲🅴🅽🆂🅴
 
 All code is placed in the public domain except where otherwise noted using [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense").
 
-# 🆆🅰🆁🆁🅰🅽🆃🆈
+#🆆🅰🆁🆁🅰🅽🆃🆈
 None. Use at your own risk.
 
-# 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
+#🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
 In order to push all the code in LuaEx into the global environment, place the LuaEx folder into your package path and run the following code:
 ```lua
 require("LuaEx.init");
@@ -23,29 +23,29 @@ require("LuaEx.init");
 From here on out, all modules of LuaEx will be available in the global environment.
 
 
-# 🅼🅾🅳🆄🅻🅴🆂
+#🅼🅾🅳🆄🅻🅴🆂
 
-## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
+##🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 base64 Module License
  -- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
  -- licensed under the terms of the LGPL2
 
 
-## <a name="class">🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸</a>​​​​​
+##🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
 Description in Progress 
 
-## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​
+##🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​
 Description in Progress 
 
-## 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
+##🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 Description in Progress 
 
-## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
+##🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
 
-#### Description
+####Description
 Brings enums to lua. While they do do not possess every feature you have come to expect in OOP, I have tried to make their behavior as close to actual enums as possible. 
 
-#### Features
+####Features
 - **Immutability**
 - **Robust Type Checking**
 - **Helper Methods/Metamethods**
@@ -55,43 +55,43 @@ Brings enums to lua. While they do do not possess every feature you have come to
 - **Enum Items Accessible By Either Name Or Ordinal**
 
 
-#### Reserved Enum Names
+####Reserved Enum Names
 All Lua Keywords plus LuaEx keywords (***const***, ***enum***) 
 
-#### Reserved Enum Item Names
+####Reserved Enum Item Names
 - **__count**
 - **__hasA**
 - **__name**
 
-#### Enum Properties
+####Enum Properties
 - **__count** The total number of items in the enum (*number*)
 - **__name** The name of the enum (*string*)
 
-#### Enum Methods
+####Enum Methods
 - **__hasA**	Determines whether or not this enum has a a given item (*boolean*)
 
-#### Enum Metamethods
+####Enum Metamethods
 - **__call** Returns an iterator which returns the ordinal value and item object for each enum item (*iterator*)
 - **__len** Same as the property, __count (*number*)
 - **__tostring** Returns a pretty, formatted string of the enum name (*string*)
 
-#### Item Properties
+####Item Properties
 - **enum** The enum which owns this item (*enum*)
 - **id** The ordinal value of the item (*number*)
 - **name** The given name of the item (*string*)
 - **value** The given (or default) value of the item (string or number)
 - **valueType** The type of the value property (string or number)
 
-#### Item Methods
+####Item Methods
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
 - **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
 - **isA** Determines whether or not the item exists in a given enum 
 - **isSibling** Determines whether or not the first item and the second item are in the same enum
  
-#### Item Metamethods
+####Item Metamethods
 - **__tostring** Returns a pretty, formatted string of the item name
 
-#### Usage Examples
+####Usage Examples
 
 ```lua
 
@@ -129,18 +129,18 @@ print("Get the first ("..AUTO[1].name..") and last ("..AUTO[AUTO.__count].name..
 
 ```
 
-## 🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​
+##🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​
 Description in Progress
 
-## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
+##🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
-#### Description
-As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](#class) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
+####Description
+As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](##class) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
 
-#### Functions
+####Functions
 
-## 🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
+##🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
 Description in Progress
 
-## 🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​
+##🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​
 Description in Progress
