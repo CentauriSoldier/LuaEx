@@ -232,3 +232,4 @@ end
 
 local const = tConst.create;
 return const;
+--TOTO check for const keyword and, if present, exlcude this module.

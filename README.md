@@ -31,7 +31,7 @@ base64 Module License
  -- licensed under the terms of the LGPL2
 
 
-## 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
+## <a href="#">🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸</a>​​​​​
 Description in Progress 
 
 ## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​
@@ -41,6 +41,9 @@ Description in Progress
 Description in Progress 
 
 ## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
+
+#### Description
+Brings enums to lua. While they do do not possess every feature you have come to expect in OOP, I have tried to make their behavior as close to actual enums as possible. 
 
 #### Features
 - **Immutability**
@@ -130,7 +133,11 @@ print("Get the first ("..AUTO[1].name..") and last ("..AUTO[AUTO.__count].name..
 Description in Progress
 
 ## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
-Description in Progress
+
+#### Description
+As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
+
+#### Functions
 
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
 Description in Progress
