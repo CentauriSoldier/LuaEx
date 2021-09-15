@@ -1,34 +1,34 @@
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
-# 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
+## 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
 
 Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
 
-# 🆅🅴🆁🆂🅸🅾🅽
+## 🆅🅴🆁🆂🅸🅾🅽
 
 Alpha 0.2
 
-# 🅻🅸🅲🅴🅽🆂🅴
+## 🅻🅸🅲🅴🅽🆂🅴
 
 All code is placed in the public domain except where otherwise noted using [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense").
 
-# 🆆🅰🆁🆁🅰🅽🆃🆈
+## 🆆🅰🆁🆁🅰🅽🆃🆈
 None. Use at your own risk.
 
-# 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
+## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
 In order to push all the code in LuaEx into the global environment, place the LuaEx folder into your package path and run the following code:
 ```lua
 require("LuaEx.init");
-``` 
+```
 From here on out, all modules of LuaEx will be available in the global environment.
 
 
-# 🅼🅾🅳🆄🅻🅴🆂
+## 🅼🅾🅳🆄🅻🅴🆂
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 
 #### Description
-Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](https://en.wikipedia.org/wiki/Base64) strings. 
+Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](https://en.wikipedia.org/wiki/Base64) strings.
 
 #### Functions
 - **base64.enc(string)**
@@ -40,10 +40,10 @@ Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](h
 
 
 ## 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
-Description in Progress 
+Description in Progress
 
 ## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​
-Description in Progress 
+Description in Progress
 
 ## 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
@@ -59,7 +59,7 @@ Used to reverse the process done by the 🇸​​​​​🇪​​​​​�
 ## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
 
 #### Description
-Brings enums to lua. While they do do not possess every feature you have come to expect in OOP, I have tried to make their behavior as close to actual enums as possible. 
+Brings enums to lua. While they do do not possess every feature you have come to expect in OOP, I have tried to make their behavior as close to actual enums as possible.
 
 #### Features
 - **Immutability**
@@ -72,7 +72,7 @@ Brings enums to lua. While they do do not possess every feature you have come to
 
 
 #### Reserved Enum Names
-All Lua Keywords plus LuaEx keywords (***const***, ***enum***) 
+All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
 
 #### Reserved Enum Item Names
 - **__count**
@@ -101,9 +101,9 @@ All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
 #### Item Methods
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
 - **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
-- **isA** Determines whether or not the item exists in a given enum 
+- **isA** Determines whether or not the item exists in a given enum
 - **isSibling** Determines whether or not the first item and the second item are in the same enum
- 
+
 #### Item Metamethods
 - **__tostring** Returns a pretty, formatted string of the item name
 
