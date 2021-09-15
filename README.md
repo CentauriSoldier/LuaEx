@@ -135,7 +135,7 @@ Description in Progress
 ## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
 #### Description
-As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](##🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
+As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](##-🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
 
 #### Functions
 
