@@ -32,7 +32,7 @@ Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](h
 
 #### Functions
 - **base64.enc(string)**
-- **base64.dex(string)**
+- **base64.dec(string)**
 
 **base64 Module License**
 - Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
