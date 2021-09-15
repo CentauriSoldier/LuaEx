@@ -26,9 +26,17 @@ From here on out, all modules of LuaEx will be available in the global environme
 # 🅼🅾🅳🆄🅻🅴🆂
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
-base64 Module License
- -- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
- -- licensed under the terms of the LGPL2
+
+#### Description
+Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](https://en.wikipedia.org/wiki/Base64) strings. 
+
+#### Functions
+- **base64.enc(string)**
+- **base64.dex(string)**
+
+**base64 Module License**
+- Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
+- licensed under the terms of the [LGPL2](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
 
 ## 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
@@ -38,7 +46,15 @@ Description in Progress
 Description in Progress 
 
 ## 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
-Description in Progress 
+
+#### Description
+Used to reverse the process done by the 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪 module.
+
+#### Functions
+- **deserialize.boolean(string)**
+- **deserialize.number(string)**
+- **deserialize.string(string)**
+- **deserialize.table(string)**
 
 ## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
 
@@ -135,9 +151,13 @@ Description in Progress
 ## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
 #### Description
-As the title suggests, this module converts various types to string. If you use the [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸](##-🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸) module, you can create custom serialization for each of your classes. Use can use the Deserialize module to reverse the process performed by this module.
+As the title suggests, this module converts various types to a storable string. If you use the 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸 module, you can create custom serialization for each of your classes. You can use the 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪 module to reverse the process performed by this module.
 
 #### Functions
+- **serialize.boolean(boolean)**
+- **serialize.number(number)**
+- **serialize.string(string)**
+- **serialize.table(table)**
 
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
 Description in Progress
