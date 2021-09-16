@@ -98,22 +98,25 @@ local function checkForReservedIndex(sInput)
 end
 
 local function namesAreValid(tInput)
-	local bRet = true;
-	local nCount = 0;
+	local bRet 		= true;
+	local nCount 	= 0;
 
-	--iterate through each name in the table
-	for k, v in pairs(tInput) do
-		nCount = nCount + 1;
-		local bIsValid = type(k) == "number" and k == nCount and type(v) == "string" and isvariablecompliant(v, true);
+	if (type(tInput) == "table") then
+		--iterate through each name in the table
+		for k, v in pairs(tInput) do
+			nCount = nCount + 1;
+			local bIsValid = type(k) == "number" and k == nCount and type(v) == "string" and isvariablecompliant(v, true);
 
-		--check the entry
-		if (not bIsValid) then
-			bRet = false;
-			break;
+			--check the entry
+			if (not bIsValid) then
+				bRet = false;
+				break;
+			end
+
+			--make sure no reserved indices were input
+			checkForReservedIndex(v);
 		end
 
-		--make sure no reserved indices were input
-		checkForReservedIndex(v);
 	end
 
 	return (bRet and nCount > 0), nCount;
@@ -164,21 +167,32 @@ end
 ███████╗██║░╚███║╚██████╔╝██║░╚═╝░██║
 ╚══════╝╚═╝░░╚══╝░╚═════╝░╚═╝░░░░░╚═╝
 ]]
-local function enum(sName, tInput, tValues)
+local function enum(sName, tNames, tValues, bPrivate)
+	sName 		= type(sName) 		== "string" 	and sName 		or "";
+	tNames 		= type(tNames) 		== "table" 		and tNames 		or nil;
+	tValues		= type(tValues) 	== "table" 		and tValues 	or {};
+	bPrivate 	= type(bPrivate) 	== "boolean" 	and bPrivate 	or false;
+
 
 	--[[█░█ ▄▀█ █▀█ █ ▄▀█ █▄▄ █░░ █▀▀   █▀▀ █░█ █▀▀ █▀▀ █▄▀   ▄▀█ █▄░█ █▀▄   █▀ █▀▀ ▀█▀ █░█ █▀█
 		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
-	local tValues = _G.__LUAEX_PROTECTED__;
+	local tProtected = _G.__LUAEX_PROTECTED__;
 
 	--insure the name input is a string
-	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
-	--check that the name string can be a valid variable
-	assert(isvariablecompliant(sName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
-	--make sure the variable doesn't alreay exist
-	assert(type(_G[sName]) == "nil" and type(tValues[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
+	assert(sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank;")--input value is '"..tostring(sName).."' of type "..type(sName));
+
+	--check the name
+	if (not bPrivate) then
+		--check that the name string can be a valid variable
+		assert(isvariablecompliant(sName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
+		--make sure the variable doesn't alreay exist
+		assert(type(_G[sName]) == "nil" and type(tProtected[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
+	end
+
+
 	--check the names table
-	local bNamesAreValid, nItemCount = namesAreValid(tInput);
-	assert(type(tInput) == "table" and bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
+	local bNamesAreValid, nItemCount = namesAreValid(tNames);
+	assert(bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
 
 	--keeps track of items by their id for simpler and quicker access
 	local tItemsByOrdinal	= {};
@@ -240,7 +254,7 @@ local function enum(sName, tInput, tValues)
 		██▄ █░▀█ █▄█ █░▀░█   █ ░█░ ██▄ █░▀░█ ▄█]]
 
 	--process each enum item
-	for nID, sItem in ipairs(tInput) do--ipairs preserves the enum items' input order
+	for nID, sItem in ipairs(tNames) do--ipairs preserves the enum items' input order
 		local tItemShadow = {};
 
 		--create the item's formatted name
@@ -296,8 +310,12 @@ local function enum(sName, tInput, tValues)
 		tEnumData[nID] = tItemObject;
 	end
 
-	--put the enum into the global environment
-	tValues[sName] = tEnum;
+	if (not bPrivate) then
+		--put the enum into the global environment
+		tProtected[sName] = tEnum;
+	end
+
+	return tEnum;
 end
 
 return enum;

@@ -6,9 +6,14 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
-#### Alpha v0.3
+#### Alpha v0.4
 
 ##### Changelog
+
+	0.4
+	Bugfix: typo that caused global enums to not be put into the global environment.
+	Feature: enums can now also be private.
+	Feature: the enum created by a call to the enum function is now returned.
 
 	v0.3
 	Hardened the protected table to prevent accidental tampering.
