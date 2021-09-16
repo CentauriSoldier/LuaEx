@@ -52,7 +52,7 @@ For more information, please refer to <http://unlicense.org/>
 		<b>0.4</b>
 		<br>
 		<p>Bugfix: typo that caused enum to not be put into the global environment.</p>
-		<p>Feature: enums can now also be private.</p>
+		<p>Feature: enums can now also be non-global.</p>
 		<p>Feature: the enum created by a call to the enum function are now returned.</p>
 	</li>
 	<li>

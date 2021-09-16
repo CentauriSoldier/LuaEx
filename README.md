@@ -12,7 +12,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 	v0.4
 	Bugfix: typo that caused global enums to not be put into the global environment.
-	Feature: enums can now also be private.
+	Feature: enums can now also be non-global.
 	Feature: the enum created by a call to the enum function is now returned.
 
 	v0.3
@@ -194,6 +194,11 @@ print("Fact-check: A (Creature) "..CREATURE.FROG.name.." and (Creature) "..CREAT
 print("Get a "..CREATURE.FROG.name.." by name ("..CREATURE.FROG.name..") and by ordinal ("..CREATURE[3].id..")");
 print("Get the first ("..AUTO[1].name..") and last ("..AUTO[AUTO.__count].name..") items in "..AUTO.__name..".");
 
+--you can also create non-global enums
+local tMyTable = {
+	MY_COOL_ENUM 		= enum("MU_ENUM", 			{"STUFF", "THINGS", "ITEMS"}, nil, 			true),
+	MY_OTHER_COOL_ENUM 	= enum("MU__OTHER_ENUM", 	{"STUFF", "THINGS", "ITEMS"}, {1, 7, 99}, 	true),
+};
 ```
 
 ## 🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​
