@@ -80,7 +80,7 @@ Description in Progress
 #### Description
 Allows the creation of constants in lua. Once set, these global values cannot be changed or deleted.
 
-#### Usage
+#### Usage Example
 ```lua
 --constant(string, *)
 constant(I_LOVE_LUA, "No you don't!");
@@ -159,7 +159,7 @@ All Lua Keywords plus LuaEx keywords (***constant***, ***enum***)
 #### Item Metamethods
 - **__tostring** Returns a pretty, formatted string of the item name
 
-#### Usage Examples
+#### Usage Example
 
 ```lua
 
@@ -196,7 +196,7 @@ print("Get the first ("..AUTO[1].name..") and last ("..AUTO[AUTO.__count].name..
 
 --you can also create non-global enums
 local tMyTable = {
-	MY_COOL_ENUM 		= enum("MU_ENUM", 		{"STUFF", "THINGS", "ITEMS"}, nil, 			true),
+	MY_COOL_ENUM 		= enum("MU_ENUM", 		{"STUFF", "THINGS", "ITEMS"}, nil, 		true),
 	MY_OTHER_COOL_ENUM 	= enum("MU__OTHER_ENUM", 	{"STUFF", "THINGS", "ITEMS"}, {1, 7, 99}, 	true),
 };
 ```
