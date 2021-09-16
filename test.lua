@@ -17,7 +17,8 @@ enum("SIM", {"CAM", "TV", "PC"});
 --print(tostring(SIM))
 
 --p(SIM);
-p(SIM.TV)
+p(SIM.TV.value)
+SIM.TV.value = 5
 --SIM = 4;
 --p(SIM);
 --k = 5

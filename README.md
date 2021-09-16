@@ -6,7 +6,22 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 ## 🆅🅴🆁🆂🅸🅾🅽
 
-Alpha 0.2
+#### Alpha v0.3
+
+##### Changelog
+
+	v0.3
+	Added a meta table to _G in the init module.
+	Changed the name of the const module and function to constant for lua 5.1 - 5.4 compatibility.
+	Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.
+	Updated several modules.
+
+	v0.2
+	Added the enum object.
+	Updated a few modules.
+
+	v0.1
+	Compiled various modules into LuaEx.
 
 ## 🅻🅸🅲🅴🅽🆂🅴
 
@@ -42,8 +57,27 @@ Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](h
 ## 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
 Description in Progress
 
-## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​
-Description in Progress
+## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​🇦​​​​​🇳​​​​​🇹​​​​​
+
+#### Description
+Allows the creation of constants in lua. Once set, these global values cannot be changed or deleted.
+
+Usage
+```lua
+--constant(string, *)
+constant(I_LOVE_LUA, "No you don't!");
+constant(MAX_CHAIRS_ALLOWED, 42);
+constant(THE_ANSWER_TO_THE_UNIVERSE_AND_EVERYTHING, MAX_CHAIRS_ALLOWED);
+
+print(I_LOVE_LUA);
+print(MAX_CHAIRS_ALLOWED);
+print(THE_ANSWER_TO_THE_UNIVERSE_AND_EVERYTHING);
+
+--try to break it by uncommenting one of the items below
+--I_LOVE_LUA = "Yuhu!";
+--I_LOVE_LUA = nil;
+
+```
 
 ## 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 

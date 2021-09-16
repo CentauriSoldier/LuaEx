@@ -3,7 +3,7 @@ local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
 				   "nil", "not", "or", "repeat", "return", "then",
 				   "true", "until", "while",
 				   --LuaEx keywords
-				   "const","enum"
+				   "constant","enum"
 			   };
 local nKeywords = #tKeyWords;
 

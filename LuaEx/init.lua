@@ -45,9 +45,17 @@ For more information, please refer to <http://unlicense.org/>
 @todo
 @usage
 	<h2>Coming Soon</h2>
-@version 0.2
+@version 0.3
 @versionhistory
 <ul>
+	<li>
+	<b>0.3/b>
+	<br>
+	<p>Added a meta table to _G in the init module.</p>
+	<p>Changed the name of the const module and function to constant for lua 5.1-5.4 compatibility.</p>
+	<p>Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.</p>
+	<p>Updated several modules.</p>
+	</li>
 	<li>
 		<b>0.2/b>
 		<br>
