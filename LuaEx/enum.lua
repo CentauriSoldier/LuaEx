@@ -233,6 +233,7 @@ local function enum(sName, tInput, tValues)
 		__tostring 	= function() return sFormattedEnumName; end,
 		__len		= nItemCount;
 		__type		= "enum",
+		__metatable = false,
 	});
 
 	--[[█▀▀ █▄░█ █░█ █▀▄▀█   █ ▀█▀ █▀▀ █▀▄▀█ █▀
@@ -286,6 +287,7 @@ local function enum(sName, tInput, tValues)
 				__type		= sName,
 				--__add
 				--__sub
+				__metatable = false,
 			}
 		);
 
@@ -295,7 +297,7 @@ local function enum(sName, tInput, tValues)
 	end
 
 	--put the enum into the global environment
-	rawset(tValues, sName, tEnum);
+	tValues[sName] = tEnum;
 end
 
 return enum;

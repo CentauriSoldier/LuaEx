@@ -18,10 +18,13 @@ enum("SIM", {"CAM", "TV", "PC"});
 
 --p(SIM);
 p(SIM.TV.value)
-SIM.TV.value = 5
+--.TV.value = 5
 --SIM = 4;
 --p(SIM);
 --k = 5
 --k =7
 --p(_G["SIM"]);
 --SIM = 5
+
+--_G.__LUAEX_PROTECTED__.SIM = 45;
+--_G.__LUAEX_PROTECTED__.constant = 12;

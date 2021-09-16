@@ -1,5 +1,7 @@
 local __type__ = type;
 
+rawtype = __type__;
+
 function type(vObject)
 	local sType = __type__(vObject);
 

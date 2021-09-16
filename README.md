@@ -11,6 +11,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 ##### Changelog
 
 	v0.3
+	Hardened the protected table to prevent accidental tampering.
 	Added a meta table to _G in the init module.
 	Changed the name of the const module and function to constant for lua 5.1 - 5.4 compatibility.
 	Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.
@@ -25,7 +26,19 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 ## 🅻🅸🅲🅴🅽🆂🅴
 
-All code is placed in the public domain except where otherwise noted using [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense").
+All code is placed in the public domain under [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense") *(except where otherwise noted)*.
+
+##🅲🅷🅰🅶🅴🆂 🆃🅾 🅻🆄🅰
+
+#### The Global Environment
+
+_G has been given a metatable that monitors the protected values (such as enums and constants).
+
+#### Custom Types
+
+Adding a **__type** field to any metatable and assigning a string value to it creates a custom object type. In order to achive this, the lua function, **type**, has been hooked. If you'd like to get the type of something, ignoring LuaEx's custom type feature, simply use the **rawtype** function.
+
+
 
 ## 🆆🅰🆁🆁🅰🅽🆃🆈
 None. Use at your own risk.
@@ -62,7 +75,7 @@ Description in Progress
 #### Description
 Allows the creation of constants in lua. Once set, these global values cannot be changed or deleted.
 
-Usage
+#### Usage
 ```lua
 --constant(string, *)
 constant(I_LOVE_LUA, "No you don't!");

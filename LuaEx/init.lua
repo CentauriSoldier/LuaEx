@@ -51,6 +51,7 @@ For more information, please refer to <http://unlicense.org/>
 	<li>
 	<b>0.3/b>
 	<br>
+	<p>Hardened the protected table to prevent accidental tampering.</p>
 	<p>Added a meta table to _G in the init module.</p>
 	<p>Changed the name of the const module and function to constant for lua 5.1-5.4 compatibility.</p>
 	<p>Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.</p>
@@ -81,7 +82,24 @@ of the global environment.
 ]]
 
 --create the 'protected' table used by LuaEx
-_G.__LUAEX_PROTECTED__ = {};
+local tProtectedData = {};
+
+_G.__LUAEX_PROTECTED__ = setmetatable({}, {
+	__index 	= tProtectedData,
+	__newindex 	= function(t, k, v)
+
+		if tProtectedData[k] then
+			error("Attempt to overwrite __LUAEX_PROTECTED__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .")
+		end
+
+		rawset(tProtectedData, k, v);
+	end,
+	__metatable = false,
+});
+
+
+
+local tProtected = _G.__LUAEX_PROTECTED__;
 
 --update the package.path
 package.path = package.path..";LuaEx\\?.lua";
@@ -103,9 +121,13 @@ local function import(sFile)
 	return require(sPath..'.'..sFile);
 end
 
+--_G.__LUAEX_PROTECTED__.constant = fConstant;
+
 --import core modules
-_G.__LUAEX_PROTECTED__.constant = import("constant");
-_G.__LUAEX_PROTECTED__.enum 	= import("enum");
+--local fConstant = import("constant");
+rawset(tProtectedData, "constant", 	import("constant"));
+rawset(tProtectedData, "enum", 		import("enum"));
+
 import("stdlib");
 
 --setup the global environment to properly manage enums, constant and their ilk
