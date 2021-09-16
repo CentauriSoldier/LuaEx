@@ -63,9 +63,25 @@ For more information, please refer to <http://unlicense.org/>
 @website https://github.com/CentauriSoldier/LuaEx
 *]]
 
+--[[
+Defaulted is true, this protects
+enum and const values from being
+overwritten (except by using
+rawget/rawset. of course). Set
+this to false to prevent alteration
+of the global environment.
+]]
+
+--create the 'protected' table used by LuaEx
+_G.__LUAEX_PROTECTED__ = {};
+
+--update the package.path
+package.path = package.path..";LuaEx\\?.lua";
+
 --warn the user if debug is missing
 assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
 
+--TODO do i need this part?
 --determine the call location
 local sPath = debug.getinfo(1, "S").source;
 --remove the calling filename
@@ -79,21 +95,36 @@ local function import(sFile)
 	return require(sPath..'.'..sFile);
 end
 
---core modules
-const 				= import("const");
+--import core modules
+_G.__LUAEX_PROTECTED__.constant = import("constant");
+_G.__LUAEX_PROTECTED__.enum 	= import("enum");
+import("stdlib");
+
+--setup the global environment to properly manage enums, constant and their ilk
+setmetatable(_G,
+	{--TODO check for existing meta _G table.
+		__newindex = function(t, k, v)
+
+		--make sure functions such as constant, enum, etc., constant values and enums values aren't being overwritten
+		if _G.__LUAEX_PROTECTED__[k] then
+			error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.__LUAEX_PROTECTED__[k])..") with '"..tostring(v).."' ("..type(v)..").");
+		end
+
+		rawset(t, k, v);
+		end,
+		__metatable = false,
+		__index = _G.__LUAEX_PROTECTED__,
+	}
+);
+
 class, interface 	= import("class");
 base64				= import("base64");
 
---lua extension modules
+--import lua extension modules
 import("math");
 import("string");
 import("table");
 
---other modules
+--import other modules
 serialize 			= import("serialize");
 deserialize 		= import("deserialize");
-
-enum 				= import("enum");
-
---useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
-LUAEX_INIT = true;

@@ -1,9 +1,26 @@
-package.path = package.path..";LuaEx\\?.lua;..\\?.lua;?.lua";
+--package.path = package.path..";LuaEx\\?.lua;..\\?.lua;?.lua";
+package.path = package.path..";LuaEx\\?.lua";
 require("init");
-local p = print;
+local p = function(v)
+	print(tostring(v).. " ("..type(v)..")")
+end
 
+--p(_VERSION)
+--p(enum)
+--enum = 6;
+constant("SCREEN_WIDTH", 563);
+p(SCREEN_WIDTH);
+--SCREEN_WIDTH = {};
+--p(_G["enum"])
 enum("SIM", {"CAM", "TV", "PC"});
-p(SIM.CAM.name);
-print(tostring(SIM.CAM))
+--enum = 44
+--print(tostring(SIM))
 
-print(type(p))
+--p(SIM);
+p(SIM.TV)
+--SIM = 4;
+--p(SIM);
+--k = 5
+--k =7
+--p(_G["SIM"]);
+--SIM = 5

@@ -15,23 +15,41 @@ local type 			= type;
 ███████╗╚█████╔╝╚█████╔╝██║░░██║███████╗  ██║░░░░░╚██████╔╝██║░╚███║╚█████╔╝░░░██║░░░██║╚█████╔╝██║░╚███║██████╔╝
 ╚══════╝░╚════╝░░╚════╝░╚═╝░░╚═╝╚══════╝  ╚═╝░░░░░░╚═════╝░╚═╝░░╚══╝░╚════╝░░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═════╝░
 ]]
+local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
+				   "false", "for", "function", "if", "in", "local",
+				   "nil", "not", "or", "repeat", "return", "then",
+				   "true", "until", "while",
+				   --LuaEx keywords
+				   "const","enum"
+			   };
+local nKeywords = #tKeyWords;
 
-local __type__ = type;
+local function isvariablecompliant(sInput, bSkipKeywordCheck)
+	local bRet = false;
+	local bIsKeyWord = false;
 
-function type(vObject)
-	local sType = __type__(vObject);
+	--make certain it's not a keyword
+	if (not bSkipKeywordCheck) then
+		for x = 1, nKeywords do
 
-	if (sType == "table") then
-		local tMeta = getmetatable(vObject);
+			if sInput == tKeyWords[x] then
+				bIsKeyWord = true;
+				break;
+			end
 
-		if (tMeta and tMeta.__type) then
-			sType = tMeta.__type;
 		end
 
 	end
 
-	return sType;
+	if (not bIsKeyWord) then
+		bRet =	(sInput ~= "")	 			and
+				(not sInput:match("^%d")) 	and
+				(not sInput:gsub("_", ""):match("[%W]"));
+	end
+
+	return bRet;
 end
+
 
 local function formatName(sName)
 	local sRet = "";
@@ -86,7 +104,7 @@ local function namesAreValid(tInput)
 	--iterate through each name in the table
 	for k, v in pairs(tInput) do
 		nCount = nCount + 1;
-		local bIsValid = type(k) == "number" and k == nCount and type(v) == "string" and v:isvariablecompliant(true);
+		local bIsValid = type(k) == "number" and k == nCount and type(v) == "string" and isvariablecompliant(v, true);
 
 		--check the entry
 		if (not bIsValid) then
@@ -150,13 +168,14 @@ local function enum(sName, tInput, tValues)
 
 	--[[█░█ ▄▀█ █▀█ █ ▄▀█ █▄▄ █░░ █▀▀   █▀▀ █░█ █▀▀ █▀▀ █▄▀   ▄▀█ █▄░█ █▀▄   █▀ █▀▀ ▀█▀ █░█ █▀█
 		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
+	local tValues = _G.__LUAEX_PROTECTED__;
 
 	--insure the name input is a string
 	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
 	--check that the name string can be a valid variable
-	assert(sName:isvariablecompliant(), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
+	assert(isvariablecompliant(sName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
 	--make sure the variable doesn't alreay exist
-	assert(type(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.")
+	assert(type(_G[sName]) == "nil" and type(tValues[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
 	--check the names table
 	local bNamesAreValid, nItemCount = namesAreValid(tInput);
 	assert(type(tInput) == "table" and bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
@@ -276,7 +295,7 @@ local function enum(sName, tInput, tValues)
 	end
 
 	--put the enum into the global environment
-	_G[sName] = tEnum;
+	rawset(tValues, sName, tEnum);
 end
 
 return enum;

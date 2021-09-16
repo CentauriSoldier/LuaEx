@@ -1,6 +1,5 @@
-assert(type(const) == "function", "const has not been loaded.");
-MATH 		= const("MATH");
-MATH.UNDEF	= "undefined";
+local constant = _G.__LUAEX_PROTECTED__.constant;
+constant("MATH_UNDEF", "undefined");
 
 --the Eucclidian algorithm for finding the gcf
 --[[local function eucclidiangcf(nDividend, nDivisor)
