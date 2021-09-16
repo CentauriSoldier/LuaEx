@@ -15,9 +15,8 @@ constant("SCREEN_WIDTH", 563);
 enum("SIM", {"CAM", "TV", "PC"});
 --enum = 44
 --print(tostring(SIM))
-
 --p(SIM);
-p(SIM.__count)
+--p(SIM.__count)
 --.TV.value = 5
 --SIM = 4;
 --p(SIM);
