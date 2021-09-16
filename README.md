@@ -131,10 +131,10 @@ All Lua Keywords plus LuaEx keywords (***constant***, ***enum***)
 - **__name** The name of the enum (*string*)
 
 #### Enum Methods
-- **__hasA**	Determines whether or not this enum has a a given item (*boolean*)
+- **__hasA**	Determines whether or not this enum has a given item (*boolean*)
 
 #### Enum Metamethods
-- **__call** Returns an iterator which returns the ordinal value and item object for each enum item (*iterator*)
+- **__call** Returns an iterator which returns the ordinal value and item object on each iteration (*iterator*)
 - **__len** Same as the property, __count (*number*)
 - **__tostring** Returns a pretty, formatted string of the enum name (*string*)
 
@@ -143,7 +143,7 @@ All Lua Keywords plus LuaEx keywords (***constant***, ***enum***)
 - **id** The ordinal value of the item (*number*)
 - **name** The given name of the item (*string*)
 - **value** The given (or default) value of the item (string or number)
-- **valueType** The type of the value property (string or number)
+- **valueType** The type of the value property (string)
 
 #### Item Methods
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
