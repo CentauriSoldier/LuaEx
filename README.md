@@ -1,10 +1,10 @@
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
-## 🔬 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓
+## 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓ 🔬
 
 Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
 
-## ⚗ 🆅🅴🆁🆂🅸🅾🅽
+## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
 #### Alpha v0.3
 
@@ -24,11 +24,11 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 	v0.1
 	Compiled various modules into LuaEx.
 
-## © 🅻🅸🅲🅴🅽🆂🅴
+## 🅻🅸🅲🅴🅽🆂🅴 ©
 
 All code is placed in the public domain under [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense") *(except where otherwise noted)*.
 
-## 🛠 🅲🅷🅰🅽🅶🅴🆂 🆃🅾 🅻🆄🅰
+## 🅲🅷🅰🅽🅶🅴🆂 🆃🅾 🅻🆄🅰 🛠
 
 #### The Global Environment
 
@@ -40,10 +40,10 @@ Adding a **__type** field to any metatable and assigning a string value to it cr
 
 
 
-## 🗞 🆆🅰🆁🆁🅰🅽🆃🆈
-💣 None. Use at your own risk.
+## 🆆🅰🆁🆁🅰🅽🆃🆈 🗞
+None. Use at your own risk. 💣
 
-## 🚀 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳
+## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
 In order to push all the code in LuaEx into the global environment, place the LuaEx folder into your package path and run the following code:
 ```lua
 require("LuaEx.init");
@@ -51,7 +51,7 @@ require("LuaEx.init");
 From here on out, all modules of LuaEx will be available in the global environment.
 
 
-## ⚙ 🅼🅾🅳🆄🅻🅴🆂
+## 🅼🅾🅳🆄🅻🅴🆂 ⚙
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 
