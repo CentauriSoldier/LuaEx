@@ -119,7 +119,7 @@ Brings enums to lua. While they do do not possess every feature you have come to
 
 
 #### Reserved Enum Names
-All Lua Keywords plus LuaEx keywords (***const***, ***enum***)
+All Lua Keywords plus LuaEx keywords (***constant***, ***enum***)
 
 #### Reserved Enum Item Names
 - **__count**
