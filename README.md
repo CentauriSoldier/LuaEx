@@ -28,7 +28,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 All code is placed in the public domain under [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense") *(except where otherwise noted)*.
 
-## 🅲🅷🅰🅶🅴🆂 🆃🅾 🅻🆄🅰
+## 🅲🅷🅰🅽🅶🅴🆂 🆃🅾 🅻🆄🅰
 
 #### The Global Environment
 
