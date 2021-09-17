@@ -247,7 +247,6 @@ local function enum(sName, tNames, tValues, bPrivate)
 		__tostring 	= function() return sFormattedEnumName; end,
 		__len		= nItemCount;
 		__type		= "enum",
-		__metatable = false,
 	});
 
 	--[[█▀▀ █▄░█ █░█ █▀▄▀█   █ ▀█▀ █▀▀ █▀▄▀█ █▀
@@ -301,7 +300,6 @@ local function enum(sName, tNames, tValues, bPrivate)
 				__type		= sName,
 				--__add
 				--__sub
-				__metatable = false,
 			}
 		);
 

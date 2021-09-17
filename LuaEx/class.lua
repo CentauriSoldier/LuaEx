@@ -53,17 +53,6 @@ local metanames = {
 	__unm 		= true;
 };
 
--- have type(v) check the metatable for a __type field first
-local __type = type;
-type = function(v)
-	local mt = getmetatable(v);
-	if (mt and __type(mt) == "table" and mt.__type) then
-		return mt.__type;
-	end
-
-	return __type(v);
-end;
-
 -- the generic class constructor, which also invokes your __construct method if it exists
 local function class_ctor(class, ...)
 	assert(type(class) == "class", "cannot construct, invalid class");
@@ -158,6 +147,7 @@ end
 function is_base(class_object)
 	return getmetatable(class_object).__parent == nil;
 end
+
 
 
 

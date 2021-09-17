@@ -131,11 +131,9 @@ end
 --_G.__LUAEX_PROTECTED__.constant = fConstant;
 
 --import core modules
---local fConstant = import("constant");
+import("stdlib");
 rawset(tProtectedData, "constant", 	import("constant"));
 rawset(tProtectedData, "enum", 		import("enum"));
-
-import("stdlib");
 
 --setup the global environment to properly manage enums, constant and their ilk
 setmetatable(_G,

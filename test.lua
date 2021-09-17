@@ -12,12 +12,13 @@ constant("SCREEN_WIDTH", 563);
 --p(SCREEN_WIDTH);
 --SCREEN_WIDTH = {};
 --p(_G["enum"])
-local t = {
-	f = enum("SIM", {"CAM", "TV", "PC"}, nil, true);
-};
+--local t = {
+--	f = enum("SIM", {"CAM", "TV", "PC"})--, nil, true);
+	--p(f)
+--};
 --enum = 44
-print(tostring(SIM))
-print(tostring(t.f))
+--print(tostring(SIM))
+--print(tostring(t.f))
 --k = 56;
 --SIM = 45;
 --p(SIM);
@@ -30,11 +31,23 @@ print(tostring(t.f))
 --p(_G["SIM"]);
 --SIM = 5
 --you can also create non-global enums
-local tMyTable = {
-	MY_COOL_ENUM 		= enum("MU_ENUM", 			{"STUFF", "THINGS", "ITEMS"}, nil, 			true),
-	MY_OTHER_COOL_ENUM 	= enum("MU__OTHER_ENUM", 	{"STUFF", "THINGS", "ITEMS"}, {1, 7, 99}, 	true),
-};
+--local tMyTable = {
+--	MY_COOL_ENUM 		= enum("MU_ENUM", 			{"STUFF", "THINGS", "ITEMS"}, nil, 			true),
+--	MY_OTHER_COOL_ENUM 	= enum("MU__OTHER_ENUM", 	{"STUFF", "THINGS", "ITEMS"}, {1, 7, 99}, 	true),
+--};
 
-p(tMyTable.MY_COOL_ENUM)
+--p(tMyTable.MY_COOL_ENUM)
 --_G.__LUAEX_PROTECTED__.SIM = 45;
 --_G.__LUAEX_PROTECTED__.constant = 12;
+
+POT = {
+	CONTINUITY = enum("CONTINUITY", {"NONE", "REVOLVE", "ALT"}, {0, 1, 2}, true),
+
+};
+
+enum("CONTINUITY", {"NONE", "REVOLVE", "ALT"});
+
+
+--p(POT.CONTINUITY);
+--p(CONTINUITY.NONE.value);
+print(type(CONTINUITY))
