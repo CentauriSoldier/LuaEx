@@ -1,4 +1,4 @@
-local constant = _G.__LUAEX_PROTECTED__.constant;
+local constant = _G.__LUAEX__.constant;
 constant("MATH_UNDEF", "undefined");
 
 --the Eucclidian algorithm for finding the gcf

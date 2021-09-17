@@ -176,7 +176,7 @@ local function enum(sName, tNames, tValues, bPrivate)
 
 	--[[█░█ ▄▀█ █▀█ █ ▄▀█ █▄▄ █░░ █▀▀   █▀▀ █░█ █▀▀ █▀▀ █▄▀   ▄▀█ █▄░█ █▀▄   █▀ █▀▀ ▀█▀ █░█ █▀█
 		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
-	local tProtected = _G.__LUAEX_PROTECTED__;
+	local tLuaEX = _G.__LUAEX__;
 
 	--insure the name input is a string
 	assert(sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank;")--input value is '"..tostring(sName).."' of type "..type(sName));
@@ -186,7 +186,7 @@ local function enum(sName, tNames, tValues, bPrivate)
 		--check that the name string can be a valid variable
 		assert(isvariablecompliant(sName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
 		--make sure the variable doesn't alreay exist
-		assert(type(_G[sName]) == "nil" and type(tProtected[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
+		assert(type(_G[sName]) == "nil" and type(tLuaEX[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
 	end
 
 
@@ -310,7 +310,7 @@ local function enum(sName, tNames, tValues, bPrivate)
 
 	if (not bPrivate) then
 		--put the enum into the global environment
-		tProtected[sName] = tEnum;
+		tLuaEX[sName] = tEnum;
 	end
 
 	return tEnum;

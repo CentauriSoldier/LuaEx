@@ -41,6 +41,15 @@ end
 function table.lock(tInput)
 
 	if (rawtype(tInput) == "table") then
+		local tMeta = getmetatable(tInput);
+		local sMetaType = rawtype(tMeta);
+		local bMetaIsTable = sMetaType == "table";
+
+		--throw an error if the table has a proteced metatable
+		if (not (bMetaIsTable or sMetaType == "nil")) then
+			error("Cannot lock a table which has a protected metatable.");
+		end
+
 		--clone the original table before purging it
 		local tData = table.clone(tInput);
 
@@ -60,14 +69,24 @@ function table.lock(tInput)
 
 		end
 
+		--clone the meta table or create a new one if not present
+		local tNewMeta = bMetaIsTable and table.clone(tMeta) or {};
+
+		--remove the old meta table if present
+		if (bMetaIsTable) then
+			table.purge(tMeta);
+			setmetatable(tInput, nil);
+		end
+
+		--set the values for the new metatable
+		tNewMeta.__newindex = function(t, k, v)
+			error("Attempt to write to locked (read-only) table; Key: '"..tostring(k).."' ("..type(k)..") | Value: "..tostring(v).." ("..type(v)..").");
+		end;
+		tNewMeta.__LUAEX_OLD_METATABLE_STORAGE = tMeta; --store the table's old metatable
+		tNewMeta.__index = tData;
+
 		--set the original (now-purged) table's meta table
-		setmetatable(tInput, {
-			__newindex = function(t, k, v)
-				error("Attempt to write to locked (read-only) table; Key: '"..tostring(k).."' ("..type(k)..") | Value: "..tostring(v).." ("..type(v)..").");
-			end,
-			__LUAEX_OLD_METATABLE_STORAGE = getmetatable(tInput),
-			__index = tData,
-		});
+		setmetatable(tInput, tNewMeta);
 	end
 
 end
@@ -98,6 +117,26 @@ function table.purge(tInput, bIgnoreMetaTable)
 				setmetatable(tInput, nil);
 			end
 
+		end
+
+	end
+
+end
+
+
+function table.settype(tInput, sType)
+
+	if (rawtype(tInput) == "table" and type(sType) == "string")then
+		--look for an existing meta table and get its type
+		local tMeta 	= getmetatable(tInput);
+		local sMetaType = rawtype(tMeta);
+		local bIsTable = sMetaType == "table";
+
+		if (bIsTable or sMetaType == "nil") then
+			tMeta = bIsTable and tMeta or {};
+			tMeta.__type = sType;
+			setmetatable(tInput, tMeta);
+			return tInput;
 		end
 
 	end

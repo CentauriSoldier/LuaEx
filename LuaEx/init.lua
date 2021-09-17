@@ -51,8 +51,10 @@ For more information, please refer to <http://unlicense.org/>
 	<li>
 		<b>0.5</b>
 		<br>
+		<p>Bugfix: table.lock was not preserving metatable items (where possible)</p>
 		<p>Feature: added table.lock.</p>
 		<p>Feature: added table.purge.</p>
+		<p>Feature: added table.settype.</p>
 		<p>Feature: added table.unlock.</p>
 	</li>
 	<li>
@@ -99,22 +101,18 @@ of the global environment.
 --create the 'protected' table used by LuaEx
 local tProtectedData = {};
 
-_G.__LUAEX_PROTECTED__ = setmetatable({}, {
+_G.__LUAEX__ = setmetatable({}, {
 	__index 	= tProtectedData,
 	__newindex 	= function(t, k, v)
 
 		if tProtectedData[k] then
-			error("Attempt to overwrite __LUAEX_PROTECTED__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
+			error("Attempt to overwrite __LUAEX__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
 		end
 
 		rawset(tProtectedData, k, v);
 	end,
 	__metatable = false,
 });
-
-
-
-local tProtected = _G.__LUAEX_PROTECTED__;
 
 --update the package.path
 package.path = package.path..";LuaEx\\?.lua";
@@ -136,12 +134,12 @@ local function import(sFile)
 	return require(sPath..'.'..sFile);
 end
 
---_G.__LUAEX_PROTECTED__.constant = fConstant;
+--_G.__LUAEX__.constant = fConstant;
 
 --import core modules
 import("stdlib");
-rawset(tProtectedData, "constant", 	import("constant"));
-rawset(tProtectedData, "enum", 		import("enum"));
+tProtectedData.constant = import("constant");
+tProtectedData.enum 	= import("enum");
 
 --setup the global environment to properly manage enums, constant and their ilk
 setmetatable(_G,
@@ -149,14 +147,14 @@ setmetatable(_G,
 		__newindex = function(t, k, v)
 
 		--make sure functions such as constant, enum, etc., constant values and enums values aren't being overwritten
-		if _G.__LUAEX_PROTECTED__[k] then
-			error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.__LUAEX_PROTECTED__[k])..") with '"..tostring(v).."' ("..type(v)..").");
+		if _G.__LUAEX__[k] then
+			error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.__LUAEX__[k])..") with '"..tostring(v).."' ("..type(v)..").");
 		end
 
 		rawset(t, k, v);
 		end,
 		__metatable = false,
-		__index = _G.__LUAEX_PROTECTED__,
+		__index = _G.__LUAEX__,
 	}
 );
 

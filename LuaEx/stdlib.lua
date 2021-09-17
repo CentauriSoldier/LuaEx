@@ -8,7 +8,7 @@ function type(vObject)
 	if (sType == "table") then
 		local tMeta = getmetatable(vObject);
 
-		if (tMeta and tMeta.__type) then
+		if (rawtype(tMeta) == "table" and rawtype(tMeta.__type) == "string") then
 			sType = tMeta.__type;
 		end
 

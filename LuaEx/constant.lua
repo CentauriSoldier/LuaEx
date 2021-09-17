@@ -49,21 +49,21 @@ local function isvariablecompliant(sInput, bSkipKeywordCheck)
 end
 
 local function constant(sName, vVal)
-	local tProtected = _G.__LUAEX_PROTECTED__;
+	local tLuaEX = _G.__LUAEX__;
 
 	--insure the name input is a string
 	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Constant name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
 	--check that the name string can be a valid variable
 	assert(isvariablecompliant(sName), "Constant name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
 	--make sure the variable doesn't alreay exist
-	assert(type(_G[sName]) == "nil" and type(tProtected[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing item.");
+	assert(type(_G[sName]) == "nil" and type(tLuaEX[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing item.");
 	--make sure the constant is not nil
 	assert(type(vVal) ~= "nil", "Cannot create constant; value cannot be nil.");
 	--make sure the value doesn't alreay exist
 	assert(type(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing variable.")
 
 	--put the const into the global environment (via the luaex protected table)
-	tProtected[sName] = vVal;
+	tLuaEX[sName] = vVal;
 end
 
 return constant;
