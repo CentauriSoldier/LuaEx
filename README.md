@@ -10,6 +10,11 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 ##### Changelog
 
+	v0.5
+	Feature: added table.lock.
+	Feature: added table.purge.
+	Feature: added table.unlock.
+
 	v0.4
 	Bugfix: metavalue causing custom type check to fail to return the proper value.
 	Bugfix: typo that caused global enums to not be put into the global environment.
@@ -220,4 +225,57 @@ As the title suggests, this module converts various types to a storable string. 
 Description in Progress
 
 ## 🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​
-Description in Progress
+
+#### Description
+Adds several table functions to the lua library.
+
+#### Functions
+- **table.clone(table, boolean or nil)** Performs a deep copy of a table and returns that copy. This will also copy the metatable unless the second argument is set to true.
+- **table.lock(table)** Prevents a table from being modified. Can be unlocked later.
+- **table.purge(table, boolean or nil)** Sets every item in a table to nil recursively. This will also purge and delete the metatable unless the second argument is set to true.
+- **table.unlock(table)** Reverses the process done by the table.lock function including putting back all metatables back that existed before.
+
+#### Usage Example
+
+```lua
+local tAnimals = {
+	WhatACloneSays = "I'm not a clone, I swear!",
+	Dogs = 34,
+	Cats = 10,
+	Frogs = 0,
+	BestDogs = {3, 3, 5, 7},
+	IsBestDogActive = true,
+};
+
+--clone a table
+tClone = table.clone(tAnimals);
+
+--print some stuff from the clone
+print(tClone.WhatACloneSays);
+print("There are "..tClone.Dogs.." dogs in the cloned table.");
+
+--lock a table
+table.lock(tAnimals);
+
+--we can still read from a locked table
+print("There are "..tAnimals.Dogs.." dogs in the locked table.");
+
+--we can alter the cloned table showing that the locked and cloned table are different
+tClone.Cats = 2000;
+print("There are now "..tClone.Cats.." cloned cats...I warned you not to clone cats!");
+
+--uncomment any of these lines to see what happens when you try to write to a locked table
+--tAnimals.Cats = 3;
+--tAnimals.Mice = "Please, no mice, say the cats.";
+--tAnimals.BestDogs[1] = 57;
+
+--unlock the table and try again
+--table.unlock(tAnimals)
+--tAnimals.Cats = 3;
+--tAnimals.Mice = "Please, no mice, say the cats.";
+--tAnimals.BestDogs[1] = 57;
+
+print("We've now got "..tAnimals.Cats.." uncloned cats.");
+print(tAnimals.Mice);
+print("Oh good. We've also got "..tAnimals.BestDogs[1].." best dogs.");
+```

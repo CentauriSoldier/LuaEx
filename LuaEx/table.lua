@@ -1,14 +1,33 @@
-function table.clone(tTable)
+local getmetatable 	= getmetatable
+local pairs			= pairs;
+local rawtype 		= rawtype;
+local setmetatable 	= setmetatable
+local table 		= table;
+--stores references to locked tables and their clones
+local tLockedTableClones = {};
+
+function table.clone(tInput, bIgnoreMetaTable)
 	local tRet = {};
 
-	if (type(tTable) == "table") then
+	--clone each item in the table
+	if (rawtype(tInput) == "table") then
 
-		for vIndex, vItem in pairs(tTable) do
+		for vIndex, vItem in pairs(tInput) do
 
-			if (type(vItem) == "table") then
-				tRet[vIndex] = table.clone(vItem);
+			if (rawtype(vItem) == "table") then
+				rawset(tRet, vIndex, table.clone(vItem));
 			else
-				tRet[vIndex] = vItem;
+				rawset(tRet, vIndex, vItem);
+			end
+
+		end
+
+		--clone the metatable
+		if (not bIgnoreMetaTable) then
+			local tMeta = getmetatable(tInput);
+
+			if (type(tMeta) == "table") then
+				setmetatable(tRet, tMeta);
 			end
 
 		end
@@ -18,6 +37,109 @@ function table.clone(tTable)
 	return tRet;
 end
 
+
+function table.lock(tInput)
+
+	if (rawtype(tInput) == "table") then
+		--clone the original table before purging it
+		local tData = table.clone(tInput);
+
+		--store a reference to the clone (used for table.unlock)
+		tLockedTableClones[tInput] = tData;
+
+		--purge the original table
+		table.purge(tInput);
+
+		--now, check each entry in the input table for a table value
+		for vKey, vValue in pairs(tData) do
+
+			--be sure every other sub-table is locked as well
+			if (rawtype(vValue) == "table") then
+				table.lock(vValue);
+			end
+
+		end
+
+		--set the original (now-purged) table's meta table
+		setmetatable(tInput, {
+			__newindex = function(t, k, v)
+				error("Attempt to write to locked (read-only) table; Key: '"..tostring(k).."' ("..type(k)..") | Value: "..tostring(v).." ("..type(v)..").");
+			end,
+			__LUAEX_OLD_METATABLE_STORAGE = getmetatable(tInput),
+			__index = tData,
+		});
+	end
+
+end
+
+
+function table.purge(tInput, bIgnoreMetaTable)
+
+	if (rawtype(tInput)) then
+
+		--delete all the keys in the table
+		for vKey, vValue in pairs(tInput) do
+
+			--claer any subtables recursively
+			if (rawtype(vValue) == "table") then
+				table.purge(vValue);
+			end
+
+			--clear the item
+			rawset(tInput ,vKey, nil);
+		end
+
+		--remove the metatable
+		if (not bIgnoreMetaTable) then
+			local tMeta = getmetatable(tTable);
+
+			if (rawtype(tMeta) == "table") then
+				table.purge(tMeta);
+				setmetatable(tInput, nil);
+			end
+
+		end
+
+	end
+
+end
+
+
+function table.unlock(tInput)
+
+	if (rawtype(tInput) == "table" and rawtype(tLockedTableClones[tInput]) == "table") then
+
+		--check each entry in the data table for a table value
+		for vKey, vValue in pairs(tLockedTableClones[tInput]) do
+			--store the key and value since they'll get wiped out if the value is a table
+			local k = vKey;
+			local v = vValue;
+
+			--be sure every other sub-table is unlocked as well
+			if (rawtype(vValue) == "table") then
+				table.unlock(vValue);
+			end
+
+			--reset the item in the input table
+			rawset(tInput, k, v);
+
+			--delete the item in the clone table
+			rawset(tLockedTableClones, tInput, nil);
+		end
+
+		--reset the table's metatable (if needed)
+		local tMeta = getmetatable(tInput);
+		--TODO do i really need to check for the existence of a metatable? Doesn't every cloned table have a meta table to prevent modifications?
+		-- I think checking for the the __LUAEX_OLD_METATABLE_STORAGE value would be safe...
+		if (rawtype(tMeta) == "table" and rawtype(tMeta.__LUAEX_OLD_METATABLE_STORAGE == "table")) then
+			setmetatable(tInput, tMeta.__LUAEX_OLD_METATABLE_STORAGE);
+		end
+
+		--delete the local references to the clone table (it's only reference)
+		tLockedTableClones[tInput] = nil;
+	end
+
+end
 
 --[[
 --http://lua-users.org/wiki/SortedIteration

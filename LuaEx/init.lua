@@ -49,6 +49,13 @@ For more information, please refer to <http://unlicense.org/>
 @versionhistory
 <ul>
 	<li>
+		<b>0.5</b>
+		<br>
+		<p>Feature: added table.lock.</p>
+		<p>Feature: added table.purge.</p>
+		<p>Feature: added table.unlock.</p>
+	</li>
+	<li>
 		<b>0.4</b>
 		<br>
 		<p>Bugfix: metavalue causing custom type check to fail to return the proper value.</p>
