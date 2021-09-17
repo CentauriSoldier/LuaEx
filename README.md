@@ -275,7 +275,7 @@ Adds several table functions to the lua library.
 - **table.clone(table, boolean or nil)** Performs a deep copy of a table and returns that copy. This will also copy the metatable unless the second argument is set to true.
 - **table.lock(table)** Prevents a table from being modified. Can be unlocked later.
 - **table.purge(table, boolean or nil)** Sets every item in a table to nil recursively. This will also purge and delete the metatable unless the second argument is set to true.
-- **table.unlock(table)** Reverses the process done by the table.lock function including putting back all metatables back that existed before.
+- **table.unlock(table)** Reverses the process done by the table.lock function including putting all metatables back which existed before.
 
 #### Usage Example
 
