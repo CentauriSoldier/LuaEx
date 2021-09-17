@@ -11,6 +11,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 ##### Changelog
 
 	v0.4
+	Bugfix: metavalue causing custom type check to fail to return the proper value.
 	Bugfix: typo that caused global enums to not be put into the global environment.
 	Feature: enums can now also be non-global.
 	Feature: the enum created by a call to the enum function is now returned.
