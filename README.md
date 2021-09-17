@@ -114,6 +114,31 @@ Used to reverse the process done by the 🇸​​​​​🇪​​​​​�
 - **deserialize.string(string)**
 - **deserialize.table(string)**
 
+#### Usage Example
+```lua
+--create a table
+local tBatteries = {
+	Good 		= 45,
+	Bad 		= 34678,
+	InLandfill 	= 2345674222,
+	CostPer		= {
+		Low	= 200,
+		Med = 300,
+		High = 400,
+	},
+};
+
+local sBatteries = serialize.table(tBatteries);
+
+local tReturned = deserialize.table(sBatteries);
+
+--print some stuff to compare
+print("Returned: "..tReturned.CostPer.Med);
+print("Batteries: "..tBatteries.CostPer.Med);
+print("Returned: "..tReturned.Bad);
+print("Batteries: "..tBatteries.Bad);
+```
+
 ## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
 
 #### Description
@@ -220,6 +245,23 @@ As the title suggests, this module converts various types to a storable string. 
 - **serialize.number(number)**
 - **serialize.string(string)**
 - **serialize.table(table)**
+
+#### Usage Example
+```lua
+--create a table
+local tBatteries = {
+	Good 		= 45,
+	Bad 		= 34678,
+	InLandfill 	= 2345674222,
+	CostPer		= {
+		Low	= 200,
+		Med = 300,
+		High = 400,
+	},
+};
+
+print(serialize.table(tBatteries));
+```
 
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
 Description in Progress

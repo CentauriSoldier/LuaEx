@@ -97,6 +97,7 @@ end
 
 local str = serialize.string;
 
+--TODO serialize metatable (if possible)???
 function serialize.table(tTable, nTabCount)
 	nTabCount = (type(nTabCount) == "number" and nTabCount > 0) and nTabCount or 0;
 	local sTab = "\t";
