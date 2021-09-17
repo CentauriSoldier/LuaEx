@@ -83,9 +83,9 @@ Allows the creation of constants in lua. Once set, these global values cannot be
 #### Usage Example
 ```lua
 --constant(string, *)
-constant(I_LOVE_LUA, "No you don't!");
-constant(MAX_CHAIRS_ALLOWED, 42);
-constant(THE_ANSWER_TO_THE_UNIVERSE_AND_EVERYTHING, MAX_CHAIRS_ALLOWED);
+constant("I_LOVE_LUA", "No you don't!");
+constant("MAX_CHAIRS_ALLOWED", 42);
+constant("THE_ANSWER_TO_THE_UNIVERSE_AND_EVERYTHING", MAX_CHAIRS_ALLOWED);
 
 print(I_LOVE_LUA);
 print(MAX_CHAIRS_ALLOWED);
