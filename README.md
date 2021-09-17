@@ -275,9 +275,9 @@ Adds several table functions to the lua library.
 
 #### Functions
 - **table.clone(table, boolean or nil)** Performs a deep copy of a table and returns that copy. This will also copy the metatable unless the second argument is set to true.
-- **table.lock(table)** Makes a table read-only recusively. That is, it prevents any of a table's key or values from being mutated (or any added to the table) while still allowing them to be accessed. Can be unlocked later. Note: while the original metatable is mostly preserved, __index and __newindex are necessarily replaced while the table is locked (but are restored once the table is unlocked).
+- **table.lock(table)** Makes a table read-only recursively. That is, it prevents any of a table's key or values from being mutated (or any added to the table) while still allowing them to be accessed. Can be unlocked later. Note: while the original metatable is mostly preserved, __index and __newindex are necessarily replaced while the table is locked (but are restored once the table is unlocked).
 - **table.purge(table, boolean or nil)** Sets every item in a table to nil recursively. This will also purge and delete the metatable unless the second argument is set to true.
-- **table.settype(table, string)** Sets the table to a custom type instead of table. Calls to type will now return the ibput string. To check the type ignoring the custom featuer, use the rawtype function instead.
+- **table.settype(table, string)** Sets the table to a custom type instead of table. Calls to *type* will now return the input string. To check the type ignoring the custom feature, use the *rawtype* function instead.
 - **table.unlock(table)** Reverses the process done by the table.lock function including putting all metatables back which existed before.
 
 #### Usage Example
