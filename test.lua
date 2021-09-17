@@ -40,14 +40,36 @@ constant("SCREEN_WIDTH", 563);
 --_G.__LUAEX_PROTECTED__.SIM = 45;
 --_G.__LUAEX_PROTECTED__.constant = 12;
 
-POT = {
+
+local tPot = {
 	CONTINUITY = enum("CONTINUITY", {"NONE", "REVOLVE", "ALT"}, {0, 1, 2}, true),
-
 };
+local tShadow = {};
+constant("POT", tShadow);
 
-enum("CONTINUITY", {"NONE", "REVOLVE", "ALT"});
 
 
+setmetatable(tShadow, {
+	__newindex = function(t, k, v)
+
+		if (tPot[k]) then
+			error("Attempt to overwrite protected value in constant 'POT' key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
+		end
+
+	end,
+	__index = tPot,
+});
+
+
+
+
+
+
+
+--enum("CONTINUITY", {"NONE", "REVOLVE", "ALT"});
+
+--POT.CONTINUITY = 56;
 --p(POT.CONTINUITY);
 --p(CONTINUITY.NONE.value);
-print(type(CONTINUITY))
+--POT.CONTINUITY = 00;
+print(type(POT.CONTINUITY))

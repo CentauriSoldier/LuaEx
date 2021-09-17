@@ -97,7 +97,7 @@ _G.__LUAEX_PROTECTED__ = setmetatable({}, {
 	__newindex 	= function(t, k, v)
 
 		if tProtectedData[k] then
-			error("Attempt to overwrite __LUAEX_PROTECTED__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .")
+			error("Attempt to overwrite __LUAEX_PROTECTED__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
 		end
 
 		rawset(tProtectedData, k, v);
