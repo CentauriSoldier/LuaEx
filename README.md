@@ -10,8 +10,9 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 ##### Changelog
 
+```
 	v0.5
-	Change: Classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.
+	Change: classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.
 	Change: LuaEx classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
 	Bugfix: table.lock was not preserving metatable items (where possible)
 	Feature: added protect function (in stdlib).
@@ -39,6 +40,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 	v0.1
 	Compiled various modules into LuaEx.
+```
 
 ## 🅻🅸🅲🅴🅽🆂🅴 ©
 

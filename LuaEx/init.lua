@@ -51,7 +51,7 @@ For more information, please refer to <http://unlicense.org/>
 	<li>
 		<b>0.5</b>
 		<br>
-		<p>Change: Classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.</p>
+		<p>Change: classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.</p>
 		<p>Change: LuaEx classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.</p>
 		<p>Bugfix: table.lock was not preserving metatable items (where possible)</p>
 		<p>Feature: added protect function (in stdlib).</p>
