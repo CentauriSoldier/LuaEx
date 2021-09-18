@@ -75,12 +75,12 @@ From here on out, all modules of LuaEx will be available in the global environme
 ## 🇸​​​​​🇹​​​​​🇩​​​​​🇱​​​​​🇮​​​​​🇧​​​​​
 
 #### Description
-These are items that are globally accessible but have no particular module. These include new, LuaEx functions as well as hooks of existing lua functions.
+These are items that are globally accessible but do not fit nicely into any particular module. These include new, LuaEx functions as well as hooks of existing lua functions.
 
 #### Functions
 - **type** Works like the original lua function except that it honors LuaEx's custom type system (for tables modified by **table.settype** or by manually setting a string value in a table's metatable key, **__type**.).
 - **rawtype** The original lua **type** function. It does not honor LuaEx's custom type system meaning for all LuaEx custom types, it will return the string value, *"table"*.
-- **protect** This places a gloabl into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
+- **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
 - ****
 
 
