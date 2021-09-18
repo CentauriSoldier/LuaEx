@@ -1,8 +1,10 @@
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
+
 ## 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓ 🔬
 
 Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
+
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
@@ -21,6 +23,8 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 - Feature: added table.purge function.
 - Feature: added table.settype function.
 - Feature: added table.unlock function.
+- Feature: added queue class.
+- Feature: added stack class.
 
 **v0.4**
 - Bugfix: metavalue causing custom type check to fail to return the proper value.
@@ -47,6 +51,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 All code is placed in the public domain under [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense") *(except where otherwise noted)*.
 
+
 ## 🅲🅷🅰🅽🅶🅴🆂 🆃🅾 🅻🆄🅰 🛠
 
 #### The Global Environment
@@ -55,12 +60,12 @@ _G has been given a metatable that monitors the protected values (such as enums 
 
 #### Custom Types
 
-Adding a **__type** field to any metatable and assigning a string value to it creates a custom object type. In order to achive this, the lua function, **type**, has been hooked. If you'd like to get the type of something, ignoring LuaEx's custom type feature, simply use the **rawtype** function.
-
+Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achive this, the lua function, ***type*** has been hooked. If you'd like to get the type of something, ignoring LuaEx's custom type feature, simply use the ***rawtype*** function.
 
 
 ## 🆆🅰🆁🆁🅰🅽🆃🆈 🗞
 None. Use at your own risk. 💣
+
 
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
 In order to push all the code in LuaEx into the global environment, place the LuaEx folder into your package path and run the following code:
@@ -68,6 +73,16 @@ In order to push all the code in LuaEx into the global environment, place the Lu
 require("LuaEx.init");
 ```
 From here on out, all modules of LuaEx will be available in the global environment.
+
+
+## 🅲🅻🅰🆂🆂🅴🆂 💥
+
+#### Description
+These are various classes that help bring more OOP features to lua. These have been added by using the 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​ module.
+
+#### Functions
+- **queue** A basic queue class with obligatory methods.
+- **stack** A basic stack class with obligatory methods.
 
 
 ## 🅼🅾🅳🆄🅻🅴🆂 ⚙
@@ -78,13 +93,10 @@ From here on out, all modules of LuaEx will be available in the global environme
 These are items that are globally accessible but do not fit nicely into any particular module. These include new, LuaEx functions as well as hooks of existing lua functions.
 
 #### Functions
-- **type** Works like the original lua function except that it honors LuaEx's custom type system (for tables modified by **table.settype** or by manually setting a string value in a table's metatable key, **__type**.).
-- **rawtype** The original lua **type** function. It does not honor LuaEx's custom type system meaning for all LuaEx custom types, it will return the string value, *"table"*.
+- **type** Works like the original lua function except that it honors LuaEx's custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
+- **rawtype** The original lua ***type*** function. It does not honor LuaEx's custom type system meaning for all LuaEx custom types, it will return the string value, ***"table"***.
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
 - ****
-
-
-
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 
@@ -295,10 +307,10 @@ Adds several table functions to the lua library.
 
 #### Functions
 - **table.clone(table, boolean or nil)** Performs a deep copy of a table and returns that copy. This will also copy the metatable unless the second argument is set to true.
-- **table.lock(table)** Makes a table read-only recursively. That is, it prevents any of a table's key or values from being mutated (or any added to the table) while still allowing them to be accessed. Can be unlocked later. Note: while the original metatable is mostly preserved, __index and __newindex are necessarily replaced while the table is locked (but are restored once the table is unlocked).
+- **table.lock(table)** Makes a table read-only recursively. That is, it prevents any of a table's key or values from being mutated (or any added to the table) while still allowing them to be accessed. Can be unlocked later. Note: while the original metatable is mostly preserved, ***__index*** and ***__newindex*** are necessarily replaced while the table is locked (but are restored once the table is unlocked).
 - **table.purge(table, boolean or nil)** Sets every item in a table to nil recursively. This will also purge and delete the metatable unless the second argument is set to true.
-- **table.settype(table, string)** Sets the table to a custom type instead of table. Calls to *type* will now return the input string. To check the type ignoring the custom feature, use the *rawtype* function instead.
-- **table.unlock(table)** Reverses the process done by the table.lock function including putting all metatables back which existed before.
+- **table.settype(table, string)** Sets the table to a custom type instead of type ***"table"***. Calls to ***type*** will now return the input string. To check the type, ignoring the custom type feature, use the ***rawtype*** function instead.
+- **table.unlock(table)** Reverses the process done by the ***table.lock*** function including putting all metatables back which existed before.
 
 #### Usage Example
 

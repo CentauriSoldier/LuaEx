@@ -1,5 +1,5 @@
 --[[*
-@authors Centauri Soldier, Bas Groothedde
+@authors Centauri Soldier (All code except where noted), Bas Groothedde (class.lua), Alex Kloss (base64.lua)
 @copyright Public Domain
 @description
 	<h2>LuaEx</h2>
@@ -59,6 +59,8 @@ For more information, please refer to <http://unlicense.org/>
 		<p>Feature: added table.purge function.</p>
 		<p>Feature: added table.settype function.</p>
 		<p>Feature: added table.unlock function.</p>
+		<p>Feature: added queue class.</p>
+		<p>Feature: added stack class.</p>
 	</li>
 	<li>
 		<b>0.4</b>
