@@ -11,11 +11,14 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 ##### Changelog
 
 	v0.5
+	Change: Classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.
+	Change: LuaEx classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
 	Bugfix: table.lock was not preserving metatable items (where possible)
-	Feature: added table.lock.
-	Feature: added table.purge.
-	Feature: added table.settype.
-	Feature: added table.unlock.
+	Feature: added protect function (in stdlib).
+	Feature: added table.lock function.
+	Feature: added table.purge function.
+	Feature: added table.settype function.
+	Feature: added table.unlock function.
 
 	v0.4
 	Bugfix: metavalue causing custom type check to fail to return the proper value.
@@ -65,6 +68,20 @@ From here on out, all modules of LuaEx will be available in the global environme
 
 
 ## 🅼🅾🅳🆄🅻🅴🆂 ⚙
+
+## 🇸​​​​​🇹​​​​​🇩​​​​​🇱​​​​​🇮​​​​​🇧​​​​​
+
+#### Description
+These are items that are globally accessible but have no particular module. These include new, LuaEx functions as well as hooks of existing lua functions.
+
+#### Functions
+- **type** Works like the original lua function except that it honors LuaEx's custom type system (for tables modified by **table.settype** or by manually setting a string value in a table's metatable key, **__type**.).
+- **rawtype** The original lua **type** function. It does not honor LuaEx's custom type system meaning for all LuaEx custom types, it will return the string value, *"table"*.
+- **protect** This places a gloabl into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
+- ****
+
+
+
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 

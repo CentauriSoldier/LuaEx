@@ -1,3 +1,5 @@
+local tLuaEX = _G.__LUAEX__;
+
 local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
 				   "false", "for", "function", "if", "in", "local",
 				   "nil", "not", "or", "repeat", "return", "then",
@@ -49,7 +51,6 @@ local function isvariablecompliant(sInput, bSkipKeywordCheck)
 end
 
 local function constant(sName, vVal)
-	local tLuaEX = _G.__LUAEX__;
 
 	--insure the name input is a string
 	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Constant name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));

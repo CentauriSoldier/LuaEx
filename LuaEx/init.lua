@@ -51,11 +51,14 @@ For more information, please refer to <http://unlicense.org/>
 	<li>
 		<b>0.5</b>
 		<br>
+		<p>Change: Classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.</p>
+		<p>Change: LuaEx classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.</p>
 		<p>Bugfix: table.lock was not preserving metatable items (where possible)</p>
-		<p>Feature: added table.lock.</p>
-		<p>Feature: added table.purge.</p>
-		<p>Feature: added table.settype.</p>
-		<p>Feature: added table.unlock.</p>
+		<p>Feature: added protect function (in stdlib).</p>
+		<p>Feature: added table.lock function.</p>
+		<p>Feature: added table.purge function.</p>
+		<p>Feature: added table.settype function.</p>
+		<p>Feature: added table.unlock function.</p>
 	</li>
 	<li>
 		<b>0.4</b>
@@ -99,17 +102,17 @@ of the global environment.
 ]]
 
 --create the 'protected' table used by LuaEx
-local tProtectedData = {};
+local tLuaEx = {};
 
 _G.__LUAEX__ = setmetatable({}, {
-	__index 	= tProtectedData,
+	__index 	= tLuaEx,
 	__newindex 	= function(t, k, v)
 
-		if tProtectedData[k] then
+		if tLuaEx[k] then
 			error("Attempt to overwrite __LUAEX__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
 		end
 
-		rawset(tProtectedData, k, v);
+		rawset(tLuaEx, k, v);
 	end,
 	__metatable = false,
 });
@@ -118,7 +121,7 @@ _G.__LUAEX__ = setmetatable({}, {
 package.path = package.path..";LuaEx\\?.lua";
 
 --warn the user if debug is missing
-assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
+assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx."); --TODO find a way to remoev this!
 
 --TODO do i need this part?
 --determine the call location
@@ -134,38 +137,40 @@ local function import(sFile)
 	return require(sPath..'.'..sFile);
 end
 
---_G.__LUAEX__.constant = fConstant;
-
 --import core modules
 import("stdlib");
-tProtectedData.constant = import("constant");
-tProtectedData.enum 	= import("enum");
+constant 	= import("constant");
+enum		= import("enum");
 
---setup the global environment to properly manage enums, constant and their ilk
+--setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,
 	{--TODO check for existing meta _G table.
 		__newindex = function(t, k, v)
 
-		--make sure functions such as constant, enum, etc., constant values and enums values aren't being overwritten
-		if _G.__LUAEX__[k] then
-			error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.__LUAEX__[k])..") with '"..tostring(v).."' ("..type(v)..").");
-		end
+			--make sure functions such as constant, enum, etc., constant values and enums values aren't being overwritten
+			if _G.__LUAEX__[k] then
+				error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.__LUAEX__[k])..") with '"..tostring(v).."' ("..type(v)..").");
+			end
 
-		rawset(t, k, v);
+			rawset(t, k, v);
 		end,
 		__metatable = false,
 		__index = _G.__LUAEX__,
 	}
 );
 
-class, interface 	= import("class");
-base64				= import("base64");
+class 		= import("class");
+base64 		= import("base64");
 
 --import lua extension modules
-import("math");
-import("string");
-import("table");
+			  import("math");
+			  import("string");
+			  import("table");
 
 --import other modules
-serialize 			= import("serialize");
-deserialize 		= import("deserialize");
+serialize 	= import("serialize");
+deserialize = import("deserialize");
+
+--import classes
+queue 		= import("queue");
+stack 		= import("stack");

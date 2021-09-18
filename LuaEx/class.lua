@@ -152,9 +152,13 @@ end
 
 
 -- define a new class
-function class(name)
+local function class(name)
 	local class_meta   = { __type = name, __parent = nil };
-	local class_object = {};
+	local class_object 	= {};
+
+	--if (type(tLuaEx[name]) ~= "nil") then
+	--	error("Attempt to overwrite protected item '"..tostring(name).."' ("..type(tLuaEx[name])..") with '"..tostring(name).."' ("..type(name)..").");
+	--end
 
 	-- first return an intermediate class, on which you still need to call
 	-- with the method table. i.e. this is the stage that handles `class "name"`
@@ -162,7 +166,7 @@ function class(name)
 	return setmetatable(class_object, {
 		__index = { extends = class_extends, implements = class_implements };
 		__type  = "iclass"; 						-- intermediate class
-		__call  = function(class_object, members)	-- the actual definer, this puts the class in _G and adds the methods
+		__call  = function(class_object, members)	-- the actual definer, this puts the class in _G and adds the methods (no longer puts it in _G...has been localized)
 			-- add all methods to the class, possibly overloading members that were copied by `extends`
 			for member_name, member in pairs(members) do
 				class_object[member_name] = member;
@@ -238,7 +242,7 @@ function class(name)
 
 			-- export the class to global scope with a new metatable, now with the type "class".
 			-- when called, you construct a new object of this class.
-			_G[name] = setmetatable(class_object, { __type = "class", __call = class_ctor, __instance_mt = class_meta, __parent = getmetatable(class_object).__parent });
+			return setmetatable(class_object, { __type = "class", __call = class_ctor, __instance_mt = class_meta, __parent = getmetatable(class_object).__parent });
 		end;
 	});
 end
