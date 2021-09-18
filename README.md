@@ -3,7 +3,7 @@
 
 ## 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓ 🔬
 
-Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
+Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
 
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
@@ -16,7 +16,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 **v0.5**
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling scipt to handle.
-- Change: LuaEx classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
+- Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
 - Bugfix: table.lock was not preserving metatable items (where possible)
 - Feature: added protect function (in stdlib).
 - Feature: added table.lock function.
@@ -34,7 +34,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 **v0.3**
 - Hardened the protected table to prevent accidental tampering.
-- Added a meta table to _G in the init module.
+- Added a meta table to ***_G*** in the init module.
 - Changed the name of the const module and function to constant for lua 5.1 - 5.4 compatibility.
 - Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.
 - Updated several modules.
@@ -44,7 +44,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 - Updated a few modules.
 
 **v0.1**
-- Compiled various modules into LuaEx.
+- Compiled various modules into **LuaEx**.
 </details>
 
 ## 🅻🅸🅲🅴🅽🆂🅴 ©
@@ -56,11 +56,11 @@ All code is placed in the public domain under [The Unlicense](https://opensource
 
 #### The Global Environment
 
-_G has been given a metatable that monitors the protected values (such as enums and constants).
+***_G*** has been given a metatable that monitors the protected values (such as enums and constants).
 
 #### Custom Types
 
-Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achive this, the lua function, ***type*** has been hooked. If you'd like to get the type of something, ignoring LuaEx's custom type feature, simply use the ***rawtype*** function.
+Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achive this, the lua function, ***type*** has been hooked. If you'd like to get the type of something, ignoring **LuaEx's** custom type feature, simply use the ***rawtype*** function.
 
 
 ## 🆆🅰🆁🆁🅰🅽🆃🆈 🗞
@@ -68,11 +68,11 @@ None. Use at your own risk. 💣
 
 
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
-In order to push all the code in LuaEx into the global environment, place the LuaEx folder into your package path and run the following code:
+In order to push all the code in **LuaEx** into the global environment, place the **LuaEx** folder into your package path and run the following code:
 ```lua
 require("LuaEx.init");
 ```
-From here on out, all modules of LuaEx will be available in the global environment.
+From here on out, all modules of **LuaEx** will be available in the global environment.
 
 
 ## 🅲🅻🅰🆂🆂🅴🆂 💥
@@ -93,8 +93,8 @@ These are various classes that help bring more OOP features to lua. These have b
 These are items that are globally accessible but do not fit nicely into any particular module. These include new, LuaEx functions as well as hooks of existing lua functions.
 
 #### Functions
-- **type** Works like the original lua function except that it honors LuaEx's custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
-- **rawtype** The original lua ***type*** function. It does not honor LuaEx's custom type system meaning for all LuaEx custom types, it will return the string value, ***"table"***.
+- **type** Works like the original lua function except that it honors **LuaEx's** custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
+- **rawtype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system meaning for all LuaEx custom types, it will return the string value, ***"table"***.
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
 - ****
 
@@ -189,7 +189,7 @@ Brings enums to lua. While they do do not possess every feature you have come to
 
 
 #### Reserved Enum Names
-All Lua Keywords plus LuaEx keywords (***constant***, ***enum***)
+All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***)
 
 #### Reserved Enum Item Names
 - **__count**
