@@ -5,6 +5,9 @@
 
 Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality. Below is a list of included modules and their descriptions.  
 
+## 🆁🅴🆂🅾🆄🆁🅲🅴🆂
+- Logo: https://cooltext.com/
+- Special ASCII Fonts: https://fsymbols.com/generators/carty/
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
@@ -17,14 +20,14 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 **v0.5**
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling scipt to handle.
 - Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
-- Bugfix: table.lock was not preserving metatable items (where possible)
-- Feature: added protect function (in stdlib).
-- Feature: added table.lock function.
-- Feature: added table.purge function.
-- Feature: added table.settype function.
-- Feature: added table.unlock function.
-- Feature: added queue class.
-- Feature: added stack class.
+- Bugfix: ***table.lock*** was not preserving metatable items (where possible)
+- Feature: added protect function (in ***stdlib***).
+- Feature: added ***table.lock*** function.
+- Feature: added ***table.purge*** function.
+- Feature: added ***table.settype*** function.
+- Feature: added ***table.unlock*** function.
+- Feature: added ***queue*** class.
+- Feature: added ***stack*** class.
 
 **v0.4**
 - Bugfix: metavalue causing custom type check to fail to return the proper value.
@@ -36,7 +39,7 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 - Hardened the protected table to prevent accidental tampering.
 - Added a meta table to ***_G*** in the init module.
 - Changed the name of the const module and function to constant for lua 5.1 - 5.4 compatibility.
-- Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.
+- Altered the way constants and enums work by using the new, ***_G*** metatable to prevent deletion or overwriting.
 - Updated several modules.
 
 **v0.2**
@@ -57,6 +60,8 @@ All code is placed in the public domain under [The Unlicense](https://opensource
 #### The Global Environment
 
 ***_G*** has been given a metatable that monitors the protected values (such as enums and constants).
+
+**Note:** In order to mitigate any potential slow-down from this added metatable in ***_G***, simply localize every global variable before use in your scripts *(especially tables)*. On the average, this is good practice anyhow.
 
 #### Custom Types
 
@@ -80,7 +85,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 #### Description
 These are various classes that help bring more OOP features to lua. These have been added by using the 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​ module.
 
-#### Functions
+#### Classes
 - **queue** A basic queue class with obligatory methods.
 - **stack** A basic stack class with obligatory methods.
 
@@ -360,3 +365,7 @@ print("We've now got "..tAnimals.Cats.." uncloned cats.");
 print(tAnimals.Mice);
 print("Oh good. We've also got "..tAnimals.BestDogs[1].." best dogs.");
 ```
+
+🅲🆁🅴🅳🅸🆃🆂
+Huge thanks to Bas Groothedde at Imagine Programming for creating the original class module.
+If you'd like to see more of his code, you can visit his GitHub [here](https://github.com/imagine-programming).
