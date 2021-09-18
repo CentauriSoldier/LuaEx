@@ -7,40 +7,43 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
 #### Alpha v0.5
+<details>
+<summary>Changelog</summary>
+### v0.5
 
-##### Changelog
+- Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling scipt to handle.
+- Change: LuaEx classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
+- Bugfix: table.lock was not preserving metatable items (where possible)
+- Feature: added protect function (in stdlib).
+- Feature: added table.lock function.
+- Feature: added table.purge function.
+- Feature: added table.settype function.
+- Feature: added table.unlock function.
 
-```
-	v0.5
-	Change: classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.
-	Change: LuaEx classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
-	Bugfix: table.lock was not preserving metatable items (where possible)
-	Feature: added protect function (in stdlib).
-	Feature: added table.lock function.
-	Feature: added table.purge function.
-	Feature: added table.settype function.
-	Feature: added table.unlock function.
+**v0.4**
 
-	v0.4
-	Bugfix: metavalue causing custom type check to fail to return the proper value.
-	Bugfix: typo that caused global enums to not be put into the global environment.
-	Feature: enums can now also be non-global.
-	Feature: the enum created by a call to the enum function is now returned.
+- Bugfix: metavalue causing custom type check to fail to return the proper value.
+- Bugfix: typo that caused global enums to not be put into the global environment.
+- Feature: enums can now also be non-global.
+- Feature: the enum created by a call to the enum function is now returned.
 
-	v0.3
-	Hardened the protected table to prevent accidental tampering.
-	Added a meta table to _G in the init module.
-	Changed the name of the const module and function to constant for lua 5.1 - 5.4 compatibility.
-	Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.
-	Updated several modules.
+**v0.3**
 
-	v0.2
-	Added the enum object.
-	Updated a few modules.
+- Hardened the protected table to prevent accidental tampering.
+- Added a meta table to _G in the init module.
+- Changed the name of the const module and function to constant for lua 5.1 - 5.4 compatibility.
+- Altered the way constants and enums work by using the new, _G metatable to prevent deletion or overwriting.
+- Updated several modules.
 
-	v0.1
-	Compiled various modules into LuaEx.
-```
+**v0.2**
+
+- Added the enum object.
+- Updated a few modules.
+
+**v0.1**
+
+- Compiled various modules into LuaEx.
+</details>
 
 ## 🅻🅸🅲🅴🅽🆂🅴 ©
 
