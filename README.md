@@ -8,7 +8,9 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 #### Alpha v0.5
 <details>
-<summary>Changelog</summary>
+<summary>See Changes</summary>
+
+#### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​​​🇬​​​​​
 
 **v0.5**
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling scipt to handle.
