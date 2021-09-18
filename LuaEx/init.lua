@@ -45,7 +45,7 @@ For more information, please refer to <http://unlicense.org/>
 @todo
 @usage
 	<h2>Coming Soon</h2>
-@version 0.4
+@version 0.5
 @versionhistory
 <ul>
 	<li>

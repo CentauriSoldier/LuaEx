@@ -6,7 +6,7 @@ Put simply, LuaEx is a collection of scripts that extend Lua's functionality. Be
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
-#### Alpha v0.4
+#### Alpha v0.5
 
 ##### Changelog
 
