@@ -18,13 +18,16 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​​​🇬​​​​​
 
 **v0.5**
-- Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling scipt to handle.
-- Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
+- Bugfix: ***table.lock*** was altering the metatable of enums when it should not have been
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible)
-- Feature: added protect function (in ***stdlib***).
+- Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling script to handle.
+- Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
+- Feature: added ***protect*** function (in ***stdlib***).
+- Feature: added ***subtype*** function (in ***stdlib***).
 - Feature: added ***table.lock*** function.
 - Feature: added ***table.purge*** function.
 - Feature: added ***table.settype*** function.
+- Feature: added ***table.setsubtype*** function.
 - Feature: added ***table.unlock*** function.
 - Feature: added ***queue*** class.
 - Feature: added ***stack*** class.
@@ -67,6 +70,9 @@ All code is placed in the public domain under [The Unlicense](https://opensource
 
 Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achive this, the lua function, ***type*** has been hooked. If you'd like to get the type of something, ignoring **LuaEx's** custom type feature, simply use the ***rawtype*** function.
 
+### Subtypes
+They work the the same as types except the metatable entry is ***__subtype*** and the function to detect the subtype is ***subtype***.
+
 
 ## 🆆🅰🆁🆁🅰🅽🆃🆈 🗞
 None. Use at your own risk. 💣
@@ -100,6 +106,7 @@ These are items that are globally accessible but do not fit nicely into any part
 #### Functions
 - **type** Works like the original lua function except that it honors **LuaEx's** custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
 - **rawtype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system meaning for all LuaEx custom types, it will return the string value, ***"table"***.
+-- **subtype** Gets the subtype of an object/table. If it has not been given a subtype (either by using ***table.setsubtype*** or by manually setting the ***__subtype*** metatable key), then the string *"nil"* is returned.
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
 - ****
 
@@ -312,9 +319,10 @@ Adds several table functions to the lua library.
 
 #### Functions
 - **table.clone(table, boolean or nil)** Performs a deep copy of a table and returns that copy. This will also copy the metatable unless the second argument is set to true.
-- **table.lock(table)** Makes a table read-only recursively. That is, it prevents any of a table's key or values from being mutated (or any added to the table) while still allowing them to be accessed. Can be unlocked later. Note: while the original metatable is mostly preserved, ***__index*** and ***__newindex*** are necessarily replaced while the table is locked (but are restored once the table is unlocked).
+- **table.lock(table)** Makes a table read-only recursively. That is, it prevents any of a table's key or values from being mutated (or any added to the table) while still allowing them to be accessed. Can be unlocked later. Note: while the original metatable is mostly preserved, ***__index*** and ***__newindex*** are necessarily replaced while the table is locked (but are restored once the table is unlocked). The exception to this rule is enums: their ***__index*** metamethod remains when locked.
 - **table.purge(table, boolean or nil)** Sets every item in a table to nil recursively. This will also purge and delete the metatable unless the second argument is set to true.
 - **table.settype(table, string)** Sets the table to a custom type instead of type ***"table"***. Calls to ***type*** will now return the input string. To check the type, ignoring the custom type feature, use the ***rawtype*** function instead.
+- **table.setsubtype(table, string)** Does the same thing as type allowing an object/table to have, both, a type and a subtype simultaneously. To get the subtype of an object/table, use the ***subtype*** function.
 - **table.unlock(table)** Reverses the process done by the ***table.lock*** function including putting all metatables back which existed before.
 
 #### Usage Example
@@ -332,6 +340,10 @@ local tAnimals = {
 --set the type
 table.settype(tAnimals, "Kennel");
 print("You just built a "..type(tAnimals));
+
+--set the table's subtype
+table.setsubtype(tAnimals, "Happy");
+print("The "..type(tAnimals).." is of subtype "..subtype(tAnimals));
 
 --clone a table
 tClone = table.clone(tAnimals);
@@ -369,3 +381,4 @@ print("Oh good. We've also got "..tAnimals.BestDogs[1].." best dogs.");
 🅲🆁🅴🅳🅸🆃🆂
 Huge thanks to Bas Groothedde at Imagine Programming for creating the original class module.
 If you'd like to see more of his code, you can visit his GitHub [here](https://github.com/imagine-programming).
+Thanks to Alex Kloss <alexthkloss@web.de> for creating the base64 module.

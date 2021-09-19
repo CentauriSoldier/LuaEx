@@ -245,7 +245,7 @@ local function enum(sName, tNames, tValues, bPrivate)
 		__newindex 	= modifyError,
 		__call 		= items,
 		__tostring 	= function() return sFormattedEnumName; end,
-		__len		= nItemCount;
+		__len		= nItemCount,
 		__type		= "enum",
 	});
 

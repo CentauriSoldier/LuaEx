@@ -50,6 +50,9 @@ function table.lock(tInput)
 			error("Cannot lock a table which has a protected metatable.");
 		end
 
+		--check if this is an enum
+		local bIsEnum = type(tInput) == "enum";
+
 		--clone the original table before purging it
 		local tData = table.clone(tInput);
 
@@ -70,23 +73,27 @@ function table.lock(tInput)
 		end
 
 		--clone the meta table or create a new one if not present
-		local tNewMeta = bMetaIsTable and table.clone(tMeta) or {};
+		if (not bIsEnum) then--do not modify enum subtable TODO do this for classes as well--also, allow a table of strings (types to be ignored) be input by the user
+			local tNewMeta = bMetaIsTable and table.clone(tMeta) or {};
 
-		--remove the old meta table if present
-		if (bMetaIsTable) then
-			table.purge(tMeta);
-			setmetatable(tInput, nil);
+			--remove the old meta table if present
+			if (bMetaIsTable) then
+				table.purge(tMeta);
+				setmetatable(tInput, nil);
+			end
+
+			--set the values for the new metatable
+			tNewMeta.__newindex = function(t, k, v)
+				error("Attempt to write to locked (read-only) table; Key: '"..tostring(k).."' ("..type(k)..") | Value: "..tostring(v).." ("..type(v)..").");
+			end;
+			tNewMeta.__LUAEX_OLD_METATABLE_STORAGE = tMeta; --store the table's old metatable
+			tNewMeta.__index = bIsEnum and tNewMeta.__index or tData; --keep the __index metamethod if this is an enum
+
+			--set the original (now-purged) table's meta table
+			setmetatable(tInput, tNewMeta);
+
 		end
 
-		--set the values for the new metatable
-		tNewMeta.__newindex = function(t, k, v)
-			error("Attempt to write to locked (read-only) table; Key: '"..tostring(k).."' ("..type(k)..") | Value: "..tostring(v).." ("..type(v)..").");
-		end;
-		tNewMeta.__LUAEX_OLD_METATABLE_STORAGE = tMeta; --store the table's old metatable
-		tNewMeta.__index = tData;
-
-		--set the original (now-purged) table's meta table
-		setmetatable(tInput, tNewMeta);
 	end
 
 end
@@ -144,9 +151,30 @@ function table.settype(tInput, sType)
 end
 
 
+function table.setsubtype(tInput, sSubType)
+
+	if (rawtype(tInput) == "table" and type(sSubType) == "string")then
+		--look for an existing meta table and get its type
+		local tMeta 	= getmetatable(tInput);
+		local sMetaType = rawtype(tMeta);
+		local bIsTable = sMetaType == "table";
+
+		if (bIsTable or sMetaType == "nil") then
+			tMeta = bIsTable and tMeta or {};
+			tMeta.__subtype = sSubType;
+			setmetatable(tInput, tMeta);
+			return tInput;
+		end
+
+	end
+
+end
+
+
 function table.unlock(tInput)
 
 	if (rawtype(tInput) == "table" and rawtype(tLockedTableClones[tInput]) == "table") then
+		local bIsEnum = type(tInput) == "enum";
 
 		--check each entry in the data table for a table value
 		for vKey, vValue in pairs(tLockedTableClones[tInput]) do
@@ -166,12 +194,16 @@ function table.unlock(tInput)
 			rawset(tLockedTableClones, tInput, nil);
 		end
 
-		--reset the table's metatable (if needed)
-		local tMeta = getmetatable(tInput);
-		--TODO do i really need to check for the existence of a metatable? Doesn't every cloned table have a meta table to prevent modifications?
-		-- I think checking for the the __LUAEX_OLD_METATABLE_STORAGE value would be safe...
-		if (rawtype(tMeta) == "table" and rawtype(tMeta.__LUAEX_OLD_METATABLE_STORAGE == "table")) then
-			setmetatable(tInput, tMeta.__LUAEX_OLD_METATABLE_STORAGE);
+		if (not bIsEnum) then--do not modify enum subtable TODO do this for classes as well--also, allow a table of strings (types to be ignored) be input by the user
+
+			--reset the table's metatable (if needed)
+			local tMeta = getmetatable(tInput);
+			--TODO do i really need to check for the existence of a metatable? Doesn't every cloned table have a meta table to prevent modifications?
+			-- I think checking for the the __LUAEX_OLD_METATABLE_STORAGE value would be safe...
+			if (rawtype(tMeta) == "table" and rawtype(tMeta.__LUAEX_OLD_METATABLE_STORAGE == "table")) then
+				setmetatable(tInput, tMeta.__LUAEX_OLD_METATABLE_STORAGE);
+			end
+
 		end
 
 		--delete the local references to the clone table (it's only reference)
