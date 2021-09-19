@@ -3,6 +3,26 @@ local __type__ = type;
 
 rawtype = __type__;
 
+function sealmetatable(tInput)
+	local bRet = false;
+
+	if (rawtype(tInput) == "table") then
+		local tMeta 	= getmetatable(tInput);
+		local sMetaType = rawtype(tInput);
+		local bIsNil 	= sMetaType == "nil";
+
+		if (sMetaType == "table" or bIsNil) then
+			tMeta = bIsNil and {} or tMeta;
+			tMeta.__metatable = false;
+			setmetatable(tInput, tMeta);
+		end
+
+	end
+
+	return bRet;
+end
+
+
 function type(vObject)
 	local sType = rawtype(vObject);
 

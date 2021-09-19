@@ -18,11 +18,12 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​​​🇬​​​​​
 
 **v0.5**
-- Bugfix: ***table.lock*** was altering the metatable of enums when it should not have been
-- Bugfix: ***table.lock*** was not preserving metatable items (where possible)
+- Bugfix: ***table.lock*** was altering the metatable of enums when it should not have been.
+- Bugfix: ***table.lock*** was not preserving metatable items (where possible).
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling script to handle.
 - Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
 - Feature: added ***protect*** function (in ***stdlib***).
+- Feature: added ***sealmetatable*** function (in ***stdlib***).
 - Feature: added ***subtype*** function (in ***stdlib***).
 - Feature: added ***table.lock*** function.
 - Feature: added ***table.purge*** function.
@@ -106,7 +107,8 @@ These are items that are globally accessible but do not fit nicely into any part
 #### Functions
 - **type** Works like the original lua function except that it honors **LuaEx's** custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
 - **rawtype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system meaning for all LuaEx custom types, it will return the string value, ***"table"***.
--- **subtype** Gets the subtype of an object/table. If it has not been given a subtype (either by using ***table.setsubtype*** or by manually setting the ***__subtype*** metatable key), then the string *"nil"* is returned.
+- **sealmetatable** Permanently locks a metatable from being accessed, altered or changed by settting the ***__metatable*** key to *false*. This process cannot be undone. If the table does not have a metatable, one is created and sealed.
+- **subtype** Gets the subtype of an object/table. If it has not been given a subtype (either by using ***table.setsubtype*** or by manually setting the ***__subtype*** metatable key), then the string *"nil"* is returned.
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
 - ****
 
