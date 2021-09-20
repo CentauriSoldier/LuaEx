@@ -346,8 +346,6 @@ local function enum(sName, tNames, tValues, bPrivate)
 				__newindex 	= modifyError;
 				__tostring 	= function() return sFormattedName; end,
 				__type		= sName,
-				--__add
-				--__sub
 			}
 		);
 
