@@ -22,6 +22,8 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible).
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling script to handle.
 - Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
+- Change: **enums** values may now be of any non-nil type(previously only **string** and **number** were allowed).
+- Feature: **enums** may now be nested.
 - Feature: added ***protect*** function (in ***stdlib***).
 - Feature: added ***sealmetatable*** function (in ***stdlib***).
 - Feature: added ***subtype*** function (in ***stdlib***).
@@ -190,7 +192,7 @@ print("Batteries: "..tBatteries.Bad);
 ## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
 
 #### Description
-Brings enums to lua. While they do do not possess every feature you have come to expect in OOP, I have tried to make their behavior as close to actual enums as possible.
+Brings enums to lua. While they do not possess every feature you have come to expect in OOP, I have tried to make their behavior as close to actual enums as possible while still affording them the benefits of lua flexibility.
 
 #### Features
 - **Immutability**
@@ -226,7 +228,7 @@ All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***)
 - **enum** The enum which owns this item (*enum*)
 - **id** The ordinal value of the item (*number*)
 - **name** The given name of the item (*string*)
-- **value** The given (or default) value of the item (string or number)
+- **value** The given (or default) value of the item (any non-nil type)
 - **valueType** The type of the value property (string)
 
 #### Item Methods
@@ -278,6 +280,31 @@ local tMyTable = {
 	MY_COOL_ENUM 		= enum("MU_ENUM", 		{"STUFF", "THINGS", "ITEMS"}, nil, 		true),
 	MY_OTHER_COOL_ENUM 	= enum("MU__OTHER_ENUM", 	{"STUFF", "THINGS", "ITEMS"}, {1, 7, 99}, 	true),
 };
+
+--(private) enums can be embedded within other enums
+enum("ANIMAL", {"CAT", "DOG", "MOUSE", "COUNT"}, {
+	enum("ANIMAL.CAT", {"COLOR", "SIZE"}, {5, 7}, true, {
+		enum("ANIMAL.CAT.COLOR", {"WHITE", "GREY", "BLACK", "TEAL"}, nil, true),
+		enum("ANIMAL.CAT.SIZE", {"BIG", "MEDIUM", "SMALL"}, {3, 7, 9}, true),
+	}, true),
+	enum("ANIMAL.DOG", {"OWNED", "IN_KENNEL"}, {2, 6}, true),
+	enum("ANIMAL.MOUSE", {"IN_HOUSE", "NOISY"}, {false, true}, true),
+	45,
+});
+
+--get the type of cat
+print(tostring("This is a "..ANIMAL.CAT.name.."."));
+
+--there are a couple ways to access the same info
+print("This "..ANIMAL.DOG.name.." is a "..ANIMAL.DOG.OWNED.name);
+print("This "..ANIMAL.DOG.name.." is a "..ANIMAL.DOG.value.OWNED.name);
+
+--check on the mouse
+print("Mouse is in the house: "..tostring(ANIMAL.MOUSE.IN_HOUSE.value));
+
+--and, of course, the enums and values are protected (uncomment to see)
+--ANIMAL.DOG = 44;
+--ANIMAL.DOG.OWNED.value = "Hello";
 ```
 
 ## 🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​
@@ -380,7 +407,7 @@ print(tAnimals.Mice);
 print("Oh good. We've also got "..tAnimals.BestDogs[1].." best dogs.");
 ```
 
-🅲🆁🅴🅳🅸🆃🆂
+## 🅲🆁🅴🅳🅸🆃🆂
 Huge thanks to Bas Groothedde at Imagine Programming for creating the original class module.
 If you'd like to see more of his code, you can visit his GitHub [here](https://github.com/imagine-programming).
 Thanks to Alex Kloss <alexthkloss@web.de> for creating the base64 module.

@@ -94,6 +94,7 @@ function table.lock(tInput)
 
 		end
 
+		return tInput;
 	end
 
 end
@@ -101,7 +102,7 @@ end
 
 function table.purge(tInput, bIgnoreMetaTable)
 
-	if (rawtype(tInput)) then
+	if (rawtype(tInput) == "table") then
 
 		--delete all the keys in the table
 		for vKey, vValue in pairs(tInput) do
@@ -126,6 +127,7 @@ function table.purge(tInput, bIgnoreMetaTable)
 
 		end
 
+		return tInput;
 	end
 
 end
@@ -137,7 +139,7 @@ function table.settype(tInput, sType)
 		--look for an existing meta table and get its type
 		local tMeta 	= getmetatable(tInput);
 		local sMetaType = rawtype(tMeta);
-		local bIsTable = sMetaType == "table";
+		local bIsTable 	= sMetaType == "table";
 
 		if (bIsTable or sMetaType == "nil") then
 			tMeta = bIsTable and tMeta or {};
@@ -146,6 +148,7 @@ function table.settype(tInput, sType)
 			return tInput;
 		end
 
+		return tInput;
 	end
 
 end
@@ -166,6 +169,7 @@ function table.setsubtype(tInput, sSubType)
 			return tInput;
 		end
 
+		return tInput;
 	end
 
 end
@@ -208,6 +212,8 @@ function table.unlock(tInput)
 
 		--delete the local references to the clone table (it's only reference)
 		tLockedTableClones[tInput] = nil;
+
+		return tInput;
 	end
 
 end

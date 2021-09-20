@@ -83,6 +83,7 @@ local tReservedIndices = {
 	"__hasA",
 	"__name",
 };
+
 local nReservedIndices = #tReservedIndices;
 
 local function checkForReservedIndex(sInput)
@@ -91,6 +92,22 @@ local function checkForReservedIndex(sInput)
 
 		if (sInput == tReservedIndices[x]) then
 			error("Error creating enum. Cannot use '"..sInput.."' as an index; it is reserved.");
+		end
+
+	end
+
+end
+
+local tReservedEnumItemIndices = {"enum", "id", "isA", "isSibling", "previous", "next", "name", "value", "value"};
+
+local nReservedEnumItemIndices = #tReservedEnumItemIndices;
+
+local function checkForReservedItemIndex(sInput)
+
+	for x = 1, nReservedEnumItemIndices do
+
+		if (sInput == tReservedEnumItemIndices[x]) then
+			error("Error creating enum item. Cannot use '"..sInput.."' as an index; it is reserved.");
 		end
 
 	end
@@ -122,9 +139,11 @@ local function namesAreValid(tInput)
 	return (bRet and nCount > 0), nCount;
 end
 
-local function valuesAreValid(tValues)
-	local sValuesType = type(tValues);
-	local bRet = sValuesType == "table";
+--TODO be sure to check the number of values against the number of name...this will require a number input to this function
+local function validateValues(tValues)
+	local sValuesType	= type(tValues);
+	local bRet 		 	= true;
+	local tRet			= tValues;
 
 	if (sValuesType == "table") then
 		local nIndexChecker = 0;
@@ -134,19 +153,23 @@ local function valuesAreValid(tValues)
 
 			if (type(vIndex) ~= "number") then
 				bRet = false;
+				tRet = {};
 				break;
 			end
 
 			if (vIndex ~= nIndexChecker) then
 				bRet = false;
+				tRet = {};
 				break;
 			end
 
 			local sItemType = type(vItem);
 
-			if (sItemType ~= "string"  	and sItemType ~= "number") then
+			if (sItemType == "nil") then
+			--if (sItemType ~= "string"  	and sItemType ~= "number") then
 			--and sItemType ~= "table" 	and sItemType ~= "function") then
 				bRet = false;
+				tRet = {};
 				break;
 			end
 
@@ -154,7 +177,7 @@ local function valuesAreValid(tValues)
 
 	end
 
-	return bRet;
+	return tRet;
 end
 
 
@@ -185,7 +208,7 @@ local function enum(sName, tNames, tValues, bPrivate)
 	if (not bPrivate) then
 		--check that the name string can be a valid variable
 		assert(isvariablecompliant(sName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
-		--make sure the variable doesn't alreay exist
+		--make sure the variable doesn't already exist
 		assert(type(_G[sName]) == "nil" and type(tLuaEX[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
 	end
 
@@ -218,7 +241,7 @@ local function enum(sName, tNames, tValues, bPrivate)
 	tEnumData.__name 	= sName;
 
 	--allows for quick determination of items' value
-	local tCheckedValues		= valuesAreValid(tValues) and tValues or {};
+	local tCheckedValues = validateValues(tValues);
 
 	--used to iterate over each item in the enum
 	local function itemsIterator(tTheEnum, nTheIndex)
@@ -263,8 +286,18 @@ local function enum(sName, tNames, tValues, bPrivate)
 		tItemsByOrdinal[nID] = sItem;
 
 		--get the value to be set
-		local vValue = tCheckedValues[nID] or nID;
+		local vValue;
+
+		if (rawtype(tCheckedValues[nID]) == "nil") then
+			vValue = nID;
+		else
+			vValue = tCheckedValues[nID];
+		end
+
 		local sValueType = type(vValue);
+
+		--check if this is an enum
+		local bValueIsEnum = sValueType == "enum";
 
 		--create the item data table
 		local tItemData = {
@@ -286,14 +319,29 @@ local function enum(sName, tNames, tValues, bPrivate)
 			end,
 			name 		= sItem,
 			value 		= vValue,
-			valueType 	= sValueType,
+			valueType 	= bValueIsEnum and sItem or sValueType,
 		};
+
+		if (bValueIsEnum) then
+
+			for _, oSubItem in vValue() do
+				checkForReservedItemIndex(oSubItem.name);--TODO not working
+				tItemData[oSubItem.name] = oSubItem;
+			end
+
+		end
+
 
 		--create the item object
 		local tItemObject = setmetatable(tItemShadow,
 			{
 				__index 	= function(tTable, vKey)
-					return tItemData[vKey] or error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sName.."'.");
+
+					if tItemData[vKey] == nil then
+						error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sName.."'.");
+					else
+						return tItemData[vKey];
+				 	end
 				end,
 				__newindex 	= modifyError;
 				__tostring 	= function() return sFormattedName; end,
@@ -304,8 +352,8 @@ local function enum(sName, tNames, tValues, bPrivate)
 		);
 
 		--make it visible to the enum's data table (both by name and ordinal)
-		tEnumData[sItem] = tItemObject;
-		tEnumData[nID] = tItemObject;
+		tEnumData[sItem] 	= tItemObject;
+		tEnumData[nID] 		= tItemObject;
 	end
 
 	if (not bPrivate) then
