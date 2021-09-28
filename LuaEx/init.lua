@@ -176,3 +176,4 @@ deserialize = import("deserialize");
 --import classes
 queue 		= import("queue");
 stack 		= import("stack");
+set 		= import("set");

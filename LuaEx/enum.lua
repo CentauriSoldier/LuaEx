@@ -16,9 +16,9 @@ local type 			= type;
 ╚══════╝░╚════╝░░╚════╝░╚═╝░░╚═╝╚══════╝  ╚═╝░░░░░░╚═════╝░╚═╝░░╚══╝░╚════╝░░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═════╝░
 ]]
 local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
-				   "false", "for", "function", "if", "in", "local",
-				   "nil", "not", "or", "repeat", "return", "then",
-				   "true", "until", "while",
+				   "false", "for", "function", "goto", "if", "in",
+				   "local", "nil", "not", "or", "repeat", "return",
+				   "then", "true", "until", "while",
 				   --LuaEx keywords
 				   "constant","enum"
 			   };

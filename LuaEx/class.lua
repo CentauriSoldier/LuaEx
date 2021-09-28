@@ -36,21 +36,32 @@ local assert 		= assert;
 
 -- names of metamethods, should be treated as such
 local metanames = {
-	__add 		= true;
-	__concat 	= true;
-	__div 		= true;
-	__eq 		= true;
-	__le 		= true;
-	__len		= true;
-	__lt 		= true;
-	__mod 		= true;
-	__mul 		= true;
-	__index 	= true; -- special case, handled separately
-	__newindex 	= true; -- special case, handled separately
-	__pow 		= true;
-	__sub 		= true;
-	__tostring 	= true;
-	__unm 		= true;
+	__add 		= true,
+	__band		= true,
+	__bnot		= true,
+	__bor		= true,
+	__bxor		= true,
+	__close 	= true,
+	__concat 	= true,
+	__div 		= true,
+	__eq 		= true,
+	__gc 		= true,
+	__idiv		= true,
+	__index 	= true, -- special case, handled separately
+	__le 		= true,
+	__len		= true,
+	__lt 		= true,
+	__mod 		= true,
+	__mode 		= true,
+	__mul 		= true,
+	__name 		= true,
+	__newindex 	= true, -- special case, handled separately
+	__pow 		= true,
+	__shl 		= true,
+	__shr 		= true,
+	__sub 		= true,
+	__tostring 	= true,
+	__unm 		= true,
 };
 
 -- the generic class constructor, which also invokes your __construct method if it exists
