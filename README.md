@@ -33,6 +33,7 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 - Feature: added ***table.setsubtype*** function.
 - Feature: added ***table.unlock*** function.
 - Feature: added ***queue*** class.
+- Feature: added ***set*** class.
 - Feature: added ***stack*** class.
 
 **v0.4**
@@ -96,8 +97,8 @@ These are various classes that help bring more OOP features to lua. These have b
 
 #### Classes
 - **queue** A basic queue class with obligatory methods.
+- **set** 	A basic set class with obligatory methods as well as many mathematical operations.
 - **stack** A basic stack class with obligatory methods.
-
 
 ## 🅼🅾🅳🆄🅻🅴🆂 ⚙
 
