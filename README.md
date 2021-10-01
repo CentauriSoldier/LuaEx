@@ -23,6 +23,7 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling script to handle.
 - Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
 - Change: **enums** values may now be of any non-nil type(previously only **string** and **number** were allowed).
+- Feature: **class** constructor methods now pass, not only the instance, but a protected, shared (fields and methods) table to parent classes.
 - Feature: **enums** may now be nested.
 - Feature: added ***protect*** function (in ***stdlib***).
 - Feature: added ***sealmetatable*** function (in ***stdlib***).
@@ -130,7 +131,55 @@ Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](h
 
 
 ## 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
-Description in Progress
+
+#### Description
+This is used to create classes in LuaEx. It allows the client access to many features of Object Oriented Programming (although not all). It is important to remember that the first two (implicit) arguments to any class constructor (those not passed by the caller) are ***1)*** the instance and ***2)*** a protected, shared table (or nil if the class has no children). This table is used to store non-public fields and methods visible to only to the class, its parents and its children. Each child and parent of a given class instance can access and mutate this table and its elements. This table serves as the "protected" portion of classes' O.O.P.
+
+
+#### Usage Example
+```lua
+--used to store protected instance information
+local tProtectedRepo = {};
+
+local animal = class "animal" {
+
+	__construct = function(this, protected, sName, bIsBiped)
+		--setup the protected table for this instance (or import the given one if it's not nil)
+		tProtectedRepo[this] = rawtype(protected) == "table" and protected or {};
+
+		--for readability
+		local tProt = tProtectedRepo[this];
+
+		--create the protected properties
+		tProt.name 		= type(sName) 		== "string" and sName 		or "";
+		tProt.isBiped 	= type(bIsBiped)	== "string" and bIsBiped 	or false;
+
+	end,
+
+
+};
+
+local dog = class "dog" : extends(animal) {
+
+	__construct = function(this, protected, sName)
+		--setup the protected table for this instance (or import the given one if it's not nil)
+		tProtectedRepo[this] = rawtype(protected) == "table" and protected or {};
+
+		--for readability
+		local tProt = tProtectedRepo[this];
+
+		--call the parent constructor
+		this:super(tProt, sName, false);
+	end,
+
+	bark = function(this)
+		print(tProtectedRepo[this].name.." says, \"Woof!\".");
+	end,
+};
+
+local spot = dog("Spot");
+spot:bark();
+```
 
 ## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​🇦​​​​​🇳​​​​​🇹​​​​​
 

@@ -64,13 +64,20 @@ local metanames = {
 	__unm 		= true,
 };
 
+local tFields = {};
+
+
 -- the generic class constructor, which also invokes your __construct method if it exists
 local function class_ctor(class, ...)
 	assert(type(class) == "class", "cannot construct, invalid class");
 	local instance = setmetatable({}, getmetatable(class).__instance_mt);
 
 	if (type(class.__construct) == "function") then
-		class.__construct(instance, ...);
+		--passing nil here (as the second argument), ensures
+		--that calls to this contructor which come not from
+		--a child class do not propogate a protected table
+		--while still maintaining argument order integrity
+		class.__construct(instance, nil, ...);
 	end
 
 	return instance;
@@ -124,6 +131,8 @@ function is_derived(class, base)
 	return false;
 end
 
+
+
 -- is_instance_of returns true if `object` is an instance of `base` or any of its derived classes.
 -- It also returns true if `object` is in fact a class and it is derived from `base` (basically, is_derived)
 function is_instance_of(object, base)
@@ -159,9 +168,6 @@ function is_base(class_object)
 	return getmetatable(class_object).__parent == nil;
 end
 
-
-
-
 -- define a new class
 local function class(name)
 	local class_meta   = { __type = name, __parent = nil };
@@ -193,11 +199,11 @@ local function class(name)
 
 			-- each class has a super method, which allows you to invoke the parent constructor
 			-- i.e. in your __construct(this): `this:super(a, b, c)`
-			class_object.super = function(instance, ...)
+			class_object.super = function(instance, tProtected, ...)
 				local parent = getmetatable(class_object).__parent;
 				if (parent and type(parent.__construct) == "function") then
 					local current_mt = getmetatable(instance);
-					parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), ...);
+					parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tProtected, ...);
 					setmetatable(instance, current_mt);
 					return;
 				end
