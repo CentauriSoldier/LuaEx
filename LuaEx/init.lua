@@ -131,14 +131,10 @@ sPath = sPath:sub(1, sPath:len() - 1);
 --update the package.path
 package.path = package.path..";"..sPath.."\\?.lua";
 
-local function import(sFile)
-	return require(sFile);
-end
-
 --import core modules
-import("stdlib");
-constant 	= import("constant");
-enum		= import("enum");
+			  require("lib.stdlib");
+constant 	= require("lib.constant");
+enum		= require("lib.enum");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,
@@ -157,19 +153,19 @@ setmetatable(_G,
 	}
 );
 
-class 		= import("class");
-base64 		= import("base64");
+class 		= require("class.class");
+base64 		= require("ext_lib.base64");
 
 --import lua extension modules
-			  import("math");
-			  import("string");
-			  import("table");
+math 		= require("hook.mathhook");
+string		= require("hook.stringhook");
+table		= require("hook.tablehook");
 
 --import other modules
-serialize 	= import("serialize");
-deserialize = import("deserialize");
+serialize 	= require("util.serialize");
+deserialize = require("util.deserialize");
 
 --import classes
-queue 		= import("queue");
-stack 		= import("stack");
-set 		= import("set");
+queue 		= require("class.queue");
+stack 		= require("class.stack");
+set 		= require("class.set");

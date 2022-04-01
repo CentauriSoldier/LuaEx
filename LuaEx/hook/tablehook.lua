@@ -3,6 +3,7 @@ local pairs			= pairs;
 local rawtype 		= rawtype;
 local setmetatable 	= setmetatable
 local table 		= table;
+
 --stores references to locked tables and their clones
 local tLockedTableClones = {};
 
@@ -265,3 +266,5 @@ function orderedPairs(t)
 end
 
 ]]
+
+return table;

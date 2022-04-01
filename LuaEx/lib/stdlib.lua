@@ -55,7 +55,6 @@ function subtype(vObject)
 end
 
 
-
 function protect(sReference)
 	local sReferenceType 	= rawtype(sReference);
 	local sInputType		= rawtype(_G[sReference]);
