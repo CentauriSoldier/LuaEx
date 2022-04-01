@@ -119,24 +119,20 @@ _G.__LUAEX__ = setmetatable({}, {
 	__metatable = false,
 });
 
---update the package.path
-package.path = package.path..";LuaEx\\?.lua";
-
 --warn the user if debug is missing
-assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx."); --TODO find a way to remoev this!
+assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
 
---TODO do i need this part?
 --determine the call location
 local sPath = debug.getinfo(1, "S").source;
 --remove the calling filename
 sPath = sPath:gsub("@", ""):gsub("init.lua", "");
 --remove the "/" at the end
 sPath = sPath:sub(1, sPath:len() - 1);
---format the path to be suitable for the 'require()' function
-sPath = sPath:gsub("\\", "."):gsub("/", ".");
+--update the package.path
+package.path = package.path..";"..sPath.."\\?.lua";
 
 local function import(sFile)
-	return require(sPath..'.'..sFile);
+	return require(sFile);
 end
 
 --import core modules
