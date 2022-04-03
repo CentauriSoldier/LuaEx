@@ -1,5 +1,6 @@
---local constant = _G.__LUAEX__.constant;
+local math = math;
 constant("MATH_UNDEF", "undefined");
+--local constant = _G.__LUAEX__.constant;
 
 --the Eucclidian algorithm for finding the gcf
 --[[local function eucclidiangcf(nDividend, nDivisor)
@@ -155,3 +156,5 @@ function math.longtorgb(nValue)
 		b = nBlue,
 	};
 end
+
+return math;

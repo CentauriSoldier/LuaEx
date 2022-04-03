@@ -119,30 +119,22 @@ _G.__LUAEX__ = setmetatable({}, {
 	__metatable = false,
 });
 
---update the package.path
-package.path = package.path..";LuaEx\\?.lua";
-
 --warn the user if debug is missing
-assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx."); --TODO find a way to remoev this!
+assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
 
---TODO do i need this part?
 --determine the call location
 local sPath = debug.getinfo(1, "S").source;
 --remove the calling filename
 sPath = sPath:gsub("@", ""):gsub("init.lua", "");
 --remove the "/" at the end
 sPath = sPath:sub(1, sPath:len() - 1);
---format the path to be suitable for the 'require()' function
-sPath = sPath:gsub("\\", "."):gsub("/", ".");
-
-local function import(sFile)
-	return require(sPath..'.'..sFile);
-end
+--update the package.path
+package.path = package.path..";"..sPath.."\\?.lua";
 
 --import core modules
-import("stdlib");
-constant 	= import("constant");
-enum		= import("enum");
+			  require("lib.stdlib");
+constant 	= require("lib.constant");
+enum		= require("lib.enum");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,
@@ -161,19 +153,19 @@ setmetatable(_G,
 	}
 );
 
-class 		= import("class");
-base64 		= import("base64");
+class 		= require("class.class");
+base64 		= require("ext_lib.base64");
 
 --import lua extension modules
-			  import("math");
-			  import("string");
-			  import("table");
+math 		= require("hook.mathhook");
+string		= require("hook.stringhook");
+table		= require("hook.tablehook");
 
 --import other modules
-serialize 	= import("serialize");
-deserialize = import("deserialize");
+serialize 	= require("util.serialize");
+deserialize = require("util.deserialize");
 
 --import classes
-queue 		= import("queue");
-stack 		= import("stack");
-set 		= import("set");
+queue 		= require("class.queue");
+stack 		= require("class.stack");
+set 		= require("class.set");
