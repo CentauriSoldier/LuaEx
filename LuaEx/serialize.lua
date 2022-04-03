@@ -1,5 +1,4 @@
 local serialize = {};
-local rawtype = rawtype;
 
 --TODO Move these to util
 local tEscapeChars = {
@@ -66,18 +65,18 @@ local function serializeRestrictedChars(sInput)
 end
 
 function serialize.boolean(bFlag)
-	return (rawtype(bFlag) == "boolean") and tostring(bFlag) or "false";
+	return (type(bFlag) == "boolean") and tostring(bFlag) or "false";
 end
 
 function serialize.number(nNumber)
-	return (rawtype(nNumber) == "number") and nNumber or 0;
+	return (type(nNumber) == "number") and nNumber or 0;
 end
 
 --TODO make this do all resitricted charas too
 function serialize.string(sString)
 	local sRet = "";
 
-	if (rawtype(sString) == "string") then
+	if (type(sString) == "string") then
 		sRet = sString;
 
 		--look for escape characters
@@ -100,7 +99,7 @@ local str = serialize.string;
 
 --TODO serialize metatable (if possible)???
 function serialize.table(tTable, nTabCount)
-	nTabCount = (rawtype(nTabCount) == "number" and nTabCount > 0) and nTabCount or 0;
+	nTabCount = (type(nTabCount) == "number" and nTabCount > 0) and nTabCount or 0;
 	local sTab = "\t";
 
 	for x = 1, nTabCount do
@@ -109,14 +108,15 @@ function serialize.table(tTable, nTabCount)
 
 	local sRet = "{";
 
-	if (rawtype(tTable) == "table") then
+	if (type(tTable) == "table") then
+
 
 		for vIndex, vItem in pairs(tTable) do
-			local sType = rawtype(vItem);
+			local sType = type(vItem);
 			local sIndex = tostring(vIndex);
 
 			--create the index
-			if (rawtype(vIndex) == "number") then
+			if (type(vIndex) == "number") then
 				sIndex = "\r\n"..sTab.."["..sIndex.."]";
 			else
 				sIndex = "\r\n"..sTab.."[\""..sIndex.."\"]";
@@ -133,20 +133,15 @@ function serialize.table(tTable, nTabCount)
 				sRet = sRet..sIndex.." = "..tostring(vItem)..",";
 
 			elseif (sType == "table") then
-
-				--if this has a (S)serializtion function or method, call it TODO does this need to a class in order to use the ":" operator?
-				if (rawtype(vItem.serialize) == "function") then
-					sRet = sRet..sIndex.." = "..vItem:serialize()..",";
-				elseif (rawtype(vItem.Serialize) == "function") then
-					sRet = sRet..sIndex.." = "..vItem:Serialize()..",";
-				else
-					sRet = sRet..sIndex.." = "..serialize.table(vItem, nTabCount + 1)..",";
-				end
-
-
+				sRet = sRet..sIndex.." = "..serialize.table(vItem, nTabCount + 1)..",";
 
 			else
-
+				--if this has a (S)serializtion function or method, call it TODO does this need to a class in order to use the ":" operator?
+				if (type(vItem.serialize) == "function") then
+					sRet = sRet..sIndex.." = \""..vItem:serialize().."\",";
+				elseif (type(vItem.Serialize) == "function") then
+					sRet = sRet..sIndex.." = \""..vItem:Serialize().."\",";
+				end
 
 			end
 
