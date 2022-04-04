@@ -11,12 +11,22 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
-#### Alpha v0.5
+#### Alpha v0.6
 <details>
 <summary>See Changes</summary>
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​​​🇬​​​​​
 
+**v0.6**
+- Feature: removed ***string.left*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
+- Feature: removed ***string.right*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
+- Feature: added ***string.trim*** function.
+- Feature: added ***string.trimleft*** function.
+- Feature: added ***string.trimright*** function.
+- Bugfix: corrected package.path code in init.lua and removed ***import*** function.
+- Refactor: moved modules into appropriate subdirectories and update init.lua to find them.
+- Refactor: appended ***string***, ***math*** & ***table*** module files with "hook" without which they would not load properly.
+- Update: updated readme with more information.
 **v0.5**
 - Bugfix: ***table.lock*** was altering the metatable of enums when it should not have been.
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible).
@@ -114,7 +124,6 @@ These are items that are globally accessible but do not fit nicely into any part
 - **sealmetatable** Permanently locks a metatable from being accessed, altered or changed by settting the ***__metatable*** key to *false*. This process cannot be undone. If the table does not have a metatable, one is created and sealed.
 - **subtype** Gets the subtype of an object/table. If it has not been given a subtype (either by using ***table.setsubtype*** or by manually setting the ***__subtype*** metatable key), then the string *"nil"* is returned.
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
-- ****
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 
@@ -358,7 +367,10 @@ print("Mouse is in the house: "..tostring(ANIMAL.MOUSE.IN_HOUSE.value));
 ```
 
 ## 🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​
-Description in Progress
+
+#### Description
+Adds several math function to the lua library.
+- **Function descriptions in-progress.**
 
 ## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
@@ -389,7 +401,20 @@ print(serialize.table(tBatteries));
 ```
 
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
-Description in Progress
+
+#### Description
+Adds several string function to the lua library.
+
+- **string.cap(string, boolean or nil)** Capatalizes the first letter of the input. If the second argument is true, it also lowers all letters after the first.
+- **string.capall(string)** Capatalizes the first letter of each word of the input. The delimiter of a "word" in this context is a space character.
+- **string.delmitedtotable(string, string)** Takes a string input and returns a table. The table is split by the provided string delimiter. ***[Credit & Source](https://www.codegrepper.com/code-examples/lua/lua+split+string+into+table)***
+-- **string.getfuncname(function)** Takes a function as input and returns the name in string form.
+-- **string.iskeyword(string)** Determines whether the input string is a keyword.
+-- **string.isvariablecompliant(string, boolean or nil)** Determines whether a given string is a valid lua variable name. If the second argument is false or nil, the function will check a list of lua (and LuaEx) keywords for validation; if not, it will ignore keyword violations.
+- **string.trim(string)** Trims the whitespace from the beginning and end of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1706031030-Trim-whitespace-from-string-LUA.html)***
+- **string.trimright(string)** Trims the whitespace from the end of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1705231409-Trim-whitespace-from-end-of-string-LUA.html)***
+- **string.trimleft(string)** Trims the whitespace from the beginning of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1706031025-Trim-whitespace-from-beginning-of-string-LUA.html)***
+- **string.uuid(string or nil, string or nil)** Generates a Universally Unique Identifier string. *Note: this function does not generate entropy. The client is resposible for having sufficient randomness.*
 
 ## 🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​
 
