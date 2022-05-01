@@ -40,7 +40,7 @@ return class "stack" {
 	pop = function(this)
 		local vRet = nil;
 
-		if (tStacks[this][1]) then
+		if (tStacks[this].values[1]) then
 			vRet = table.remove(tStacks[this].values, 1);
 			tStacks[this].count = tStacks[this].count - 1;
 		end
