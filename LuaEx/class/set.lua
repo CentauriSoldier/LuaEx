@@ -23,8 +23,17 @@ local function removeItem(this, vItem)
 	local oSet = tSets[this];
 
 	if (oSet.set[vItem] ~= nil) then
-		table.remove(oSet.set, vItem);
-		table.remove(oSet.indexed, vItem);
+		oSet.set[vItem] = nil;
+
+		for x = 1, oSet.size do
+
+			if (oSet.indexed[x] == vItem) then
+				table.remove(oSet.indexed, x);
+				break;
+			end
+
+		end
+
 		oSet.size = oSet.size - 1;
 
 		bRet = true;
@@ -33,15 +42,18 @@ local function removeItem(this, vItem)
 	return bRet;
 end
 
-local function iteratorIndexer(this, nIndex)
-	nIndex = nIndex + 1;
-	return tSets[this].indexed[nIndex];
-end
+function iterator (this)
+   local nIndex = 0
+   local nMax = tSets[this].size;
 
-local function iterator(this)
-	local nIndex = 0
+   return function ()
+      nIndex = nIndex + 1
 
-	return iteratorIndexer, this, nIndex;
+      if (nIndex <= nMax) then
+         return tSets[this].indexed[nIndex];
+      end
+
+   end
 
 end
 

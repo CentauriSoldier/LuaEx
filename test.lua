@@ -18,13 +18,23 @@ s:add(3);
 s:add(4);
 s:add(4);
 s:add(4);
+s:add(3);
+s:add("asdfsd");
+s:remove(4);
+s:remove(2);
 
 t = set();
 t:add(1);
 t:add(3);
 
-print(tostring(t))
+--print(tostring(t))
 
 for v in s() do
-	--print(v)
+	print(v)
 end
+
+print(s:size())
+
+local a = "a";
+local b = "b";
+local c = "c";
