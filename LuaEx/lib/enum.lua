@@ -50,7 +50,7 @@ local function isvariablecompliant(sInput, bSkipKeywordCheck)
 	return bRet;
 end
 
-
+--TODO hasA is not working properly
 local function formatName(sName)
 	local sRet = "";
 	local tString = sName:gsub("_", "_|"):delmitedtotable("|");

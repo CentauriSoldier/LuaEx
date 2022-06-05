@@ -161,6 +161,9 @@ math 		= require("hook.mathhook");
 string		= require("hook.stringhook");
 table		= require("hook.tablehook");
 
+--import help module
+infusedhelp	= require("class.infusedhelp");
+
 --import other modules
 serialize 	= require("util.serialize");
 deserialize = require("util.deserialize");
