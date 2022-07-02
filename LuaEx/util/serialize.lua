@@ -143,8 +143,6 @@ function serialize.table(tTable, nTabCount)
 					sRet = sRet..sIndex.." = "..serialize.table(vItem, nTabCount + 1)..",";
 				end
 
-
-
 			else
 
 

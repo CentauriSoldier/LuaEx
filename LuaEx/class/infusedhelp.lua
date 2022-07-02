@@ -86,7 +86,7 @@ local tHelp = {
 						"\n\tA table containing info about the module (table)."..
 						"\n\t\tThis is a numerically-indexed table which has two string keys('title' and 'desc') whose values are strings."..
 						"\n\tA table containing the help items to be displayed (table)."..
-						"\n\t\tThis is a numerically-indexed table which has two string keys('desc' and 'example') whose values are strings.",
+						"\n\t\tThis is a string-indexed table whose keys are the lookup keyword and which has two string keys('desc' and 'example') whose values are strings.",
 					example = "mymodule.help = infusedhelp(mymodule, {title=\"mymodule\", desc=\"A basic, awesome module.\"}, {\"finonaci\" = {desc = \"Description goes here.\"}, example=\"--Code example goes here.\"});",
 				},
 };

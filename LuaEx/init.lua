@@ -49,6 +49,12 @@ For more information, please refer to <http://unlicense.org/>
 @versionhistory
 <ul>
 	<li>
+		<b>0.6</b>
+		<br>
+		<p>Bugfix: set and stack classes were not modifying values properly.</p>
+		<p>Feature: added infusedhelp module.</p>
+	</li>
+	<li>
 		<b>0.5</b>
 		<br>
 		<p>Change: classes are no longer automatically added to the global scope when created; rather, they are returned for the calling scipt to handle.</p>
@@ -125,16 +131,18 @@ assert(type(debug) == "table", "LuaEx requires the debug library during initiali
 --determine the call location
 local sPath = debug.getinfo(1, "S").source;
 --remove the calling filename
-sPath = sPath:gsub("@", ""):gsub("init.lua", "");
+sPath = sPath:gsub("@", ""):gsub("[Ii][Nn][Ii][Tt].[Ll][Uu][Aa]", "");
 --remove the "/" at the end
 sPath = sPath:sub(1, sPath:len() - 1);
 --update the package.path
 package.path = package.path..";"..sPath.."\\?.lua";
 
---import core modules
+--import core modules and push them into the global environment
 			  require("lib.stdlib");
 constant 	= require("lib.constant");
+constant("null", require("lib.null"));
 enum		= require("lib.enum");
+struct		= require("lib.struct");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,
@@ -161,7 +169,7 @@ math 		= require("hook.mathhook");
 string		= require("hook.stringhook");
 table		= require("hook.tablehook");
 
---import help module
+--import infusedhelp module
 infusedhelp	= require("class.infusedhelp");
 
 --import other modules
@@ -172,3 +180,6 @@ deserialize = require("util.deserialize");
 queue 		= require("class.queue");
 stack 		= require("class.stack");
 set 		= require("class.set");
+
+--useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
+constant("LUAEX_INIT", true);
