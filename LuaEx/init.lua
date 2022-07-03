@@ -138,11 +138,13 @@ sPath = sPath:sub(1, sPath:len() - 1);
 package.path = package.path..";"..sPath.."\\?.lua";
 
 --import core modules and push them into the global environment
-			  require("lib.stdlib");
-constant 	= require("lib.constant");
-constant("null", require("lib.null"));
-enum		= require("lib.enum");
-struct		= require("lib.struct");
+			  	require("lib.stdlib");
+constant 	= 	require("lib.constant");
+local null	= 	require("lib.null");
+				constant("null", null); -- make sure null can't be overwritten
+				constant("NULL", null); -- create an uppercase alias for null
+enum		= 	require("lib.enum");
+struct		= 	require("lib.struct");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,

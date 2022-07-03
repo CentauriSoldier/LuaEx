@@ -1,8 +1,8 @@
+--NOTE: DONT LOCALIZE null. Strange things happen...
 local type 			= type;
 local setmetatable 	= setmetatable;
 
 local function dummy() end
-
 
 local function eq(l, r)
 	return type(l) == type(r)
