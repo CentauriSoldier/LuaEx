@@ -39,14 +39,15 @@ end
 
 --metadata of factory factories
 local tMetaData = {
-	private = {
+	count = 0,
+	--[[private = {
 		count 		= 0,
 		factories 	= {},
 	},
 	public 	= {
 		count 		= 0,
 		factories 	= {},
-	},
+	},]]
 };
 
 local function propertiestableisvalid(tProperties)
@@ -74,7 +75,7 @@ end
 
 
 --TODO go throug this to make sure all the values are accessing the correct tbales (tfactory, tFactory, etc.)
-local function createfactory(sSubType, tProperties, bPrivate)
+local function createfactory(sSubType, tProperties)--, bPrivate)
 	--[[
 	 ______            _                         _____                    _                       _
 	 |  ____|          | |                       / ____|                  | |                     | |
@@ -276,18 +277,20 @@ local function createfactory(sSubType, tProperties, bPrivate)
 	});
 
 	--save the metadata
-	local sMetaKey = bPrivate and "private" or "public";
-	tMetaData[sMetaKey].count = tMetaData[sMetaKey].count + 1;
-	tMetaData[sMetaKey].factories[sSubType] = {
-		factory = tFactory,
-		name 	= sSubType,
-	};
+	--local sMetaKey = bPrivate and "private" or "public";
+	--tMetaData[sMetaKey].count = tMetaData[sMetaKey].count + 1;
+	--tMetaData[sMetaKey].factories[sSubType] = {
+	--	factory = tFactory,
+	--	name 	= sSubType,
+	--};
+	tMetaData.count = tMetaData.count + 1;
 
 	return tFactory;
 end
 
 local function factorycount()
-	return tMetaData.public.count;
+	--return tMetaData.public.count;
+	return tMetaData.count;
 end
 
 local function getfactory(t, k)
@@ -306,7 +309,7 @@ return setmetatable({
 },
 {
 	__call 		= dummy,
-	__index 	= getfactory,
+	__index 	= dummy,--getfactory,
 	__len 	 	= factorycount,
 	__newindex 	= dummy,
 	__subtype	= "struct",
