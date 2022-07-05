@@ -55,6 +55,7 @@ For more information, please refer to <http://unlicense.org/>
 	<p>Feature: added null type.</p>
 	<p>Feature: added the factory module.</p>
 	<p>Feature: added the luatype function (an alias for Lua's original, type, function.)</p>
+	<p>Feature: added the fulltype function.</p>
 	</li>
 	<li>
 		<b>0.6</b>

@@ -44,7 +44,7 @@ function rawtype(vObject)
 
 			if (__type__(tMeta.__type) == "string") then
 
-				if (tLuaExTypes[tMeta.__type] or tMeta.__type:find("struct_") or tMeta.__type:find("_struct") or tMeta.__is_luaex_class) then
+				if (tLuaExTypes[tMeta.__type] or tMeta.__type:find("struct ") or tMeta.__type:find(" struct") or tMeta.__is_luaex_class) then
 					sType = tMeta.__type;
 				end
 
@@ -82,6 +82,32 @@ function subtype(vObject)
 
 		if (__type__(tMeta) == "table" and __type__(tMeta.__subtype) == "string") then
 			sType = tMeta.__subtype;
+		end
+
+	end
+
+	return sType;
+end
+
+
+function fulltype(vObject)
+	local sType = __type__(vObject);
+	local sSpace = "";
+
+	if (sType == "table") then
+		local tMeta = getmetatable(vObject);
+
+		if (__type__(tMeta) == "table") then
+
+			if (__type__(tMeta.__type) == "string") then
+				sType = tMeta.__type;
+				sSpace = " ";
+			end
+
+			if (__type__(tMeta.__subtype) == "string") then
+				sType = tMeta.__subtype..sSpace..(sType ~= "table" and sType or "");
+			end
+
 		end
 
 	end

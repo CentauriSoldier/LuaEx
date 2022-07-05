@@ -1,3 +1,4 @@
+local luatype 		= luatype;
 local pairs 		= pairs;
 local setmetatable 	= setmetatable;
 local type 			= type;
@@ -55,16 +56,13 @@ local function propertiestableisvalid(tProperties)
 	if (type(tProperties) == "table") then
 
 		for vKey, _ in pairs(tProperties) do
-			--local sKeyType = type(vKey);
 
-			--if (sKeyType == "string" or sKeyType == "number") then
+			if (luatype(vKey) == "string") then
 				nKeyCount = nKeyCount + 1;
-			--else
-			--	bRet = false;
-			--	break;
-			--end
-
-
+			else
+				bRet = false;
+				break;
+			end
 
 		end
 
@@ -196,7 +194,7 @@ local function createfactory(sSubType, tProperties, bPrivate)
 					return false;
 				end,
 				__mul		= errmathinstance,
-				__name		= sSubType.."_struct",
+				__name		= sSubType.." struct",
 				__newindex 	= function(t, k, v)
 
 					--make certain the key exists in the table
@@ -255,7 +253,7 @@ local function createfactory(sSubType, tProperties, bPrivate)
 		--__mode,
 		--__metatable	= nil,
 		__mul		= errmath,
-		__name		= sSubType.."_struct_factory",
+		__name		= sSubType.." struct factory",
 		__newindex 	= dummy,
 		__pairs		= erriterate,
 		__pow		= errmath,
@@ -273,7 +271,7 @@ local function createfactory(sSubType, tProperties, bPrivate)
 
 			return sRet;
 		end,
-		__type		= "struct_factory",
+		__type		= "struct factory",
 		__unm		= errmath,
 	});
 
@@ -312,5 +310,5 @@ return setmetatable({
 	__len 	 	= factorycount,
 	__newindex 	= dummy,
 	__subtype	= "struct",
-	__type 		= "factory_constructor",
+	__type 		= "factory constructor",
 });

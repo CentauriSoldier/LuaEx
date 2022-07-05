@@ -21,7 +21,8 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 - Change: the **rawtype** function will now return LuaEx's type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as oppossed to returning, *"table"*. Use the **luatype** function to ignore all LuaEx type mechanics.</p>
 - Feature: added null type.</p>
 - Feature: added the (struct) **factory** module.</p>
-- Feature: added the **luatype** function (an alias for Lua's original, **type**, function.)</p>
+- Feature: added the **luatype** function (an alias for Lua's original, **type**, function.)
+- Feature: added the **fulltype** function.
 
 **v0.6**
 - Feature: removed ***string.left*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
@@ -99,6 +100,9 @@ If you want the *actual lua type* of a thing ignoring ***ALL*** **LuaEx** custom
 ### Subtypes
 They work the same as types except the metatable entry is ***__subtype*** and the function to detect the subtype is ***subtype***.
 
+### Fulltype
+The **fulltype** function concatenates the results from **__type** and **__subtype**.
+
 ### The NULL Type
 NULL (also null) is a custom type added to LuaEx. It is of type null and has obligatory comparison behavior for null values in many programming languages. The main purpose of this value, as an alternative for ***nil***, is to allow the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the ***isnull*** function to determine whether a value is null. Both ***null*** and ***NULL*** are the same value and may be accessed by using either word.
 
@@ -138,11 +142,19 @@ These are items that are globally accessible but do not fit nicely into any part
 
 #### Functions
 - **type** Works like the original lua function except that it honors **LuaEx's** custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
-- **rawtype** Honor all **LuaEx's** pre-made (and internally-generated) custom types but ignores user implementation of the metatable value, ***__type***. So, for all user-defined types, it will return the string value, ***"table"***.
-- **luatype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system whatsoever; meaning, for all custom types, it will return the string value, ***"table"***.
-- **sealmetatable** Permanently locks a metatable from being accessed, altered or changed by settting the ***__metatable*** key to *false*. This process cannot be undone. If the table does not have a metatable, one is created and sealed.
+
 - **subtype** Gets the subtype of an object/table. If it has not been given a subtype (either by using ***table.setsubtype*** or by manually setting the ***__subtype*** metatable key), then the string *"nil"* is returned.
+
+- **fulltype** concatenates the results from ***__type*** and ***__subtype***.
+
+- **rawtype** Honor all **LuaEx's** pre-made (and internally-generated) custom types but ignores user implementation of the metatable value, ***__type***. So, for all user-defined types, it will return the string value, ***"table"***.
+
+- **luatype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system whatsoever; meaning, for all custom types, it will return the string value, ***"table"***.
+
+- **sealmetatable** Permanently locks a metatable from being accessed, altered or changed by settting the ***__metatable*** key to *false*. This process cannot be undone. If the table does not have a metatable, one is created and sealed.
+
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
+
 - **isnull** Returns true if the input is null or NULL, otherwise, returns false.
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
@@ -441,7 +453,7 @@ Adds several string function to the lua library.
 #### Description
 LuaEx's implementation of **structs**.
 
-A **struct** is a table whose keys may have any value except nil. To indicate an empty value for a given key, use null instead. This will retain the property while still indicating and empty value.
+A **struct** is a table whose keys must be strings but and have any value except nil. To indicate an empty value for a given key, use null instead of nil. This will retain the property while still indicating an empty value.
 
 The value of each type, once set, is permanently fixed and may never be changed. For this reason, when creating a factory, it may be of use to set some values to null allowing each struct (during or after instantiation) to define the type of that given value.
 
