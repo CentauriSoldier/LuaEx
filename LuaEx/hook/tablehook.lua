@@ -1,6 +1,6 @@
 local getmetatable 	= getmetatable
 local pairs			= pairs;
-local rawtype 		= rawtype;
+local luatype 		= luatype;
 local setmetatable 	= setmetatable
 local table 		= table;
 
@@ -11,11 +11,11 @@ function table.clone(tInput, bIgnoreMetaTable)
 	local tRet = {};
 
 	--clone each item in the table
-	if (rawtype(tInput) == "table") then
+	if (luatype(tInput) == "table") then
 
 		for vIndex, vItem in pairs(tInput) do
 
-			if (rawtype(vItem) == "table") then
+			if (luatype(vItem) == "table") then
 				rawset(tRet, vIndex, table.clone(vItem));
 			else
 				rawset(tRet, vIndex, vItem);
@@ -41,9 +41,9 @@ end
 
 function table.lock(tInput)
 
-	if (rawtype(tInput) == "table") then
+	if (luatype(tInput) == "table") then
 		local tMeta = getmetatable(tInput);
-		local sMetaType = rawtype(tMeta);
+		local sMetaType = luatype(tMeta);
 		local bMetaIsTable = sMetaType == "table";
 
 		--throw an error if the table has a proteced metatable
@@ -67,7 +67,7 @@ function table.lock(tInput)
 		for vKey, vValue in pairs(tData) do
 
 			--be sure every other sub-table is locked as well
-			if (rawtype(vValue) == "table") then
+			if (luatype(vValue) == "table") then
 				table.lock(vValue);
 			end
 
@@ -103,13 +103,13 @@ end
 
 function table.purge(tInput, bIgnoreMetaTable)
 
-	if (rawtype(tInput) == "table") then
+	if (luatype(tInput) == "table") then
 
 		--delete all the keys in the table
 		for vKey, vValue in pairs(tInput) do
 
 			--claer any subtables recursively
-			if (rawtype(vValue) == "table") then
+			if (luatype(vValue) == "table") then
 				table.purge(vValue);
 			end
 
@@ -121,7 +121,7 @@ function table.purge(tInput, bIgnoreMetaTable)
 		if (not bIgnoreMetaTable) then
 			local tMeta = getmetatable(tTable);
 
-			if (rawtype(tMeta) == "table") then
+			if (luatype(tMeta) == "table") then
 				table.purge(tMeta);
 				setmetatable(tInput, nil);
 			end
@@ -136,10 +136,10 @@ end
 
 function table.settype(tInput, sType)
 
-	if (rawtype(tInput) == "table" and type(sType) == "string")then
+	if (luatype(tInput) == "table" and type(sType) == "string")then
 		--look for an existing meta table and get its type
 		local tMeta 	= getmetatable(tInput);
-		local sMetaType = rawtype(tMeta);
+		local sMetaType = luatype(tMeta);
 		local bIsTable 	= sMetaType == "table";
 
 		if (bIsTable or sMetaType == "nil") then
@@ -157,10 +157,10 @@ end
 
 function table.setsubtype(tInput, sSubType)
 
-	if (rawtype(tInput) == "table" and type(sSubType) == "string")then
+	if (luatype(tInput) == "table" and type(sSubType) == "string")then
 		--look for an existing meta table and get its type
 		local tMeta 	= getmetatable(tInput);
-		local sMetaType = rawtype(tMeta);
+		local sMetaType = luatype(tMeta);
 		local bIsTable = sMetaType == "table";
 
 		if (bIsTable or sMetaType == "nil") then
@@ -178,7 +178,7 @@ end
 
 function table.unlock(tInput)
 
-	if (rawtype(tInput) == "table" and rawtype(tLockedTableClones[tInput]) == "table") then
+	if (luatype(tInput) == "table" and luatype(tLockedTableClones[tInput]) == "table") then
 		local bIsEnum = type(tInput) == "enum";
 
 		--check each entry in the data table for a table value
@@ -188,7 +188,7 @@ function table.unlock(tInput)
 			local v = vValue;
 
 			--be sure every other sub-table is unlocked as well
-			if (rawtype(vValue) == "table") then
+			if (luatype(vValue) == "table") then
 				table.unlock(vValue);
 			end
 
@@ -205,7 +205,7 @@ function table.unlock(tInput)
 			local tMeta = getmetatable(tInput);
 			--TODO do i really need to check for the existence of a metatable? Doesn't every cloned table have a meta table to prevent modifications?
 			-- I think checking for the the __LUAEX_OLD_METATABLE_STORAGE value would be safe...
-			if (rawtype(tMeta) == "table" and rawtype(tMeta.__LUAEX_OLD_METATABLE_STORAGE == "table")) then
+			if (luatype(tMeta) == "table" and luatype(tMeta.__LUAEX_OLD_METATABLE_STORAGE == "table")) then
 				setmetatable(tInput, tMeta.__LUAEX_OLD_METATABLE_STORAGE);
 			end
 

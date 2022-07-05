@@ -1,14 +1,25 @@
 local tLuaEx = _G.__LUAEX__;
 local __type__ = type;
+local tLuaExTypes = {
+	class 				= true,
+	constant			= true,
+	enum 				= true,
+	null 				= true,
+	struct				= true,
+	factory_constructor = true,
+};
 
-rawtype = __type__;
+--since LuaEx hooks the type function, this is an alias to preserve the original
+luatype = __type__;
+--isnull this is declared in the null module
+
 
 function sealmetatable(tInput)
 	local bRet = false;
 
-	if (rawtype(tInput) == "table") then
+	if (__type__(tInput) == "table") then
 		local tMeta 	= getmetatable(tInput);
-		local sMetaType = rawtype(tInput);
+		local sMetaType = __type__(tInput);
 		local bIsNil 	= sMetaType == "nil";
 
 		if (sMetaType == "table" or bIsNil) then
@@ -23,13 +34,37 @@ function sealmetatable(tInput)
 end
 
 
-function type(vObject)
-	local sType = rawtype(vObject);
+function rawtype(vObject)
+	local sType = __type__(vObject);
 
 	if (sType == "table") then
 		local tMeta = getmetatable(vObject);
 
-		if (rawtype(tMeta) == "table" and rawtype(tMeta.__type) == "string") then
+		if (__type__(tMeta) == "table") then
+
+			if (__type__(tMeta.__type) == "string") then
+
+				if (tLuaExTypes[tMeta.__type] or tMeta.__type:find("struct_") or tMeta.__type:find("_struct") or tMeta.__is_luaex_class) then
+					sType = tMeta.__type;
+				end
+
+			end
+
+		end
+
+	end
+
+	return sType;
+end
+
+
+function type(vObject)
+	local sType = __type__(vObject);
+
+	if (sType == "table") then
+		local tMeta = getmetatable(vObject);
+
+		if (__type__(tMeta) == "table" and __type__(tMeta.__type) == "string") then
 			sType = tMeta.__type;
 		end
 
@@ -42,10 +77,10 @@ end
 function subtype(vObject)
 	local sType = "nil";
 
-	if (rawtype(vObject) == "table") then
+	if (__type__(vObject) == "table") then
 		local tMeta = getmetatable(vObject);
 
-		if (rawtype(tMeta) == "table" and rawtype(tMeta.__subtype) == "string") then
+		if (__type__(tMeta) == "table" and __type__(tMeta.__subtype) == "string") then
 			sType = tMeta.__subtype;
 		end
 
@@ -56,10 +91,10 @@ end
 
 
 function protect(sReference)
-	local sReferenceType 	= rawtype(sReference);
-	local sInputType		= rawtype(_G[sReference]);
+	local sReferenceType 	= __type__(sReference);
+	local sInputType		= __type__(_G[sReference]);
 	assert(sReferenceType == "string" and sInputType ~= "nil", "Reference must be a string which is a key in _G. Input given is '"..tostring(sReference).."' of type "..sReferenceType..".");
-	assert(rawtype(tLuaEx[sReference]) == "nil", "Cannot protect item '"..sReference.."'; already protected.")
+	assert(__type__(tLuaEx[sReference]) == "nil", "Cannot protect item '"..sReference.."'; already protected.")
 	local vInput 			= _G[sReference];
 
 	local vProtected = vInput;

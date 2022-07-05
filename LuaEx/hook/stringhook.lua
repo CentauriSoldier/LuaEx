@@ -206,21 +206,21 @@ end
 
 function string.uuid()
 	local sRet 			= "";
-	local tChars 		= {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};--must be equal to UUID_LENGTH	
+	local tChars 		= {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};--must be equal to UUID_LENGTH
 	local sDelimiter 	= "-";
-	local sPrefix 		= rawtype(sInputPrefix) == "string" and sInputPrefix or "";
+	local sPrefix 		= luatype(sInputPrefix) == "string" and sInputPrefix or "";
 	local tSequence 	= {8, 4, 4, 4, 12};
-	
+
 	for nBlock, nBlockCharCount in pairs(tSequence) do
 		local sDash = nBlock < UUID_BLOCKS and "-" or "";
-		
+
 		for x = 1, nBlockCharCount do
 			sRet = sRet..tChars[math.random(1, UUID_LENGTH)];
 		end
 
 		sRet = sRet..sDash;
 	end
-	
+
 	return sRet
 end
 

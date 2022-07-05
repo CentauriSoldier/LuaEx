@@ -48,6 +48,14 @@ For more information, please refer to <http://unlicense.org/>
 @version 0.5
 @versionhistory
 <ul>
+<li>
+	<b>0.7</b>
+	<br>
+	<p>Change: the rawtype function will now return LuaEx's type names for classes, constants, enums, structs, struct factories (and struct_factory_constructor) and null (and NULL) as oppossed to returning, "table".</p>
+	<p>Feature: added null type.</p>
+	<p>Feature: added the factory module.</p>
+	<p>Feature: added the luatype function (an alias for Lua's original, type, function.)</p>
+	</li>
 	<li>
 		<b>0.6</b>
 		<br>

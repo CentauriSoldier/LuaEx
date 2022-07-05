@@ -109,7 +109,7 @@ local animal = class "animal" {
 
 	__construct = function(this, protected, sName, bIsBiped)
 		--setup the protected table for this instance (or import the given one if it's not nil)
-		tProtectedRepo[this] = rawtype(protected) == "table" and protected or {};
+		tProtectedRepo[this] = luatype(protected) == "table" and protected or {};
 
 		--for readability
 		local tProt = tProtectedRepo[this];

@@ -288,7 +288,7 @@ local function enum(sName, tNames, tValues, bPrivate)
 		--get the value to be set
 		local vValue;
 
-		if (rawtype(tCheckedValues[nID]) == "nil") then
+		if (luatype(tCheckedValues[nID]) == "nil") then
 			vValue = nID;
 		else
 			vValue = tCheckedValues[nID];

@@ -11,11 +11,17 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
-#### Alpha v0.6
+#### Alpha v0.7
 <details>
 <summary>See Changes</summary>
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​​​🇬​​​​​
+
+**v0.7**
+- Change: the **rawtype** function will now return LuaEx's type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as oppossed to returning, *"table"*. Use the **luatype** function to ignore all LuaEx type mechanics.</p>
+- Feature: added null type.</p>
+- Feature: added the (struct) **factory** module.</p>
+- Feature: added the **luatype** function (an alias for Lua's original, **type**, function.)</p>
 
 **v0.6**
 - Feature: removed ***string.left*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
@@ -27,6 +33,7 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 - Refactor: moved modules into appropriate subdirectories and update init.lua to find them.
 - Refactor: appended ***string***, ***math*** & ***table*** module files with "hook" without which they would not load properly.
 - Update: updated readme with more information.
+
 **v0.5**
 - Bugfix: ***table.lock*** was altering the metatable of enums when it should not have been.
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible).
@@ -83,10 +90,21 @@ All code is placed in the public domain under [The Unlicense](https://opensource
 
 #### Custom Types
 
-Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achive this, the lua function, ***type*** has been hooked. If you'd like to get the type of something, ignoring **LuaEx's** custom type feature, simply use the ***rawtype*** function.
+Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achieve this, the lua function, ***type*** has been hooked.
+
+If you'd like to get the type of something, ignoring ***MOST*** custom implementations of **LuaEx's** custom type feature, simply use the ***rawtype*** function. This will not affect pre-built, **LuaEx** types such as ***null***, ***enums***, ***classes***, ***constants***, ***struct factories***, etc. and objects of these types will still return their name as defined by **LuaEx**.
+
+If you want the *actual lua type* of a thing ignoring ***ALL*** **LuaEx** custom type mechanics, use the ***luatype*** function.
 
 ### Subtypes
-They work the the same as types except the metatable entry is ***__subtype*** and the function to detect the subtype is ***subtype***.
+They work the same as types except the metatable entry is ***__subtype*** and the function to detect the subtype is ***subtype***.
+
+### The NULL Type
+NULL (also null) is a custom type added to LuaEx. It is of type null and has obligatory comparison behavior for null values in many programming languages. The main purpose of this value, as an alternative for ***nil***, is to allow the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the ***isnull*** function to determine whether a value is null. Both ***null*** and ***NULL*** are the same value and may be accessed by using either word.
+
+Note: This works only with the ***type*** function. Calling the ***rawtype*** function with ***null*** (or ***NULL***) as an argument will return the value, "table".
+
+Note: Do not localize ***null*** (or ***NULL***)...strange things happen.
 
 
 ## 🆆🅰🆁🆁🅰🅽🆃🆈 🗞
@@ -116,14 +134,16 @@ These are various classes that help bring more OOP features to lua. These have b
 ## 🇸​​​​​🇹​​​​​🇩​​​​​🇱​​​​​🇮​​​​​🇧​​​​​
 
 #### Description
-These are items that are globally accessible but do not fit nicely into any particular module. These include new, LuaEx functions as well as hooks of existing lua functions.
+These are items that are globally accessible but do not fit nicely into any particular module or are global functions not listed elsewhere. These include new, LuaEx functions as well as hooks of existing lua functions.
 
 #### Functions
 - **type** Works like the original lua function except that it honors **LuaEx's** custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
-- **rawtype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system meaning for all LuaEx custom types, it will return the string value, ***"table"***.
+- **rawtype** Honor all **LuaEx's** pre-made (and internally-generated) custom types but ignores user implementation of the metatable value, ***__type***. So, for all user-defined types, it will return the string value, ***"table"***.
+- **luatype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system whatsoever; meaning, for all custom types, it will return the string value, ***"table"***.
 - **sealmetatable** Permanently locks a metatable from being accessed, altered or changed by settting the ***__metatable*** key to *false*. This process cannot be undone. If the table does not have a metatable, one is created and sealed.
 - **subtype** Gets the subtype of an object/table. If it has not been given a subtype (either by using ***table.setsubtype*** or by manually setting the ***__subtype*** metatable key), then the string *"nil"* is returned.
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
+- **isnull** Returns true if the input is null or NULL, otherwise, returns false.
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 
@@ -415,6 +435,34 @@ Adds several string function to the lua library.
 - **string.trimright(string)** Trims the whitespace from the end of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1705231409-Trim-whitespace-from-end-of-string-LUA.html)***
 - **string.trimleft(string)** Trims the whitespace from the beginning of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1706031025-Trim-whitespace-from-beginning-of-string-LUA.html)***
 - **string.uuid(string or nil, string or nil)** Generates a Universally Unique Identifier string. *Note: this function does not generate entropy. The client is resposible for having sufficient randomness.*
+
+## 🇸​​​​​🇹​​​​​🇷​​​​​🇺​​​​​🇨​​​​​🇹​​​​​
+
+#### Description
+LuaEx's implementation of **structs**.
+
+A **struct** is a table whose keys may have any value except nil. To indicate an empty value for a given key, use null instead. This will retain the property while still indicating and empty value.
+
+The value of each type, once set, is permanently fixed and may never be changed. For this reason, when creating a factory, it may be of use to set some values to null allowing each struct (during or after instantiation) to define the type of that given value.
+
+**Creating a struct factory.**
+```lua
+local bullet = struct.factory("bullet"{
+	id 			= null,
+	direction 	= null,
+	speed 		= null,
+	x 			= 0,
+	y 			= 0,
+});
+```
+
+As shown above, the default values of a struct may be null. This allows each struct to set certain values without relying on the factory; however, once a factory-defined, null, value has been set, it's type is fixed.
+
+**Creating a struct factory.**
+
+
+#### Functions
+- **struct.factory(string, table)** Creates a struct using the provided name and table of properties. The properties table must contain at least one valid key. Returns a factory that will produce structs that conform to the provided table.
 
 ## 🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​
 

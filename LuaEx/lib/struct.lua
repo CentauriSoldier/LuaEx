@@ -5,81 +5,116 @@ local type 			= type;
 local function dummy() end
 
 local function errbit()
-	error("Attempt to perform biwise operation on struct constructor.", 3);
+	error("Attempt to perform biwise operation on factory constructor.", 3);
 end
 
 local function errmath()
-	error("Attempt to perform mathmatical operation on struct constructor.", 3);
+	error("Attempt to perform mathmatical operation on factory constructor.", 3);
 end
 
 local function errlen()
-	error("Attempt to get length of struct constructor.", 3);
+	error("Attempt to get length of factory constructor.", 3);
 end
 
 local function erriterate()
-	error("Attempt to iterate over struct constructor.", 3);
+	error("Attempt to iterate over factory constructor.", 3);
 end
 
 local function errbitinstance()
-	error("Attempt to perform biwise operation on struct.", 3);
+	error("Attempt to perform biwise operation on factory.", 3);
 end
 
 local function errmathinstance()
-	error("Attempt to perform mathmatical operation on struct.", 3);
+	error("Attempt to perform mathmatical operation on factory.", 3);
 end
 
 local function errleninstance()
-	error("Attempt to get length of struct.", 3);
+	error("Attempt to get length of factory.", 3);
 end
 
 local function erriterateinstance()
-	error("Attempt to iterate over struct.", 3);
+	error("Attempt to iterate over factory.", 3);
 end
 
+--metadata of factory factories
 local tMetaData = {
-	structscount = 0,
+	private = {
+		count 		= 0,
+		factories 	= {},
+	},
+	public 	= {
+		count 		= 0,
+		factories 	= {},
+	},
 };
 
---TODO go throug this to make sure all the values are accessing the correct tbales (tStruct, tFactory, etc.)
-local function createfactory(__callingtable__, sSubType, vInput)
-	local tStruct = {};
-	assert(rawtype(sSubType) == "string" and sSubType:gsub("[%s]", "") ~= "", "Error creating struct. Argument 1 (Subtype) must be a non-blank string.");
-	assert(rawtype(tMetaData[sSubType]) == "nil", "Error creating struct. Struct of subtype '"..sSubType.."' already exists; Cannot overwrite.")
-	--TODO assert table, make sure it's good
-	--TODO assert overrideing struct (these two items are in the first conditional below and can be moved up here)
+local function propertiestableisvalid(tProperties)
+	local bRet = false;
+	local nKeyCount = 0;
 
-	if (type(vInput) == "table") then
-		local nKeyCount = 0;
+	if (type(tProperties) == "table") then
 
-		for sKey, vValue in pairs(vInput) do
-			nKeyCount = nKeyCount + 1;
+		for vKey, _ in pairs(tProperties) do
+			--local sKeyType = type(vKey);
 
-			if (type(sKey) == "string") then
-				local sFinalValType = type(vValue);
-				local vFinalValue 	= vValue;
+			--if (sKeyType == "string" or sKeyType == "number") then
+				nKeyCount = nKeyCount + 1;
+			--else
+			--	bRet = false;
+			--	break;
+			--end
 
-				if (sFinalValType == "nil") then--can this ever happen?
-					sFinalValType 	= "null";
-					vFinalValue 	= null;
-				end
 
-				tStruct[sKey] = {
-					type 			= sFinalValType,
-					defaultvalue 	= vFinalValue,
-				};
-			end
 
 		end
 
-		--incriment the total number of structs
-		tMetaData.structscount = tMetaData.structscount + 1;
-		--add this struct's metadata to the list
-		tMetaData[sSubType] = {--TODO should i use the V table for the index  here?
-			keycount = nKeyCount,
+		bRet = nKeyCount > 0;
+	end
+
+	return bRet;
+end
+
+
+--TODO go throug this to make sure all the values are accessing the correct tbales (tfactory, tFactory, etc.)
+local function createfactory(sSubType, tProperties, bPrivate)
+	--[[
+	 ______            _                         _____                    _                       _
+	 |  ____|          | |                       / ____|                  | |                     | |
+	 | |__  __ _   ___ | |_  ___   _ __  _   _  | |      ___   _ __   ___ | |_  _ __  _   _   ___ | |_  ___   _ __
+	 |  __|/ _` | / __|| __|/ _ \ | '__|| | | | | |     / _ \ | '_ \ / __|| __|| '__|| | | | / __|| __|/ _ \ | '__|
+	 | |  | (_| || (__ | |_| (_) || |   | |_| | | |____| (_) || | | |\__ \| |_ | |   | |_| || (__ | |_| (_) || |
+	 |_|   \__,_| \___| \__|\___/ |_|    \__, |  \_____|\___/ |_| |_||___/ \__||_|    \__,_| \___| \__|\___/ |_|
+	                                      __/ |
+	                                     |___/
+	--creates the factory object
+	]]
+	local tConstraint = {};
+	assert(luatype(sSubType) == "string" and sSubType:gsub("[%s]", "") ~= "", "Error creating factory. Argument 1 (Subtype) must be a non-blank string.");
+	assert(luatype(tMetaData[sSubType]) == "nil", "Error creating factory. Factory of subtype '"..sSubType.."' already exists; Cannot overwrite.")
+	assert(propertiestableisvalid(tProperties), "Error creating factory. Argument 2 (Properies Input Table) must be of type table and have at least one key.");
+
+	local nKeyCount = 0;
+
+	for vKey, vValue in pairs(tProperties) do
+		nKeyCount = nKeyCount + 1;
+		tConstraint[vKey] = {
+			type 			= type(vValue),
+			defaultvalue 	= vValue,
 		};
 	end
 
-	return setmetatable({},
+	--[[
+	______            _
+	|  ____|          | |
+	| |__  __ _   ___ | |_  ___   _ __  _   _
+	|  __|/ _` | / __|| __|/ _ \ | '__|| | | |
+	| |  | (_| || (__ | |_| (_) || |   | |_| |
+	|_|   \__,_| \___| \__|\___/ |_|    \__, |
+										__/ |
+									   |___/
+	this is the factory which creates the factory instance objects
+	]]
+	local tFactory = setmetatable({},
 	{
 		__add 		= errmath,--TODO perhaps add the ability to combine them...maybe thruogh concat though, not add
 		__band 		= errbit,
@@ -87,15 +122,14 @@ local function createfactory(__callingtable__, sSubType, vInput)
 		__bnot 		= errbit,
 		__bxor 		= errbit,
 		--[[
-		--this is the call to the factory (the one created by calling the struct() function)
-		which creates the struct instance object
+
 		]]
 		__call 		= function(this, tInputArgs)
 			local tArgs		= type(tInputArgs) == "table" and tInputArgs or nil;
 			local tFactory 	= {};
 
-			--seutp the default values first
-			for sKey, tVals in pairs(tStruct) do
+			--setup the default values first
+			for sKey, tVals in pairs(tConstraint) do
 				tFactory[sKey] = {
 					type 	= tVals.type,
 					value 	= tVals.defaultvalue,
@@ -107,25 +141,19 @@ local function createfactory(__callingtable__, sSubType, vInput)
 
 				for sKey, vValue in pairs(tArgs) do
 
-					--make certain the key exists in the table
-					if (rawtype(tFactory[sKey]) ~= "nil") then
+					--make certain the key exists in the tConstraint table
+					if (luatype(tConstraint[sKey]) ~= "nil") then
 						local vFinalValue 	= vValue;
 						local sValType 		= type(vValue);
 						local bValueIsNull	= sValType == "null";
-						local bValueIsNil	= sValType == "nil";
 
-						--handle cases of default value types being null
-						if (tFactory[sKey].type == "null" and not bValueIsNull and not bValueIsNil) then
-							tFactory[sKey].type 	= sValType;
-						end
-
-						--account for nil values
-						if (bValueIsNil) then
-							vFinalValue = null;
+						--handle cases of default tConstraint value types being null
+						if (tConstraint[sKey].type == "null" and not bValueIsNull) then
+							tFactory[sKey].type = sValType;
 						end
 
 						--be sure the value type is correct
-						if (sValType == tFactory[sKey].type or bValueIsNull) then
+						if (sValType == tConstraint[sKey].type or bValueIsNull) then
 							tFactory[sKey] = {
 								type 	= sValType,
 								value 	= vFinalValue,
@@ -137,9 +165,16 @@ local function createfactory(__callingtable__, sSubType, vInput)
 				end
 
 			end
-
+			--[[
+			_____              _
+			|_   _|            | |
+			 | |   _ __   ___ | |_  __ _  _ __    ___  ___
+			 | |  | '_ \ / __|| __|/ _` || '_ \  / __|/ _ \
+			_| |_ | | | |\__ \| |_| (_| || | | || (__|  __/
+			|_____||_| |_||___/ \__|\__,_||_| |_| \___|\___|
+			--factory instance object created by a call to the factory
+			]]
 			return setmetatable({}, {
-				--struct instance object created by a call to the factory
 				__close 	= false,
 				__concat	= errmathinstance,
 				__div		= errmathinstance,
@@ -161,11 +196,11 @@ local function createfactory(__callingtable__, sSubType, vInput)
 					return false;
 				end,
 				__mul		= errmathinstance,
-				__name		= sSubType,
+				__name		= sSubType.."_struct",
 				__newindex 	= function(t, k, v)
 
 					--make certain the key exists in the table
-					if (rawtype(tFactory[k]) ~= "nil") then
+					if (luatype(tFactory[k]) ~= "nil") then
 						local vFinalValue	= v;
 						local sValType 		= type(v);
 						local bValueIsNull	= sValType == "null";
@@ -173,7 +208,6 @@ local function createfactory(__callingtable__, sSubType, vInput)
 
 						--handle cases of default value types being null
 						if (tFactory[k].type == "null" and not bValueIsNull and not bValueIsNil) then
-							print(vFinalValue)
 							tFactory[k].type = sValType;
 						end
 
@@ -204,10 +238,10 @@ local function createfactory(__callingtable__, sSubType, vInput)
 				__unm		= errmathinstance,
 			});
 		end,
-		--struct constructor metatable
+		--factory constructor metatable
 		__close 	= false,
 		__concat	= errmath,
-		--__count 	= structscount,
+		--__count 	= factoryscount,
 		__div		= errmath,
 		__eq 		= eq,
 		__gc		= false,
@@ -221,41 +255,62 @@ local function createfactory(__callingtable__, sSubType, vInput)
 		--__mode,
 		--__metatable	= nil,
 		__mul		= errmath,
-		__name		= sSubType.."_factory",
+		__name		= sSubType.."_struct_factory",
 		__newindex 	= dummy,
 		__pairs		= erriterate,
 		__pow		= errmath,
 		__shl  		= errbit,
 		__shr  		= errbit,
 		__sub		= errbit,
-		--__subtype	= sSubType.."_factory",
+		__subtype	= sSubType,
 		__tostring	= function()--TODO finish
 			local sRet = "";
 
-			for sKey, tVals in pairs(tStruct) do
+			for sKey, tVals in pairs(tConstraint) do
 
 				sRet = sRet..""
 			end
 
 			return sRet;
 		end,
-		__type		= sSubType.."_factory",
+		__type		= "struct_factory",
 		__unm		= errmath,
 	});
+
+	--save the metadata
+	local sMetaKey = bPrivate and "private" or "public";
+	tMetaData[sMetaKey].count = tMetaData[sMetaKey].count + 1;
+	tMetaData[sMetaKey].factories[sSubType] = {
+		factory = tFactory,
+		name 	= sSubType,
+	};
+
+	return tFactory;
 end
 
-local function structscount()
-	return tMetaData.structsCountl
+local function factorycount()
+	return tMetaData.public.count;
+end
+
+local function getfactory(t, k)
+	local tRet = nil;
+
+	if (tMetaData.public.factories[k]) then
+		tRet = tMetaData.public.factories[k].factory;
+	end
+
+	return tRet;
 end
 
 return setmetatable({
-	__count = structscount,
 	--istype(sType)--TODO finishb n
+	factory = createfactory,
 },
 {
-	__call 		= createfactory,
-	__index 	= function() end,
-	__newindex 	= function() end,
-	__type 		= "struct_factory",
-
+	__call 		= dummy,
+	__index 	= getfactory,
+	__len 	 	= factorycount,
+	__newindex 	= dummy,
+	__subtype	= "struct",
+	__type 		= "factory_constructor",
 });
