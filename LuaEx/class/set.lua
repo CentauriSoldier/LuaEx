@@ -89,7 +89,7 @@ local set = class "set" {
 	addSet = function(this, oOther)
 
 		for item in oOther() do
-			addItem(item);
+			addItem(this, item);
 		end
 
 	end,
@@ -153,11 +153,11 @@ local set = class "set" {
 		return oRet;
 	end,
 
-	isEmpty = function(this)
+	isempty = function(this)
 		return tSets[this].size < 1;
 	end,
 
-	isSubset = function(this, oOther)
+	issubset = function(this, oOther)
 		local bRet = true;
 
 		for item in this() do
@@ -176,7 +176,7 @@ local set = class "set" {
 		return removeItem(this, vItem);
 	end,
 
-	removeSet = function(this, oOther)
+	removeset = function(this, oOther)
 
 		for item in oOther() do
 			removeItem(this, item);
@@ -189,7 +189,7 @@ local set = class "set" {
 		return tSets[this].size;
 	end,
 
-	toTable = function(this)--do i need this one?
+	totable = function(this)--do i need this one?
 
 	end,
 

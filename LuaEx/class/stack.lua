@@ -1,8 +1,8 @@
 local tStacks = {};
 
-assert(type(class) == "function", "Error loading the rectangle class. It depends on class.");
-assert(type(serialize) 		== "table", 	"Error loading the pot class. It depends on serialize.");
-assert(type(deserialize)	== "table", 	"Error loading the pot class. It depends on deserialize.");
+assert(type(class) 			== "function", 	"Error loading the stack class. It depends on class.");
+assert(type(serialize) 		== "table", 	"Error loading the stack class. It depends on serialize.");
+assert(type(deserialize)	== "table", 	"Error loading the stack class. It depends on deserialize.");
 
 --localization
 local assert 		= assert;

@@ -1,11 +1,11 @@
 local string = string;
 
-local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
-				   "false", "for", "function", "if", "in", "local",
-				   "nil", "not", "or", "repeat", "return", "then",
-				   "true", "until", "while",
+local tKeyWords = {"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
+				   "false", 	"for", 		"function", "if", 		"in", 		"local",
+				   "nil", 		"not", 		"or", 		"repeat", 	"return", 	"then",
+				   "true", 		"until", 	"while",
 				   --LuaEx keywords
-				   "constant","enum"
+				   "constant", 	"enum", 	"struct",	"null"
 			   };
 local nKeywords = #tKeyWords;
 
@@ -61,14 +61,20 @@ local sRet = "";
 return sRet, nWords, tWords
 end
 
---https://www.codegrepper.com/code-examples/lua/lua+split+string+into+table
-function string.delmitedtotable(sInput, sDelimiter)
+--https://www.codegrepper.com/code-examples/lua/lua+split+string+into+table  AND
+--https://stackoverflow.com/questions/40149617/split-string-with-specified-delimiter-in-lua
+function string.totable(sInput, sDelimiter)
     local tRet = {};
-    for sMatch in (sInput..sDelimiter):gmatch("(.-)"..sDelimiter) do
-        table.insert(tRet, sMatch);
+	for w in sInput:gmatch("([^"..(sDelimiter or "|").."]+),?") do
+        table.insert(tRet, w);
     end
     return tRet;
 end
+
+
+--TODO put in lua ex CAN THIS BE OPTIIMIZE BY MAING THE RETURNED FUNCTION LOCAL?
+--http://lua-users.org/wiki/StringInterpolation
+getmetatable("").__mod = function(s, tab) return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end)) end;
 
 
 function string.getfuncname(fFunc) --TODO figure out how to make this simpler and recursive with a safety
@@ -159,6 +165,11 @@ function string.iskeyword(sInput)
 end
 
 
+function string.isnumeric(sInput)
+	return type(sInput) == "string" and sInput:gsub("[%d%.]", "") == "";
+end
+
+
 function string.isvariablecompliant(sInput, bSkipKeywordCheck)
 	local bRet = false;
 	local bIsKeyWord = false;
@@ -208,7 +219,7 @@ function string.uuid()
 	local sRet 			= "";
 	local tChars 		= {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};--must be equal to UUID_LENGTH
 	local sDelimiter 	= "-";
-	local sPrefix 		= luatype(sInputPrefix) == "string" and sInputPrefix or "";
+	local sPrefix 		= rawtype(sInputPrefix) == "string" and sInputPrefix or "";
 	local tSequence 	= {8, 4, 4, 4, 12};
 
 	for nBlock, nBlockCharCount in pairs(tSequence) do

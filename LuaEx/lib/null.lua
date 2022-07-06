@@ -39,12 +39,6 @@ local function tostr()
 	return "null";
 end
 
-
-function isnull(v)
-	return v == null;
-end
-
-
 return setmetatable({}, {
 	__add 		= nullval,
 	__band 		= nullval,

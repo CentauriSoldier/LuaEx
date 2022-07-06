@@ -1,4 +1,4 @@
-local luatype 		= luatype;
+local rawtype 		= rawtype;
 local pairs 		= pairs;
 local setmetatable 	= setmetatable;
 local type 			= type;
@@ -6,35 +6,35 @@ local type 			= type;
 local function dummy() end
 
 local function errbit()
-	error("Attempt to perform biwise operation on factory constructor.", 3);
+	error("Attempt to perform biwise operation on struct factory constructor.", 3);
 end
 
 local function errmath()
-	error("Attempt to perform mathmatical operation on factory constructor.", 3);
+	error("Attempt to perform mathmatical operation on struct factory constructor.", 3);
 end
 
 local function errlen()
-	error("Attempt to get length of factory constructor.", 3);
+	error("Attempt to get length of struct factory constructor.", 3);
 end
 
 local function erriterate()
-	error("Attempt to iterate over factory constructor.", 3);
+	error("Attempt to iterate over struct factory constructor.", 3);
 end
 
 local function errbitinstance()
-	error("Attempt to perform biwise operation on factory.", 3);
+	error("Attempt to perform biwise operation on struct factory.", 3);
 end
 
 local function errmathinstance()
-	error("Attempt to perform mathmatical operation on factory.", 3);
+	error("Attempt to perform mathmatical operation on struct factory.", 3);
 end
 
 local function errleninstance()
-	error("Attempt to get length of factory.", 3);
+	error("Attempt to get length of struct factory.", 3);
 end
 
 local function erriterateinstance()
-	error("Attempt to iterate over factory.", 3);
+	error("Attempt to iterate over struct factory.", 3);
 end
 
 --metadata of factory factories
@@ -58,7 +58,7 @@ local function propertiestableisvalid(tProperties)
 
 		for vKey, _ in pairs(tProperties) do
 
-			if (luatype(vKey) == "string") then
+			if (rawtype(vKey) == "string") then
 				nKeyCount = nKeyCount + 1;
 			else
 				bRet = false;
@@ -88,9 +88,9 @@ local function createfactory(sSubType, tProperties)--, bPrivate)
 	--creates the factory object
 	]]
 	local tConstraint = {};
-	assert(luatype(sSubType) == "string" and sSubType:gsub("[%s]", "") ~= "", "Error creating factory. Argument 1 (Subtype) must be a non-blank string.");
-	assert(luatype(tMetaData[sSubType]) == "nil", "Error creating factory. Factory of subtype '"..sSubType.."' already exists; Cannot overwrite.")
-	assert(propertiestableisvalid(tProperties), "Error creating factory. Argument 2 (Properies Input Table) must be of type table and have at least one key.");
+	assert(rawtype(sSubType) == "string" and sSubType:gsub("[%s]", "") ~= "", "Error creating factory. Argument 1 (Subtype) must be a non-blank string.");
+	assert(rawtype(tMetaData[sSubType]) == "nil", "Error creating struct factory. Factory of subtype '"..sSubType.."' already exists; Cannot overwrite.")
+	assert(propertiestableisvalid(tProperties), "Error creating struct factory. Argument 2 (Properies Input Table) must be of type table and have at least one key.");
 
 	local nKeyCount = 0;
 
@@ -141,7 +141,7 @@ local function createfactory(sSubType, tProperties)--, bPrivate)
 				for sKey, vValue in pairs(tArgs) do
 
 					--make certain the key exists in the tConstraint table
-					if (luatype(tConstraint[sKey]) ~= "nil") then
+					if (rawtype(tConstraint[sKey]) ~= "nil") then
 						local vFinalValue 	= vValue;
 						local sValType 		= type(vValue);
 						local bValueIsNull	= sValType == "null";
@@ -199,7 +199,7 @@ local function createfactory(sSubType, tProperties)--, bPrivate)
 				__newindex 	= function(t, k, v)
 
 					--make certain the key exists in the table
-					if (luatype(tFactory[k]) ~= "nil") then
+					if (rawtype(tFactory[k]) ~= "nil") then
 						local vFinalValue	= v;
 						local sValType 		= type(v);
 						local bValueIsNull	= sValType == "null";

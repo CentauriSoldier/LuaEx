@@ -15,13 +15,20 @@ Put simply, **LuaEx** is a collection of scripts that extend Lua's functionality
 <details>
 <summary>See Changes</summary>
 
-### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​​​🇬​​​​​
+### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 
 **v0.7**
-- Change: the **rawtype** function will now return LuaEx's type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as oppossed to returning, *"table"*. Use the **luatype** function to ignore all LuaEx type mechanics.</p>
-- Feature: added null type.</p>
-- Feature: added the (struct) **factory** module.</p>
-- Feature: added the **luatype** function (an alias for Lua's original, **type**, function.)
+- Change: renamed functions in various modules to conform with Lua's lowercase naming convention.
+- Change: improved the **string.totable** function.
+- Change: the **xtype** function will now return LuaEx's type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as oppossed to returning, *"table"*. Use the **rawtype** function to ignore all LuaEx type mechanics.
+- Change: renamed the **string.delimitedtotable** function to ***string.totable***.
+- Bugfix: corrected assertions in stack class.
+- Bugfix: **set.addset** was not adding items.
+- Feature: added **string.isnumeric** function.
+- Feature: added a **__mod** metamethod for string which allows for easy interpolation.
+- Feature: added null type.
+- Feature: added the **struct** factory module.
+- Feature: added the **xtype** function.
 - Feature: added the **fulltype** function.
 
 **v0.6**
@@ -93,9 +100,9 @@ All code is placed in the public domain under [The Unlicense](https://opensource
 
 Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achieve this, the lua function, ***type*** has been hooked.
 
-If you'd like to get the type of something, ignoring ***MOST*** custom implementations of **LuaEx's** custom type feature, simply use the ***rawtype*** function. This will not affect pre-built, **LuaEx** types such as ***null***, ***enums***, ***classes***, ***constants***, ***struct factories***, etc. and objects of these types will still return their name as defined by **LuaEx**.
+If you'd like to get the type of something, ignoring ***user-implemented***, custom implementations of **LuaEx's** custom type feature, simply use the ***xtype*** function. This will not affect pre-built, **LuaEx** types such as ***null***, ***enums***, ***classes***, ***constants***, ***struct factories***, etc. and objects of these types will still return their name as defined by **LuaEx**.
 
-If you want the *actual lua type* of a thing ignoring ***ALL*** **LuaEx** custom type mechanics, use the ***luatype*** function.
+If you want the *actual lua type* of a thing ignoring ***ALL*** **LuaEx** custom type mechanics, use the ***rawtype*** function.
 
 ### Subtypes
 They work the same as types except the metatable entry is ***__subtype*** and the function to detect the subtype is ***subtype***.
@@ -147,15 +154,15 @@ These are items that are globally accessible but do not fit nicely into any part
 
 - **fulltype** concatenates the results from ***__type*** and ***__subtype***.
 
-- **rawtype** Honor all **LuaEx's** pre-made (and internally-generated) custom types but ignores user implementation of the metatable value, ***__type***. So, for all user-defined types, it will return the string value, ***"table"***.
+- **xtype** Honor all **LuaEx's** pre-made (and internally-generated) custom types but ignores user implementation of the metatable value, ***__type***. So, for all user-defined types, it will return the string value, ***"table"***.
 
-- **luatype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system whatsoever; meaning, for all custom types, it will return the string value, ***"table"***.
+- **rawtype** The original lua ***type*** function. It does not honor **LuaEx's** custom type system whatsoever; meaning, for all custom types, it will return the string value, ***"table"***.
 
 - **sealmetatable** Permanently locks a metatable from being accessed, altered or changed by settting the ***__metatable*** key to *false*. This process cannot be undone. If the table does not have a metatable, one is created and sealed.
 
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
 
-- **isnull** Returns true if the input is null or NULL, otherwise, returns false.
+- **isnull** Returns true if the input is null or NULL, otherwise, returns false. TOTO MOVE THIS TO NULL SECTION
 
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 
@@ -296,11 +303,11 @@ Brings enums to lua. While they do not possess every feature you have come to ex
 
 
 #### Reserved Enum Names
-All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***)
+All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***, etc.)
 
 #### Reserved Enum Item Names
 - **__count**
-- **__hasA**
+- **__hasa**
 - **__name**
 
 #### Enum Properties
@@ -308,7 +315,7 @@ All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***)
 - **__name** The name of the enum (*string*)
 
 #### Enum Methods
-- **__hasA**	Determines whether or not this enum has a given item (*boolean*)
+- **__hasa**	Determines whether or not this enum has a given item (*boolean*)
 
 #### Enum Metamethods
 - **__call** Returns an iterator which returns the ordinal value and item object on each iteration (*iterator*)
@@ -325,7 +332,7 @@ All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***)
 #### Item Methods
 - **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
 - **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
-- **isA** Determines whether or not the item exists in a given enum
+- **isa** Determines whether or not the item exists in a given enum
 - **isSibling** Determines whether or not the first item and the second item are in the same enum
 
 #### Item Metamethods
@@ -355,9 +362,9 @@ end
 
 --print some test cases
 print("\r\n");
-print("Fact-check: A "..AUTO.CAR.name.." is an "..tostring(ANIMAL).." - "..tostring(AUTO.CAR:isA(ANIMAL)));
-print("Fact-check: A "..tostring(TOOL).." has a "..tostring(maDrill).." - "..tostring(TOOL.__hasA(maDrill)));
-print("Fact-check: A "..AUTO.TRUCK.name.." is an "..tostring(AUTO).." - "..tostring(AUTO.TRUCK:isA(AUTO)));
+print("Fact-check: A "..AUTO.CAR.name.." is an "..tostring(ANIMAL).." - "..tostring(AUTO.CAR:isa(ANIMAL)));
+print("Fact-check: A "..tostring(TOOL).." has a "..tostring(maDrill).." - "..tostring(TOOL.__hasa(maDrill)));
+print("Fact-check: A "..AUTO.TRUCK.name.." is an "..tostring(AUTO).." - "..tostring(AUTO.TRUCK:isa(AUTO)));
 print("Fact-check: An "..tostring(AUTO.TRUCK.enum).." is an "..tostring(AUTO).." - "..tostring(AUTO.TRUCK.enum == AUTO));
 print("Fact-check: A "..ANIMAL.FROG.name.." and "..ANIMAL.MONKEY.name.." are in the same enum - "..tostring(ANIMAL.FROG.enum == ANIMAL.MONKEY.enum));
 print("Fact-check: A "..AUTO.BIKE.name.." and "..TOOL.HAMMER.name.." are in the same enum - "..tostring(AUTO.BIKE.enum == TOOL.HAMMER.enum));
@@ -439,15 +446,24 @@ Adds several string function to the lua library.
 
 - **string.cap(string, boolean or nil)** Capatalizes the first letter of the input. If the second argument is true, it also lowers all letters after the first.
 - **string.capall(string)** Capatalizes the first letter of each word of the input. The delimiter of a "word" in this context is a space character.
-- **string.delmitedtotable(string, string)** Takes a string input and returns a table. The table is split by the provided string delimiter. ***[Credit & Source](https://www.codegrepper.com/code-examples/lua/lua+split+string+into+table)***
--- **string.getfuncname(function)** Takes a function as input and returns the name in string form.
--- **string.iskeyword(string)** Determines whether the input string is a keyword.
--- **string.isvariablecompliant(string, boolean or nil)** Determines whether a given string is a valid lua variable name. If the second argument is false or nil, the function will check a list of lua (and LuaEx) keywords for validation; if not, it will ignore keyword violations.
+- **string.totable(string, string)** Takes a string input and returns a table. The table is split by the provided string delimiter. ***[Credit & Source](https://www.codegrepper.com/code-examples/lua/lua+split+string+into+table)***
+- **string.getfuncname(function)** Takes a function as input and returns the name in string form.
+- **string.iskeyword(string)** Determines whether the input string is a keyword.
+- **string.isnumeric(string)** Determines whether the input is a numeric string.
+- **string.isvariablecompliant(string, boolean or nil)** Determines whether a given string is a valid lua variable name. If the second argument is false or nil, the function will check a list of lua (and LuaEx) keywords for validation; if not, it will ignore keyword violations.
 - **string.trim(string)** Trims the whitespace from the beginning and end of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1706031030-Trim-whitespace-from-string-LUA.html)***
 - **string.trimright(string)** Trims the whitespace from the end of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1705231409-Trim-whitespace-from-end-of-string-LUA.html)***
 - **string.trimleft(string)** Trims the whitespace from the beginning of the input string. ***[Credit & Source](http://snippets.bentasker.co.uk/page-1706031025-Trim-whitespace-from-beginning-of-string-LUA.html)***
 - **string.uuid(string or nil, string or nil)** Generates a Universally Unique Identifier string. *Note: this function does not generate entropy. The client is resposible for having sufficient randomness.*
+- **__mod**(string, table) The **%** metamethod applies to all strings and allows for easy interpolation using a provided table whose keys refer to sections of the string with declared variables ***{$myvar}*** and whose values are strings ***{myvar="string stuff here"}***.
 
+#### Usage Example
+```lua
+--interpolation
+local sMyString = "This string has several variables embedded {$var1} it and can be {$mod} much easier than changing the {$et}." % {var1="within", mod="modified", et="entire string"};
+
+print(sMyString);
+```
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇺​​​​​🇨​​​​​🇹​​​​​
 
 #### Description

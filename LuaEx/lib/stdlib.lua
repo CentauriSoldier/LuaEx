@@ -10,9 +10,12 @@ local tLuaExTypes = {
 };
 
 --since LuaEx hooks the type function, this is an alias to preserve the original
-luatype = __type__;
+rawtype = __type__;
 --isnull this is declared in the null module
 
+function isnull(v)
+	return v == null;
+end
 
 function sealmetatable(tInput)
 	local bRet = false;
@@ -34,7 +37,7 @@ function sealmetatable(tInput)
 end
 
 
-function rawtype(vObject)
+function xtype(vObject)
 	local sType = __type__(vObject);
 
 	if (sType == "table") then
