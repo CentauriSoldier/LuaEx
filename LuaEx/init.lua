@@ -181,6 +181,7 @@ string		= require("hook.stringhook");
 table		= require("hook.tablehook");
 
 --import infusedhelp module
+ini 		= require("ext_lib.ini");
 infusedhelp	= require("class.infusedhelp");
 
 --import other modules
