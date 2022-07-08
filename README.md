@@ -6,17 +6,17 @@ Simply put, **LuaEx** is a collection of scripts that extend Lua's functionality
 
 ## 🅳🅴🆅🅴🅻🅾🅿🅼🅴🅽🆃 🅶🅾🅰🅻🆂
 
-#### Common Use
-**LuaEx** attempts to implement code solutions for common and frequent problems.
+#### Why Write LuaEx?
+**LuaEx** attempts to implement code solutions for common and frequent problems. I found myself rewriting code over and again or copying old blocks of code from other projects into new projects and finally decided it would be better to compile that code into one single, easy-to-use module.
 
-#### Small Package
+#### Big Things Come in Small Package
 Keeping this module small is essential to making it useful. You shouldn't have to spend a year learning how to use something designed to be easy to use; **LuaEx** is developed with that in mind.
 
 ##### Simplicity
 Retaining simplicity of the code is also a primary goal of this module. The code should be intuitive and I strive toward that end.
 
 #### Conventional Consistency
-
+This project is made to be consistent both with Lua's naming & coding conventions as well as internally.
 
 
 ## 🆁🅴🆂🅾🆄🆁🅲🅴🆂
@@ -102,6 +102,33 @@ Retaining simplicity of the code is also a primary goal of this module. The code
 
 All code is placed in the public domain under [The Unlicense](https://opensource.org/licenses/unlicense "The Unlicense") *(except where otherwise noted)*.
 
+<details>
+<summary>Full Text</summary>
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org/>
+</details>
 
 ## 🅲🅷🅰🅽🅶🅴🆂 🆃🅾 🅻🆄🅰 🛠
 
@@ -147,7 +174,6 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ## 🅲🅻🅰🆂🆂🅴🆂 💥
 
-#### Description
 These are various classes that help bring more OOP features to Lua. These have been added by using the 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​ module.
 
 #### Classes
@@ -178,8 +204,10 @@ Below is a the complete list of modules in LuaEx.
 
 ## 🇸​​​​​🇹​​​​​🇩​​​​​🇱​​​​​🇮​​​​​🇧​​​​​
 
-#### Description
-These are items that are globally accessible but do not fit nicely into any particular module or are global functions not listed elsewhere. These include new, **LuaEx** functions as well as hooks of existing Lua functions.
+Items that are globally accessible but do not fit nicely into any particular module or are global functions not listed elsewhere. These include new, **LuaEx** functions as well as hooks of existing Lua functions.
+
+<details>
+<summary>More Info</summary>
 
 #### Functions
 - **type** Works like the original Lua function except that it honors **LuaEx's** custom type system (for tables modified by ***table.settype*** or by manually setting a string value in a table's metatable key, ***__type***.).
@@ -198,10 +226,14 @@ These are items that are globally accessible but do not fit nicely into any part
 
 - **isnull** Returns true if the input is null or NULL, otherwise, returns false. TOTO MOVE THIS TO NULL SECTION
 
+</details>
+
 ## 🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64
 
-#### Description
 Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](https://en.wikipedia.org/wiki/Base64) strings.
+
+<details>
+<summary>More Info</summary>
 
 #### Functions
 - **base64.enc(string)** Converts a string to a base 64 string (*string*).
@@ -211,12 +243,16 @@ Created by Alex Kloss, this modules encodes/decodes strings into/from [base64](h
 - Lua 5.1+ base64 v3.0 (c) 2009 by Alex Kloss <alexthkloss@web.de>
 - licensed under the terms of the [LGPL2](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
+</details>
 
 ## 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​
 
-#### Description
-This is used to create classes in **LuaEx**. It allows the client access to many features of Object Oriented Programming (although not all). It is important to remember that the first two (implicit) arguments to any class constructor (those not passed by the caller) are ***1)*** the instance and ***2)*** a protected, shared table (or nil if the class has no children). This table is used to store non-public fields and methods visible to only to the class, its parents and its children. Each child and parent of a given class instance can access and mutate this table and its elements. This table serves as the "protected" portion of classes' O.O.P.
+This is used to create classes in **LuaEx**. It allows the client access to many features of Object Oriented Programming (although not all).
 
+<details>
+<summary>More Info</summary>
+
+It is important to remember that the first two (implicit) arguments to any class constructor (those not passed by the caller) are ***1)*** the instance and ***2)*** a protected, shared table (or nil if the class has no children). This table is used to store non-public fields and methods visible to only to the class, its parents and its children. Each child and parent of a given class instance can access and mutate this table and its elements. This table serves as the "protected" portion of classes' O.O.P.
 
 #### Usage Example
 ```lua
@@ -262,11 +298,14 @@ local dog = class "dog" : extends(animal) {
 local spot = dog("Spot");
 spot:bark();
 ```
+</details>
 
 ## 🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​🇦​​​​​🇳​​​​​🇹​​​​​
 
-#### Description
 Allows the creation of constants in Lua. Once set, these global values cannot be changed or deleted.
+
+<details>
+<summary>More Info</summary>
 
 #### Usage Example
 ```lua
@@ -285,10 +324,14 @@ print(THE_ANSWER_TO_THE_UNIVERSE_AND_EVERYTHING);
 
 ```
 
+</details>
+
 ## 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
-#### Description
 Used to reverse the process done by the 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪 module.
+
+<details>
+<summary>More Info</summary>
 
 #### Functions
 - **deserialize.boolean(*string*)**
@@ -321,10 +364,14 @@ print("Returned: "..tReturned.Bad);
 print("Batteries: "..tBatteries.Bad);
 ```
 
+</details>
+
 ## 🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​
 
-#### Description
 Brings enums to Lua. While they do not possess every feature you have come to expect in OOP, I have tried to make their behavior as close to actual enums as possible while still affording them the benefits of Lua flexibility.
+
+<details>
+<summary>More Info</summary>
 
 #### Features
 - **Immutability**
@@ -438,27 +485,54 @@ print("Mouse is in the house: "..tostring(ANIMAL.MOUSE.IN_HOUSE.value));
 --ANIMAL.DOG = 44;
 --ANIMAL.DOG.OWNED.value = "Hello";
 ```
+</details>
 
 ## 🇮​​​​​🇳​​​​​🇮​​​​​
 
-#### Description
 A module by Carreras Nicolas (https://github.com/Sledmine/lua-ini) which is a basic ini data handler.
+
+<details>
+<summary>More Info</summary>
 
 - **ini.decode(*string*)** Decodes ini data (*in string format*) and returns the data in table format (*table*).
 - **ini.encode(*string*)** Encodes ini data (*in table format*) to a string (*string*).
 - **ini.load(*string*)** Same as ***ini.decode*** except it takes a filepath string; loads the file and decodes the string data to a table (*table*).
 - **ini.save(*string*)** Same as ***ini.decode*** except also saves the string data to the file specified by the filepath string (*nil*).
 
+<details>
+<summary>License</summary>
+The MIT License (MIT)
+
+Copyright © 2022 <copyright holders>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+</details>
+
+ [https://mit-license.org/](https://mit-license.org/)
+
+
+ </details>
+
 ## 🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​
 
-#### Description
 Adds several math function to the Lua library.
+
+<details>
+<summary>More Info</summary>
 - **Function descriptions in-progress.**
+</details>
 
 ## 🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​
 
-#### Description
 As the title suggests, this module converts various types to a storable string. If you use the 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸 module, you can create custom serialization for each of your classes. You can use the 🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪 module to reverse the process performed by this module.
+
+<details>
+<summary>More Info</summary>
 
 #### Functions
 - **serialize.boolean(*boolean*)** Returns a string, either, "true" or "false" (*string*).
@@ -483,10 +557,14 @@ local tBatteries = {
 print(serialize.table(tBatteries));
 ```
 
+</details>
+
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​
 
-#### Description
 Adds several string function to the Lua library.
+
+<details>
+<summary>More Info</summary>
 
 - **string.cap(*string*, *boolean* or *nil*)** Capatalizes the first letter of the input. If the second argument is true, it also lowers all letters after the first (*string*).
 - **string.capall(*string*)** Capatalizes the first letter of each word of the input. The delimiter of a "word" in this context is a space character (*string*).
@@ -508,10 +586,15 @@ local sMyString = "This string has several variables embedded {$var1} it and can
 
 print(sMyString);
 ```
+
+</details>
+
 ## 🇸​​​​​🇹​​​​​🇷​​​​​🇺​​​​​🇨​​​​​🇹​​​​​
 
-#### Description
 **LuaEx's** implementation of **structs**.
+
+<details>
+<summary>More Info</summary>
 
 A **struct** is a table whose keys must be strings but and have any value except nil. To indicate an empty value for a given key, use null instead of nil. This will retain the property while still indicating an empty value.
 
@@ -536,10 +619,14 @@ As shown above, the default values of a struct may be null. This allows each str
 #### Functions
 - **struct.factory(*string*, *table*)** Creates a struct using the provided name and table of properties. The properties table must contain at least one valid key. Returns a factory that will produce structs that conform to the provided table (*struct factory*).
 
+</details>
+
 ## 🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​
 
-#### Description
 Adds several table functions to the Lua library.
+
+<details>
+<summary>More Info</summary>
 
 #### Functions
 - **table.clone(*table*, *boolean* or *nil*)** Performs a deep copy of a table and returns that copy. This will also copy the metatable unless the second argument is set to true (*table*).
@@ -601,6 +688,8 @@ print("We've now got "..tAnimals.Cats.." uncloned cats.");
 print(tAnimals.Mice);
 print("Oh good. We've also got "..tAnimals.BestDogs[1].." best dogs.");
 ```
+
+</details>
 
 ## 🅲🆁🅴🅳🅸🆃🆂
 - Huge thanks to [Bas Groothedde](https://github.com/imagine-programming) at Imagine Programming for creating the original **class** module.
