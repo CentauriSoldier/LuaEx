@@ -499,7 +499,7 @@ The ini module takes advantage of the class system allowing for ini objects to b
 - **ini(*string or nil*, *boolean or nil*, *boolean or nil*)** Creates a new ini object. Argument 1 is the filename where the ini may (optionally) be stored. Argument 2 is whether the ini should be autoloaded from the specified file during instantiation. Argument 3 is whether the ini should be autosaved when any changes are made to the object (*ini*).
 - **__tostring** Returns a serialized table of the ini object's data.
 - **deleteall** Clears all data from the ini object (*nil*).
-- **deletesection(*string*)** 
+- **deletesection(*string*)**
 
 
 ### Static Functions
