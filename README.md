@@ -493,11 +493,22 @@ A module by Carreras Nicolas (https://github.com/Sledmine/lua-ini) which is a ba
 
 <details>
 <summary>More Info</summary>
+The ini module takes advantage of the class system allowing for ini objects to be created and operated on using OOP methods.
+
+### Class Methods
+- **ini(*string or nil*, *boolean or nil*, *boolean or nil*)** Creates a new ini object. Argument 1 is the filename where the ini may (optionally) be stored. Argument 2 is whether the ini should be autoloaded from the specified file during instantiation. Argument 3 is whether the ini should be autosaved when any changes are made to the object (*ini*).
+- **__tostring** Returns a serialized table of the ini object's data.
+- **deleteall** Clears all data from the ini object (*nil*).
+- **deletesection(*string*)** 
+
+
+### Static Functions
+The client may use these functions to operate on data free of using the class system. These are provided for convenience when not using the class system but are not needed when using the class system.
 
 - **ini.decode(*string*)** Decodes ini data (*in string format*) and returns the data in table format (*table*).
-- **ini.encode(*string*)** Encodes ini data (*in table format*) to a string (*string*).
+- **ini.encode(*table*)** Encodes ini data (*in table format*) to a string (*string*).
 - **ini.load(*string*)** Same as ***ini.decode*** except it takes a filepath string; loads the file and decodes the string data to a table (*table*).
-- **ini.save(*string*)** Same as ***ini.decode*** except also saves the string data to the file specified by the filepath string (*nil*).
+- **ini.save(*string*, *table*)** Same as ***ini.decode*** except also saves the string data to the file specified by the filepath string (*nil*).
 
 <details>
 <summary>License</summary>
@@ -694,4 +705,4 @@ print("Oh good. We've also got "..tAnimals.BestDogs[1].." best dogs.");
 ## 🅲🆁🅴🅳🅸🆃🆂
 - Huge thanks to [Bas Groothedde](https://github.com/imagine-programming) at Imagine Programming for creating the original **class** module.
 - Thanks to Alex Kloss (alexthkloss@web.de) for creating the **base64** module.
-- Thanks to [Carreras Nicolas](https://github.com/Sledmine/lua-ini) for creating the **ini** module.
+- Thanks to [Carreras Nicolas](https://github.com/Sledmine/lua-ini) for creating the original **ini** module.

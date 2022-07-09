@@ -146,13 +146,14 @@ local ini = class "ini" {
 		end
 	end,
 	deletesection = function(this, sSection)
+		local bRet = false;
 		local tData = tINIs[this];
 		local tINI 		= tData.ini;
 
 		assert(type(sSection) 	== "string", 	"Section name must be of type string.");
 
 		if (type(tINI[sSection]) ~= "nil") then
-			table.remove(tINI, sSection);
+			bRet = table.remove(tINI, sSection);
 			tData.issaved = false;
 
 			if (tData.autosave) then
@@ -162,6 +163,7 @@ local ini = class "ini" {
 
 		end
 
+		return bRet;
 	end,
 	deletevalue = function(this, sSection, sValue)
 		local tData = tINIs[this];
@@ -195,9 +197,9 @@ local ini = class "ini" {
 
 		return tRet;
 	end,
-	getsectioncount = function(this, sSection, sValue)
+	getsectioncount = function(this)
 		local tData = tINIs[this];
-		local tINI 		= tData.ini;
+		local tINI 	= tData.ini;
 		local nRet = 0;
 
 		for _, __ in pairs(tINI) do
@@ -213,13 +215,48 @@ local ini = class "ini" {
 		return table.clone(tINIs[this].ini, true);
 	end,
 	getvalue = function(this, sSection, sValue)
+		local vRet 	= "";
+		local tData = tINIs[this];
+		local tINI 	= tData.ini;
 
+		if (type(tINI[sSection]) ~= "nil") then
+
+			if (type(tINI[sSection][sValue]) ~= "nil") then
+				vRet = tINI[sSection][sValue];
+			end
+		end
+
+		return vRet;
 	end,
 	getvaluecount = function(this, sSection)
+		local nRet 	= -1;
+		local tData = tINIs[this];
+		local tINI 	= tData.ini;
 
+		if (type(tINI[sSection]) ~= "nil") then
+			nRet = 0;
+
+			for _, __ in pairs(tINI[sSection]) do
+				nRet = nRet + 1;
+			end
+		end
+
+		return nRet;
 	end,
-	getvaluenames = function(this)
+	getvaluenames = function(this, sSection)
+		local tRet 	= nil;
+		local tData = tINIs[this];
+		local tINI 	= tData.ini;
 
+		if (type(tINI[sSection]) ~= "nil") then
+			tRet = {};
+
+			for sValue, _ in pairs(tINI[sSection]) do
+				tRet[#tRet + 1] = sValue;
+			end
+		end
+
+		return tRet;
 	end,
 	importstring = function(this, sString, bDoNotOverwrite)
 		local tData = tINIs[this];

@@ -10,5 +10,6 @@ local test = ini(pIni, true, true);
 
 test:setvalue("Settings", "margin", 98)
 
-print(test);
+print(serialize.table(test:getsectionnames()));
+
 --print("A test ${here}" % {here="BLARG"})
