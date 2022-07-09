@@ -32,7 +32,7 @@ Note: Do not localize ***null*** (or ***NULL***)...strange things happen.
 
 ## 🅲🅻🅰🆂🆂🅴🆂 💥
 
-The 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​ module allows for many OOP features within Lua. arious classes that help bring more OOP features to Lua. Many classes come pre-built with LuaEx such as stack, queue, set, etc.
+The 🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​ module allows for many OOP features within Lua. Many classes come pre-built with LuaEx such as stack, queue, set, etc.
 
 # 🅼🅾🅳🆄🅻🅴🆂 ⚙
 - #### [🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64](./api/base64.md)
