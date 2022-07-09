@@ -18,3 +18,5 @@ Items that are globally accessible but do not fit nicely into any particular mod
 - **protect** This places a global into a protected table where it's place cannot be modified. That is, it cannot be deleted or changed. The exception is a table which can be modified unless locked (but it still cannot be deleted).
 
 - **isnull** Returns true if the input is null or NULL, otherwise, returns false. TOTO MOVE THIS TO NULL SECTION
+
+### [◀ Back](https://centaurisoldier.github.io/LuaEx/)
