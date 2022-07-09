@@ -71,10 +71,10 @@ function string.totable(sInput, sDelimiter)
     return tRet;
 end
 
-
 --TODO put in lua ex CAN THIS BE OPTIIMIZE BY MAING THE RETURNED FUNCTION LOCAL?
 --http://lua-users.org/wiki/StringInterpolation
 getmetatable("").__mod = function(s, tab) return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end)) end;
+
 
 
 function string.getfuncname(fFunc) --TODO figure out how to make this simpler and recursive with a safety

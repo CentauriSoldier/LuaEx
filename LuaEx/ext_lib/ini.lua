@@ -7,6 +7,7 @@ local tINIs = {};
 
 local assert 	= assert;
 local table 	= table;
+local type 		= type;
 
 --TODO should this auto-detect type and serialize properly?
 --TODO trim leading/trailing space on section, value names.
@@ -93,12 +94,9 @@ end
 --- Returns a table containing all the data from an ini file
 ---@param fileName string Path to the file to load
 ---@return table Table containing all data from the ini file
-local function load(this, pFilename)--TODO make this available for static use along with the save function
-	local tSettings = tINIs[this];
-	local fileName = type(pFilename) == "string" and pFilename or tSettings.filepath;
-
-	assert(type(fileName) == "string", "Parameter \"fileName\" must be a string.");
-	local file = assert(io.open(fileName, "r"), "Error loading file : " .. fileName);
+local function load(pFile)
+	assert(type(pFile) == "string", "Argument 1 must be of type string.\nGot type ${type}." % {type=type(pFile)});
+	local file = assert(io.open(pFile, "r"), "Error loading file : " .. pFile);
 	local data = decode(file:read("a"));
 	file:close();
 	return data;
@@ -107,18 +105,12 @@ end
 --- Saves all the data from a table to an ini file
 ---@param fileName string The name of the ini file to fill
 ---@param data table The table containing all the data to store
-local function save(this)
-	local tSettings = tINIs[this];
-	local fileName = tSettings.filepath;
-
-	assert(type(fileName) == "string", "Parameter \"fileName\" must be a string.");
-	local data = tINIs[this].ini;
-	-- assert(type(data) == "table", "Parameter \"data\" must be a table.")
-	local file = assert(io.open(fileName, "w+b"), "Error loading file :" .. fileName);
-	file:write(encode(data));
+local function save(pFile, tTable)
+	assert(type(pFile) == "string", "Argument 1 must be of type string.\nGot type ${type}." % {type=type(pFile)});
+	assert(type(tTable) == "table", "Argument 2 must be of type table.\nGot type ${type}." % {type=type(tTable)})
+	local file = assert(io.open(pFile, "w+b"), "Error loading file :" .. pFile);
+	file:write(encode(tTable));
 	file:close();
-	--indicate that the file has been saved
-	tINIs[this].issaved = true;
 end
 
 local ini = class "ini" {
@@ -131,8 +123,11 @@ local ini = class "ini" {
 			issaved		= false, --indicates whether it's been saved since it last changed
 		};
 
-		if (tINIs[this].autoload) then
-			tINIs[this].ini = load(this);
+		local tData = tINIs[this];
+
+		if (tData.autoload and tData.filepath:gsub("%s","") ~= "") then
+			tData.ini = load(tData.filepath);
+			tData.issaved = true;
 		end
 
 	end,
@@ -140,45 +135,48 @@ local ini = class "ini" {
 		return encode(tINIs[this].ini);
 	end,
 	deleteall = function(this)
-		local tSettings = tINIs[this];
-		tSettings.ini = {};
+		local tData = tINIs[this];
+		tData.ini = {};
 
-		tSettings.issaved = false;
+		tData.issaved = false;
 
-		if (tSettings.autosave) then
-			save(this);
+		if (tData.autosave) then
+			save(tData.filepath, tData.ini);
+			tData.issaved = true;
 		end
 	end,
 	deletesection = function(this, sSection)
-		local tSettings = tINIs[this];
-		local tINI 		= tSettings.ini;
+		local tData = tINIs[this];
+		local tINI 		= tData.ini;
 
 		assert(type(sSection) 	== "string", 	"Section name must be of type string.");
 
 		if (type(tINI[sSection]) ~= "nil") then
 			table.remove(tINI, sSection);
-			tSettings.issaved = false;
+			tData.issaved = false;
 
-			if (tSettings.autosave) then
-				save(this);
+			if (tData.autosave) then
+				save(tData.filepath, tData.ini);
+				tData.issaved = true;
 			end
 
 		end
 
 	end,
 	deletevalue = function(this, sSection, sValue)
-		local tSettings = tINIs[this];
-		local tINI 		= tSettings.ini;
+		local tData = tINIs[this];
+		local tINI 		= tData.ini;
 
 		assert(type(sSection) 	== "string", 	"Section name must be of type string.");
 		assert(type(sValue) 	== "string", 	"Value name must be of type string.");
 
 		if (type(tINI[sSection]) ~= "nil" and type(tINI[sSection][sValue]) ~= "nil") then
 			table.remove(tINI[sSection], sValue);
-			tSettings.issaved = false;
+			tData.issaved = false;
 
-			if (tSettings.autosave) then
-				save(this);
+			if (tData.autosave) then
+				save(tData.filepath, tData.ini);
+				tData.issaved = true;
 			end
 
 		end
@@ -187,8 +185,8 @@ local ini = class "ini" {
 		return tINIs[this].filepath;
 	end,
 	getsectionnames = function(this)
-		local tSettings = tINIs[this];
-		local tINI 		= tSettings.ini;
+		local tData = tINIs[this];
+		local tINI 		= tData.ini;
 		local tRet = {};
 
 		for sExistingSection, _ in pairs(tINI) do
@@ -198,8 +196,8 @@ local ini = class "ini" {
 		return tRet;
 	end,
 	getsectioncount = function(this, sSection, sValue)
-		local tSettings = tINIs[this];
-		local tINI 		= tSettings.ini;
+		local tData = tINIs[this];
+		local tINI 		= tData.ini;
 		local nRet = 0;
 
 		for _, __ in pairs(tINI) do
@@ -224,60 +222,64 @@ local ini = class "ini" {
 
 	end,
 	importstring = function(this, sString, bDoNotOverwrite)
-		local tSettings = tINIs[this];
-		local tINI 		= tSettings.ini;
+		local tData = tINIs[this];
+		local tINI 		= tData.ini;
 		assert(type(sString) 	== "string", 	"Argument 1 must be of type string.");
 
 		--TODO do stuff here!!!!
 
-		tSettings.issaved = false;
+		tData.issaved = false;
 
-		if (tSettings.autosave) then
-			save(this);
+		if (tData.autosave) then
+			save(tData.filepath, tData.ini);
+			tData.issaved = true;
 		end
 	end,
 	importtable = function(this, tTable, bDoNotOverwrite)
-		local tSettings = tINIs[this];
-		local tINI 		= tSettings.ini;
+		local tData = tINIs[this];
+		local tINI 		= tData.ini;
 
 		assert(type(tTable) 	== "string", 	"Argument 1 must be of type table.");
 		--TODO assert table contents
 
 		--TODO do stuff here!!!!
 
-		tSettings.issaved = false;
+		tData.issaved = false;
 
-		if (tSettings.autosave) then
-			save(this);
+		if (tData.autosave) then
+			save(tData.filepath, tData.ini);
+			tData.issaved = true;
 		end
 	end,
 	issaved = function(this)
 		return tINIs[this].issaved;
 	end,
-	load = function(this, pFilename)
-		local tSettings = tINIs[this];
-		local tData = load(this, pFilename)
-		tSettings.ini = tData;
-		tSettings.filepath = pFilename;
+	load = function(this, pFile)
+		local tData = tINIs[this];
+		tData.ini = load(pFile)
+		tData.filepath = pFile;
 	end,
 	save = function(this)
+		local tData = tINIs[this];
 
 		if not (tINIs.issaved) then
-			save(this);
+			save(tData.filepath, tData.ini);
+			tData.issaved = true;
 		end
 
+		return tData.issaved;
 	end,
 	setautosave = function(this, bAutoSave)
-		local tSettings = tINIs[this];
-		tSettings.autosave = type(bAutoSave) == "string" and bAutoSave or tSettings.autosave;
+		local tData = tINIs[this];
+		tData.autosave = type(bAutoSave) == "boolean" and bAutoSave or tData.autosave;
 	end,
 	setfilepath = function(this, sFilepath)
-		local tSettings = tINIs[this];
-		tSettings.filepath = type(sFilepath) == "string" and sFilepath or tSettings.filepath;
+		local tData = tINIs[this];
+		tData.filepath = type(sFilepath) == "string" and sFilepath or tData.filepath;
 	end,
 	setvalue = function(this, sSection, sValue, vData)
-		local tSettings = tINIs[this];
-		local tINI 		= tSettings.ini;
+		local tData = tINIs[this];
+		local tINI 		= tData.ini;
 
 		assert(type(sSection) 	== "string", 	"Section name must be of type string.");
 		assert(type(sValue) 	== "string", 	"Value name must be of type string.");
@@ -289,10 +291,11 @@ local ini = class "ini" {
 
 		tINI[sSection][sValue] = vData;
 
-		tSettings.issaved = false;
+		tData.issaved = false;
 
-		if (tSettings.autosave) then
-			save(this);
+		if (tData.autosave) then
+			save(tData.filepath, tData.ini);
+			tData.issaved = true;
 		end
 	end,
 };
@@ -307,17 +310,12 @@ function ini.decode(sString)
 	return decode(sString);
 end
 
-function load(pFilename)
-
+function ini.load(pFile)
+	load(pFile);
 end
 
-function save(pFilename)
-
+function ini.save(pFile, tTable)
+	save(pFile);
 end
-
-
-
-
-
 
 return ini;

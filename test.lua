@@ -8,6 +8,7 @@ local test = ini(pIni, true, true);
 
 --local  k = serialize.table(tIni);
 
-test:setvalue("Settings", "margin", 0)
+test:setvalue("Settings", "margin", 98)
 
 print(test);
+--print("A test ${here}" % {here="BLARG"})
