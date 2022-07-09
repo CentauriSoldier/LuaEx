@@ -5,11 +5,28 @@ A basic ini data handler originally written by Carreras Nicolas (https://github.
 The ini module takes advantage of the class system allowing for ini objects to be created and operated on using OOP methods.
 
 ### Class Methods
-- **ini(*string or nil*, *boolean or nil*, *boolean or nil*)** Creates a new ini object. Argument 1 is the filename where the ini may (optionally) be stored. Argument 2 is whether the ini should be autoloaded from the specified file during instantiation. Argument 3 is whether the ini should be autosaved when any changes are made to the object (*ini*).
+
+#### ini
+The class constructor which creates a new ini file.
+
+##### Parameters
+| name        	| type(s)          				| description 	|
+|:--------------|:------------------------------|:--------------|
+| filepath     	| string or nil 				| The path to the ini file. If there is not need to load/save from file, this can be set to nil.|
+| autoload 		| boolean or nil				| Sets whether the ini should be autoloaded from the specified file during instantiation of the ini object.|
+| autosave 		| boolean or nil				| Sets whether the ini should be autosaved when any changes are made to the object.|
+
+##### Example
+``` lua
+	local oMyINI = ini("./myfile.ini", true, true);
+```
+
+- **ini(*string or nil*, *boolean or nil*, *boolean or nil*)**  Argument 1 is the filename where the ini may (optionally) be stored. Argument 2 is. Argument 3 is whether the ini should be autosaved when any changes are made to the object (*ini*).
 - **__tostring** Returns a serialized table of the ini object's data.
 - **deleteall** Clears all data from the ini object (*nil*).
 - **deletesection(*string*)**
 
+***
 
 ### Static Functions
 The client may use these functions to operate on data free of using the class system. These are provided for convenience when not using the class system but are not needed when using the class system.
