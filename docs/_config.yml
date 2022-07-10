@@ -1,5 +1,9 @@
 title: LuaEx
-description: Extending Lua Functionality
+description: Extending Lua's Functionality
+image: /assets/images/lorem-ipsum.png
+tags:
+  - LuaEx
+author: Lorem Ipsum
 show_downloads: true
 google_analytics:
 theme: jekyll-theme-slate
