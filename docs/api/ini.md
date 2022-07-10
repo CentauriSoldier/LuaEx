@@ -9,23 +9,22 @@ The ini module takes advantage of the class system allowing for ini objects to b
 #### ini
 The class constructor which creates a new ini file.
 
-| Priority apples | Second priority | Third priority |
-|-------|--------|---------|
-| ambrosia | gala | red delicious |
-| pink lady | jazz | macintosh |
-| honeycrisp | granny smith | fuji |
-
 ##### Parameters
 
-| Name | Type(s) | description |
+| Name | Type(s) | Description |
 |-------|--------|---------|
 | filepath | string or nil | The path to the ini file. If there is not need to load/save from file, this can be set to nil. |
 | autoload | boolean or nil | Sets whether the ini should be autoloaded from the specified file during instantiation of the ini object. |
 | autosave | boolean or nil | Sets whether the ini should be autosaved when any changes are made to the object. |
 
+| Return Type(s) | Description |
+|-------|--------|
+| ini object | The oop ini object upon which class methods can be called |
+
 ##### Example
 ``` lua
 	local oMyINI = ini("./myfile.ini", true, true);
+	print(type(oMyINI)); --prints "ini"
 ```
 
 #### __tostring
