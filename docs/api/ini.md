@@ -5,7 +5,7 @@ A basic ini data handler originally written by Carreras Nicolas (https://github.
 The ini module takes advantage of the class system allowing for ini objects to be created and operated on using OOP methods.
 
 ### Class Methods
-
+***
 #### ini
 The class constructor which creates a new ini file.
 
@@ -16,7 +16,8 @@ The class constructor which creates a new ini file.
 | honeycrisp | granny smith | fuji |
 
 ##### Parameters
-| name | type(s) | description |
+
+| Name | Type(s) | description |
 |-------|--------|---------|
 | filepath | string or nil | The path to the ini file. If there is not need to load/save from file, this can be set to nil. |
 | autoload | boolean or nil | Sets whether the ini should be autoloaded from the specified file during instantiation of the ini object. |
