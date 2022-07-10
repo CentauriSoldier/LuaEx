@@ -1,3 +1,6 @@
+---
+layout: default
+---
 ## 🇮​​​​​🇳​​​​​🇮​​​​​
 
 A basic ini data handler originally written by Carreras Nicolas (https://github.com/Sledmine/lua-ini) which has been modified and adapted to LuaEx.
