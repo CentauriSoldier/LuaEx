@@ -143,17 +143,17 @@ local sPath = debug.getinfo(1, "S").source;
 sPath = sPath:gsub("@", ""):gsub("[Ii][Nn][Ii][Tt].[Ll][Uu][Aa]", "");
 --remove the "/" at the end
 sPath = sPath:sub(1, sPath:len() - 1);
---update the package.path
-package.path = package.path..";"..sPath.."\\?.lua";
+--update the package.path (use the main directory to prevent namespace issues)
+package.path = package.path..";"..sPath.."\\..\\?.lua";
 
 --import core modules and push them into the global environment
-			  	require("lib.stdlib");
-constant 	= 	require("lib.constant");
-local null	= 	require("lib.null");
+			  	require("LuaEx.lib.stdlib");
+constant 	= 	require("LuaEx.lib.constant");
+local null	= 	require("LuaEx.lib.null");
 				constant("null", null); -- make sure null can't be overwritten
 				constant("NULL", null); -- create an uppercase alias for null
-enum		= 	require("lib.enum");
-struct		= 	require("lib.struct");
+enum		= 	require("LuaEx.lib.enum");
+struct		= 	require("LuaEx.lib.struct");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,
@@ -172,26 +172,26 @@ setmetatable(_G,
 	}
 );
 
-class 		= require("class.class");
-base64 		= require("ext_lib.base64");
+class 		= require("LuaEx.class.class");
+base64 		= require("LuaEx.ext_lib.base64");
 
 --import lua extension modules
-math 		= require("hook.mathhook");
-string		= require("hook.stringhook");
-table		= require("hook.tablehook");
+math 		= require("LuaEx.hook.mathhook");
+string		= require("LuaEx.hook.stringhook");
+table		= require("LuaEx.hook.tablehook");
 
 --import infusedhelp module
-infusedhelp	= require("class.infusedhelp");
+infusedhelp	= require("LuaEx.class.infusedhelp");
 
 --import other modules
-serialize 	= require("util.serialize");
-deserialize = require("util.deserialize");
+serialize 	= require("LuaEx.util.serialize");
+deserialize = require("LuaEx.util.deserialize");
 
 --import classes
-queue 		= require("class.queue");
-stack 		= require("class.stack");
-set 		= require("class.set");
-ini 		= require("class.ini");
+queue 		= require("LuaEx.class.queue");
+stack 		= require("LuaEx.class.stack");
+set 		= require("LuaEx.class.set");
+ini 		= require("LuaEx.class.ini");
 
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true);
