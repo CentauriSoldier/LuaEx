@@ -53,7 +53,7 @@ end
 --TODO hasA is not working properly
 local function formatName(sName)
 	local sRet = "";
-	local tString = sName:gsub("_", "_|"):delmitedtotable("|");
+	local tString = sName:gsub("_", "_|"):totable("|");
 
 	--go through each string in the table
 	for x = 1, #tString do
