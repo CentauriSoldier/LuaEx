@@ -135,6 +135,10 @@ local ini = class "ini" {
 	__tostring = function(this)
 		return encode(tINIs[this].ini);
 	end,
+	--[[!
+	@func deleteall
+	@desc A thing
+	!]]
 	deleteall = function(this)
 		local tData = tINIs[this];
 		tData.ini = {};

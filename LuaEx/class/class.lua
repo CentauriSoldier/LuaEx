@@ -168,7 +168,12 @@ function is_base(class_object)
 	return getmetatable(class_object).__parent == nil;
 end
 
--- define a new class
+--[[!
+@mod class
+@func class
+@desc Constructor for class instances.
+@ret class MyClass A class object.
+!]]
 local function class(name)
 	local class_meta   = { __type = name, __is_luaex_class = true, __parent = nil };
 	local class_object 	= {};
