@@ -9,8 +9,26 @@ The ini module takes advantage of the class system allowing for ini objects to b
 
 ### Class Methods
 ***
-#### ini
-The class constructor which creates a new ini file.
+
+#### __tostring
+Creates a serialized table of the ini object's data.
+
+##### Return
+
+| Type(s) | Description |
+|-------|--------|
+| string | A serialized table of the ini data. |
+
+- **deleteall** Clears all data from the ini object (*nil*).
+- **deletesection(*string*)**
+
+***
+
+### Static Functions
+The client may use these functions to operate on data free of using the class system. These are provided for convenience when not using the class system but are not needed when using the class system.
+<blockquote>
+<h1><center>ini</center></h1>
+<center><h5>The class constructor which creates a new ini object.</h5></center>
 
 ##### Parameters
 
@@ -31,23 +49,7 @@ The class constructor which creates a new ini file.
 	local oMyINI = ini("./myfile.ini", true, true);
 	print(type(oMyINI)); --prints "ini"
 ```
-
-#### __tostring
-Creates a serialized table of the ini object's data.
-
-##### Return
-
-| Type(s) | Description |
-|-------|--------|
-| string | A serialized table of the ini data. |
-
-- **deleteall** Clears all data from the ini object (*nil*).
-- **deletesection(*string*)**
-
-***
-
-### Static Functions
-The client may use these functions to operate on data free of using the class system. These are provided for convenience when not using the class system but are not needed when using the class system.
+</blockquote>
 
 - **ini.decode(*string*)** Decodes ini data (*in string format*) and returns the data in table format (*table*).
 - **ini.encode(*table*)** Encodes ini data (*in table format*) to a string (*string*).
