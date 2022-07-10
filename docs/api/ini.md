@@ -17,7 +17,9 @@ The class constructor which creates a new ini file.
 | autoload | boolean or nil | Sets whether the ini should be autoloaded from the specified file during instantiation of the ini object. |
 | autosave | boolean or nil | Sets whether the ini should be autosaved when any changes are made to the object. |
 
-| Return Type(s) | Description |
+##### Return
+
+| Type(s) | Description |
 |-------|--------|
 | ini object | The ini object upon which class methods can be called |
 
@@ -28,8 +30,13 @@ The class constructor which creates a new ini file.
 ```
 
 #### __tostring
-Returns a serialized table of the ini object's data.
+Creates a serialized table of the ini object's data.
 
+##### Return
+
+| Type(s) | Description |
+|-------|--------|
+| string | A serialized table of the ini data. |
 
 - **deleteall** Clears all data from the ini object (*nil*).
 - **deletesection(*string*)**
