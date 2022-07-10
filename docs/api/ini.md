@@ -9,6 +9,12 @@ The ini module takes advantage of the class system allowing for ini objects to b
 #### ini
 The class constructor which creates a new ini file.
 
+| Priority apples | Second priority | Third priority |
+|-------|--------|---------|
+| ambrosia | gala | red delicious |
+| pink lady | jazz | macintosh |
+| honeycrisp | granny smith | fuji |
+
 ##### Parameters
 | name | type(s) | description |
 |-------|--------|---------|
@@ -21,8 +27,10 @@ The class constructor which creates a new ini file.
 	local oMyINI = ini("./myfile.ini", true, true);
 ```
 
-- **ini(*string or nil*, *boolean or nil*, *boolean or nil*)**  Argument 1 is the filename where the ini may (optionally) be stored. Argument 2 is. Argument 3 is whether the ini should be autosaved when any changes are made to the object (*ini*).
-- **__tostring** Returns a serialized table of the ini object's data.
+#### __tostring
+Returns a serialized table of the ini object's data.
+
+
 - **deleteall** Clears all data from the ini object (*nil*).
 - **deletesection(*string*)**
 
