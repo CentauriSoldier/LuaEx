@@ -1,3 +1,8 @@
+---
+layout: default
+title: 🇮​​​​​🇳​​​​​🇮​​​​​
+---
+
 ## 🇮​​​​​🇳​​​​​🇮​​​​​
 
 A basic ini data handler originally written by Carreras Nicolas (https://github.com/Sledmine/lua-ini) which has been modified and adapted to LuaEx.
@@ -19,7 +24,7 @@ The class constructor which creates a new ini file.
 
 | Return Type(s) | Description |
 |-------|--------|
-| ini object | The oop ini object upon which class methods can be called |
+| ini object | The ini object upon which class methods can be called |
 
 ##### Example
 ``` lua
