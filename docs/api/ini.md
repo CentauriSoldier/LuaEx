@@ -26,7 +26,7 @@ Creates a serialized table of the ini object's data.
 
 ### Static Functions
 The client may use these functions to operate on data free of using the class system. These are provided for convenience when not using the class system but are not needed when using the class system.
-<blockquote>
+
 <h1><center>ini</center></h1>
 <center><h5>The class constructor which creates a new ini object.</h5></center>
 
@@ -49,7 +49,6 @@ The client may use these functions to operate on data free of using the class sy
 	local oMyINI = ini("./myfile.ini", true, true);
 	print(type(oMyINI)); --prints "ini"
 ```
-</blockquote>
 
 - **ini.decode(*string*)** Decodes ini data (*in string format*) and returns the data in table format (*table*).
 - **ini.encode(*table*)** Encodes ini data (*in table format*) to a string (*string*).
