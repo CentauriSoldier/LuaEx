@@ -181,7 +181,6 @@ string		= require("hook.stringhook");
 table		= require("hook.tablehook");
 
 --import infusedhelp module
-ini 		= require("ext_lib.ini");
 infusedhelp	= require("class.infusedhelp");
 
 --import other modules
@@ -192,6 +191,7 @@ deserialize = require("util.deserialize");
 queue 		= require("class.queue");
 stack 		= require("class.stack");
 set 		= require("class.set");
+ini 		= require("class.ini");
 
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true);

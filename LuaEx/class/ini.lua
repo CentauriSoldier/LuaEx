@@ -8,6 +8,7 @@ local tINIs = {};
 local assert 	= assert;
 local table 	= table;
 local type 		= type;
+local isnil		= isnil;
 
 --TODO should this auto-detect type and serialize properly?
 --TODO trim leading/trailing space on section, value names.
@@ -258,12 +259,25 @@ local ini = class "ini" {
 
 		return tRet;
 	end,
-	importstring = function(this, sString, bDoNotOverwrite)
+	importstring = function(this, sString, bOverwrite)
 		local tData = tINIs[this];
-		local tINI 		= tData.ini;
-		assert(type(sString) 	== "string", 	"Argument 1 must be of type string.");
+		local tINI 	= tData.ini;
+		assert(type(sString) 	== "string", "Argument 1 must be of type string.");
 
-		--TODO do stuff here!!!!
+		if (bOverwrite) then
+			tINI = decode(sString);--TODO validate this string!@!!!????? Does decode do this?
+		else
+
+			for sSection, tSection in pairs(decode(sString)) do
+				tINI[sSection] = isnil(tINI[sSection]) and {} or tINI[sSection];
+
+				for sValueName, vValue in pairs(tSection) do
+					tINI[sSection][sValueName] = vValue;
+				end
+
+			end
+
+		end
 
 		tData.issaved = false;
 

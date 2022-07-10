@@ -17,6 +17,10 @@ function isnull(v)
 	return v == null;
 end
 
+function isnil(v)
+	return rawtype(v) == "nil";
+end
+
 function sealmetatable(tInput)
 	local bRet = false;
 
