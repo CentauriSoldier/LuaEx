@@ -65,13 +65,17 @@ local tMagicCharsConverted = {
 local function serializeRestrictedChars(sInput)
 end
 
+--[[DEPRECATED - booleans now have a __tostring metamethod
 function serialize.boolean(bFlag)
 	return (rawtype(bFlag) == "boolean") and tostring(bFlag) or "false";
 end
+]]
 
+--[[DEPRECATED - numbers now have a __tostring metamethod
 function serialize.number(nNumber)
 	return (rawtype(nNumber) == "number") and nNumber or 0;
 end
+]]
 
 --TODO make this do all resitricted charas too
 function serialize.string(sString)
