@@ -15,6 +15,7 @@ The ini module takes advantage of the class system allowing for ini objects to b
 
 ##### Parameters
 
+
 | Name | Type(s) | Description |
 |-------|--------|---------|
 | filepath | string or nil | The path to the ini file. If there is not need to load/save from file, this can be set to nil. |
