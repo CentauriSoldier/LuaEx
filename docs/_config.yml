@@ -5,5 +5,5 @@ tags:
   - LuaEx
 author: Centauri Soldier
 show_downloads: true
-google_analytics:
+google_analytics: true
 theme: jekyll-theme-slate
