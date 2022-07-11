@@ -1,5 +1,5 @@
 local deserialize = {};
-
+--TODO add these to their type metatables or create functions within the types themselves...just make sure to remove them from here
 function deserialize.boolean(sFlag)
 	return (sFlag == "true") and true or false;
 end

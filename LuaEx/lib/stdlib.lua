@@ -13,13 +13,47 @@ local tLuaExTypes = {
 rawtype = __type__;
 --isnull this is declared in the null module
 
+--function isenum(v)
+--	return type(v) == "";
+--end
+
+--function isstruct(v)
+--	return rawtype(v) == "";
+--end
+--function
+--thread
+--TODO create a repo of types (allow additions/ removals) then create these functions as the types are add (delete function on removal)
+function isboolean(v)
+	return type(v) == "boolean";
+end
+
+function isnil(v)
+	return type(v) == "nil";
+end
+
 function isnull(v)
 	return v == null;
 end
 
-function isnil(v)
-	return rawtype(v) == "nil";
+function isnumber(v)
+	return type(v) == "number";
 end
+
+function isstring(v)
+	return rawtype(v) == "string";
+end
+
+function istable(v)
+	return type(v) == "table";
+end
+
+function isuserdata(v)
+	return type(v) == "userdata";
+end
+
+
+
+
 
 function sealmetatable(tInput)
 	local bRet = false;
