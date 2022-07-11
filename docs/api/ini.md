@@ -1,6 +1,3 @@
----
-layout: default
----
 ## 🇮​​​​​🇳​​​​​🇮​​​​​
 
 A basic ini data handler originally written by Carreras Nicolas (https://github.com/Sledmine/lua-ini) which has been modified and adapted to LuaEx.
@@ -18,7 +15,7 @@ The ini module takes advantage of the class system allowing for ini objects to b
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| filepath | string or nil | The path to the ini file. If there is not need to load/save from file, this can be set to nil. |
+| filepath | string or nil | The path to the ini file. If there is no need to load/save from file, this can be set to nil. |
 | autoload | boolean or nil | Sets whether the ini should be autoloaded from the specified file during instantiation of the ini object. |
 | autosave | boolean or nil | Sets whether the ini should be autosaved when any changes are made to the object. |
 
