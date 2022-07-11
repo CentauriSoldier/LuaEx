@@ -193,5 +193,10 @@ stack 		= require("LuaEx.class.stack");
 set 		= require("LuaEx.class.set");
 ini 		= require("LuaEx.class.ini");
 
+--nwo that everythign has loaded, create aliases
+table.serialize 	= serialize.table;
+string.serialize 	= serialize.string;
+
+
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true);
