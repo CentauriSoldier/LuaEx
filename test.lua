@@ -12,10 +12,7 @@ test:setvalue("Settings", "margin", 98)
 
 --print(serialize.table(test:getsectionnames()));
 
-
-local s = 0;
-
-print(-#1 * -#0);
+print(type(t));
 --print(serialize.table(debug.getregistry()));
 
 --print("A test ${here}" % {here="BLARG"})
