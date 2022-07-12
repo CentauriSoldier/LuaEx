@@ -6,13 +6,14 @@ local pIni = "C:\\Users\\CS\\Sync\\Projects\\GitHub\\LuaEx\\initest.ini";
 
 local test = ini(pIni, true, true);
 
---local  k = serialize.table(tIni);
+--local  k = serialize.tablusere(tIni);
 
 test:setvalue("Settings", "margin", 98)
 
 --print(serialize.table(test:getsectionnames()));
 
-print(type(t));
---print(serialize.table(debug.getregistry()));
+--print(true);
+
+print(serialize.table());
 
 --print("A test ${here}" % {here="BLARG"})

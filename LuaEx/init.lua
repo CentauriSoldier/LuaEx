@@ -148,70 +148,12 @@ sPath = sPath:sub(1, sPath:len() - 1);
 --update the package.path (use the main directory to prevent namespace issues)
 package.path = package.path..";"..sPath.."\\..\\?.lua";
 
---										🆃🆈🅿🅴 🅼🅴🆃🅰🆃🅰🅱🅻🅴🆂
 
---<<  🅱🅾🅾🅻🅴🅰🅽  >>
-local tBooleanMeta = getmetatable(true) or true;
-
-debug.setmetatable(tBooleanMeta, {
-	__add = function(bLeft, bRight)
-		return bLeft or bRight;
-	end,
-	__concat = function(vLeft, vRight)
-
-		if (type(vLeft) == "boolean") then
-			return tostring(vLeft)..vRight;
-		else
-			return vLeft..tostring(vRight);
-		end
-
-	end,
-	__len = function(s)
-		return s and 1 or 0;
-	end,
-	__mul = function(bLeft, bRight)
-		return bLeft and bRight;
-	end,
-	__tostring = function(bVal)
-		return (bVal and "true" or "false");
-	end,
-	__unm = function(bVal)
-		return not bVal;
-	end,
-});
-
-
---<<  🅽🆄🅼🅱🅴🆁  >>
-local tNumberMeta = getmetatable(0) or 0;
-local sBlank = "";
-
-debug.setmetatable(tNumberMeta, {
-	__len = function(nVal)
-		local bRet = nil;
-
-		if (nVal == 1) then
-			bRet = true;
-		elseif (nVal == 0) then
-			bRet = false;
-		end
-
-		return bRet;
-	end,
-	__tostring = function(bVal)
-		return sBlank..(bVal)..sBlank;
-	end,
-});
-
-
---<< 🆂🆃🆁🅸🅽🅶 >>
---TODO CAN THIS BE OPTIIMIZE BY MAING THE RETURNED FUNCTION LOCAL?
---http://lua-users.org/wiki/StringInterpolation
-local tStringMeta = getmetatable("");
-tStringMeta.__mod = function(s, tab) return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end)) end;
 
 --								🅸🅼🅿🅾🆁🆃 🅻🆄🅰🅴🆇 🅼🅾🅳🆄🅻🅴🆂
 
 --import core modules and push them into the global environment
+			  	require("LuaEx.lib.types");
 			  	require("LuaEx.lib.stdlib");
 constant 	= 	require("LuaEx.lib.constant");
 local null	= 	require("LuaEx.lib.null");

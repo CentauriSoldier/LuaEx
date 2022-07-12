@@ -32,12 +32,14 @@ This project is made to be consistent both with Lua's naming & coding convention
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 
 **v0.7**
+- Change: moved all type items to types.lua.
 - Change: renamed functions in various modules to conform with Lua's lowercase naming convention.
 - Change: improved the **string.totable** function.
 - Change: the **xtype** function will now ignore user-defined types but return **LuaEx**'s type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as oppossed to returning, *"table"*. *Use the **rawtype** function to ignore all **LuaEx** type mechanics*.
 - Change: renamed the **string.delimitedtotable** function to ***string.totable***.
 - Bugfix: corrected assertions in stack class.
 - Bugfix: **set.addset** was not adding items.
+- Feature: added several type functions and metamethods to various default types (e.g., boolean, string, number, etc.).
 - Feature: addded the **ini** module.
 - Feature: added **string.isnumeric** function.
 - Feature: added a **__mod** metamethod for string which allows for easy interpolation.

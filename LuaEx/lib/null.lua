@@ -43,7 +43,7 @@ return setmetatable({}, {
 	__add 		= nullval,
 	__band 		= nullval,
 	__bor 		= nullval,
-	__bnot 		= math,
+	__bnot 		= nullval,
 	__bxor 		= nullval,
 	__call 		= dummy,
 	__close 	= false,
