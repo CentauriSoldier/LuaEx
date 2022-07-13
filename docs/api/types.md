@@ -1,6 +1,14 @@
 <h1><center>🆃🆈🅿🅴 🅾🆅🅴🆁🅷🅰🆄🅻</center></h1>
-<p class="funcdesc">Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. These changed are explained in detail below.</p>
+<p class="funcdesc">Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. The Lua <b><i>type</i></b> function has been recast as a table. These changed are explained in detail below.</p>
 <br>
+<center><h1>🇨​​​​​🇺​​​​​🇸​​​​​🇹​​​​​🇴​​​​​🇲​​​​​ 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​</h1></center>
+<p class="funcdesc">Custom types may be create by adding the <b><i>__type</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.settype()</i></b> function. Once set, get the type using the <b><i>type</i></b> function.
+<br>
+Additionally, subtypes may be created by add a <b><i>__subtype</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.setsubtype()</i></b> function. Once set, get the subtype using the <b><i>type.sub</i></b> or <b><i>subtype</i></b> function.
+</p>
+<br>
+***
+
 <!--
 █▀▄▀█ █▀▀ ▀█▀ ▄▀█ █▀▄▀█ █▀▀ ▀█▀ █░█ █▀█ █▀▄ █▀   ▄▀█ █▄░█ █▀▄   █▀█ █▀█ █▀█ █▀█ █▀▀ █▀█ ▀█▀ █ █▀▀ █▀
 █░▀░█ ██▄ ░█░ █▀█ █░▀░█ ██▄ ░█░ █▀█ █▄█ █▄▀ ▄█   █▀█ █░▀█ █▄▀   █▀▀ █▀▄ █▄█ █▀▀ ██▄ █▀▄ ░█░ █ ██▄ ▄█
@@ -8,8 +16,7 @@
 <h1><center>🇲​​​​​🇪​​​​​🇹​​​​​🇦​​​​​🇲​​​​​🇪​​​​​🇹​​​​​🇭​​​​​🇴​​​​​🇩​​​​​🇸​​​​​</center></h1>
 <h1><center>​​🇦​​​​​🇳​​​​​🇩​​​​​</center></h1>
 <h1><center>🇵​​​​​🇷​​​​​🇴​​​​​🇵​​​​​🇪​​​​​🇷​​​​​🇹​​​​​🇮​​​​​🇪​​​​​🇸​​​​​</center></h1>
-<center><p class = "funcdesc">The Lua <b><i>type</i></b> function has been recast as a table as follows:</p></center>
-<br>
+
 <!--- __call --->
 <h2 class="func">__call</h2>
 <p class="funcdesc">The function executed when you call the <i>type</i> table.</p>
@@ -193,12 +200,12 @@ print(type.sub(tMice));
 █▀█ █▄▄ █ █▀█ ▄█ ██▄ ▄█
 -->
 <h1><center>🇦​​​​​🇱​​​​​🇮​​​​​🇦​​​​​🇸​​​​​🇪​​​​​🇸​​​​​</center></h1>
-<center><p class = "funcdesc">For convenience, several of the type function have been given aliases.</p></center>
+<center><p class = "funcdesc">For convenience, several of the <b><i>type</i></b> function have been given aliases.</p></center>
 
-- rawtype 	= type.raw;
-- xtype 	= type.x;
-- fulltype	= type.full;
-- subtype 	= type.sub;
+- <h2 class = "func">rawtype</h2> 	= <h2 class = "func">type.raw</h2>;
+- <h2 class = "func">xtype</h2> 	= <h2 class = "func">type.x</h2>;
+- <h2 class = "func">fulltype</h2>	= <h2 class = "func">type.full</h2>;
+- <h2 class = "func">subtype</h2> 	= <h2 class = "func">type.sub</h2>;
 
 <!--
 █ █▀   █▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
