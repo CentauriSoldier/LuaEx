@@ -118,7 +118,7 @@ print(type.full(tMice));
 | table | The numerically-indexed table whose values are the types (strings). |
 
 <h2>raw</h2>
-<h5>This is the original Lua <b><i>type</b></i> function.</h5>
+<h5>This is the original Lua <b><i>type</i></b> function.</h5>
 
 #### Parameter(s)
 
