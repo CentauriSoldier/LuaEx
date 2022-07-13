@@ -202,7 +202,7 @@ print(type.sub(tMice));
 █▀█ █▄▄ █ █▀█ ▄█ ██▄ ▄█
 -->
 <h1><center>🇦​​​​​🇱​​​​​🇮​​​​​🇦​​​​​🇸​​​​​🇪​​​​​🇸​​​​​</center></h1>
-<center><p class = "funcdesc">For convenience, several of the <b><i>type</i></b> function have been given aliases.</p></center>
+<center><p class = "funcdesc">For convenience, several of the <b><i>type</i></b> functions have been given aliases.</p></center>
 
 - <h2 class = "func">rawtype</h2>
 -- <h2 class = "func">type.raw</h2>
