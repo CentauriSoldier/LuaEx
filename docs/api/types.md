@@ -1,10 +1,12 @@
 <h1><center>🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​ 🇴​​​​​🇻​​​​​🇪​​​​​🇷​​​​​🇭​​​​​🇦​​​​​🇺​​​​​🇱​​​​​</center></h1>
+<blockquote>
 <p class="funcdesc">Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. The Lua <b><i>type</i></b> function has been recast as a table. These changed are explained in detail below.</p>
+</blockquote>
 <br>
 <center><h1>🇨​​​​​🇺​​​​​🇸​​​​​🇹​​​​​🇴​​​​​🇲​​​​​ 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​</h1></center>
-<p class="funcdesc">Custom types may be create by adding the <b><i>__type</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.settype()</i></b> function. Once set, get the type using the <b><i>type</i></b> function.
+<p class="funcdesc">Custom types may be create by adding the <b><i>__type</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.settype()</i></b> function. Once set, get the type using the <b><i>type</i></b> function.</p>
 <br>
-Additionally, subtypes may be created by add a <b><i>__subtype</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.setsubtype()</i></b> function. Once set, get the subtype using the <b><i>type.sub</i></b> or <b><i>subtype</i></b> function.
+<p class="funcdesc">Additionally, subtypes may be created by add a <b><i>__subtype</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.setsubtype()</i></b> function. Once set, get the subtype using the <b><i>type.sub</i></b> or <b><i>subtype</i></b> function.
 </p>
 <br>
 ***
