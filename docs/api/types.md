@@ -1,4 +1,4 @@
-<h1><center>🆃🆈🅿🅴 🅾🆅🅴🆁🅷🅰🆄🅻</center></h1>
+<h1><center>🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​ 🇴​​​​​🇻​​​​​🇪​​​​​🇷​​​​​🇭​​​​​🇦​​​​​🇺​​​​​🇱​​​​​</center></h1>
 <p class="funcdesc">Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. The Lua <b><i>type</i></b> function has been recast as a table. These changed are explained in detail below.</p>
 <br>
 <center><h1>🇨​​​​​🇺​​​​​🇸​​​​​🇹​​​​​🇴​​​​​🇲​​​​​ 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​</h1></center>
