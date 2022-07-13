@@ -206,7 +206,7 @@ print(type.sub(tMice));
 
 | Alias | Original |
 |-------|--------|
-| rawtype | type.raw |
+| <h2 class = "func">rawtype</h2> | <h2 class = "func">type.raw</h2> |
 
 <!--
 | <h2 class = "func">xtype</h2> 	|  	<h2 class = "func">type.x</h2> 		|
