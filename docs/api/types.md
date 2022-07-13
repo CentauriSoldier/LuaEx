@@ -1,5 +1,5 @@
 <h1><center>🆃🆈🅿🅴 🅾🆅🅴🆁🅷🅰🆄🅻</center></h1>
-Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. These changed are explained in detail below.
+<p class="funcdesc">Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. These changed are explained in detail below.</p>
 <br>
 <!--
 █▀▄▀█ █▀▀ ▀█▀ ▄▀█ █▀▄▀█ █▀▀ ▀█▀ █░█ █▀█ █▀▄ █▀   ▄▀█ █▄░█ █▀▄   █▀█ █▀█ █▀█ █▀█ █▀▀ █▀█ ▀█▀ █ █▀▀ █▀
