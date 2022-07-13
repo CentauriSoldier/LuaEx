@@ -27,7 +27,7 @@
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Item	| any	| The value of which to get the type. |
+| Value	| any	| The value of which to get the type. |
 
 #### Return
 
@@ -74,7 +74,7 @@ print(type(type)); --function
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Item	| any	| The value of which to get the full type. |
+| Value	| any	| The value of which to get the full type. |
 
 #### Return
 
@@ -141,7 +141,7 @@ print(type.full(tMice));
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Item	| any	| The value of which to get the type. |
+| Value	| any	| The value of which to get the type. |
 
 #### Return
 
@@ -173,7 +173,7 @@ print(type.raw(tDogs)); --table
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Item	| any	| The value of which to get the subtype |
+| Value	| any	| The value of which to get the subtype. |
 
 #### Return
 
@@ -206,18 +206,55 @@ print(type.sub(tMice));
 
 | Alias | Original |
 |-------|--------|
-| <h2 class = "func">rawtype</h2> | <h2 class = "func">type.raw</h2> |
+| rawtype | type.raw</h2> |
+| xtype	| type.x |
+| fulltype | type.full |
+| subtype |	type.sub |
+
 
 <!--
-| <h2 class = "func">xtype</h2> 	|  	<h2 class = "func">type.x</h2> 		|
-| <h2 class = "func">fulltype</h2>	| 	<h2 class = "func">type.full</h2>	|
-| <h2 class = "func">subtype</h2>	|	<h2 class = "func">type.sub</h2>	|
-
 █ █▀   █▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
 █ ▄█   █▀░ █▄█ █░▀█ █▄▄ ░█░ █ █▄█ █░▀█ ▄█
 -->
 <h1><center>🇮​​​​​🇸​​​​​ 🇫​​​​​🇺​​​​​🇳​​​​​🇨​​​​​🇹​​​​​🇮​​​​​🇴​​​​​🇳​​​​​🇸​​​​​</center></h1>
-<center><p class = "funcdesc"></p></center>
+<p class = "funcdesc">These are auto-generated functions that use all known types (lua, LuaEx and user types) to create each <u>is(type)</u> function.</p>
+<p class = "funcdesc">For example, a list of Lua <u>is</u> functions is below for reference.</p>
+
+| Function | Type Reference |
+|-------|--------|
+| isboolean | boolean |
+| istable | table |
+| isnumber | number |
+| isstring | string |
+| isfunction | function |
+| isuserdata | userdata |
+| isnil | nil |
+
+<p class = "funcdesc">Every <u>is</u></p> function takes has the same number of arguments and produces the same output type.
+
+<!--- is --->
+<h2 class="func">is(type)</h2>
+<p class="funcdesc">Returns the type of the value using LuaEx's type system.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| The value to check if it's a specific type. |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | Returns true if the value is of the queried type and false otherwise.
+
+#### Example
+
+```lua
+
+
+```
+
 <!--
 █▀▄ █▀▀ █▀▀ ▄▀█ █░█ █░░ ▀█▀   ▀█▀ █▄█ █▀█ █▀▀ █▀   █▀▄▀█ █▀▀ ▀█▀ ▄▀█
 █▄▀ ██▄ █▀░ █▀█ █▄█ █▄▄ ░█░   ░█░ ░█░ █▀▀ ██▄ ▄█   █░▀░█ ██▄ ░█░ █▀█

@@ -63,10 +63,12 @@ tStringMeta.__mod = function(s, tab) return (s:gsub('($%b{})', function(w) retur
 --										🆃🆈🅿🅴
 local tLuaTypes = {
 	["boolean"]		= true,
+	["function"]	= true,
 	["nil"] 		= true,
 	["number"] 		= true,
 	["string"] 		= true,
 	["table"] 		= true,
+	["thread"] 		= true,	
 	["userdata"] 	= true,
 };
 
