@@ -42,7 +42,7 @@ setmetatable(tDogs, {__type="Dog List"});
 print(type(tDogs)); --Dog List
 ```
 
-<h2>__type</h2>
+<h2 class="func">__type</h2>
 <h5>This sets the type of the <i>type</i> table to "function" purely to maintain tradition.</h5>
 
 #### Example
