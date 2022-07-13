@@ -2,7 +2,7 @@
 
 
 
-##Type Overhaul
+## Type Overhaul
 
 Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. These changed are explained in detail below.
 <br>
@@ -11,8 +11,8 @@ Lua types have been heavily overhauled to be more versatile, robust and to allow
 <br>
 <h1><center>Metamethods and Properties</center></h1>
 <br>
-<h2>__call</h2>
-<h5>The function executed when you call the <i>type</i> table.</h5>
+<h2 class="func">__call</h2>
+<p class="funcdesc">The function executed when you call the <i>type</i> table.</p>
 
 #### Parameter(s)
 
@@ -43,7 +43,7 @@ print(type(tDogs)); --Dog List
 ```
 
 <h2 class="func">__type</h2>
-<h5>This sets the type of the <i>type</i> table to "function" purely to maintain tradition.</h5>
+<p class="funcdesc">This sets the type of the <i>type</i> table to "function" purely to maintain tradition.</p>
 
 #### Example
 
@@ -54,8 +54,8 @@ print(type(type)); --function
 <br>
 <h1><center>Functions</center></h1>
 <br>
-<h2>full</h2>
-<h5>Concatenates the <i>__type</i> and <i>__subtype</i> metatable properties (and adds a space in between if a subtype exists).<br>If it is not a custom type, simply returns the type.</h5>
+<h2 class="func">full</h2>
+<p class="funcdesc">Concatenates the <i>__type</i> and <i>__subtype</i> metatable properties (and adds a space in between if a subtype exists).<br>If it is not a custom type, simply returns the type.</p>
 
 #### Parameter(s)
 
@@ -81,8 +81,8 @@ table.setsubtype(tMice, "Colors");
 print(type.full(tMice));
 ```
 
-<h2>getall</h2>
-<h5>Gets a list of all types.</h5>
+<h2 class="func">getall</h2>
+<p class="funcdesc">Gets a list of all types.</p>
 
 #### Return
 
@@ -90,8 +90,8 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
-<h2>getlua</h2>
-<h5>Gets a list of Lua types.</h5>
+<h2 class="func">getlua</h2>
+<p class="funcdesc">Gets a list of Lua types.</p>
 
 #### Return
 
@@ -99,8 +99,8 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
-<h2>getluaex</h2>
-<h5>Gets a list of <b><i>LuaEx</i></b> types.</h5>
+<h2 class="func">getluaex</h2>
+<p class="funcdesc">Gets a list of <b><i>LuaEx</i></b> types.</p>
 
 #### Return
 
@@ -108,8 +108,8 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
-<h2>getuser</h2>
-<h5>Gets a list of user types.</h5>
+<h2 class="func">getuser</h2>
+<p class="funcdesc">Gets a list of user types.</p>
 
 #### Return
 
@@ -117,8 +117,8 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
-<h2>raw</h2>
-<h5>This is the original Lua <b><i>type</i></b> function.</h5>
+<h2 class="func">raw</h2>
+<p class="funcdesc">This is the original Lua <b><i>type</i></b> function.</p>
 
 #### Parameter(s)
 
@@ -149,8 +149,8 @@ print(type(tDogs)); --Dog List
 ```
 
 
-## sub
-<h5>Gets the subtype of an value.</h5>
+<h2 class="func">sub</h2>
+<p class="funcdesc">Gets the subtype of an value.</p>
 
 #### Parameter(s)
 
@@ -176,8 +176,8 @@ table.setsubtype(tMice, "Colors");
 print(type.sub(tMice));
 ```
 
-<h2><center>x</center></h2>
-<center><h5>.</h5></center>
+<h2 class="func">x</h2>
+<p class="funcdesc">.</p>
 
 #### Aliases
 
