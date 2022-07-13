@@ -53,7 +53,7 @@ end
 local function constant(sName, vVal)
 
 	--insure the name input is a string
-	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Constant name must be of type string and be non-blank; input value is '"..tostring(sName).."' of type "..type(sName));
+	assert(type(sName) == "string" and sName:gsub("%s", "") ~= "", "Constant name must be of type string and be non-blank; input value is '"..tostring(sName).."', of type "..type(sName));
 	--check that the name string can be a valid variable
 	assert(isvariablecompliant(sName), "Constant name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
 	--make sure the variable doesn't alreay exist

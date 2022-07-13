@@ -153,7 +153,7 @@ package.path = package.path..";"..sPath.."\\..\\?.lua";
 --								🅸🅼🅿🅾🆁🆃 🅻🆄🅰🅴🆇 🅼🅾🅳🆄🅻🅴🆂
 
 --import core modules and push them into the global environment
-			  	require("LuaEx.lib.types");
+type 		=  	require("LuaEx.hook.typehook");
 			  	require("LuaEx.lib.stdlib");
 constant 	= 	require("LuaEx.lib.constant");
 local null	= 	require("LuaEx.lib.null");
@@ -182,7 +182,7 @@ setmetatable(_G,
 class 		= require("LuaEx.class.class");
 base64 		= require("LuaEx.ext_lib.base64");
 
---import lua extension modules
+--import lua extension modules (except 'typehook' which is loaded first [above])
 math 		= require("LuaEx.hook.mathhook");
 string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");

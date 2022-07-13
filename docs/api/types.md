@@ -1,5 +1,207 @@
 #WIP--rewriting for clarity and continuity
 
+
+
+##Type Overhaul
+
+Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. These changed are explained in detail below.
+<br>
+<br>
+<center><h4>The Lua <b><i>type</i></b> function has been recast as a table as follows:</h4></center>
+<br>
+<h1><center>Metamethods and Properties</center></h1>
+<br>
+<h2>__call</h2>
+<h5>The function executed when you call the <i>type</i> table.</h5>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Item	| any	| The value of which to get the type. |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| string | The type of the value queried using **LuEx's** type system. |
+
+#### Example
+```lua
+--create a basic table
+local tDogs = {"Lab", "Husky"};
+
+--get and print the type
+print(type(tDogs)); --table
+
+--now, let's add a metatable and set a custom type
+--(we could also use table.settype to do this)
+setmetatable(tDogs, {__type="Dog List"});
+
+--get and print the new type
+print(type(tDogs)); --Dog List
+```
+
+<h2>__type</h2>
+<h5>This sets the type of the <i>type</i> table to "function" purely to maintain tradition.</h5>
+
+#### Example
+
+```lua
+--get and print the type of 'type'
+print(type(type)); --function
+```
+<br>
+<h1><center>Functions</center></h1>
+<br>
+<h2>full</h2>
+<h5>Concatenates the <i>__type</i> and <i>__subtype</i> metatable properties (and adds a space in between if a subtype exists).<br>If it is not a custom type, simply returns the type.</h5>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Item	| any	| The value of which to get the full type. |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| string | The type and subtype of the value queried using **LuEx's** type system. |
+
+#### Example
+
+```lua
+--create a table
+local tMice = {"Brown", "Black", "White", "Grey"};
+--add a type and subtype
+table.settype(tMice, "Mouse");
+table.setsubtype(tMice, "Colors");
+--get and print the full type
+print(type.full(tMice));
+```
+
+<h2>getall</h2>
+<h5>Gets a list of all types.</h5>
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| table | The numerically-indexed table whose values are the types (strings). |
+
+<h2>getlua</h2>
+<h5>Gets a list of Lua types.</h5>
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| table | The numerically-indexed table whose values are the types (strings). |
+
+<h2>getluaex</h2>
+<h5>Gets a list of <b><i>LuaEx</i></b> types.</h5>
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| table | The numerically-indexed table whose values are the types (strings). |
+
+<h2>getuser</h2>
+<h5>Gets a list of user types.</h5>
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| table | The numerically-indexed table whose values are the types (strings). |
+
+<h2>raw</h2>
+<h5>This is the original Lua <b><i>type</b></i> function.</h5>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Item	| any	| The value of which to get the type. |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| string | The type of the value queried ignoring **LuEx's** type system. |
+
+#### Example
+```lua
+--create a basic table
+local tDogs = {"Lab", "Husky"};
+
+--get and print the type
+print(type(tDogs)); --table
+
+--now, let's add a metatable and set a custom type
+--(we could also use table.settype to do this)
+setmetatable(tDogs, {__type="Dog List"});
+
+--get and print the new type
+print(type(tDogs)); --Dog List
+```
+
+
+## sub
+<h5>Gets the subtype of an value.</h5>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Item	| any	| The value of which to get the subtype |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| string | The subtype of the value queried using **LuEx's** type system.
+
+#### Example
+
+```lua
+--create a table
+local tMice = {"Brown", "Black", "White", "Grey"};
+--add a type and subtype
+table.settype(tMice, "Mouse");
+table.setsubtype(tMice, "Colors");
+--get and print the sub type
+print(type.sub(tMice));
+```
+
+<h2><center>x</center></h2>
+<center><h5>.</h5></center>
+
+#### Aliases
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​ 🇲​​​​​🇪​​​​​🇹​​​​​🇦​​​​​🇲​​​​​🇪​​​​​🇹​​​​​🇭​​​​​🇴​​​​​🇩​​​​​🇸​​​​​
 
 #### Custom Types

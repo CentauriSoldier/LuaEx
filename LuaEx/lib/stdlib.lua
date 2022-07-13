@@ -1,16 +1,12 @@
-local tLuaEx = _G.__LUAEX__;
-
-
-
-
-
+local tLuaEx 	= _G.__LUAEX__;
+local rawtype 	= rawtype;
 
 function sealmetatable(tInput)
 	local bRet = false;
 
-	if (__type__(tInput) == "table") then
+	if (rawtype(tInput) == "table") then
 		local tMeta 	= getmetatable(tInput);
-		local sMetaType = __type__(tInput);
+		local sMetaType = rawtype(tInput);
 		local bIsNil 	= sMetaType == "nil";
 
 		if (sMetaType == "table" or bIsNil) then
@@ -25,13 +21,11 @@ function sealmetatable(tInput)
 end
 
 
-
-
 function protect(sReference)
-	local sReferenceType 	= __type__(sReference);
-	local sInputType		= __type__(_G[sReference]);
+	local sReferenceType 	= rawtype(sReference);
+	local sInputType		= rawtype(_G[sReference]);
 	assert(sReferenceType == "string" and sInputType ~= "nil", "Reference must be a string which is a key in _G. Input given is '"..tostring(sReference).."' of type "..sReferenceType..".");
-	assert(__type__(tLuaEx[sReference]) == "nil", "Cannot protect item '"..sReference.."'; already protected.")
+	assert(rawtype(tLuaEx[sReference]) == "nil", "Cannot protect item '"..sReference.."'; already protected.")
 	local vInput 			= _G[sReference];
 
 	local vProtected = vInput;
