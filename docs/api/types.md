@@ -5,7 +5,6 @@
 <br>
 <center><h1>🇨​​​​​🇺​​​​​🇸​​​​​🇹​​​​​🇴​​​​​🇲​​​​​ 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​</h1></center>
 <p class="funcdesc">Custom types may be create by adding the <b><i>__type</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.settype()</i></b> function. Once set, get the type using the <b><i>type</i></b> function.</p>
-<br>
 <p class="funcdesc">Additionally, subtypes may be created by add a <b><i>__subtype</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.setsubtype()</i></b> function. Once set, get the subtype using the <b><i>type.sub</i></b> or <b><i>subtype</i></b> function.
 </p>
 <br>
@@ -205,10 +204,14 @@ print(type.sub(tMice));
 <h1><center>🇦​​​​​🇱​​​​​🇮​​​​​🇦​​​​​🇸​​​​​🇪​​​​​🇸​​​​​</center></h1>
 <center><p class = "funcdesc">For convenience, several of the <b><i>type</i></b> function have been given aliases.</p></center>
 
-- <h2 class = "func">rawtype</h2> 	= <h2 class = "func">type.raw</h2>;
-- <h2 class = "func">xtype</h2> 	= <h2 class = "func">type.x</h2>;
-- <h2 class = "func">fulltype</h2>	= <h2 class = "func">type.full</h2>;
-- <h2 class = "func">subtype</h2> 	= <h2 class = "func">type.sub</h2>;
+- <h2 class = "func">rawtype</h2>
+-- <h2 class = "func">type.raw</h2>
+- <h2 class = "func">xtype</h2>
+-- <h2 class = "func">type.x</h2>
+- <h2 class = "func">fulltype</h2>
+-- <h2 class = "func">type.full</h2>
+- <h2 class = "func">subtype</h2>
+-- <h2 class = "func">type.sub</h2>
 
 <!--
 █ █▀   █▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
