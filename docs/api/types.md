@@ -204,8 +204,9 @@ print(type.sub(tMice));
 <h1><center>🇦​​​​​🇱​​​​​🇮​​​​​🇦​​​​​🇸​​​​​🇪​​​​​🇸​​​​​</center></h1>
 <center><p class = "funcdesc">For convenience, several of the <b><i>type</i></b> functions have been given aliases.</p></center>
 
-- <h2 class = "func">rawtype</h2>
--- <h2 class = "func">type.raw</h2>
+| Alias | Original |
+|-------|--------|
+| <h2 class = "func">rawtype</h2> | <h2 class = "func">type.raw</h2> |
 - <h2 class = "func">xtype</h2>
 -- <h2 class = "func">type.x</h2>
 - <h2 class = "func">fulltype</h2>
