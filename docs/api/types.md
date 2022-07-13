@@ -1,16 +1,14 @@
-#WIP--rewriting for clarity and continuity
-
-
-
-## Type Overhaul
-
+<center>🆃🆈🅿🅴 🅾🆅🅴🆁🅷🅰🆄🅻</center>
 Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. These changed are explained in detail below.
 <br>
+<!--
+█▀▄▀█ █▀▀ ▀█▀ ▄▀█ █▀▄▀█ █▀▀ ▀█▀ █░█ █▀█ █▀▄ █▀   ▄▀█ █▄░█ █▀▄   █▀█ █▀█ █▀█ █▀█ █▀▀ █▀█ ▀█▀ █ █▀▀ █▀
+█░▀░█ ██▄ ░█░ █▀█ █░▀░█ ██▄ ░█░ █▀█ █▄█ █▄▀ ▄█   █▀█ █░▀█ █▄▀   █▀▀ █▀▄ █▄█ █▀▀ ██▄ █▀▄ ░█░ █ ██▄ ▄█
+-->
+<center>🇲​​​​​🇪​​​​​🇹​​​​​🇦​​​​​🇲​​​​​🇪​​​​​🇹​​​​​🇭​​​​​🇴​​​​​🇩​​​​​🇸​​​​​ 🇦​​​​​🇳​​​​​🇩​​​​​ 🇵​​​​​🇷​​​​​🇴​​​​​🇵​​​​​🇪​​​​​🇷​​​​​🇹​​​​​🇮​​​​​🇪​​​​​🇸​​​​​</center>
+<center>The Lua <b><i>type</i></b> function has been recast as a table as follows:</center>
 <br>
-<center><h4>The Lua <b><i>type</i></b> function has been recast as a table as follows:</h4></center>
-<br>
-<h1><center>Metamethods and Properties</center></h1>
-<br>
+<!--- __call --->
 <h2 class="func">__call</h2>
 <p class="funcdesc">The function executed when you call the <i>type</i> table.</p>
 
@@ -41,18 +39,21 @@ setmetatable(tDogs, {__type="Dog List"});
 --get and print the new type
 print(type(tDogs)); --Dog List
 ```
-
+<!--- __type --->
 <h2 class="func">__type</h2>
 <p class="funcdesc">This sets the type of the <i>type</i> table to "function" purely to maintain tradition.</p>
 
 #### Example
-
+<!--
+█▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
+█▀░ █▄█ █░▀█ █▄▄ ░█░ █ █▄█ █░▀█ ▄█
+-->
 ```lua
 --get and print the type of 'type'
 print(type(type)); --function
 ```
 <br>
-<h1><center>Functions</center></h1>
+<center>🇫​​​​​🇺​​​​​🇳​​​​​🇨​​​​​🇹​​​​​🇮​​​​​🇴​​​​​🇳​​​​​🇸​​​​​</center>
 <br>
 <h2 class="func">full</h2>
 <p class="funcdesc">Concatenates the <i>__type</i> and <i>__subtype</i> metatable properties (and adds a space in between if a subtype exists).<br>If it is not a custom type, simply returns the type.</p>
@@ -80,7 +81,7 @@ table.setsubtype(tMice, "Colors");
 --get and print the full type
 print(type.full(tMice));
 ```
-
+<!--- getall --->
 <h2 class="func">getall</h2>
 <p class="funcdesc">Gets a list of all types.</p>
 
@@ -90,6 +91,7 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
+<!--- getlua --->
 <h2 class="func">getlua</h2>
 <p class="funcdesc">Gets a list of Lua types.</p>
 
@@ -99,6 +101,7 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
+<!--- getluaex --->
 <h2 class="func">getluaex</h2>
 <p class="funcdesc">Gets a list of <b><i>LuaEx</i></b> types.</p>
 
@@ -108,6 +111,7 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
+<!--- getuser --->
 <h2 class="func">getuser</h2>
 <p class="funcdesc">Gets a list of user types.</p>
 
@@ -117,6 +121,7 @@ print(type.full(tMice));
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
 
+<!--- raw --->
 <h2 class="func">raw</h2>
 <p class="funcdesc">This is the original Lua <b><i>type</i></b> function.</p>
 
@@ -148,7 +153,7 @@ setmetatable(tDogs, {__type="Dog List"});
 print(type(tDogs)); --Dog List
 ```
 
-
+<!--- sub --->
 <h2 class="func">sub</h2>
 <p class="funcdesc">Gets the subtype of an value.</p>
 
@@ -176,17 +181,28 @@ table.setsubtype(tMice, "Colors");
 print(type.sub(tMice));
 ```
 
+<!--- x --->
 <h2 class="func">x</h2>
 <p class="funcdesc">.</p>
 
-#### Aliases
+<!--
+▄▀█ █░░ █ ▄▀█ █▀ █▀▀ █▀
+█▀█ █▄▄ █ █▀█ ▄█ ██▄ ▄█
+-->
+<center>🇦​​​​​🇱​​​​​🇮​​​​​🇦​​​​​🇸​​​​​🇪​​​​​🇸​​​​​</center>
 
+<!--
+█ █▀   █▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
+█ ▄█   █▀░ █▄█ █░▀█ █▄▄ ░█░ █ █▄█ █░▀█ ▄█
+-->
+<center>🇮​​​​​🇸​​​​​ 🇫​​​​​🇺​​​​​🇳​​​​​🇨​​​​​🇹​​​​​🇮​​​​​🇴​​​​​🇳​​​​​🇸​​​​​</center>
 
+<!--
+█▀▄ █▀▀ █▀▀ ▄▀█ █░█ █░░ ▀█▀   ▀█▀ █▄█ █▀█ █▀▀ █▀   █▀▄▀█ █▀▀ ▀█▀ ▄▀█
+█▄▀ ██▄ █▀░ █▀█ █▄█ █▄▄ ░█░   ░█░ ░█░ █▀▀ ██▄ ▄█   █░▀░█ ██▄ ░█░ █▀█
+-->
 
-
-
-
-
+<center>🇩​​​​​🇪​​​​​🇫​​​​​🇦​​​​​🇺​​​​​🇱​​​​​🇹​​​​​ 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​ 🇲​​​​​🇪​​​​​🇹​​​​​🇦​​​​​</center>
 
 
 
