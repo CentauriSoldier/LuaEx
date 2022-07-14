@@ -259,7 +259,7 @@ print(xtype(DOG.MEDIUM)); --DOG
 | isuserdata | userdata |
 | isnil | nil |
 
-<p class = "funcdesc">Every <u>is</u></p> function takes has the same number of arguments and produces the same output type.
+<p class = "funcdesc">Every <u>is</u> function takes has the same number of arguments and produces the same output type.</p>
 
 <!--- is --->
 <h2 class="func">is(type)</h2>
@@ -320,7 +320,7 @@ print(tostring(type["is&Variable Unfriendly"](tCats)));
 #### Example
 
 ```lua
-
+k
 ```
 
 <!--- __concat --->
@@ -456,7 +456,7 @@ print(tostring(type["is&Variable Unfriendly"](tCats)));
 
 ```
 
-<!--- __tostring --->
+<!--- __len --->
 <p class="func">__len</p>
 <p class="funcdesc">Converts the number to boolean for values 0 and 1 but nil for all other values.</p>
 
@@ -479,7 +479,7 @@ print(tostring(type["is&Variable Unfriendly"](tCats)));
 ```
 
 ### string
-<!--- __tostring --->
+<!--- __mod --->
 <p class="func">__mod</p>
 <p class="funcdesc">Allows for string interpolation.</p>
 
