@@ -19,11 +19,10 @@ local t = {}
 setmetatable(t, {__type="poog"})
 
 --print(type.ispoog(t));
+local null = null;
 
 --create a table
 local tMice = {"Brown", "Black", "White", "Grey"};
---add a type and subtype
-table.settype(tMice, "Mouse");
-table.setsubtype(tMice, "Colors");
---get and print the sub type
-print(type.sub(tMice));
+
+--get and print type user type
+print(xtype(tMice)); --table

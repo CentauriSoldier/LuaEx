@@ -179,23 +179,52 @@ print(type.raw(tDogs)); --table
 
 | Type(s) | Description |
 |-------|--------|
-| string | The subtype of the value queried using **LuEx's** type system.
+| string | The subtype of the value queried using **LuEx's** type system. |
 
 #### Example
 
 ```lua
 --create a table
 local tMice = {"Brown", "Black", "White", "Grey"};
+
 --add a type and subtype
 table.settype(tMice, "Mouse");
 table.setsubtype(tMice, "Colors");
+
 --get and print the sub type
-print(type.sub(tMice));
+print(type.sub(tMice)); --Colors
 ```
 
 <!--- x --->
 <h2 class="func">x</h2>
-<p class="funcdesc">.</p>
+<p class="funcdesc">The same as <b><i>type</i></b> except is ignores user types created by explicitly setting the <b><i>__type</i></b> metatable property; however, any custom types made by using <b><i>LuaEx's</i></b> mechanisms will return the custom type.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| The value of which to get the subtype. |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| string | The subtype of the value queried using **LuEx's** type system but ignoring user types. |
+
+#### Example
+
+```lua
+--create a table
+local tMice = {"Brown", "Black", "White", "Grey"};
+
+--get and print type user type
+print(xtype(tMice)); --table
+
+--now, try a LuaEx
+enum("DOG", {"BIG", "SMALL", "MEDIUM"});
+print(xtype(DOG)); --enum
+print(xtype(DOG.MEDIUM)); --DOG
+```
 
 <!--
 ▄▀█ █░░ █ ▄▀█ █▀ █▀▀ █▀
@@ -246,13 +275,20 @@ print(type.sub(tMice));
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | Returns true if the value is of the queried type and false otherwise.
+| boolean | Returns true if the value is of the queried type and false otherwise. |
 
 #### Example
 
 ```lua
+--create a custom type
+local tCats = table.settype({"Dumb", "Mean", "Playful", "Hungry"}, "CatsList");
+--get and print the type of the new table
+print(tostring(type.isCatsList(tCats)));
 
-
+--now try with a variable non-compliant string
+local tCats = table.settype({"Dumb", "Mean", "Playful", "Hungry"}, "&Variable Unfriendly");
+--get and print the type of the new table
+print(tostring(type["is&Variable Unfriendly"](tCats)));
 ```
 
 <!--
@@ -263,53 +299,215 @@ print(type.sub(tMice));
 <h1><center>🇩​​​​​🇪​​​​​🇫​​​​​🇦​​​​​🇺​​​​​🇱​​​​​🇹​​​​​<br>🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​<br>🇲​​​​​🇪​​​​​🇹​​​​​🇦​​​​​🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​🇸​​​​​</center></h1>
 <center><p class = "funcdesc"></p></center>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​ 🇲​​​​​🇪​​​​​🇹​​​​​🇦​​​​​🇲​​​​​🇪​​​​​🇹​​​​​🇭​​​​​🇴​​​​​🇩​​​​​🇸​​​​​
-
-#### Custom Types
-
-Adding a ***__type*** field to any metatable (or by using ***table.settype***) and assigning a string value to it creates a custom object type. In order to achieve this, the Lua function, ***type*** has been hooked.
-
-If you'd like to get the type of something, ignoring ***user-implemented***, custom implementations of **LuaEx's** custom type feature, simply use the ***xtype*** function. This will not affect pre-built, **LuaEx** types such as ***null***, ***enums***, ***classes***, ***constants***, ***struct factories***, etc. and objects of these types will still return their name as defined by **LuaEx**.
-
-If you want the *actual Lua type* of a thing ignoring ***ALL*** **LuaEx** custom type mechanics, use the ***rawtype*** function.
-
-### Subtypes
-They work the same as types except the metatable entry is ***__subtype*** and the function to detect the subtype is ***subtype***.
-
-### Fulltype
-The **fulltype** function concatenates the results from **__type** and **__subtype**.
-
-### The NULL Type
-NULL (also null) is a custom type added to **LuaEx**. It is of type null and has obligatory comparison behavior for null values in many programming languages. The main purpose of this value, as an alternative for ***nil***, is to allow the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the ***isnull*** function to determine whether a value is null. Both ***null*** and ***NULL*** are the same value and may be accessed by using either word.
-
-Note: This works only with the ***type*** function. Calling the ***rawtype*** function with ***null*** (or ***NULL***) as an argument will return the value, "table".
-
-Note: Do not localize ***null*** (or ***NULL***)...strange things happen.
-
 ### boolean
-- __add (+) Boolean arithmetic OR.
-- __concat (..) Attempts to concatenate the boolean value - to the other value by converting the boolean to a string.
-- __len (#) Returns 1 and 0 for true and false respectively.
-- __mul (*) Boolean arithmetic AND.
-- __neg (-) Negates the value so true becomes false and false becomes true.
-- __tostring Returns "true" and "false" for true and false respectively.
+
+<!--- __add --->
+<h2 class="func">__add</h2>
+<p class="funcdesc">Boolean arithmetic OR.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
+
+<!--- __concat --->
+<p class="func">__concat</p>
+<p class="funcdesc">Attempts to concatenate the boolean value - to the other value by converting the boolean to a string.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
+
+<!--- __len --->
+<p class="func">__len</p>
+<p class="funcdesc">Returns 1 and 0 for true and false respectively.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
+
+<!--- __mul --->
+<p class="func">__mul</p>
+<p class="funcdesc">Boolean arithmetic AND.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
+
+<!--- __neg --->
+<p class="func">__neg</p>
+<p class="funcdesc">Negates the value so true becomes false and false becomes true.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
+
+<!--- __tostring --->
+<p class="func">__tostring</p>
+<p class="funcdesc">Returns "true" and "false" for true and false respectively.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
 
 ### number
-- __tostring Coerces the number to string.
-- __len Converts the number to boolean for values 0 and 1 but nil for all other values.
+<!--- __tostring --->
+<p class="func">__tostring</p>
+<p class="funcdesc">Coerces the number to string.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
+
+<!--- __tostring --->
+<p class="func">__len</p>
+<p class="funcdesc">Converts the number to boolean for values 0 and 1 but nil for all other values.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
 
 ### string
-- __mod Allows for string interpolation.
+<!--- __tostring --->
+<p class="func">__mod</p>
+<p class="funcdesc">Allows for string interpolation.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| any	| . |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | . |
+
+#### Example
+
+```lua
+
+```
+
+<!--
+█▄░█ █░█ █░░ █░░
+█░▀█ █▄█ █▄▄ █▄▄
+-->
+<h1><center>🇳​​​​​🇺​​​​​🇱​​​​​🇱​​​​​</center></h1>
+<center><p class = "funcdesc">NULL (also null) is a custom type added to **LuaEx**. It is of type null and has obligatory comparison behavior for null values in many programming languages. The main purpose of this value, as an alternative for ***nil***, is to allow the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the ***isnull*** function to determine whether a value is null. Both ***null*** and ***NULL*** are the same value and may be accessed by using either word.</p></center>
+
+### Notes:
+- Calling the ***rawtype*** function with ***null*** (or ***NULL***) as an argument will return the value, "table".
+- Do ***not*** localize ***null*** (or ***NULL***)...strange things happen.

@@ -146,6 +146,8 @@ function table.settype(tInput, sType)
 			tMeta = bIsTable and tMeta or {};
 			tMeta.__type = sType;
 			setmetatable(tInput, tMeta);
+			--record the new type
+			type[sType] = true;
 			return tInput;
 		end
 

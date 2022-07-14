@@ -68,7 +68,7 @@ local tLuaTypes = {
 	["number"] 		= true,
 	["string"] 		= true,
 	["table"] 		= true,
-	["thread"] 		= true,	
+	["thread"] 		= true,
 	["userdata"] 	= true,
 };
 
@@ -187,7 +187,10 @@ local type = {
 
 				if (__type__(tMeta.__type) == "string") then
 
-					if (tLuaExTypes[tMeta.__type] or tMeta.__type:find("struct ") or tMeta.__type:find(" struct") or tMeta.__is_luaex_class) then
+					if (tLuaExTypes[tMeta.__type] 		or 									--luaex type
+						tMeta.__type:find("struct ") 	or tMeta.__type:find(" struct") or 	--custom struct
+						tMeta.__is_luaex_class			or 									--custom class
+						vObject["enum"]) then --custom enum
 						sType = tMeta.__type;
 					end
 
