@@ -21,7 +21,4 @@ setmetatable(t, {__type="poog"})
 --print(type.ispoog(t));
 local null = null;
 
-local sString = "This value is ";
-
-print(false); --false
-print(true); --true
+print(null - {})

@@ -1,6 +1,6 @@
 <h1><center>🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​ 🇴​​​​​🇻​​​​​🇪​​​​​🇷​​​​​🇭​​​​​🇦​​​​​🇺​​​​​🇱​​​​​</center></h1>
 <blockquote>
-<p class="funcdesc">Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. The Lua <b><i>type</i></b> function has been recast as a table. These changed are explained in detail below.</p>
+<p class="funcdesc">Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. The Lua <b><i>type</i></b> function has been recast as a table <i>(although it's still called as a function)</i>. These changed are explained in detail below.</p>
 </blockquote>
 <br>
 <center><h1>🇨​​​​​🇺​​​​​🇸​​​​​🇹​​​​​🇴​​​​​🇲​​​​​ 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​</h1></center>
@@ -331,7 +331,7 @@ print(true + true); 	--true
 
 <!--- __concat --->
 <h2 class="func">__concat</h2>
-<p class="funcdesc">Attempts to concatenate the boolean value - to the other value by converting the boolean to a string.</p>
+<p class="funcdesc">Attempts to concatenate the boolean value to the other value by converting the boolean to a string.</p>
 
 #### Parameter(s)
 
@@ -340,7 +340,7 @@ print(true + true); 	--true
 | Left	| any 	| The left value. |
 | Right	| any	| The right value. |
 
-##### Note: while one value may be of any type, at least ***one*** value must be of type boolean.
+##### Note: while one value may be of any type, ***at least one*** value must be of type boolean.
 
 #### Return
 
@@ -546,7 +546,7 @@ print(sCats);--[[
 █░▀█ █▄█ █▄▄ █▄▄
 -->
 <h1><center>🇳​​​​​🇺​​​​​🇱​​​​​🇱​​​​​</center></h1>
-<center><p class = "funcdesc">NULL (also null) is a custom type added to **LuaEx**. It is of type null and has obligatory comparison behavior for null values as it does in many programming languages. The main purpose of this value, as an alternative for ***nil***, is to allow the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the ***isnull*** function to determine whether a value is null. Both ***null*** and ***NULL*** are the same value and may be accessed by using either word.</p></center>
+<center><p class = "funcdesc">NULL (also null) is a custom type added to <b>LuaEx</b>. It is of type null and has obligatory comparison behavior for null values as it does in many programming languages. The main purpose of this value, as an alternative for <b><i>nil</i></b>, is to allow for the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the <b><i>isnull</i></b> function to determine whether a value is null. Both <b><i>null</i></b> and <b><i>NULL</i></b> are the same value and may be accessed by using either word.</p></center>
 
 ### Notes:
 - Calling the ***rawtype*** function with ***null*** (or ***NULL***) as an argument will return the value, "table".
