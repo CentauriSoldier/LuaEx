@@ -330,7 +330,7 @@ print(true + true); 	--true
 ```
 
 <!--- __concat --->
-<p class="func">__concat</p>
+<h2 class="func">__concat</h2>
 <p class="funcdesc">Attempts to concatenate the boolean value - to the other value by converting the boolean to a string.</p>
 
 #### Parameter(s)
@@ -370,7 +370,7 @@ print(table.serialize(tTable).." "..true)--[[
 ```
 
 <!--- __len --->
-<p class="func">__len</p>
+<h2 class="func">__len</h2>
 <p class="funcdesc">Returns 1 and 0 for true and false respectively.</p>
 
 #### Parameter(s)
@@ -393,7 +393,7 @@ print(#true); --1
 ```
 
 <!--- __mul --->
-<p class="func">__mul</p>
+<h2 class="func">__mul</h2>
 <p class="funcdesc">Boolean arithmetic AND.</p>
 
 #### Parameter(s)
@@ -418,7 +418,7 @@ print(true * true); --true
 ```
 
 <!--- __neg --->
-<p class="func">__neg</p>
+<h2 class="func">__neg</h2>
 <p class="funcdesc">Negates the value so true becomes false and false becomes true.</p>
 
 #### Parameter(s)
@@ -441,7 +441,7 @@ print(-true); --false
 ```
 
 <!--- __tostring --->
-<p class="func">__tostring</p>
+<h2 class="func">__tostring</h2>
 <p class="funcdesc">Returns "true" and "false" for true and false respectively.</p>
 
 #### Parameter(s)
@@ -465,7 +465,7 @@ print(true); --true
 
 ### number
 <!--- __tostring --->
-<p class="func">__tostring</p>
+<h2 class="func">__tostring</h2>
 <p class="funcdesc">Coerces the number to string.</p>
 
 #### Parameter(s)
@@ -487,7 +487,7 @@ print(true); --true
 ```
 
 <!--- __len --->
-<p class="func">__len</p>
+<h2 class="func">__len</h2>
 <p class="funcdesc">Converts the number to boolean for values 0 and 1 but nil for all other values.</p>
 
 #### Parameter(s)
@@ -510,7 +510,7 @@ print(true); --true
 
 ### string
 <!--- __mod --->
-<p class="func">__mod</p>
+<h2 class="func">__mod</h2>
 <p class="funcdesc">Allows for string interpolation.</p>
 
 #### Parameter(s)
