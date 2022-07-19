@@ -21,17 +21,7 @@ setmetatable(t, {__type="poog"})
 --print(type.ispoog(t));
 local null = null;
 
---create a table
-local tMice = {"Brown", "Black", "White", "Grey"};
+local sString = "This value is ";
 
---create a string and interpolate variables into it
-local sCats = "Cats are nice. My favorite type of cat is a ${bluecat}.\nBut even better are ${othercat}.\nI have ${catcount} cats." % {bluecat="blue and red cat", othercat="calicos", catcount=22};
-
---print the string
-print(sCats);--[[
-					Cats are nice. My favorite type of cat is a blue and red cat.
-
-					But even better are calicos.
-
-					I have 22 cats.
-				]]
+print(false); --false
+print(true); --true

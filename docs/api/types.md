@@ -215,9 +215,12 @@ print(type.sub(tMice)); --Colors
 
 ```lua
 --create a table
-local tMice = {"Brown", "Black", "White", "Grey"};
+local tMice = setmetatable({"Brown", "Black", "White", "Grey"}, {__type="mousekind"});
 
 --get and print type user type
+print(type(tMice)); --mousekind
+
+--get and print type user type (using x)
 print(xtype(tMice)); --table
 
 --now, try a LuaEx
@@ -235,7 +238,7 @@ print(xtype(DOG.MEDIUM)); --DOG
 
 | Alias | Original |
 |-------|--------|
-| rawtype | type.raw</h2> |
+| rawtype | type.raw |
 | xtype	| type.x |
 | fulltype | type.full |
 | subtype |	type.sub |
@@ -259,7 +262,7 @@ print(xtype(DOG.MEDIUM)); --DOG
 | isuserdata | userdata |
 | isnil | nil |
 
-<p class = "funcdesc">Every <u>is</u> function takes has the same number of arguments and produces the same output type.</p>
+<p class = "funcdesc">Every <u>is</u> function has the same number of arguments and produces the same output type.</p>
 
 <!--- is --->
 <h2 class="func">is(type)</h2>
@@ -309,18 +312,21 @@ print(tostring(type["is&Variable Unfriendly"](tCats)));
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Value	| any	| . |
+| Left	| boolean	| The left boolean value. |
+| Right	| boolean	| The right boolean value. |
 
 #### Return
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | . |
+| boolean | The result of the boolean arithmetic. |
 
 #### Example
 
 ```lua
-k
+print(false + false); 	--false
+print(false + true); 	--true
+print(true + true); 	--true
 ```
 
 <!--- __concat --->
@@ -331,18 +337,36 @@ k
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Value	| any	| . |
+| Left	| any 	| The left value. |
+| Right	| any	| The right value. |
+
+##### Note: while one value may be of any type, at least ***one*** value must be of type boolean.
 
 #### Return
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | . |
+| string | The concatenated values. |
 
 #### Example
 
 ```lua
+local sString = "This value is ";
 
+print(sString..true); --This value is true
+print(sString..false); --This value is false
+
+print(40 .. true); --40true
+print(42 .. false); --42false
+
+local tTable = {blarg="blarg"};
+print(table.serialize(tTable).." "..true)--[[
+{
+
+	["blarg"] = "blarg",
+
+} true
+]]
 ```
 
 <!--- __len --->
@@ -353,18 +377,19 @@ k
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Value	| any	| . |
+| Value	| boolean	| The value for which to get the numeric equivalent. |
 
 #### Return
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | . |
+| number | Returns 1 for true or 0 for false. |
 
 #### Example
 
 ```lua
-
+print(#false); --0
+print(#true); --1
 ```
 
 <!--- __mul --->
@@ -375,18 +400,21 @@ k
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Value	| any	| . |
+| Left	| boolean	| The left boolean value. |
+| Right	| boolean	| The right boolean value. |
 
 #### Return
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | . |
+| boolean | The result of the boolean arithmetic. |
 
 #### Example
 
 ```lua
-
+print(false * false); --false
+print(false * true); --false
+print(true * true); --true
 ```
 
 <!--- __neg --->
@@ -397,18 +425,19 @@ k
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Value	| any	| . |
+| Value	| boolean	| The boolean value to negate. |
 
 #### Return
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | . |
+| boolean | The opposite of the input. |
 
 #### Example
 
 ```lua
-
+print(-false); --true
+print(-true); --false
 ```
 
 <!--- __tostring --->
@@ -419,18 +448,19 @@ k
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Value	| any	| . |
+| Value	| boolean	| The boolean value to convert to a string. |
 
 #### Return
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | . |
+| string | Returns "true" for true and "false" for false. |
 
 #### Example
 
 ```lua
-
+print(false); --false
+print(true); --true
 ```
 
 ### number
