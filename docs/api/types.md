@@ -487,17 +487,27 @@ k
 
 | Name | Type(s) | Description |
 |-------|--------|---------|
-| Value	| any	| . |
+| Value	| string	| The string that is to be interpolated upon. |
+| Value | table 	| The table that contains the values to be interpolated. |
 
 #### Return
 
 | Type(s) | Description |
 |-------|--------|
-| boolean | . |
+| string | The interpolated string. |
 
 #### Example
 
 ```lua
+--create a string and interpolate variables into it
+local sCats = "Cats are nice. My favorite type of cat is a ${bluecat}.\nBut even better are ${othercat}.\nI have ${catcount} cats." % {bluecat="blue and red cat", othercat="calicos", catcount=22};
+
+--print the string
+print(sCats);--[[
+				Cats are nice. My favorite type of cat is a blue and red cat.
+				But even better are calicos.
+				I have 22 cats.
+				]]
 
 ```
 
@@ -506,7 +516,7 @@ k
 █░▀█ █▄█ █▄▄ █▄▄
 -->
 <h1><center>🇳​​​​​🇺​​​​​🇱​​​​​🇱​​​​​</center></h1>
-<center><p class = "funcdesc">NULL (also null) is a custom type added to **LuaEx**. It is of type null and has obligatory comparison behavior for null values in many programming languages. The main purpose of this value, as an alternative for ***nil***, is to allow the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the ***isnull*** function to determine whether a value is null. Both ***null*** and ***NULL*** are the same value and may be accessed by using either word.</p></center>
+<center><p class = "funcdesc">NULL (also null) is a custom type added to **LuaEx**. It is of type null and has obligatory comparison behavior for null values as it does in many programming languages. The main purpose of this value, as an alternative for ***nil***, is to allow the retention of table keys while still indicating a lack of value for a given key. Of course, you may use this null value however you wish. You can use the ***isnull*** function to determine whether a value is null. Both ***null*** and ***NULL*** are the same value and may be accessed by using either word.</p></center>
 
 ### Notes:
 - Calling the ***rawtype*** function with ***null*** (or ***NULL***) as an argument will return the value, "table".
