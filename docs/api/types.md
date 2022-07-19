@@ -5,7 +5,7 @@
 <br>
 <center><h1>🇨​​​​​🇺​​​​​🇸​​​​​🇹​​​​​🇴​​​​​🇲​​​​​ 🇹​​​​​🇾​​​​​🇵​​​​​🇪​​​​​🇸​​​​​</h1></center>
 <p class="funcdesc">Custom types may be create by adding the <b><i>__type</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.settype()</i></b> function. Once set, get the type using the <b><i>type</i></b> function.</p>
-<p class="funcdesc">Additionally, subtypes may be created by add a <b><i>__subtype</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.setsubtype()</i></b> function. Once set, get the subtype using the <b><i>type.sub</i></b> or <b><i>subtype</i></b> function.
+<p class="funcdesc">Additionally, subtypes may be created by adding a <b><i>__subtype</i></b> key to a table's metatable and setting the value to a string. This may also be done by using the <b><i>table.setsubtype()</i></b> function. Once set, get the subtype using the <b><i>type.sub</i></b> or <b><i>subtype</i></b> function.
 </p>
 <br>
 
