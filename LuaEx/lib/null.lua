@@ -39,7 +39,12 @@ local function tostr()
 	return "null";
 end
 
-return setmetatable({}, {
+return setmetatable({
+	serialize = function()
+		return "null";
+	end,
+},
+{
 	__add 		= nullval,
 	__band 		= nullval,
 	__bor 		= nullval,
@@ -53,7 +58,7 @@ return setmetatable({}, {
 	__gc		= false,
 	__idiv		= nullval,
 	__index 	= index,
-	__ipairs	= dummy,
+	__ipairs	= nullval,
 	__le		= le,
 	__len 		= len,
 	__lt		= lt,
@@ -63,7 +68,7 @@ return setmetatable({}, {
 	__mul		= nullval,
 	__name		= "null",
 	__newindex 	= dummy,
-	__pairs		= dummy,
+	__pairs		= nullval,
 	__pow		= nullval,
 	__shl  		= nullval,
 	__shr  		= nullval,

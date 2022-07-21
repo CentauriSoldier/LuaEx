@@ -161,6 +161,7 @@ local null	= 	require("LuaEx.lib.null");
 				constant("NULL", null); -- create an uppercase alias for null
 enum		= 	require("LuaEx.lib.enum");
 struct		= 	require("LuaEx.lib.struct");
+source		=	require("LuaEx.util.source");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,

@@ -1,14 +1,11 @@
 local tStacks = {};
 
-assert(type(class) 			== "function", 	"Error loading the stack class. It depends on class.");
-assert(type(serialize) 		== "table", 	"Error loading the stack class. It depends on serialize.");
-assert(type(deserialize)	== "table", 	"Error loading the stack class. It depends on deserialize.");
-
 --localization
 local assert 		= assert;
 local class 		= class;
-local serialize		= serialize;
 local deserialize	= deserialize;
+local rawtype		= rawtype;
+local serialize		= serialize;
 local table			= table;
 local type 			= type;
 
@@ -40,18 +37,23 @@ return class "stack" {
 	pop = function(this)
 		local vRet = nil;
 
-		if (tStacks[this].values[1]) then
-			vRet = table.remove(tStacks[this].values, 1);
-			tStacks[this].count = tStacks[this].count - 1;
+		if (rawtype(tStacks[this].values[1]) ~= "nil") then
+			local tFields = tStacks[this].values;
+			vRet = table.remove(tFields.values, 1);
+			tFields.count = tFields.count - 1;
 		end
 
 		return vRet;
 	end,
 
 	push = function(this, vValue)
-		assert(type(vValue) ~= "nil", "Error pushing item.\r\nValue cannot be nil.");
-		table.insert(tStacks[this].values, 1, vValue);
-		tStacks[this].count = tStacks[this].count + 1;
+
+		if (rawtype(vValue) ~= "nil") then
+			local tFields = tStacks[this].values;
+			table.insert(tFields, 1, vValue);
+			tFields.count = tFields.count + 1;
+		end
+
 		return this;
 	end,
 
