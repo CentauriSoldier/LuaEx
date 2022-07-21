@@ -163,6 +163,46 @@ local type = {
 		return tRet;
 	end,
 	raw = __type__,
+	set = function(tInput, sType)
+
+		if (rawtype(tInput) == "table" and type(sType) == "string")then
+			--look for an existing meta table and get its type
+			local tMeta 	= getmetatable(tInput);
+			local sMetaType = rawtype(tMeta);
+			local bIsTable 	= sMetaType == "table";
+
+			if (bIsTable or sMetaType == "nil") then
+				tMeta = bIsTable and tMeta or {};
+				tMeta.__type = sType;
+				setmetatable(tInput, tMeta);
+				--record the new type
+				type[sType] = true;
+				return tInput;
+			end
+
+			return tInput;
+		end
+
+	end,
+	setsub = function(tInput, sType)
+
+		if (rawtype(tInput) == "table" and type(sSubType) == "string")then
+			--look for an existing meta table and get its type
+			local tMeta 	= getmetatable(tInput);
+			local sMetaType = rawtype(tMeta);
+			local bIsTable = sMetaType == "table";
+
+			if (bIsTable or sMetaType == "nil") then
+				tMeta = bIsTable and tMeta or {};
+				tMeta.__subtype = sSubType;
+				setmetatable(tInput, tMeta);
+				return tInput;
+			end
+
+			return tInput;
+		end
+
+	end,
 	sub = function(vObject)
 		local sType = "nil";
 
@@ -235,6 +275,8 @@ rawtype 	= type.raw;
 xtype 		= type.x;
 fulltype	= type.full;
 subtype 	= type.sub;
+settype		= type.set;
+setsubtype	= type.setsub;
 
 --setup the 'is' functions for all types
 for sType, _ in pairs(tLuaTypes) do

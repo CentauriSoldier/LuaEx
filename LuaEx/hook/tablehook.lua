@@ -1,3 +1,4 @@
+local assert 		= assert;
 local getmetatable 	= getmetatable
 local pairs			= pairs;
 local rawtype 		= rawtype;
@@ -134,48 +135,59 @@ function table.purge(tInput, bIgnoreMetaTable)
 end
 
 
-function table.settype(tInput, sType)
+table.settype = type.set;
+table.setsubtype = type.setsub;
 
-	if (rawtype(tInput) == "table" and type(sType) == "string")then
-		--look for an existing meta table and get its type
-		local tMeta 	= getmetatable(tInput);
-		local sMetaType = rawtype(tMeta);
-		local bIsTable 	= sMetaType == "table";
+--[[
+function table.shuffle(tInput)
+	assert(rawtype(tInput), "Input must be of type table.\nGot type "..rawtype(tInput)..".");
+	local remove 		= table.remove;
+	local tShuffle 		= {};
+	local tIndexPool 	= {};
 
-		if (bIsTable or sMetaType == "nil") then
-			tMeta = bIsTable and tMeta or {};
-			tMeta.__type = sType;
-			setmetatable(tInput, tMeta);
-			--record the new type
-			type[sType] = true;
-			return tInput;
-		end
+	--store the k, v pairs and create the index pool (tIndexPool)
+	for k, v in pairs(tInput) do
+		local nIndex = #tShuffle + 1;
 
-		return tInput;
+		--keep track of the actual data
+		tShuffle[nIndex] = {
+			key 	= k,
+			value 	= v,
+		};
+
+		--track the numeric index where the data is located
+		tIndexPool[nIndex] = nIndex;
 	end
 
-end
+	--clear the tInput table
+	tInput = {};
 
+	--count how many entries there are to shuffle
+	local nPoolIndices = #tIndexPool;
 
-function table.setsubtype(tInput, sSubType)
-
-	if (rawtype(tInput) == "table" and type(sSubType) == "string")then
-		--look for an existing meta table and get its type
-		local tMeta 	= getmetatable(tInput);
-		local sMetaType = rawtype(tMeta);
-		local bIsTable = sMetaType == "table";
-
-		if (bIsTable or sMetaType == "nil") then
-			tMeta = bIsTable and tMeta or {};
-			tMeta.__subtype = sSubType;
-			setmetatable(tInput, tMeta);
-			return tInput;
-		end
-
-		return tInput;
+	while nPoolIndices > 0 do
+		--get the pool index to use
+		local nPoolIndex 	= math.random(1, nPoolIndices);
+		--get the actual data index
+		local nDataIndex	= tIndexPool[nPoolIndex];
+		--get the data
+		local tData			= tShuffle[nDataIndex];
+		--determine the data key
+		--local vDataKey 		= rawtype(tData.key) ~= "number" and tData.key or #tInput + 1;
+		--store the data
+		rawset(tInput, tData.key, tData.value);
+		--remove the index from the index pool
+		remove(tIndexPool, nPoolIndex);
+		--decrement the index pool count
+		nPoolIndices = #tIndexPool;
 	end
 
-end
+	--destroy the tShuffle and tIndexPool tables
+	tShuffle	= nil;
+	tIndexPool	= nil;
+
+	return tInput;
+end]]
 
 
 function table.unlock(tInput)

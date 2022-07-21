@@ -1,5 +1,10 @@
 local tVersions = {};
 
+local type		= type;
+local rawtype 	= rawtype;
+local pairs		= pairs;
+local tostring	= tostring;
+
 p = function(s)
 	Dialog.Message(type(s), tostring(s));
 end
@@ -126,7 +131,7 @@ return class "version" {
 	end,
 	setexpandeddisplay = function(this, bExpanded)
 		local bCurrentlyExpanded = tVersions[this].expanded;
-		bExpanded = type(bExpanded) == "boolean" and bExpanded or false;
+		bExpanded = rawtype(bExpanded) == "boolean" and bExpanded or false;
 
 		if not (bCurrentlyExpanded == bExpanded) then
 			updatestring(this);
