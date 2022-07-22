@@ -1,50 +1,46 @@
-local string = string;
+local tLuaEX = rawget(_G, "__LUAEX__");
 
-local tKeyWords = {"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
-				   "false", 	"for", 		"function", "if", 		"in", 		"local",
-				   "nil", 		"not", 		"or", 		"repeat", 	"return", 	"then",
-				   "true", 		"until", 	"while",
-				   --LuaEx keywords
-				   "constant", 	"enum", 	"struct",	"null"
-			   };
-local nKeywords = #tKeyWords;
+local pairs		= pairs;
+local rawtype	= rawtype;
+local string 	= string;
 
 local UUID_LENGTH 	= 16;
 local UUID_BLOCKS	= 5;
 
 function string.cap(sInput, bLowerRemaining)
-local sRet = "";
+	local sRet = "";
 
 	if string.len(sInput) > 1 then
-	local sFirstLetter = string.sub(sInput, 1, 1);
-	local sRightSide = string.sub(sInput, 2, string.len(sInput));
-	sRet = string.upper(sFirstLetter);
+		local sFirstLetter = string.sub(sInput, 1, 1);
+		local sRightSide = string.sub(sInput, 2, string.len(sInput));
+		sRet = string.upper(sFirstLetter);
 
-		if bLowerRemaining then
-		sRet = sRet..string.lower(sRightSide);
+			if bLowerRemaining then
+			sRet = sRet..string.lower(sRightSide);
 
-		else
-		sRet = sRet..sRightSide;
+			else
+			sRet = sRet..sRightSide;
 
-		end
-
+			end
 
 	else
-	sRet = string.upper(sInput);
+		sRet = string.upper(sInput);
 	end
 
-return sRet
+	return sRet
 end
 
 
 function string.capall(sInput, sDelimiter)
 	local sRet = "";
-	local totable = string.totable;	
+	local tWords = nil;
+	local nWords = nil;
+	local totable = string.totable;
 	sDelimiter = rawtype(sDelimiter) == "string" and sDelimiter or " ";
 
-	if sInput:gsub("%s", "") ~= "" then
-		local tWords = totable(sInput, sDelimiter);--TODO could this use %s to find any space character?
-		local nWords = #tWords;
+	if (sInput:gsub("%s", "") ~= "") then
+		tWords = totable(sInput, sDelimiter);--TODO could this use %s to find any space character?
+		nWords = #tWords;
 
 			for nIndex, sWord in pairs(tWords) do
 				local sSpace = " ";
@@ -67,10 +63,12 @@ end
 --https://stackoverflow.com/questions/40149617/split-string-with-specified-delimiter-in-lua
 function string.totable(sInput, sDelimiter)
     local tRet = {};
+
 	for w in sInput:gmatch("([^"..(sDelimiter or "|").."]+),?") do
         table.insert(tRet, w);
     end
-    return tRet;
+
+	return tRet;
 end
 
 
@@ -149,9 +147,9 @@ end
 function string.iskeyword(sInput)
 	local bRet = false;
 
-	for x = 1, nKeywords do
+	for x = 1, tLuaEX.__KEYWORDS_COUNT__ do
 
-		if sInput == tKeyWords[x] then
+		if sInput == tLuaEX.__KEYWORDS__[x] then
 			bRet = true;
 			break;
 		end
@@ -173,9 +171,9 @@ function string.isvariablecompliant(sInput, bSkipKeywordCheck)
 
 	--make certain it's not a keyword
 	if (not bSkipKeywordCheck) then
-		for x = 1, nKeywords do
+		for x = 1, tLuaEX.__KEYWORDS_COUNT__ do
 
-			if sInput == tKeyWords[x] then
+			if sInput == tLuaEX.__KEYWORDS__[x] then
 				bIsKeyWord = true;
 				break;
 			end
@@ -215,8 +213,8 @@ end
 function string.uuid()
 	local sRet 			= "";
 	local tChars 		= {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};--must be equal to UUID_LENGTH
-	local sDelimiter 	= "-";
-	local sPrefix 		= rawtype(sInputPrefix) == "string" and sInputPrefix or "";
+	--local sDelimiter 	= "-";
+	--local sPrefix 		= rawtype(sInputPrefix) == "string" and sInputPrefix or "";
 	local tSequence 	= {8, 4, 4, 4, 12};
 
 	for nBlock, nBlockCharCount in pairs(tSequence) do

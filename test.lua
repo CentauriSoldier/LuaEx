@@ -33,17 +33,17 @@ require("LuaEx.init");
 --============= TEST CODE BELOW =============
 
 
+local tLuaEX = rawget(_G, "__LUAEX__");
 
+constant("BLARG", 32);
 
-
-
-
-
+--print(tostring(os.getenv("string")))
 
 --print(math.rgbtolong( 	0, 	255, 	0))
 --print(math.longtorgb(math.rgbtolong(255, 255, 255)))
-print(string.uuid());
+--local tLuaEX = _G.__LUAEX__;
+--print(serialize.table(tLuaEX.__KEYWORDS__));
 
---print(table.serialize());
+--print(tLuaEX.__KEYWORDS__[1]);
+--print(string.iskeyword("nil"));
 --test:pop()
---print(table.serialize(test:values()))

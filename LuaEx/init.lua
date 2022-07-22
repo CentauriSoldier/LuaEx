@@ -120,12 +120,34 @@ of the global environment.
 
 --							🆂🅴🆃🆄🅿 🅻🆄🅰🅴🆇 🅿🅰🆃🅷 & 🅼🅴🆃🅰🆃🅰🅱🅻🅴
 
---create the 'protected' table used by LuaEx
-local tLuaEx = {};
+--list all keywords
+local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
+					"false", 	"for", 		"function", "if", 		"in", 		"local",
+					"nil", 		"not", 		"or", 		"repeat", 	"return", 	"then",
+					"true", 	"until", 	"while",
+					--LuaEx keywords
+					"constant", 	"enum", 	"struct",	"null"
+};
 
-_G.__LUAEX__ = setmetatable({}, {
-	__index 	= tLuaEx,
-	__newindex 	= function(t, k, v)
+--create the 'protected' table used by LuaEx
+local tLuaEx = {
+		__KEYWORDS__	= setmetatable({}, {
+			__index 	= tKeyWords,
+			__newindex 	= function(t, k)
+				error("Attempt to perform illegal operation: adding keyword to __KEYWORDS__ table.");
+			end,
+			__pairs		= function (t)
+				return next, tKeyWords, nil;
+			end,
+			__metatable = false,
+		}),
+		__KEYWORDS_COUNT__ = #tKeyWords,
+};
+
+_G.__LUAEX__ = setmetatable({},
+{
+	__index 		= tLuaEx,
+	__newindex 		= function(t, k, v)
 
 		if tLuaEx[k] then
 			error("Attempt to overwrite __LUAEX__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
@@ -133,7 +155,7 @@ _G.__LUAEX__ = setmetatable({}, {
 
 		rawset(tLuaEx, k, v);
 	end,
-	__metatable = false,
+	__metatable 	= false,
 });
 
 --warn the user if debug is missing
@@ -154,11 +176,11 @@ package.path = package.path..";"..sPath.."\\..\\?.lua";
 
 --import core modules and push them into the global environment
 type 		=  	require("LuaEx.hook.typehook");
-			  	require("LuaEx.lib.stdlib");
+				require("LuaEx.lib.stdlib");
 constant 	= 	require("LuaEx.lib.constant");
 local null	= 	require("LuaEx.lib.null");
-				constant("null", null); -- make sure null can't be overwritten
-				constant("NULL", null); -- create an uppercase alias for null
+				rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
+				rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
 enum		= 	require("LuaEx.lib.enum");
 struct		= 	require("LuaEx.lib.struct");
 source		=	require("LuaEx.util.source");
