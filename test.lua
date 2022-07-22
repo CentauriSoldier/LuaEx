@@ -30,15 +30,20 @@ package.path = package.path..";"..sPath.."\\..\\?.lua;";
 
 --load LuaEx
 require("LuaEx.init");
-
 --============= TEST CODE BELOW =============
-local test = stack();
 
-test:push(123);
-test:push(234);
-test:push(345);
-test:push(null);
-test:push(false);
 
+
+
+
+
+
+
+
+--print(math.rgbtolong( 	0, 	255, 	0))
+--print(math.longtorgb(math.rgbtolong(255, 255, 255)))
+print(string.uuid());
+
+--print(table.serialize());
 --test:pop()
-print(table.serialize(test:values()))
+--print(table.serialize(test:values()))

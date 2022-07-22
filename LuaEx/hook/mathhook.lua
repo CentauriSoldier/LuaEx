@@ -138,17 +138,36 @@ function math.isodd(nValue)--TODO check if this is an integer first
 	return (nValue % 2 ~= 0);
 end
 
+
+--TODO move these to a color module and put that odule in CoG
 function math.ratio(nLeft, nRight)
 	local nGCD = math.gcf(nLeft, nRight);
 	return 	{left = nLeft / nGCD, right = nRight / nGCD};
 end
 
 function math.rgbtolong(nR, nG, nB)
-	return nR + nG * 256 + nB * 65536;
+	return nR + (nG * 256) + (nB * 65536);
 end
+--[[
+nR = nR;
+nG = nG * 256
+nB = nB * 65536
+l = r + (b * 256) + (g * 65536)
 
+x = r
+y = b * 256
+z = g * 65536
+l = x + y + z
+]]
 --TODO fix this! the math is wrong...find a good example
-function math.longtorgb(nValue)
+function math.longtorgb(nLong)
+	local b = nLong / 65536;
+	--local g = (nLong - b * 65536) / 256;
+	local g = (nLong / 256) - b;
+ 	--local r	= nLong - b * 65536 - g * 256;
+	local r = nLong - g - b;
+	return r, g, b;
+	--[[
 	local nBlue		= math.floor(nValue / 65536);
 	local nGreen 	= math.floor((nValue % 65536) / 256);
 	local nRed		= nValue % 256;
@@ -157,7 +176,7 @@ function math.longtorgb(nValue)
 		r = nRed,
 		g = nGreen,
 		b = nBlue,
-	};
+	};]]
 end
 
 return math;

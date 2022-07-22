@@ -18,6 +18,7 @@ return class "stack" {
 		};
 	end,
 
+
 	__len = function(this)--doesn't work in < Lua v5.2
 		return tStacks[this].count;
 	end,
@@ -36,9 +37,9 @@ return class "stack" {
 
 	pop = function(this)
 		local vRet = nil;
+		local tFields = tStacks[this];
 
-		if (rawtype(tStacks[this].values[1]) ~= "nil") then
-			local tFields = tStacks[this].values;
+		if (rawtype(tFields.values[1]) ~= "nil") then
 			vRet = table.remove(tFields.values, 1);
 			tFields.count = tFields.count - 1;
 		end
@@ -46,20 +47,23 @@ return class "stack" {
 		return vRet;
 	end,
 
+
 	push = function(this, vValue)
 
 		if (rawtype(vValue) ~= "nil") then
-			local tFields = tStacks[this].values;
-			table.insert(tFields, 1, vValue);
+			local tFields = tStacks[this];
+			table.insert(tFields.values, 1, vValue);
 			tFields.count = tFields.count + 1;
 		end
 
 		return this;
 	end,
 
+
 	size = function(this)
 		return tStacks[this].count;
 	end,
+
 
 	values = function(this)
 		local tRet = {};

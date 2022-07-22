@@ -37,23 +37,25 @@ return sRet
 end
 
 
-function string.capall(sInput)
-local sRet = "";
+function string.capall(sInput, sDelimiter)
+	local sRet = "";
+	local totable = string.totable;	
+	sDelimiter = rawtype(sDelimiter) == "string" and sDelimiter or " ";
 
-	if not string.isblank(sInput) then
-	local tWords = string.totable(sInput, " ");--TODO could this use %s to find any space character?
-	local nWords = #tWords;
+	if sInput:gsub("%s", "") ~= "" then
+		local tWords = totable(sInput, sDelimiter);--TODO could this use %s to find any space character?
+		local nWords = #tWords;
 
-		for nIndex, sWord in pairs(tWords) do
-		local sSpace = " ";
+			for nIndex, sWord in pairs(tWords) do
+				local sSpace = " ";
 
-			if nIndex == nWords then
-			sSpace = "";
-			end
+				if nIndex == nWords then
+					sSpace = "";
+				end
 
-		local sFirstLetter = string.upper(string.sub(sWord, 1, 1));
-		local sRightSide = string.sub(sWord, 2);
-		sRet = sRet..sFirstLetter..sRightSide..sSpace;
+			local sFirstLetter = string.upper(string.sub(sWord, 1, 1));
+			local sRightSide = string.sub(sWord, 2);
+			sRet = sRet..sFirstLetter..sRightSide..sSpace;
 		end
 
 	end
