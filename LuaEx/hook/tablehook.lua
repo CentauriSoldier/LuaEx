@@ -43,9 +43,9 @@ end
 function table.lock(tInput)
 
 	if (rawtype(tInput) == "table") then
-		local tMeta = getmetatable(tInput);
-		local sMetaType = rawtype(tMeta);
-		local bMetaIsTable = sMetaType == "table";
+		local tMeta 		= getmetatable(tInput);
+		local sMetaType 	= rawtype(tMeta);
+		local bMetaIsTable 	= sMetaType == "table";
 
 		--throw an error if the table has a proteced metatable
 		if (not (bMetaIsTable or sMetaType == "nil")) then
@@ -120,7 +120,7 @@ function table.purge(tInput, bIgnoreMetaTable)
 
 		--remove the metatable
 		if (not bIgnoreMetaTable) then
-			local tMeta = getmetatable(tTable);
+			local tMeta = getmetatable(tInput);
 
 			if (rawtype(tMeta) == "table") then
 				table.purge(tMeta);
@@ -128,7 +128,7 @@ function table.purge(tInput, bIgnoreMetaTable)
 			end
 
 		end
-
+		tInput = nil;
 		return tInput;
 	end
 

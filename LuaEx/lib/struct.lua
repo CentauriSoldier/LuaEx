@@ -75,16 +75,21 @@ end
 
 
 --TODO go throug this to make sure all the values are accessing the correct tbales (tfactory, tFactory, etc.)
-local function createfactory(sSubType, tProperties)--, bPrivate)
+local function createfactory(t, sSubType, tProperties)--, bPrivate)
 	--[[
-	 ______            _                         _____                    _                       _
-	 |  ____|          | |                       / ____|                  | |                     | |
-	 | |__  __ _   ___ | |_  ___   _ __  _   _  | |      ___   _ __   ___ | |_  _ __  _   _   ___ | |_  ___   _ __
-	 |  __|/ _` | / __|| __|/ _ \ | '__|| | | | | |     / _ \ | '_ \ / __|| __|| '__|| | | | / __|| __|/ _ \ | '__|
-	 | |  | (_| || (__ | |_| (_) || |   | |_| | | |____| (_) || | | |\__ \| |_ | |   | |_| || (__ | |_| (_) || |
-	 |_|   \__,_| \___| \__|\___/ |_|    \__, |  \_____|\___/ |_| |_||___/ \__||_|    \__,_| \___| \__|\___/ |_|
-	                                      __/ |
-	                                     |___/
+	███████╗░█████╗░░█████╗░████████╗░█████╗░██████╗░██╗░░░██╗
+	██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗╚██╗░██╔╝
+	█████╗░░███████║██║░░╚═╝░░░██║░░░██║░░██║██████╔╝░╚████╔╝░
+	██╔══╝░░██╔══██║██║░░██╗░░░██║░░░██║░░██║██╔══██╗░░╚██╔╝░░
+	██║░░░░░██║░░██║╚█████╔╝░░░██║░░░╚█████╔╝██║░░██║░░░██║░░░
+	╚═╝░░░░░╚═╝░░╚═╝░╚════╝░░░░╚═╝░░░░╚════╝░╚═╝░░╚═╝░░░╚═╝░░░
+
+	░█████╗░░█████╗░███╗░░██╗░██████╗████████╗██████╗░██╗░░░██╗░█████╗░████████╗░█████╗░██████╗░
+	██╔══██╗██╔══██╗████╗░██║██╔════╝╚══██╔══╝██╔══██╗██║░░░██║██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗
+	██║░░╚═╝██║░░██║██╔██╗██║╚█████╗░░░░██║░░░██████╔╝██║░░░██║██║░░╚═╝░░░██║░░░██║░░██║██████╔╝
+	██║░░██╗██║░░██║██║╚████║░╚═══██╗░░░██║░░░██╔══██╗██║░░░██║██║░░██╗░░░██║░░░██║░░██║██╔══██╗
+	╚█████╔╝╚█████╔╝██║░╚███║██████╔╝░░░██║░░░██║░░██║╚██████╔╝╚█████╔╝░░░██║░░░╚█████╔╝██║░░██║
+	░╚════╝░░╚════╝░╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝░╚═════╝░░╚════╝░░░░╚═╝░░░░╚════╝░╚═╝░░╚═╝
 	--creates the factory object
 	]]
 	local tConstraint = {};
@@ -103,14 +108,12 @@ local function createfactory(sSubType, tProperties)--, bPrivate)
 	end
 
 	--[[
-	______            _
-	|  ____|          | |
-	| |__  __ _   ___ | |_  ___   _ __  _   _
-	|  __|/ _` | / __|| __|/ _ \ | '__|| | | |
-	| |  | (_| || (__ | |_| (_) || |   | |_| |
-	|_|   \__,_| \___| \__|\___/ |_|    \__, |
-										__/ |
-									   |___/
+	███████╗░█████╗░░█████╗░████████╗░█████╗░██████╗░██╗░░░██╗
+	██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗╚██╗░██╔╝
+	█████╗░░███████║██║░░╚═╝░░░██║░░░██║░░██║██████╔╝░╚████╔╝░
+	██╔══╝░░██╔══██║██║░░██╗░░░██║░░░██║░░██║██╔══██╗░░╚██╔╝░░
+	██║░░░░░██║░░██║╚█████╔╝░░░██║░░░╚█████╔╝██║░░██║░░░██║░░░
+	╚═╝░░░░░╚═╝░░╚═╝░╚════╝░░░░╚═╝░░░░╚════╝░╚═╝░░╚═╝░░░╚═╝░░░
 	this is the factory which creates the factory instance objects
 	]]
 	local tFactory = setmetatable({},
@@ -165,12 +168,12 @@ local function createfactory(sSubType, tProperties)--, bPrivate)
 
 			end
 			--[[
-			_____              _
-			|_   _|            | |
-			 | |   _ __   ___ | |_  __ _  _ __    ___  ___
-			 | |  | '_ \ / __|| __|/ _` || '_ \  / __|/ _ \
-			_| |_ | | | |\__ \| |_| (_| || | | || (__|  __/
-			|_____||_| |_||___/ \__|\__,_||_| |_| \___|\___|
+			██╗███╗░░██╗░██████╗████████╗░█████╗░███╗░░██╗░█████╗░███████╗
+			██║████╗░██║██╔════╝╚══██╔══╝██╔══██╗████╗░██║██╔══██╗██╔════╝
+			██║██╔██╗██║╚█████╗░░░░██║░░░███████║██╔██╗██║██║░░╚═╝█████╗░░
+			██║██║╚████║░╚═══██╗░░░██║░░░██╔══██║██║╚████║██║░░██╗██╔══╝░░
+			██║██║░╚███║██████╔╝░░░██║░░░██║░░██║██║░╚███║╚█████╔╝███████╗
+			╚═╝╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚═╝░░╚══╝░╚════╝░╚══════╝
 			--factory instance object created by a call to the factory
 			]]
 			return setmetatable({}, {
@@ -203,10 +206,10 @@ local function createfactory(sSubType, tProperties)--, bPrivate)
 						local vFinalValue	= v;
 						local sValType 		= type(v);
 						local bValueIsNull	= sValType == "null";
-						local bValueIsNil	= (not bValueIsNull) and sValType == "nil";
+						local bValueIsNil	= sValType == "nil";
 
 						--handle cases of default value types being null
-						if (tFactory[k].type == "null" and not bValueIsNull and not bValueIsNil) then
+						if (tFactory[k].type == "null" and not bValueIsNil) then
 							tFactory[k].type = sValType;
 						end
 
@@ -287,7 +290,7 @@ local function createfactory(sSubType, tProperties)--, bPrivate)
 
 	return tFactory;
 end
-
+--[[
 local function factorycount()
 	--return tMetaData.public.count;
 	return tMetaData.count;
@@ -301,14 +304,14 @@ local function getfactory(t, k)
 	end
 
 	return tRet;
-end
+end]]
 
 return setmetatable({
 	--istype(sType)--TODO finishb n
-	factory = createfactory,
+	--factory = createfactory,
 },
 {
-	__call 		= dummy,
+	__call 		= createfactory,--dummy,
 	__index 	= dummy,--getfactory,
 	__len 	 	= factorycount,
 	__newindex 	= dummy,
