@@ -11,7 +11,7 @@ end
 
 local infusedhelp = setmetatable({},
 {
-	__call = function(this, tModule, tClassInfo, tHelp)--TODO check input
+	__call = function(this, tClassInfo, tHelp)--TODO check input
 		--assert(type(tModule) == class, "Error creating help for class. '"..tostring(tModule).."' is not a valid class.")
 		--[[
 		local mt = getmetatable(object);
@@ -19,6 +19,8 @@ local infusedhelp = setmetatable({},
 			return is_derived(mt.__class, base);
 		end
 		]]
+
+		local tModule = {};
 
 		tCH[tModule] = {
 			help 	= {}, --the actual help text
@@ -91,6 +93,6 @@ local tHelp = {
 				},
 };
 
-infusedhelp.help = infusedhelp(infusedhelp, tClassInfo, tHelp);
+infusedhelp.help = infusedhelp(tClassInfo, tHelp);
 
 return infusedhelp;

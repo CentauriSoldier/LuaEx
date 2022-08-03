@@ -8,6 +8,7 @@ local table 		= table;
 --stores references to locked tables and their clones
 local tLockedTableClones = {};
 
+
 function table.clone(tInput, bIgnoreMetaTable)
 	local tRet = {};
 
@@ -37,6 +38,22 @@ function table.clone(tInput, bIgnoreMetaTable)
 	end
 
 	return tRet;
+end
+
+
+function table.getindex(tTable, vElement)
+	local nRet = -1;
+
+	for x, vExistingElement in pairs(tTable) do
+
+		if (vElement == vExistingElement) then
+			nRet = x;
+			break;
+		end
+
+	end
+
+	return nRet;
 end
 
 
