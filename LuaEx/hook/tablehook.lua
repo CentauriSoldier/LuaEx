@@ -42,7 +42,7 @@ end
 
 
 function table.getindex(tTable, vElement)
-	local nRet = -1;
+	local nRet;
 
 	for x, vExistingElement in pairs(tTable) do
 
