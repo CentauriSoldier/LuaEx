@@ -51,9 +51,9 @@ local function isvariablecompliant(sInput, bSkipKeywordCheck)
 end
 
 --TODO hasA is not working properly
-local function formatName(sEnumName)
+local function formatName(sName)
 	local sRet = "";
-	local tString = sEnumName:gsub("_", "_|"):totable("|");
+	local tString = sName:gsub("_", "_|"):totable("|");
 
 	--go through each string in the table
 	for x = 1, #tString do
@@ -180,11 +180,104 @@ local function validateValues(tValues)
 	return tRet;
 end
 
-local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, tNames)
+
+
+--[[
+███████╗███╗░░██╗██╗░░░██╗███╗░░░███╗
+██╔════╝████╗░██║██║░░░██║████╗░████║
+█████╗░░██╔██╗██║██║░░░██║██╔████╔██║
+██╔══╝░░██║╚████║██║░░░██║██║╚██╔╝██║
+███████╗██║░╚███║╚██████╔╝██║░╚═╝░██║
+╚══════╝╚═╝░░╚══╝░╚═════╝░╚═╝░░░░░╚═╝
+]]
+local function enum(sName, tNames, tValues, bPrivate)
+	sName 		= type(sName) 		== "string" 	and sName 		or "";
+	tNames 		= type(tNames) 		== "table" 		and tNames 		or nil;
+	tValues		= type(tValues) 	== "table" 		and tValues 	or {};
+	bPrivate 	= type(bPrivate) 	== "boolean" 	and bPrivate 	or false;
+
+
+	--[[█░█ ▄▀█ █▀█ █ ▄▀█ █▄▄ █░░ █▀▀   █▀▀ █░█ █▀▀ █▀▀ █▄▀   ▄▀█ █▄░█ █▀▄   █▀ █▀▀ ▀█▀ █░█ █▀█
+		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
+	local tLuaEX = _G.__LUAEX__;
+
+	--insure the name input is a string
+	assert(sName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank;")--input value is '"..tostring(sName).."' of type "..type(sName));
+
+	--check the name
+	if (not bPrivate) then
+		--check that the name string can be a valid variable
+		assert(isvariablecompliant(sName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
+		--make sure the variable doesn't already exist
+		assert(type(_G[sName]) == "nil" and type(tLuaEX[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
+	end
+
+
+	--check the names table
+	local bNamesAreValid, nItemCount = namesAreValid(tNames);
+	assert(bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
+
+	--keeps track of items by their id for simpler and quicker access
+	local tItemsByOrdinal	= {};
+	local tShadow			= {};
+
+	--setup the tEnumData table for the enum object
+	local tEnumData			= {};
+
+	--prep all reserved items for the enum object
+	for x = 1, nReservedIndices do
+		tEnumData[tReservedIndices[x]] = true;
+	end;
+
+	--[[█▀▀ █▄░█ █░█ █▀▄▀█   █▀█ █▄▄ ░░█ █▀▀ █▀▀ ▀█▀   █▀ █▀▀ ▀█▀ █░█ █▀█
+		██▄ █░▀█ █▄█ █░▀░█   █▄█ █▄█ █▄█ ██▄ █▄▄ ░█░   ▄█ ██▄ ░█░ █▄█ █▀▀]]
+
+
+	--set all reserved item values for the enum object
+	tEnumData.__count	= nItemCount;
+	tEnumData.__hasa = function(oItem)
+		return type(oItem) == sName;
+	end;
+	tEnumData.__name 	= sName;
+
+	--allows for quick determination of items' value
+	local tCheckedValues = validateValues(tValues);
+
+	--used to iterate over each item in the enum
+	local function itemsIterator(tTheEnum, nTheIndex)
+
+		if (nTheIndex < #tItemsByOrdinal) then --todo use count value
+			nTheIndex = nTheIndex + 1;
+			return nTheIndex, tShadow[tItemsByOrdinal[nTheIndex]];
+		end
+
+	end
+
+	--the iterator setup function for the __call metamethod in the enum object
+	local function items(tTheEnum)
+		return itemsIterator, tTheEnum, 0;
+	end
+
+	local sFormattedEnumName = formatName(sName);
+
+	--create the enum object
+	local tEnum	= setmetatable(tShadow, {
+		__index 	= function(tTable, vKey)
+			return tEnumData[vKey] or error("The enum type or method '"..tostring(vKey).."' does not exist in enum '"..sName.."'.");
+		end,
+		__newindex 	= modifyError,
+		__call 		= items,
+		__tostring 	= function() return sFormattedEnumName; end,
+		__len		= nItemCount,
+		__type		= "enum",
+	});
+
+	--[[█▀▀ █▄░█ █░█ █▀▄▀█   █ ▀█▀ █▀▀ █▀▄▀█ █▀
+		██▄ █░▀█ █▄█ █░▀░█   █ ░█░ ██▄ █░▀░█ ▄█]]
 
 	--process each enum item
 	for nID, sItem in ipairs(tNames) do--ipairs preserves the enum items' input order
-		local tItemDecoy = {};
+		local tItemShadow = {};
 
 		--create the item's formatted name
 		local sFormattedName = formatName(sItem);
@@ -207,22 +300,22 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
 		local bValueIsEnum = sValueType == "enum";
 
 		--create the item data table
-		local tItemActual = {
-			parent		= tEnumDecoy,
+		local tItemData = {
+			enum		= tEnum,
 			id			= nID,
-			isa 		= function(tEnumItem, oEnum)
-				return (type(tEnumItem) == sEnumName and tEnumItem.enum == oEnum);--type(tEnumObject) == "enum" and tEnumItem.enum == tEnumObject);
+			isa 		= function(tEnumItem, tEnumObject)
+				return (type(tEnumItem) == sName and type(tEnumObject) == "enum" and tEnumItem.enum == tEnumObject);
 			end,
-			isSibling	= function(oItem, oOther) --TODO if the sEnumName variable must be unique in the global env, must I check for enum equality as well?
-				return oItem ~= oOther and (type(oItem) == sEnumName and type(oOther) == sEnumName) and oItem.enum == oOther.enum;
+			isSibling	= function(oItem, oOther) --TODO if the sName variable must be unique in the global env, must I check for enum equality as well?
+				return (type(oItem) == sName and type(oOther) == sName) and oItem.enum == oOther.enum;
 			end,
 			previous 	= function(oItem)
 				local nIndex = oItem.id - 1;
-				return type(tItemsByOrdinal[nIndex]) ~= nil and tEnumActual[tItemsByOrdinal[nIndex]] or nil;
+				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
 			end,
 			next 		= function(oItem)
 				local nIndex = oItem.id + 1;
-				return type(tItemsByOrdinal[nIndex]) ~= nil and tEnumActual[tItemsByOrdinal[nIndex]] or nil;
+				return type(tItemsByOrdinal[nIndex]) ~= nil and tShadow[tItemsByOrdinal[nIndex]] or nil;
 			end,
 			name 		= sItem,
 			value 		= vValue,
@@ -238,124 +331,35 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
 
 		end
 
+
 		--create the item object
-		setmetatable(tItemDecoy,
+		local tItemObject = setmetatable(tItemShadow,
 			{
 				__index 	= function(tTable, vKey)
 
 					if tItemData[vKey] == nil then
-						error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sEnumName.."'.");
+						error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sName.."'.");
 					else
 						return tItemData[vKey];
 				 	end
 				end,
 				__newindex 	= modifyError;
 				__tostring 	= function() return sFormattedName; end,
-				__type		= sEnumName,
+				__type		= sName,
 			}
 		);
 
 		--make it visible to the enum's data table (both by name and ordinal)
-		tEnumActual[sItem] 	= tItemDecoy;
-		tEnumActual[nID] 	= tItemDecoy;
+		tEnumData[sItem] 	= tItemObject;
+		tEnumData[nID] 		= tItemObject;
 	end
-
-end
-
-local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues)
-	--prep all reserved items for the enum object
-	for x = 1, nReservedIndices do
-		tEnumActual[tReservedIndices[x]] = true;
-	end;
-
-	--set all reserved item values for the enum object
-	tEnumActual.__count	= nItemCount;
-	tEnumActual.__hasa = function(oItem)
-		return type(oItem) == sEnumName;
-	end;
-	tEnumActual.__name 	= sEnumName;
-
-	--used to iterate over each item in the enum
-	local function itemsIterator(tTheEnum, nTheIndex)
-
-		if (nTheIndex < #tItemsByOrdinal) then --todo use count value
-			nTheIndex = nTheIndex + 1;
-			return nTheIndex, tEnumActual[tItemsByOrdinal[nTheIndex]];
-		end
-
-	end
-
-	--the iterator setup function for the __call metamethod in the enum object
-	local function items(tTheEnum)
-		return itemsIterator, tTheEnum, 0;
-	end
-
-	local sFormattedEnumName = formatName(sEnumName);
-
-	-- the enum object's metatable
-	setmetatable(tEnumDecoy, {
-		__index 	= function(tTable, vKey)
-			return tEnumActual[vKey] or error("The enum type or method '"..tostring(vKey).."' does not exist in enum '"..sEnumName.."'.");
-		end,
-		__newindex 	= modifyError,
-		__call 		= items,
-		__tostring 	= function() return sFormattedEnumName; end,
-		__len		= nItemCount,
-		__type		= "enum",
-	});
-end
-
---[[
-███████╗███╗░░██╗██╗░░░██╗███╗░░░███╗
-██╔════╝████╗░██║██║░░░██║████╗░████║
-█████╗░░██╔██╗██║██║░░░██║██╔████╔██║
-██╔══╝░░██║╚████║██║░░░██║██║╚██╔╝██║
-███████╗██║░╚███║╚██████╔╝██║░╚═╝░██║
-╚══════╝╚═╝░░╚══╝░╚═════╝░╚═╝░░░░░╚═╝
-]]
-local function enum(sEnumName, tNames, tValues, bPrivate)
-	sEnumName 	= type(sEnumName) 		== "string" and sEnumName	or "";
-	tNames 		= type(tNames) 		== "table" 		and tNames 		or nil;
-	tValues		= type(tValues) 	== "table" 		and tValues 	or {};
-	bPrivate 	= type(bPrivate) 	== "boolean" 	and bPrivate 	or false;
-
-	--[[█░█ ▄▀█ █▀█ █ ▄▀█ █▄▄ █░░ █▀▀   █▀▀ █░█ █▀▀ █▀▀ █▄▀   ▄▀█ █▄░█ █▀▄   █▀ █▀▀ ▀█▀ █░█ █▀█
-		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
-	local tLuaEX = _G.__LUAEX__;
-
-	--insure the name input is a string
-	assert(sEnumName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank;")--input value is '"..tostring(sEnumName).."' of type "..type(sEnumName));
-
-	--check the name
-	if (not bPrivate) then
-		--check that the name string can be a valid variable
-		assert(isvariablecompliant(sEnumName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sEnumName.."'");
-		--make sure the variable doesn't already exist
-		assert(type(_G[sEnumName]) == "nil" and type(tLuaEX[sEnumName] == "nil"), "Variable "..sEnumName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
-	end
-
-	--check the names table
-	local bNamesAreValid, nItemCount = namesAreValid(tNames);
-	assert(bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
-
-	--keeps track of items by their id for simpler and quicker access
-	local tItemsByOrdinal	= {};
-	--setup the actual table
-	local tEnumActual		= {};
-	--setup the decoy table
-	local tEnumDecoy		= {};
-	--allows for quick determination of items' value
-	local tCheckedValues = validateValues(tValues);
-
-	configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, nItemCount);
-	processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, tNames);
 
 	if (not bPrivate) then
 		--put the enum into the global environment
-		tLuaEX[sEnumName] = tEnumDecoy;
+		tLuaEX[sName] = tEnum;
 	end
 
-	return tEnumDecoy;
+	return tEnum;
 end
 
 return enum;
