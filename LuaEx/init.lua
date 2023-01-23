@@ -109,6 +109,13 @@ For more information, please refer to <http://unlicense.org/>
 @website https://github.com/CentauriSoldier/LuaEx
 *]]
 
+--for backward compatibility
+loadstring = loadstring;
+
+if (type(loadstring) ~= "function" and type(load) == "function") then
+	loadstring = load;
+end
+
 --[[
 Defaulted is true, this protects
 enum and const values from being

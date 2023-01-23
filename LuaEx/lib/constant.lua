@@ -2,6 +2,7 @@ local tLuaEX = rawget(_G, "__LUAEX__");
 
 local assert				= assert;
 local isvariablecompliant 	= string.isvariablecompliant;
+local rawset				= rawset;
 local rawtype 				= rawtype;
 local tostring				= tostring;
 
@@ -42,10 +43,9 @@ local function constant(sName, vVal)
 	--make sure the constant is not nil
 	assert(rawtype(vVal) ~= "nil", "Cannot create constant; value cannot be nil.");
 	--make sure the value doesn't alreay exist
-	assert(rawtype(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing variable.")
-
+	assert(rawtype(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing variable.");
 	--put the const into the global environment (via the luaex protected table)
-	tLuaEX[sName] = vVal; --TODO use rawset?
+	rawset(tLuaEX, sName, vVal);
 end
 
 return constant;
