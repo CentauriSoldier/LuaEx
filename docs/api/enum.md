@@ -19,6 +19,7 @@ All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***, etc.)
 - **__count**
 - **__hasa**
 - **__name**
+- **serialize**
 
 #### Enum Properties
 - **__count** The total number of items in the enum (*number*)
@@ -26,6 +27,7 @@ All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***, etc.)
 
 #### Enum Methods
 - **__hasa**	Determines whether or not this enum has a given item (*boolean*)
+- **serialize** Serializes the enum for saving in text format, preserving it for reloading later
 
 #### Enum Metamethods
 - **__call** Returns an iterator which returns the ordinal value and item object on each iteration (*iterator*)
@@ -40,10 +42,11 @@ All Lua Keywords plus **LuaEx** keywords (***constant***, ***enum***, etc.)
 - **valueType** The type of the value property (string)
 
 #### Item Methods
-- **next** Returns the next item based on ordinal value (or nil if outside the enum's range)
-- **previous** Returns the previous item based on ordinal value (or nil if outside the enum's range)
+- **next** Returns the next item based on ordinal value or nil if outside the enum's range (unless wrapping around using *true* as an argument)
+- **previous** Returns the previous item based on ordinal value or nil if outside the enum's range (unless wrapping around using *true* as an argument)
 - **isa** Determines whether or not the item exists in a given enum
 - **isSibling** Determines whether or not the first item and the second item are in the same enum
+- **serialize** Serializes the enum item for saving in text format, preserving it for reloading later
 
 #### Item Metamethods
 - **__tostring** Returns a pretty, formatted string of the item name
