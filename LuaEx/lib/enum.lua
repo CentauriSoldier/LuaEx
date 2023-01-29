@@ -2,6 +2,8 @@ local error			= error;
 local getmetatable	= getmetatable;
 local ipairs 		= ipairs;
 local pairs 		= pairs;
+local rawget		= rawget;
+local rawset		= rawset;
 local string		= string;
 local setmetatable 	= setmetatable;
 local tostring 		= tostring;
@@ -23,6 +25,9 @@ local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
 				   "constant","enum"
 			   };
 local nKeywords = #tKeyWords;
+
+--keys are enum decoy tables and values are actual. This is used to embed enums.
+local tEnumDecoyActualRepo = {};
 
 local function isvariablecompliant(sInput, bSkipKeywordCheck)
 	local bRet = false;
@@ -82,6 +87,7 @@ local tReservedIndices = {
 	"__count",
 	"__hasa",
 	"__name",
+	"serialize",
 };
 
 local nReservedIndices = #tReservedIndices;
@@ -98,7 +104,7 @@ local function checkForReservedIndex(sInput)
 
 end
 
-local tReservedEnumItemIndices = {"enum", "id", "isa", "isSibling", "previous", "next", "name", "value", "value"};
+local tReservedEnumItemIndices = {"id", "isa", "isSibling", "previous", "next", "name", "parent", "serialize", "value", "valueType"};
 
 local nReservedEnumItemIndices = #tReservedEnumItemIndices;
 
@@ -180,7 +186,7 @@ local function validateValues(tValues)
 	return tRet;
 end
 
-local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, tNames)
+local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, tNames, nItemCount)
 
 	--process each enum item
 	for nID, sItem in ipairs(tNames) do--ipairs preserves the enum items' input order
@@ -207,62 +213,105 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
 		local bValueIsEnum = sValueType == "enum";
 
 		--create the item data table
-		local tItemActual = {
-			parent		= tEnumDecoy,
-			id			= nID,
-			isa 		= function(tEnumItem, oEnum)
-				return (type(tEnumItem) == sEnumName and tEnumItem.enum == oEnum);--type(tEnumObject) == "enum" and tEnumItem.enum == tEnumObject);
-			end,
-			isSibling	= function(oItem, oOther) --TODO if the sEnumName variable must be unique in the global env, must I check for enum equality as well?
-				return oItem ~= oOther and (type(oItem) == sEnumName and type(oOther) == sEnumName) and oItem.enum == oOther.enum;
-			end,
-			previous 	= function(oItem)
-				local nIndex = oItem.id - 1;
-				return type(tItemsByOrdinal[nIndex]) ~= nil and tEnumActual[tItemsByOrdinal[nIndex]] or nil;
-			end,
-			next 		= function(oItem)
-				local nIndex = oItem.id + 1;
-				return type(tItemsByOrdinal[nIndex]) ~= nil and tEnumActual[tItemsByOrdinal[nIndex]] or nil;
-			end,
-			name 		= sItem,
-			value 		= vValue,
-			valueType 	= bValueIsEnum and sItem or sValueType,
-		};
+		local tItemActual = bValueIsEnum and tEnumDecoyActualRepo[vValue] or {};
 
+		--create the item object
+		local tItemMeta = {};
+
+		--check if this is an embedded enum
 		if (bValueIsEnum) then
 
 			for _, oSubItem in vValue() do
 				checkForReservedItemIndex(oSubItem.name);--TODO not working
-				tItemData[oSubItem.name] = oSubItem;
+				rawset(tItemActual, oSubItem.name, oSubItem);
 			end
 
+			--pull the meta table from the embedded enum
+			tItemMeta = getmetatable(vValue);
+
+		else
+
+			tItemMeta.__newindex 	= modifyError;
+			tItemMeta.__tostring 	= function() return sFormattedName; end;
 		end
 
-		--create the item object
-		setmetatable(tItemDecoy,
-			{
-				__index 	= function(tTable, vKey)
+		--item(s) that must be put into the item metatable in either case (if it's an item or embdded enum)
+		tItemMeta.__type 		= sEnumName;
+		tItemMeta.__index 		= function(tTable, vKey)
+			if (rawget(tItemActual, vKey) == nil) then
+				error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sEnumName.."'.");
+			end
 
-					if tItemData[vKey] == nil then
-						error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sEnumName.."'.");
-					else
-						return tItemData[vKey];
-				 	end
-				end,
-				__newindex 	= modifyError;
-				__tostring 	= function() return sFormattedName; end,
-				__type		= sEnumName,
-			}
-		);
+			return rawget(tItemActual, vKey);
+		end
 
-		--make it visible to the enum's data table (both by name and ordinal)
+		--set the item's metatable
+		setmetatable(tItemDecoy, tItemMeta);
+
+		--set the item's properties (use rawset in case it's an enum item)
+		rawset(tItemActual, "parent", 		tEnumDecoy);
+		rawset(tItemActual, "id", 			nID);
+		rawset(tItemActual, "isa", 			function(oEnum)
+			return (tItemActual.parent == oEnum);--type(tEnumObject) == "enum" and tItemActual.enum == tEnumObject);
+		end)
+		rawset(tItemActual, "isSibling",	function(oOther) --TODO if the sEnumName variable must be unique in the global env, must I check for enum equality as well?
+			return tItemActual ~= oOther and (type(oOther) == sEnumName) and tItemActual.parent == oOther.parent;
+		end)
+		rawset(tItemActual, "previous",		function(bWrapAround)
+			local nIndex = tItemActual.id - 1;
+			local oRet = nil;
+			if  (type(tItemsByOrdinal[nIndex]) ~= nil) then
+
+				if (tEnumActual[tItemsByOrdinal[nIndex]]) then
+					oRet = tEnumActual[tItemsByOrdinal[nIndex]];
+
+				elseif (bWrapAround) then
+					oRet = tEnumActual[tItemsByOrdinal[nItemCount]];
+				end
+
+			end
+
+			return oRet;
+		end)
+		rawset(tItemActual, "next",			function(bWrapAround)
+			local nIndex = tItemActual.id + 1;
+			local oRet = nil;
+			if  (type(tItemsByOrdinal[nIndex]) ~= nil) then
+
+				if (tEnumActual[tItemsByOrdinal[nIndex]]) then
+					oRet = tEnumActual[tItemsByOrdinal[nIndex]];
+
+				elseif (bWrapAround) then
+					oRet = tEnumActual[tItemsByOrdinal[1]];
+				end
+
+			end
+
+			return oRet;
+		end)
+		rawset(tItemActual, "serialize",	function()--note: this overrides the enum function if this item is an embedded enum
+			local sRet = "";
+			local oParent = tItemActual.parent;
+
+			while (oParent) do
+				sRet = oParent.__name..'.'..sRet;
+				oParent = rawget(tEnumDecoyActualRepo[oParent], "parent") or nil;
+			end
+
+			return sRet..sItem;
+		end)
+		rawset(tItemActual, "name",			sItem)
+		rawset(tItemActual, "value", 		vValue);
+		rawset(tItemActual, "valueType", 	bValueIsEnum and sItem or sValueType);
+
+		--make the item visible to the enum's data table (both by name and ordinal)
 		tEnumActual[sItem] 	= tItemDecoy;
 		tEnumActual[nID] 	= tItemDecoy;
 	end
 
 end
 
-local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues)
+local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, nItemCount)
 	--prep all reserved items for the enum object
 	for x = 1, nReservedIndices do
 		tEnumActual[tReservedIndices[x]] = true;
@@ -272,8 +321,11 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
 	tEnumActual.__count	= nItemCount;
 	tEnumActual.__hasa = function(oItem)
 		return type(oItem) == sEnumName;
-	end;
+	end
 	tEnumActual.__name 	= sEnumName;
+	tEnumActual.serialize = function()
+		return sEnumName;
+	end
 
 	--used to iterate over each item in the enum
 	local function itemsIterator(tTheEnum, nTheIndex)
@@ -300,9 +352,12 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
 		__newindex 	= modifyError,
 		__call 		= items,
 		__tostring 	= function() return sFormattedEnumName; end,
-		__len		= nItemCount,
+		__len		= function() return  nItemCount end,
 		__type		= "enum",
 	});
+
+	--store the enum for later in case it gets embedded
+	tEnumDecoyActualRepo[tEnumDecoy] = tEnumActual;
 end
 
 --[[
@@ -314,7 +369,7 @@ end
 ╚══════╝╚═╝░░╚══╝░╚═════╝░╚═╝░░░░░╚═╝
 ]]
 local function enum(sEnumName, tNames, tValues, bPrivate)
-	sEnumName 	= type(sEnumName) 		== "string" and sEnumName	or "";
+	sEnumName 	= type(sEnumName) 	== "string" and sEnumName	or "";
 	tNames 		= type(tNames) 		== "table" 		and tNames 		or nil;
 	tValues		= type(tValues) 	== "table" 		and tValues 	or {};
 	bPrivate 	= type(bPrivate) 	== "boolean" 	and bPrivate 	or false;
@@ -348,7 +403,7 @@ local function enum(sEnumName, tNames, tValues, bPrivate)
 	local tCheckedValues = validateValues(tValues);
 
 	configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, nItemCount);
-	processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, tNames);
+	processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal, tCheckedValues, tNames, nItemCount);
 
 	if (not bPrivate) then
 		--put the enum into the global environment
