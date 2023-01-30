@@ -33,9 +33,7 @@ require("LuaEx.init");
 --============= TEST CODE BELOW =============
 
 
-local tLuaEX = rawget(_G, "__LUAEX__");
 
-constant("BLARG", 32);
 
 --print(tostring(os.getenv("string")))
 
