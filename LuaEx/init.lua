@@ -185,6 +185,7 @@ package.path = package.path..";"..sPath.."\\..\\?.lua";
 type 		=  	require("LuaEx.hook.typehook");
 				require("LuaEx.lib.stdlib");
 constant 	= 	require("LuaEx.lib.constant");
+clausum		=	require("LuaEx.lib.clausum");
 local null	= 	require("LuaEx.lib.null");
 				rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
 				rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
