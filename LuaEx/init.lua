@@ -192,6 +192,8 @@ local null	= 	require("LuaEx.lib.null");
 enum		= 	require("LuaEx.lib.enum");
 struct		= 	require("LuaEx.lib.struct");
 source		=	require("LuaEx.util.source");
+--run the 'directives'
+directive	=	require("LuaEx.lib.directive");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,

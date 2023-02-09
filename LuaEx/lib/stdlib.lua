@@ -48,3 +48,29 @@ function protect(sReference)
 	--clear the original entry from the global table
 	_G[sReference] = nil;
 end
+
+
+--Credit for original https://stackoverflow.com/questions/24714253/how-to-loop-through-the-table-and-keep-the-order
+function spairs(tInput, bReverse)
+	local tSorted = {};
+	local nRemovalIndex = 1;
+
+	if (type(bReverse) == "boolean" and bReverse) then
+		nRemovalIndex = nil;
+	end
+
+	for vKey in next, tInput do
+		table.insert(tSorted, vKey);
+	end
+
+	table.sort(tSorted);
+
+	return function()
+		local vKey = table.remove(tSorted, nRemovalIndex);
+
+		if vKey ~= nil then
+			return vKey, tInput[vKey];
+		end
+	end
+
+end

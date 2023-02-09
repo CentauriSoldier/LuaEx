@@ -32,9 +32,10 @@ local function clausum(sType)
                 local vRet = nil;
 
                 if (rawtype(actual[key]) ~= "nil") then
-                    return actual[key].val;
+                    vRet = actual[key].val;
                 end
 
+                return vRet;
             end,
 
             __newindex = function(table, key, value)
@@ -55,6 +56,7 @@ local function clausum(sType)
             end,
 
             __type = type(sType) == "string" and sType or "clausum",
+            __subtype = "clausum";
 
             --__tostring = function()
             --    return

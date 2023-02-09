@@ -27,7 +27,7 @@ local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
 local nKeywords = #tKeyWords;
 
 --keys are enum decoy tables and values are actual. This is used to embed enums.
-local tEnumDecoyActualRepo = {};
+local tEnumDecoyActualRepo 	= {};
 
 local function isvariablecompliant(sInput, bSkipKeywordCheck)
 	local bRet = false;
@@ -368,8 +368,8 @@ end
 ███████╗██║░╚███║╚██████╔╝██║░╚═╝░██║
 ╚══════╝╚═╝░░╚══╝░╚═════╝░╚═╝░░░░░╚═╝
 ]]
-local function enum(sEnumName, tNames, tValues, bPrivate)
-	sEnumName 	= type(sEnumName) 	== "string" and sEnumName	or "";
+local function createenum(_, sEnumName, tNames, tValues, bPrivate)
+	sEnumName 	= type(sEnumName) 	== "string" 	and sEnumName	or "";
 	tNames 		= type(tNames) 		== "table" 		and tNames 		or nil;
 	tValues		= type(tValues) 	== "table" 		and tValues 	or {};
 	bPrivate 	= type(bPrivate) 	== "boolean" 	and bPrivate 	or false;
@@ -379,7 +379,7 @@ local function enum(sEnumName, tNames, tValues, bPrivate)
 	local tLuaEX = _G.__LUAEX__;
 
 	--insure the name input is a string
-	assert(sEnumName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank;")--input value is '"..tostring(sEnumName).."' of type "..type(sEnumName));
+	assert(sEnumName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sEnumName).."' of type "..type(sEnumName));
 
 	--check the name
 	if (not bPrivate) then
@@ -391,7 +391,7 @@ local function enum(sEnumName, tNames, tValues, bPrivate)
 
 	--check the names table
 	local bNamesAreValid, nItemCount = namesAreValid(tNames);
-	assert(bNamesAreValid, "Enum input must be a numerically-indexed table whose indices are implicit and whose values are strings.");
+	assert(bNamesAreValid, "Enum item names table must be numerically-indexed, have implicit indices and string values.");
 
 	--keeps track of items by their id for simpler and quicker access
 	local tItemsByOrdinal	= {};
@@ -413,4 +413,68 @@ local function enum(sEnumName, tNames, tValues, bPrivate)
 	return tEnumDecoy;
 end
 
-return enum;
+local sPrepMarker = "__LUAEX_ENUM_PREP_TABLE__";
+constant("ENUM_DEFAULT_VALUE", "|___ENUM_DEFAULT_VALUE___|");
+
+local function prep(sName, bPrivate)
+	local sEnumName = sName; --TODO check for compliance
+	local tActual = {
+		private = type(bPrivate) == "boolean" and bPrivate or false,
+	};
+	local tKeyLog = {};
+
+	return setmetatable({}, {
+
+		__newindex = function(t, k, v)
+
+			if (rawtype(tKeyLog[k]) == "nil" and rawtype(v) ~= "nil") then
+				local nIndex = #tActual + 1;
+				tKeyLog[k] = nIndex;
+				tActual[nIndex] = {
+					key 	= k,
+					value 	= v,
+				};
+			end
+
+		end,
+
+		__index = function(t, k)
+			return tActual[tKeyLog[k]].value or nil;
+		end,
+
+		__call = function(t)
+			local tNames 	= {};
+			local tValues 	= {};
+
+			for nIndex, tData in ipairs(tActual) do
+				tNames[nIndex] 		= tData.key;
+				tValues[nIndex] 	= tData.value;
+				local sType 		= type(tValues[nIndex]);
+
+				--check if this value is to be an enum
+				if (sType == sPrepMarker) then
+					tValues[nIndex] = tValues[nIndex]();
+--TODO check this too (ENUM_DEFAULT_VALUE) and set to ordinal value if present
+
+				end
+
+			end
+
+			return createenum(nil, sName, tNames, tValues, bPrivate);
+		end,
+
+		__type = sPrepMarker,
+
+	});
+end
+
+
+return setmetatable(
+{
+	--fromtable = fromtable,
+	prep = prep,
+},
+{
+	__call = createenum,
+}
+);

@@ -75,6 +75,7 @@ local tLuaTypes = {
 --'immutable' table of stock LuaEx types
 local tLuaExTypes = {
 	class 				= true,
+	clausum				= true,
 	constant			= true,
 	enum 				= true,
 	null 				= true,
