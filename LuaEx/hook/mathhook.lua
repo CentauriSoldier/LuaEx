@@ -139,12 +139,12 @@ function math.isodd(nValue)--TODO check if this is an integer first
 end
 
 
---TODO move these to a color module and put that odule in CoG
+
 function math.ratio(nLeft, nRight)
 	local nGCD = math.gcf(nLeft, nRight);
 	return 	{left = nLeft / nGCD, right = nRight / nGCD};
 end
-
+--TODO move these to a color module and put that module in CoG
 function math.rgbtolong(nR, nG, nB)
 	return nR + (nG * 256) + (nB * 65536);
 end
