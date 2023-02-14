@@ -1,5 +1,5 @@
 --[[*
-@authors Original concept and code by Bas Groothedde at Imagine Programming. Modified and maintained by Centauri Soldier
+@authors Bas Groothedde at Imagine Programming
 @copyright Public Domain
 @description
 	<h2>class</h2>
@@ -30,13 +30,9 @@ function print(...)
 	oldPrint(table.concat(t, "\t").."\r\n");
 end;
 
---localization
-local assert 		= assert;
-local rawget		= rawget;
-local rawset		= rawset;
-local getmetatable 	= getmetatable;
 local setmetatable	= setmetatable;
-local type 			= type;
+local getmetatable 	= getmetatable;
+local assert 		= assert;
 
 -- names of metamethods, should be treated as such
 local metanames = {
@@ -68,17 +64,27 @@ local metanames = {
 	__unm 		= true,
 };
 
+local tFields = {};
 
-local tProtectedFieldsAndMethods = {};
 
---[[!
-@mod class
-@func extendor
-@scope private
-@desc Class extender. I.e., when you do `class "test" : extends(other) {}`.
-@ret class MyClass The class object which was input.
-!]]
-local function extendor(class, other)
+-- the generic class constructor, which also invokes your __construct method if it exists
+local function class_ctor(class, ...)
+	assert(type(class) == "class", "cannot construct, invalid class");
+	local instance = setmetatable({}, getmetatable(class).__instance_mt);
+
+	if (type(class.__construct) == "function") then
+		--passing nil here (as the second argument), ensures
+		--that calls to this contructor which come not from
+		--a child class do not propogate a protected table
+		--while still maintaining argument order integrity
+		class.__construct(instance, nil, ...);
+	end
+
+	return instance;
+end
+
+-- class extender, i.e. when you do `class "test" : extends(other) {}`
+local function class_extends(class, other)
 	assert(type(class) == "iclass", "cannot extend, invalid class (needs to be intermediate): `" .. type(class) .. "`");
 	assert(type(other) == "class",  "cannot extend, extension is not a class: `" .. type(other) .. "`");
 
@@ -95,13 +101,23 @@ local function extendor(class, other)
 end;
 
 
---[[!
-@mod class
-@func is_derived
-@scope private
-@desc Class extender. I.e., when you do `class "test" : extends(other) {}`.
-@ret boolean Returns true if `class` is a derived class (a child) of `base`.
-!]]
+iTest = {
+	MyFunction,
+}
+--todo implement children detection for this to work
+local function class_implements(class, interface)
+
+
+
+end
+
+-- is_object returns true if `instance` is an object of a class
+function is_object(instance)
+	local mt = getmetatable(instance);
+	return mt and type(mt.__class) == "class";
+end
+
+-- is_derived returns true if `class` is a derived class (a child) of `base`
 function is_derived(class, base)
 	if (class == base) then
 		return true;
@@ -114,15 +130,6 @@ function is_derived(class, base)
 
 	return false;
 end
-
-
--- is_object returns true if `instance` is an object of a class--this is not right
-function is_object(instance)
-	local tMeta = getmetatable(instance);
-	return tMeta and type(tMeta.__class) == "class";
-end
-
-
 
 
 
@@ -143,23 +150,6 @@ function is_instance_of(object, base)
 	return false;
 end
 
---[[!
-@mod class
-@func isbase
-@desc Determines if a class is a child class or a base.
-@ret boolean boolean Returns true is this is a base class.
-!]]
-function is_base(class_object)
-	return getmetatable(class_object).__parent == nil;
-end
-
-
---[[!
-@mod class
-@func getbase
-@desc Determines the class from which this is derived (or itself if not derived).
-@ret class MyClass Returns the class from which this is derived.
-!]]--get the base of this class (or itselfg)
 function get_base(class_object)
 	local ret = class_object;
 
@@ -174,31 +164,9 @@ function get_base(class_object)
 end
 
 
-
---[[!
-@mod class
-@func class
-@desc Constructor for class instances. The generic class constructor, which also invokes your __construct method if it exists.
-@ret class MyClass A class object.
-!]]
-local function class_ctor(class, ...)
-	assert(type(class) == "class", "cannot construct, invalid class");
-	local instance = setmetatable({}, getmetatable(class).__instance_mt);
-
-	--NEW CODE TESTING
-
-
-	if (type(class.__construct) == "function") then
-		--passing nil here (as the second argument), ensures
-		--that calls to this contructor which come not from
-		--a child class do not propogate a protected table
-		--while still maintaining argument order integrity
-		class.__construct(instance, tProtectedFieldsAndMethods[class], ...);
-	end
-
-	return instance;
+function is_base(class_object)
+	return getmetatable(class_object).__parent == nil;
 end
-
 
 --[[!
 @mod class
@@ -206,25 +174,21 @@ end
 @desc Constructor for class instances.
 @ret class MyClass A class object.
 !]]
-local function class(_, name)
+local function class(name)
 	local class_meta   = { __type = name, __is_luaex_class = true, __parent = nil };
 	local class_object 	= {};
+
+	--if (type(tLuaEx[name]) ~= "nil") then
+	--	error("Attempt to overwrite protected item '"..tostring(name).."' ("..type(tLuaEx[name])..") with '"..tostring(name).."' ("..type(name)..").");
+	--end
 
 	-- first return an intermediate class, on which you still need to call
 	-- with the method table. i.e. this is the stage that handles `class "name"`
 	-- the returned object allows for `class "name" : extends(other)`
 	return setmetatable(class_object, {
-		__index = { extends = extendor };
+		__index = { extends = class_extends, implements = class_implements };
 		__type  = "iclass"; 						-- intermediate class
 		__call  = function(class_object, members)	-- the actual definer, this puts the class in _G and adds the methods (no longer puts it in _G...has been localized)
-
-			--NEW CODE TESTING
-			if (type(rawget(tProtectedFieldsAndMethods, class_object)) == "nil") then
-				--create an index for this class's (and relatives') shared fields and methods
-				local parent = getmetatable(class_object).__parent;
-				tProtectedFieldsAndMethods[class_object] = parent and tProtectedFieldsAndMethods[parent] or {};
-			end
-
 			-- add all methods to the class, possibly overloading members that were copied by `extends`
 			for member_name, member in pairs(members) do
 				class_object[member_name] = member;
@@ -240,11 +204,11 @@ local function class(_, name)
 
 			-- each class has a super method, which allows you to invoke the parent constructor
 			-- i.e. in your __construct(this): `this:super(a, b, c)`
-			class_object.super = function(instance, ...)
+			class_object.super = function(instance, tProtected, ...)
 				local parent = getmetatable(class_object).__parent;
 				if (parent and type(parent.__construct) == "function") then
 					local current_mt = getmetatable(instance);
-					parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tProtectedFieldsAndMethods[class], ...);
+					parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tProtected, ...);
 					setmetatable(instance, current_mt);
 					return;
 				end
@@ -260,18 +224,18 @@ local function class(_, name)
 				2. does the class have an __index metamethod, invoke that
 
 				if this does not occur, there is nothing to be found.
-				this function is only called if [vKey] does not already exist in the object, so
+				this function is only called if [key] does not already exist in the object, so
 				properties are already handled.
 			]]
-			class_meta.__index = function(object, vKey)
-				local bKeyIsInClass = rawget(class_object, vKey);
-				if (bKeyIsInClass) then
-					return bKeyIsInClass;
+			class_meta.__index = function(object, key)
+				local inclass = rawget(class_object, key);
+				if (inclass) then
+					return inclass;
 				end
 
 				local __index = rawget(class_object, "__index");
 				if (type(__index) == "function") then
-					return __index(object, vKey);
+					return __index(object, key);
 				end
 			end;
 
@@ -281,21 +245,21 @@ local function class(_, name)
 
 				1. does the key exist in the class definition, error; you cannot shadow method names
 				2. does the class have a __newindex metamethod, invoke that and return
-				3. set the value to the instance/object using [vKey] as its index
+				3. set the value to the instance/object using [key] as its index
 			]]
-			class_meta.__newindex = function(object, vKey, value)
-				local bKeyIsInClass = rawget(class_object, vKey);
-				if (bKeyIsInClass) then
-					error("setting the key `" .. tostring(vKey) .. "` would overwrite a method", 2);
+			class_meta.__newindex = function(object, key, value)
+				local inclass = rawget(class_object, key);
+				if (inclass) then
+					error("setting the key `" .. tostring(key) .. "` would overwrite a method", 2);
 				end
 
 				local __newindex = rawget(class_object, "__newindex");
 				if(type(__newindex) == "function")then
-					__newindex(object, vKey, value);
+					__newindex(object, key, value);
 					return;
 				end
 
-				rawset(object, vKey, value);
+				rawset(object, key, value);
 			end;
 
 			-- export the class to global scope with a new metatable, now with the type "class".
@@ -304,7 +268,7 @@ local function class(_, name)
 		end;
 	});
 end
---TODO integrate these below in the returned table
+
 --util functions for object type checking
 function leftOnlyObject(...)
 	local sLeftType 	= select(1, ...);
@@ -327,18 +291,4 @@ function bothObjects(...)
 	return (sLeftType == sObjType and sRightType == sObjType);
 end
 
-
-local tClasses 			= {};
-local tProtectedFields 	= {};
-
-return setmetatable(
-{
-	getbase 		= get_base,
-	isbase 			= is_base,
-	isinstanceof 	= is_instance_of,
-	isobject		= is_object,
-},
-{
-	__call = class,
-
-});
+return class, interface;
