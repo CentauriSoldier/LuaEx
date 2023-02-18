@@ -91,6 +91,15 @@ local __type__ = type;
 type = nil;
 
 local type = {
+	mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)
+		return (sLeftType == sObjType and sRightType ~= sTypeInQuestion);
+	end,
+	mathchesonlyright = function(sLeftType, sRightType, sTypeInQuestion)
+		return (sLeftType ~= sObjType and sRightType == sTypeInQuestion);
+	end,
+	mathchesboth = function(sLeftType, sRightType, sTypeInQuestion)
+		return (sLeftType == sObjType and sRightType == sTypeInQuestion);
+	end,
 	full = function(vObject)
 		local sType = __type__(vObject);
 		local sSpace = "";

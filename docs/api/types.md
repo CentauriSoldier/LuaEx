@@ -41,14 +41,14 @@
 local tDogs = {"Lab", "Husky"};
 
 --get and print the type
-print(type(tDogs)); --table
+print(type(tDogs)); --> table
 
 --now, let's add a metatable and set a custom type
 --(we could also use table.settype to do this)
 setmetatable(tDogs, {__type="Dog List"});
 
 --get and print the new type
-print(type(tDogs)); --Dog List
+print(type(tDogs)); --> Dog List
 ```
 <!--- __type --->
 <h2 class="func">__type</h2>
@@ -58,7 +58,7 @@ print(type(tDogs)); --Dog List
 
 ```lua
 --get and print the type of 'type'
-print(type(type)); --function
+print(type(type)); --> function
 ```
 <br>
 <!--
@@ -132,6 +132,104 @@ print(type.full(tMice));
 | Type(s) | Description |
 |-------|--------|
 | table | The numerically-indexed table whose values are the types (strings). |
+
+<!--- mathchesonlyleft --->
+<h2 class="func">mathchesonlyleft</h2>
+<p class="funcdesc">Determines whether the given input type match only the left type.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Left Type		| string | The type of the left item. 	|
+| Right Type	| string | The type of the right item. 	|
+| Check Type	| string | The type to check against. 	|
+
+
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | Returns true if only the left type matches the given type or false otherwise. Very useful when creating equality metamethods. |
+
+#### Example
+```lua
+--create two items to test
+local vLeft  = {};
+local vRight = "I'm a frog";
+
+--get the items' types
+local sLeftType  = type(vLeft);
+local sRightType = type(vRight);
+
+print(type.mathchesonlyleft(sLeftType, sRightType, "string")) --> false
+print(type.mathchesonlyleft(sLeftType, sRightType, "table")) --> true
+```
+
+<!--- mathchesonlyright --->
+<h2 class="func">mathchesonlyright</h2>
+<p class="funcdesc">Determines whether the given input type match only the right type.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Left Type		| string | The type of the left item. 	|
+| Right Type	| string | The type of the right item. 	|
+| Check Type	| string | The type to check against. 	|
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | Returns true if only the right type matches the given type or false otherwise. Very useful when creating equality metamethods. |
+
+#### Example
+```lua
+--create two items to test
+local vLeft  = {};
+local vRight = "I'm a frog";
+
+--get the items' types
+local sLeftType  = type(vLeft);
+local sRightType = type(vRight);
+
+print(type.mathchesonlyright(sLeftType, sRightType, "string")) --> true
+print(type.mathchesonlyright(sLeftType, sRightType, "table")) --> false
+```
+
+<!--- matchesboth --->
+<h2 class="func">matchesboth</h2>
+<p class="funcdesc">Determines whether the given input type matches both types.</p>
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Left Type		| string | The type of the left item. 	|
+| Right Type	| string | The type of the right item. 	|
+| Check Type	| string | The type to check against. 	|
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | Returns true if both the right and left types matches the given type or false otherwise.  Very useful when creating equality metamethods.|
+
+#### Example
+```lua
+--create two items to test
+local vLeft  = "I'm a grog.";
+local vRight = "I'm a frog";
+
+--get the items' types
+local sLeftType  = type(vLeft);
+local sRightType = type(vRight);
+
+print(type.mathchesboth(sLeftType, sRightType, "string")) --> true
+print(type.mathchesboth(sLeftType, sRightType, "table")) --> false
+```
 
 <!--- raw --->
 <h2 class="func">raw</h2>

@@ -68,8 +68,11 @@ local metanames = {
 	__unm 		= true,
 };
 
-
+--a table where a class and all it's parents and children can share values
 local tProtectedFieldsAndMethods = {};
+--local tClasses 			= {};
+--local tProtectedFields 	= {};
+
 
 --[[!
 @mod class
@@ -117,10 +120,10 @@ end
 
 
 -- is_object returns true if `instance` is an object of a class--this is not right
-function is_object(instance)
+--[[function is_object(instance)
 	local tMeta = getmetatable(instance);
 	return tMeta and type(tMeta.__class) == "class";
-end
+end]]
 
 
 
@@ -159,7 +162,7 @@ end
 @func getbase
 @desc Determines the class from which this is derived (or itself if not derived).
 @ret class MyClass Returns the class from which this is derived.
-!]]--get the base of this class (or itselfg)
+!]]--get the base of this class (or itself)
 function get_base(class_object)
 	local ret = class_object;
 
@@ -210,6 +213,11 @@ local function class(_, name)
 	local class_meta   = { __type = name, __is_luaex_class = true, __parent = nil };
 	local class_object 	= {};
 
+	--create an 'is' function for this class (used for checking if a given value is this class's type)
+	loadstring([[function is${classname}(vInput)
+		return type(vInput) == "${classname}";
+	end]] % {classname = name})();
+
 	-- first return an intermediate class, on which you still need to call
 	-- with the method table. i.e. this is the stage that handles `class "name"`
 	-- the returned object allows for `class "name" : extends(other)`
@@ -218,7 +226,6 @@ local function class(_, name)
 		__type  = "iclass"; 						-- intermediate class
 		__call  = function(class_object, members)	-- the actual definer, this puts the class in _G and adds the methods (no longer puts it in _G...has been localized)
 
-			--NEW CODE TESTING
 			if (type(rawget(tProtectedFieldsAndMethods, class_object)) == "nil") then
 				--create an index for this class's (and relatives') shared fields and methods
 				local parent = getmetatable(class_object).__parent;
@@ -244,7 +251,7 @@ local function class(_, name)
 				local parent = getmetatable(class_object).__parent;
 				if (parent and type(parent.__construct) == "function") then
 					local current_mt = getmetatable(instance);
-					parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tProtectedFieldsAndMethods[class], ...);
+					parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tProtectedFieldsAndMethods[class_object], ...);
 					setmetatable(instance, current_mt);
 					return;
 				end
@@ -304,39 +311,14 @@ local function class(_, name)
 		end;
 	});
 end
---TODO integrate these below in the returned table
---util functions for object type checking
-function leftOnlyObject(...)
-	local sLeftType 	= select(1, ...);
-	local sRightType	= select(2, ...);
-	local sObjType 		= select(3, ...);
-	return (sLeftType == sObjType and sRightType ~= sObjType);
-end
-
-function rightOnlyObject(...)
-	local sLeftType 	= select(1, ...);
-	local sRightType	= select(2, ...);
-	local sObjType 		= select(3, ...);
-	return (sLeftType ~= sObjType and sRightType == sObjType);
-end
-
-function bothObjects(...)
-	local sLeftType 	= select(1, ...);
-	local sRightType	= select(2, ...);
-	local sObjType 		= select(3, ...);
-	return (sLeftType == sObjType and sRightType == sObjType);
-end
-
-
-local tClasses 			= {};
-local tProtectedFields 	= {};
 
 return setmetatable(
 {
 	getbase 		= get_base,
 	isbase 			= is_base,
+	isderived		= is_derived,
 	isinstanceof 	= is_instance_of,
-	isobject		= is_object,
+	--isobject		= is_object,
 },
 {
 	__call = class,

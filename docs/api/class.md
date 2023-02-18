@@ -2,7 +2,7 @@
 
 This is used to create classes in **LuaEx**. It allows the client access to many features of Object Oriented Programming (although not all).
 
-It is important to remember that the first two (implicit) arguments to any class constructor (those not passed by the caller) are ***1)*** the instance and ***2)*** a protected, shared table (or nil if the class has no children). This table is used to store non-public fields and methods visible to only to the class, its parents and its children. Each child and parent of a given class instance can access and mutate this table and its elements. This table serves as the "protected" portion of classes' O.O.P.
+It is important to remember that the first two (implicit) arguments to any class constructor (those not passed by the caller) are ***1)*** the instance and ***2)*** a protected, shared table (or a new, blank table if the class has no children). This table is used to store non-public fields and methods visible to only to the class, its parents and its children. Each child and parent of a given class instance can access and mutate this table and its elements. This table serves as the "protected" portion of classes' O.O.P.
 
 #### Usage Example
 ```lua
@@ -48,5 +48,65 @@ local dog = class "dog" : extends(animal) {
 local spot = dog("Spot");
 spot:bark();
 ```
+
+## Utility Functions
+
+### class.getbase
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| class	| The class whose base you want to get. |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| class | Returns the base (if derived) or itself is it is the base class. |
+
+
+### class.isbase
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| class	| The class to query. |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean | Returns true if this is the base class (no parent) or false otherwise. |
+
+### class.isderived
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| class	|  |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean |  |
+
+
+### class.isinstanceof
+
+#### Parameter(s)
+
+| Name | Type(s) | Description |
+|-------|--------|---------|
+| Value	| class	|  |
+
+#### Return
+
+| Type(s) | Description |
+|-------|--------|
+| boolean |  |
 
 ### [◀ Back](https://centaurisoldier.github.io/LuaEx/)
