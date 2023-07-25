@@ -9,23 +9,19 @@ local serialize		= serialize;
 local table			= table;
 local type 			= type;
 
-return class("stack",
-{
-	 __len = function(this)--doesn't work in < Lua v5.2
+return class "stack" {
+
+	 __construct = function(this)
+		tStacks[this] = {
+			count 	= 0,
+			values	= {},
+		};
+	end,
+
+
+	__len = function(this)--doesn't work in < Lua v5.2
 		return tStacks[this].count;
 	end,
-},
-{},
-{},
-{},
-{},
-{
-	stack = function(this)
-	   tStacks[this] = {
-		   count 	= 0,
-		   values	= {},
-	   };
-   end,
 
 	--TODO complete serialization
 	deserialize = function()
@@ -78,4 +74,4 @@ return class("stack",
 
 		return tRet;
 	end,
-});
+};

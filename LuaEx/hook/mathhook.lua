@@ -40,17 +40,27 @@ function math.clamp(nValue, nMinValue, nMaxValue)
 	return nRet;
 end
 
---[[Usage: To get the Width/Height Input Factors of the original rectangle use math.ratio(w, h)/math.ratio(h, w) respectively]]
-
 --TODO put a safety switch in here
---gets the largest rectangle of the specified ratio that will fit within the given rectangle (then, optionally, scales it and centers it if requested)
-function math.fitrect(nRectWidth, nRectHeight, nRectX, nRectY, nWidthFactor, nHeightFactor, nScale, bCenter)
+--gets the largest rectangle will fit within the given rectangle (then, optionally, scales it and centers it if requested)
+--[[function math.fitrect(tContainer, tOriginal, nScale, bCenter)
+	--this is the original container
+	local nOuterWidth 	= tContainer.width;
+	local nOuterHeight 	= tContainer.height;
+	local nRectX 		= tContainer.x;
+	local nRectY 		= tContainer.y;
+	--get the container ratios
+	local tWidthRatio = math.ratio(tOriginal.width, tOriginal.height);
+	local tHeightRatio = math.ratio(tOriginal.height, tOriginal.width);
+	--get the width and height factors
+	local nWidthFactor = tWidthRatio.left / tWidthRatio.right;
+	local nHeightFactor = tHeightRatio.left / tHeightRatio.right;
+
 	--the final, resultant values
 	local nWidth 		= 0;
 	local nHeight 		= 0;
 	--the position of the new rectangle inside the parent
-	local nX			= 0;
-	local nY			= 0;
+	local nX			= tContainer.x;
+	local nY			= tContainer.y;
 	--this tells when the tested size falls outside of the parent's boundary
 	local bIsSmaller	= true;
 	--increments each iteration to increase the test rectangle size
@@ -75,7 +85,7 @@ function math.fitrect(nRectWidth, nRectHeight, nRectX, nRectY, nWidthFactor, nHe
 		nTestHeight = nHeightFactor * nCounter;
 
 		--check to see if it fits inside the parent...
-		if (nTestWidth <= nRectWidth and nTestHeight <= nRectHeight) then
+		if (nTestWidth <= nOuterWidth and nTestHeight <= nOuterHeight) then
 
 			--...and, store it as a valid size if it does fit
 			nWidth 	= nTestWidth;
@@ -91,8 +101,8 @@ function math.fitrect(nRectWidth, nRectHeight, nRectX, nRectY, nWidthFactor, nHe
 
 			--calculate the centered position of the rectangle inside the parent
 			if (bCenter) then
-				nX = nRectX + (nRectWidth 	- nWidth) 	/ 2;
-				nY = nRectY + (nRectHeight 	- nHeight) 	/ 2;
+				nX = nRectX + (nOuterWidth 	- nWidth) 	/ 2;
+				nY = nRectY + (nOuterHeight 	- nHeight) 	/ 2;
 			end
 
 		end
@@ -100,7 +110,97 @@ function math.fitrect(nRectWidth, nRectHeight, nRectX, nRectY, nWidthFactor, nHe
 	end
 
 	return {width = nWidth, height = nHeight, x = nX, y = nY};
+end]]
+
+math.geometry = {};
+
+function math.geometry.rectcontains(tMe, tOther)
+  -- Calculate the bounding coordinates for each object
+  local leftMe = tMe.X
+  local rightMe = tMe.X + tMe.Width
+  local topMe = tMe.Y
+  local bottomMe = tMe.Y + tMe.Height
+
+  local leftOther = tOther.X
+  local rightOther = tOther.X + tOther.Width
+  local topOther = tOther.Y
+  local bottomOther = tOther.Y + tOther.Height
+
+  -- Check for collision by comparing the bounding coordinates
+  if leftMe <= rightOther and
+     rightMe >= leftOther and
+     topMe <= bottomOther and
+     bottomMe >= topOther then
+    -- Collision detected
+    local intersectionLeft = math.max(leftMe, leftOther)
+    local intersectionRight = math.min(rightMe, rightOther)
+    local intersectionTop = math.max(topMe, topOther)
+    local intersectionBottom = math.min(bottomMe, bottomOther)
+
+    local intersectionWidth = intersectionRight - intersectionLeft
+    local intersectionHeight = intersectionBottom - intersectionTop
+
+    return intersectionWidth > 0 and intersectionHeight > 0
+  else
+    -- No collision
+    return false
+  end
+
 end
+
+function math.geometry.rectcontainsfully(tMe, tOther)
+    local bRet = false;
+
+    -- Calculate the bounding coordinates for each object
+    local leftMe = tMe.X
+      local rightMe = tMe.X + tMe.Width
+      local topMe = tMe.Y
+      local bottomMe = tMe.Y + tMe.Height
+
+      local leftOther = tOther.X
+      local rightOther = tOther.X + tOther.Width
+      local topOther = tOther.Y
+      local bottomOther = tOther.Y + tOther.Height
+
+      -- Check for collision by comparing the bounding coordinates
+      if leftMe <= rightOther and
+         rightMe >= leftOther and
+         topMe <= bottomOther and
+         bottomMe >= topOther then
+        -- Collision detected
+        bRet = true
+    end
+
+    return bRet;
+end
+
+function math.geometry.fitrect(tOuter, tInner, bCenter)
+	local nInnerAspectRatio = tInner.width / tInner.height;
+    local nOuterAspectRatio = tOuter.width / tOuter.height;
+
+    local nWidth, nHeight;
+	local nX = tOuter.x;
+	local nY = tOuter.y;
+
+    if (nInnerAspectRatio >= nOuterAspectRatio) then
+      nWidth = tOuter.width;
+      nHeight = nWidth / nInnerAspectRatio;
+    else
+      nHeight = tOuter.height;
+      nWidth = nHeight * nInnerAspectRatio;
+    end
+
+	if (bCenter) then
+      nX = tOuter.x + (tOuter.width - nWidth) / 2;
+      nY = tOuter.y + (tOuter.height - nHeight) / 2;
+    end
+
+    return {width = nWidth, height = nHeight, x = nX, y = nY};
+end
+
+
+
+
 
 function math.gcf(nNum, nDen)
 	local nRet 		= 1;
@@ -138,7 +238,16 @@ function math.isodd(nValue)--TODO check if this is an integer first
 	return (nValue % 2 ~= 0);
 end
 
+function math.counting(nValue, bRaise) --natural numbers excluding zero
+	local f = bRaise and math.ceil or math.floor;
+	local nRet = f(math.abs(nValue));
+	return nRet > 0 and nRet or 1;
+end
 
+function math.whole(nValue, bRaise) --natural numbers including zero
+	local f = bRaise and math.ceil or math.floor;
+	return f(math.abs(nValue));
+end
 
 function math.ratio(nLeft, nRight)
 	local nGCD = math.gcf(nLeft, nRight);

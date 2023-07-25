@@ -1,326 +1,373 @@
---[[*
-@authors Original concept and code by Bas Groothedde at Imagine Programming. Modified and maintained by Centauri Soldier
-@copyright Public Domain
-@description
-	<h2>class</h2>
-	<p></p>
-@license <p>The Unlicense<br>
-<br>
-@moduleid class
-@version 1.0
-@versionhistory
-<ul>
-	<li>
-		<b>1.0</b>
-		<br>
-		<p>Created the module.</p>
-	</li>
-</ul>
-@website https://github.com/imagine-programming
-*]]
+--[[
+Planned features
+AutoGetter/Setter functions
+]]
 
--- quick and dirty print, but better
-local oldPrint = print;
-function print(...)
-	local t = {};
-	for _, v in ipairs { ... } do
-		t[#t + 1] = tostring(v);
-	end
+local tClasses 			= {};
 
-	oldPrint(table.concat(t, "\t").."\r\n");
-end;
+--create a class system with inheritence, polymorphism and encapsulation
+-- __index and __newindex are special cases, handled separately
+local tMetaNames = {__add = true, __band = true, __bnot = true, __bor = true, __bxor = true, __close	= true,	__concat = true, __div = true, __eq	= true,	__gc = true, __idiv	= true,	__index = true,	__le = true, __len = true, __lt	= true,	__mod = true, __mode = true, __mul = true, __name = true, __newindex = true, __pow = true, __shl = true, __shr = true, __sub = true, __tostring	= true, __unm = true};
 
 --localization
-local assert 		= assert;
-local rawget		= rawget;
+local assert        = assert;
+local getmetatable  = getmetatable;
+local rawget 		= rawget;
 local rawset		= rawset;
-local getmetatable 	= getmetatable;
-local setmetatable	= setmetatable;
-local type 			= type;
+local pairs         = pairs;
+local setmetatable  = setmetatable;
+local string        = string;
+local table         = table;
+local type          = type;
 
--- names of metamethods, should be treated as such
-local metanames = {
-	__add 		= true,
-	__band		= true,
-	__bnot		= true,
-	__bor		= true,
-	__bxor		= true,
-	__close 	= true,
-	__concat 	= true,
-	__div 		= true,
-	__eq 		= true,
-	__gc 		= true,
-	__idiv		= true,
-	__index 	= true, -- special case, handled separately
-	__le 		= true,
-	__len		= true,
-	__lt 		= true,
-	__mod 		= true,
-	__mode 		= true,
-	__mul 		= true,
-	__name 		= true,
-	__newindex 	= true, -- special case, handled separately
-	__pow 		= true,
-	__shl 		= true,
-	__shr 		= true,
-	__sub 		= true,
-	__tostring 	= true,
-	__unm 		= true,
-};
+local function checkinput(sName, tMetamethods, tStaticProtected, tStaticPublic, tPrivate, tProtected, tPublic, sExtendor, tImplements)
 
---a table where a class and all it's parents and children can share values
-local tProtectedFieldsAndMethods = {};
---local tClasses 			= {};
---local tProtectedFields 	= {};
+	assert(type(sName) 				== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								% {					type = type(sName), 			item = tostring(sName)});
+	assert(sName:isvariablecompliant(),				"Error creating class, ${class}. Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
+	assert(type(tClasses[sName]) 	== "nil", 		"Error creating class, ${class}. Class already exists."													% {class = sName});
+	assert(type(tMetamethods)		== "table", 	"Error creating class, ${class}. Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
+	assert(type(tStaticProtected)	== "table", 	"Error creating class, ${class}. Static protected values table expected.\r\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticProtected),	item = tostring(tStaticProtected)});
+	assert(type(tStaticPublic)		== "table", 	"Error creating class, ${class}. Static public values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
+	assert(type(tPrivate) 			== "table", 	"Error creating class, ${class}. Private values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
+	assert(type(tProtected) 		== "table", 	"Error creating class, ${class}. Protected values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
+	assert(type(tPublic) 			== "table", 	"Error creating class, ${class}. Static values table expected.\r\nGot: (${type}) ${item}." 				% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
 
+	local bIsConstructor = false;
+	local tTables = {
+		metamethods 	= tMetamethods,
+		staticprotected = tStaticProtected,
+		staticpublic 	= tStaticPublic,
+		private 		= tPrivate,
+		protected		= tProtected,
+		public 			= tPublic,
+	};
 
---[[!
-@mod class
-@func extendor
-@scope private
-@desc Class extender. I.e., when you do `class "test" : extends(other) {}`.
-@ret class MyClass The class object which was input.
-!]]
-local function extendor(class, other)
-	assert(type(class) == "iclass", "cannot extend, invalid class (needs to be intermediate): `" .. type(class) .. "`");
-	assert(type(other) == "class",  "cannot extend, extension is not a class: `" .. type(other) .. "`");
+	--check that each item is named using a string!
+	for sTable, tTable in pairs(tTables) do
 
-	local mt = getmetatable(class);
+		for k, v in pairs(tTable) do
+			assert(type(k) == "string", "Error creating class, ${class}. All table indices must be of type string. Got: (${type}) ${item} in table '${table}'" % {class = sName, type = type(k), item = tostring(v), table = sTable});
 
-	assert(not mt.__parent, "cannot extend twice in this current implementation");
-	mt.__parent = other;
+			--ensure there's a constructor
+			if (k == sName) then
+				--make sure there's not already a constructor
+				assert(not bIsConstructor, "Error creating class, ${class}. Redundant constructor detected in '${table}' table." % {class = sName, table = sTable});
 
-	for name, member in pairs(other) do
-		class[name] = member;
-	end
+				--make sure it's in either the private or public table
+				assert(sTable == "private" or sTable == "public", "Error creating class, ${class}. Constructor must be declared in either the 'private' or 'public' table. Currently declared in the '${table}' table." % {class = sName, table = sTable});
 
-	return class;
-end;
-
-
---[[!
-@mod class
-@func is_derived
-@scope private
-@desc Class extender. I.e., when you do `class "test" : extends(other) {}`.
-@ret boolean Returns true if `class` is a derived class (a child) of `base`.
-!]]
-function is_derived(class, base)
-	if (class == base) then
-		return true;
-	end
-
-	local mt = getmetatable(class)
-	if (mt.__parent) then
-		return is_derived(mt.__parent, base);
-	end
-
-	return false;
-end
-
-
--- is_object returns true if `instance` is an object of a class--this is not right
---[[function is_object(instance)
-	local tMeta = getmetatable(instance);
-	return tMeta and type(tMeta.__class) == "class";
-end]]
-
-
-
-
-
--- is_instance_of returns true if `object` is an instance of `base` or any of its derived classes.
--- It also returns true if `object` is in fact a class and it is derived from `base` (basically, is_derived)
-function is_instance_of(object, base)
-	assert(is_object(object) or type(object) == "class", "cannot determine base class of `" .. type(object) .. "`");
-
-	if (type(object) == "class") then
-		return is_derived(object, base);
-	end
-
-	local mt = getmetatable(object);
-	if (mt and type(mt.__class) == "class") then
-		return is_derived(mt.__class, base);
-	end
-
-	return false;
-end
-
---[[!
-@mod class
-@func isbase
-@desc Determines if a class is a child class or a base.
-@ret boolean boolean Returns true is this is a base class.
-!]]
-function is_base(class_object)
-	return getmetatable(class_object).__parent == nil;
-end
-
-
---[[!
-@mod class
-@func getbase
-@desc Determines the class from which this is derived (or itself if not derived).
-@ret class MyClass Returns the class from which this is derived.
-!]]--get the base of this class (or itself)
-function get_base(class_object)
-	local ret = class_object;
-
-	local parent = getmetatable(class_object).__parent;
-
-	while (parent) do
-		ret = parent;
-		parent = getmetatable(parent).__parent;
-	end
-
-	return ret;
-end
-
-
-
---[[!
-@mod class
-@func class
-@desc Constructor for class instances. The generic class constructor, which also invokes your __construct method if it exists.
-@ret class MyClass A class object.
-!]]
-local function class_ctor(class, ...)
-	assert(type(class) == "class", "cannot construct, invalid class");
-	local instance = setmetatable({}, getmetatable(class).__instance_mt);
-
-	--NEW CODE TESTING
-
-
-	if (type(class.__construct) == "function") then
-		--passing nil here (as the second argument), ensures
-		--that calls to this contructor which come not from
-		--a child class do not propogate a protected table
-		--while still maintaining argument order integrity
-		class.__construct(instance, tProtectedFieldsAndMethods[class], ...);
-	end
-
-	return instance;
-end
-
-
---[[!
-@mod class
-@func class
-@desc Constructor for class instances.
-@ret class MyClass A class object.
-!]]
-local function class(_, name)
-	local class_meta   = { __type = name, __is_luaex_class = true, __parent = nil };
-	local class_object 	= {};
-
-	--create an 'is' function for this class (used for checking if a given value is this class's type)
-	loadstring([[function is${classname}(vInput)
-		return type(vInput) == "${classname}";
-	end]] % {classname = name})();
-
-	-- first return an intermediate class, on which you still need to call
-	-- with the method table. i.e. this is the stage that handles `class "name"`
-	-- the returned object allows for `class "name" : extends(other)`
-	return setmetatable(class_object, {
-		__index = { extends = extendor };
-		__type  = "iclass"; 						-- intermediate class
-		__call  = function(class_object, members)	-- the actual definer, this puts the class in _G and adds the methods (no longer puts it in _G...has been localized)
-
-			if (type(rawget(tProtectedFieldsAndMethods, class_object)) == "nil") then
-				--create an index for this class's (and relatives') shared fields and methods
-				local parent = getmetatable(class_object).__parent;
-				tProtectedFieldsAndMethods[class_object] = parent and tProtectedFieldsAndMethods[parent] or {};
+				bIsConstructor = true;
 			end
 
-			-- add all methods to the class, possibly overloading members that were copied by `extends`
-			for member_name, member in pairs(members) do
-				class_object[member_name] = member;
-			end
+		end
 
-			-- for each present member in the class, see if we need to handle metamethods.
-			-- these need to be placed in the class metatable
-			for member_name, member in pairs(class_object) do
-				if (metanames[member_name] and member_name ~= "__index" and member_name ~= "__newindex") then
-					class_meta[member_name] = member;
-				end
-			end
+	end
 
-			-- each class has a super method, which allows you to invoke the parent constructor
-			-- i.e. in your __construct(this): `this:super(a, b, c)`
-			class_object.super = function(instance, ...)
-				local parent = getmetatable(class_object).__parent;
-				if (parent and type(parent.__construct) == "function") then
-					local current_mt = getmetatable(instance);
-					parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tProtectedFieldsAndMethods[class_object], ...);
-					setmetatable(instance, current_mt);
-					return;
-				end
-			end;
 
-			-- keep track of the class object in its own metatable, this helps
-			-- us with is_instance_of for example.
-			class_meta.__class = class_object;
 
-			--[[
-				handle the __index metamethod separately, it is prioritized from high (1) to low (n)
-				1. does the key exist in the class definition, return that
-				2. does the class have an __index metamethod, invoke that
+	--TODO ensure there's a clone method???
 
-				if this does not occur, there is nothing to be found.
-				this function is only called if [vKey] does not already exist in the object, so
-				properties are already handled.
-			]]
-			class_meta.__index = function(object, vKey)
-				local bKeyIsInClass = rawget(class_object, vKey);
-				if (bKeyIsInClass) then
-					return bKeyIsInClass;
-				end
-
-				local __index = rawget(class_object, "__index");
-				if (type(__index) == "function") then
-					return __index(object, vKey);
-				end
-			end;
-
-			--[[
-				similar to __index, __newindex is handled separately. It is also prioritized, in the same order.
-				In this case, however, the property needs to be set to the object in the last case;
-
-				1. does the key exist in the class definition, error; you cannot shadow method names
-				2. does the class have a __newindex metamethod, invoke that and return
-				3. set the value to the instance/object using [vKey] as its index
-			]]
-			class_meta.__newindex = function(object, vKey, value)
-				local bKeyIsInClass = rawget(class_object, vKey);
-				if (bKeyIsInClass) then
-					error("setting the key `" .. tostring(vKey) .. "` would overwrite a method", 2);
-				end
-
-				local __newindex = rawget(class_object, "__newindex");
-				if(type(__newindex) == "function")then
-					__newindex(object, vKey, value);
-					return;
-				end
-
-				rawset(object, vKey, value);
-			end;
-
-			-- export the class to global scope with a new metatable, now with the type "class".
-			-- when called, you construct a new object of this class.
-			return setmetatable(class_object, { __type = "class", __is_luaex_class = true, __call = class_ctor, __instance_mt = class_meta, __parent = getmetatable(class_object).__parent });
-		end;
-	});
+	assert(bIsConstructor, "Error creating class, ${class}. No constructor provided." % {class = sName});
 end
 
-return setmetatable(
+
+local function extends(sName, sExtendor)
+	local bRet = false;
+
+	--check that the extending class exists
+	if (type(sExtendor) == "string") then
+		assert(type(tClasses[sExtendor]) ~= "nil", "Error extending class, ${class}. Parent class, ${item}, does not exists. Got (${type}) ${item}."	% {class = sName, 	type = type(sExtendor), 	item = tostring(sExtendor)});
+		--TODO made sure it's not already a child of this parent!@
+		bRet = true;
+	end
+
+	return bRet;
+end
+
+local function getparent(sName)
+	local tRet 		= nil;
+	local tClass 	= tClasses[sName];
+
+	if (type(tClass.parent) ~= "nil" and tClasses[tClass.parent]) then
+		tRet = tClasses[tClass.parent];
+	end
+
+	return tRet;
+end
+
+local function fieldindex(t, k)
+	error("Item ${field} is not present in class '${class}'." % {field = tostring(k), class = sName});
+end
+
+local function fieldnewindex(t, k, v)
+	error("Cannot add item to sealed class '${class}'." % {field = tostring(k), class = sName});
+end
+
+
+--[[TODO
+static protected/public items may not be overriden by child classes
+
+]]
+local function class(sName, tMetamethods, tStaticProtected, tStaticPublic, tPrivate, tProtected, tPublic, sExtendor, tImplements)--TODO assertions on input TODO allow the choice of local or global class (use "local" and "global" subtables in tClasses to accomodate)
+	--make sure the input is good
+	checkinput(sName, tMetamethods, tStaticProtected, tStaticPublic, tPrivate, tProtected, tPublic, sExtendor, tImplements);
+
+	local class_meta   	= { __type = sName, __is_luaex_class = true, __parent = nil };
+    local tClass 		= {
+		metamethods 	= {},
+		staticprotected = {},
+		staticpublic 	= {},
+		private			= {},
+		protected 		= {},
+		public      	= {},
+	};
+	local bExtend 		= extends(sName, sExtendor);
+
+--[[██████╗ ██████╗ ███████╗ ██████╗ ██████╗ ███╗   ███╗██████╗ ██╗██╗     ███████╗
+	██╔══██╗██╔══██╗██╔════╝██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║██║     ██╔════╝
+	██████╔╝██████╔╝█████╗  ██║     ██║   ██║██╔████╔██║██████╔╝██║██║     █████╗
+	██╔═══╝ ██╔══██╗██╔══╝  ██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║██║     ██╔══╝
+	██║     ██║  ██║███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ██║███████╗███████╗
+	╚═╝     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝
+	Items get stored for later use in building other classes.
+	The original, input data is not modified but, rather,
+	preserved to be used in building a class object
+	(including the current one).]]
+
+	--a key table for matching visibility type with input tables
+	local tVisibilites = {
+		metamethods 	= tMetamethods,
+		staticprotected = tStaticProtected,
+		staticpublic 	= tStaticPublic,
+		private    		= tPrivate,
+		protected  		= tProtected,
+		public     		= tPublic,
+	};
+
+	--create the class table
+	tClasses[sName] = {
+		children		= {},
+		parent			= bExtend and tClasses[sExtendor] or nil,
+		name 			= sName,
+		metamethods 	= {},
+		staticprotected = {},
+		staticpublic 	= {},
+		private			= {},
+		protected 		= {},
+		public      	= {},
+	};
+
+	--process the class items and store them in the appropriate table
+	for sVisibility, tInputMembers in pairs(tVisibilites) do
+
+		for k, v in pairs(tInputMembers) do
+			--ensure k is both a string and it's variable compliant
+			assert(type(k) == "string", "Error creating class '${class}'. Member name must be a non-blank, variable-complaint string. Got type ${type}" % {class = sName, type = type(k)}); --TODO should I allow non-string items (such as enums)?
+			assert(k:isvariablecompliant(), "Error creating class '${class}'. Member name must be a non-blank, variable-complaint string. Got type ${str}" % {class = sName, str = k});
+			tClasses[sName][sVisibility][k] = v;
+		end
+
+	end
+
+
+--[[██████╗ ██╗   ██╗██╗██╗     ██████╗      ██████╗██╗      █████╗ ███████╗███████╗
+	██╔══██╗██║   ██║██║██║     ██╔══██╗    ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
+	██████╔╝██║   ██║██║██║     ██║  ██║    ██║     ██║     ███████║███████╗███████╗
+	██╔══██╗██║   ██║██║██║     ██║  ██║    ██║     ██║     ██╔══██║╚════██║╚════██║
+	██████╔╝╚██████╔╝██║███████╗██████╔╝    ╚██████╗███████╗██║  ██║███████║███████║
+	╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝      ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+	This is where the class is built. The parent classes are sorted in descending
+	order and each of their protected and public items added to the class. Then,
+	the provided, input items are added to the class, potentially overriding parent
+	items including methods and fields.]]
+
+	local function importclassitems(tImportFrom, sTableName)
+
+		--import the members
+		for k, v in pairs(tImportFrom[sTableName]) do
+			tClass[sTableName][k] = v;
+		end
+
+	end
+
+	--process the parents
+	local tParents = {};
+
+	--create the tParents table with top-most classes in descending order
+	if (bExtend) then
+		local tParent = getparent(sExtendor);
+		tParent.children[sName] = tClasses[sName];
+
+		while tParent ~= nil do
+			table.insert(tParents, 1, tParent);
+			tParent = getparent(tParent.name);
+		end
+
+	end
+
+	--import all the parents' protected and public members
+	for _, tParent in ipairs(tParents) do
+		--import the metamethods
+		importclassitems(tParent, "metamethods");
+
+		--import the protected items
+		importclassitems(tParent, "protected");
+
+		--import the public items
+		importclassitems(tParent, "public");
+	end
+
+	--import all the class members
+	importclassitems(tClasses[sName], "metamethods");
+	importclassitems(tClasses[sName], "private");
+	importclassitems(tClasses[sName], "protected");
+	importclassitems(tClasses[sName], "public");
+
+	--determine if there are parents
+	--setup parent functions
+	--import parent functions from top-most to lowest
+	--import class objects (possibly overriding parent functions and protected values)TODO should i enforce value type? Probably!
+	--TODO class items may NOT override parent static values --use a metatable and shadow table to prevent additions and changes to the static tables
+	--TODO check for construct and check for clone methods
+
+    local oClass = setmetatable(tClass, {--TODO seal metatable upon return
+		__type 	= "class",
+        __call  = function(tClass, ...)
+			local tInstance 	= {}; --actual
+			local tShadow 		= { --shadow
+				metamethods 		= {},
+				private				= {},
+				protected 			= {},
+				public      		= {},
+			};
+			local tInstanceMeta = {
+				__type = sName,
+				__blarg = "asdasd",
+			};
+--TODO pull out the contructor --Adjust for priavte or public constructor
+			--import the instance members
+			for sVisibility, tVisibility in pairs(tShadow) do
+
+				for k, v in pairs(tClass[sVisibility]) do
+					local sTypeV 	= type(v);
+					local sRawTypeV = rawtype(v);
+
+					if (type(v) == "function") then
+						tShadow[sVisibility][k] = function(...) return v(tInstance, tClass.staticprotected, tShadow.private, tShadow.protected, tShadow.public, ...); end;
+
+					elseif (sTypeV == "table") then
+						tShadow[sVisibility][k] = table.clone(v);
+
+					elseif (sRawTypeV == "table") then
+						local tMeta = getmetatable(v);
+
+						if (tMeta and tMeta.__is_luaex_class) then
+							tShadow[sVisibility][k] = v.clone();
+
+						else
+							tShadow[sVisibility][k] = table.clone(v);
+
+						end
+
+					else
+						tShadow[sVisibility][k] = v;
+
+					end
+
+				end
+
+			end
+
+			--setup the instance metatable
+			for k, v in pairs(tShadow.metamethods) do
+
+				if (tMetaNames[k] and k ~= "__index" and k ~= "__newindex" and k ~= "__type" and type(v) == "function") then
+					--TODO create each function indidually,...
+					tInstanceMeta[k] = v;
+				end
+
+			end
+
+			tInstanceMeta.__index = function(t, k)
+				local vRet = rawget(tShadow.public, k);
+
+				if (vRet) then
+					return vRet;
+				else
+					error("Index '${index}' not found in class, ${class}." % {index = tostring(k), class = sName});
+				end
+
+			end
+
+			tInstanceMeta.__newindex = function(t, k, v)
+
+			end
+
+			--seal the intance's metatable
+			--tInstanceMeta.__metatable = error("Attempt to access sealed metatable in class instance, ${class}" % {class = sName});
+
+			--set the intance's metatable
+			tInstance = setmetatable(tInstance, tInstanceMeta);
+
+			--run the constructor
+			--TODO remove the constructor from the public or private table and store somewhere else...run it here
+
+			return tInstance;
+        end,
+		__index = function(t, k)--TODO use to get static values
+
+		end,
+		__newindex = function(t, k, v)--TODO use to set static values
+
+		end,
+    });
+
+	rawset(_G, sName, oClass);
+end
+
+--[[
+class("Creature",
+--metamethods
 {
-	getbase 		= get_base,
-	isbase 			= is_base,
-	isderived		= is_derived,
-	isinstanceof 	= is_instance_of,
-	--isobject		= is_object,
+	__add = function(this, pri, pro, pub, left, right)
+		return pro.HP + right;
+	end,
 },
+--private
 {
-	__call = class,
+
+},
+--protected
+{
+	HP = 0,
+},
+--public
+{
+	Creature = function(this, pri, pro, pub)
+
+	end,
+
+	GetHP = function(this, pri, pro, pub)
+		return pro.HP;
+	end,
+
+	SetHP = function(this, pri, pro, pub, nValue)
+		pro.HP = nValue;
+	end,
+
 
 });
+]]
+--local Boo = Creature();
+--local Hu = Creature();
+
+--print(type(Boo))
+--print(serialize.table(getmetatable(Boo)))
+--Boo.Draft = 556;
+--Boo.SetHP(45);
+--Hu.SetHP(20);
+--print(Boo + Hu)
+--Creature.Test = 45;
+--print(getmetatable(Creature))
+
+return class;

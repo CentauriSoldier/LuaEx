@@ -250,19 +250,25 @@ function table.unlock(tInput)
 
 end
 
---TODO finish this.
 function table.merge(tMergeInto, tToMergeFrom)
 
-	if (rawtype(tMergeInto) == "table" and rawtype(tToMergeFrom) == "table") then
+	if type(tMergeInto) == "table" and type(tToMergeFrom) == "table" then
 
 		for k, v in pairs(tToMergeFrom) do
-			tMergeInto[k] = v;
+
+			if type(v) == "table" then
+				tMergeInto[k] = table.merge(tMergeInto[k] or {}, v);
+			else
+				tMergeInto[k] = v;
+			end
+
 		end
 
 	end
 
 	return tMergeInto;
 end
+
 
 --[[
 --http://lua-users.org/wiki/SortedIteration

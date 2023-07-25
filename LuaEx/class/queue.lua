@@ -1,4 +1,4 @@
-local tQueues = {};
+--local tQueues = {};
 
 --localization
 local assert 		= assert;
@@ -9,25 +9,30 @@ local serialize		= serialize;
 local table			= table;
 local type 			= type;
 
-return class "queue" {
-
-	 __construct = function(this, protected)
-		tQueues[this] = {
-			count 	= 0,
-			values 	= {},
-		};
-	end,
-
-
+return class("queue",
+--metamethods
+{
 	__len = function(this)--doesn't work in < Lua v5.2
 		return tQueues[this].count;
 	end,
+},
+{},--static protected
+{},--static public
+{
+	count 	= 0,
+	values 	= {},
+},--private
+{},--protected
+--public
+{
+	queue = function(this, spro, pri, pro, pub)
 
+   end,
 
-	enqueue = function(this, vValue)
+	enqueue = function(this, spro, pri, pro, pub, vValue)
 
 		if (rawtype(vValue) ~= "nil") then
-			local tFields = tQueues[this];
+			local tFields = pri;
 			table.insert(tFields.values, #tFields.values + 1, vValue);
 			tFields.count = tFields.count + 1;
 			return vValue;
@@ -36,36 +41,37 @@ return class "queue" {
 	end,
 
 
-	destroy = function(this)
+	--[[destroy = function(this)
 		tQueues[this] = nil;
 		this = nil;
-	end,
+	end,]]
 
 
-	dequeue = function(this)
+	dequeue = function(this, spro, pri, pro, pub)
 		local vRet = nil;
+		local tFields = pri;
 
-		if (tQueues[this].count > 0) then
-			vRet = table.remove(tQueues[this].values, 1);
-			tQueues[this].count = tQueues[this].count - 1;
+		if (pri.count > 0) then
+			vRet = table.remove(pri.values, 1);
+			pri.count = pri.count - 1;
 		end
 
 		return vRet;
 	end,
 
 
-	size = function(this)
-		return tQueues[this].count;
+	size = function(this, spro, pri, pro, pub)
+		return pri.count;
 	end,
 
 
-	values = function(this)
+	values = function(this, spro, pri, pro, pub)
 		local tRet = {};
 
-		for nIndex = 1, tQueues[this].count do
-			tRet[nIndex] = tQueues[this].values[nIndex];
+		for nIndex = 1, pri.count do
+			tRet[nIndex] = pri.values[nIndex];
 		end
 
 		return tRet;
 	end,
-};
+});

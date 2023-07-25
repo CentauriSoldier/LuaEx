@@ -102,6 +102,53 @@ end
 
 local str = serialize.string;
 
+function serialize.tableGPT(tbl, indent)
+  local serialized_tbl = {}
+  local sTab = string.rep(" ", indent or 0)
+
+  for key, value in pairs(tbl) do
+    local serialized_key = ""
+    local serialized_value = ""
+
+    -- Check if key has a Serialize function
+    if key.Serialize then
+      serialized_key = key:Serialize()
+    elseif key.serialize then
+      serialized_key = key:serialize()
+    else
+      serialized_key = tostring(key)
+    end
+
+    -- Check if value has a Serialize function
+    if value.Serialize then
+      serialized_value = value:Serialize()
+    elseif value.serialize then
+      serialized_value = value:serialize()
+    elseif type(value) == "table" then
+      serialized_value = serialize.table(value, (indent or 0) + 2) -- Recursively serialize nested tables
+    elseif type(value) == "string" then
+      serialized_value = string.format("%q", value) -- Quote and escape special characters in strings
+    else
+      serialized_value = tostring(value)
+    end
+
+    -- Create the serialized index
+    if type(key) == "number" then
+      serialized_key = "[" .. serialized_key .. "]"
+    else
+      serialized_key = "[\"" .. serialized_key .. "\"]"
+    end
+
+    -- Concatenate the serialized key and value
+    local line = sTab .. serialized_key .. " = " .. serialized_value
+    table.insert(serialized_tbl, line)
+  end
+
+  -- Join the serialized lines with newlines
+  return table.concat(serialized_tbl, "\r\n")
+end
+
+
 --TODO serialize metatable (if possible)???
 function serialize.table(tTable, nTabCount)
 	nTabCount = (rawtype(nTabCount) == "number" and nTabCount > 0) and nTabCount or 0;
@@ -139,7 +186,10 @@ function serialize.table(tTable, nTabCount)
 			elseif (sType == "table") then
 
 				--if this has a (S)serializtion function or method, call it TODO does this need to a class in order to use the ":" operator?
-				if (rawtype(vItem.serialize) == "function") then
+				local mt = getmetatable(vItem)
+				if mt and rawtype(mt.__tostring) == "function" then
+					sRet = sRet..sIndex.." = "..tostring(vItem)..",";
+				elseif (rawtype(vItem.serialize) == "function") then
 					sRet = sRet..sIndex.." = "..vItem:serialize()..",";
 				elseif (rawtype(vItem.Serialize) == "function") then
 					sRet = sRet..sIndex.." = "..vItem:Serialize()..",";

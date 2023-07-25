@@ -1,6 +1,7 @@
 local error			= error;
 local getmetatable	= getmetatable;
 local ipairs 		= ipairs;
+local math 			= math;
 local pairs 		= pairs;
 local rawget		= rawget;
 local rawset		= rawset;
@@ -87,7 +88,9 @@ local tReservedIndices = {
 	"__count",
 	"__hasa",
 	"__name",
+	"random",
 	"serialize",
+	"totable",
 };
 
 local nReservedIndices = #tReservedIndices;
@@ -323,8 +326,28 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
 		return type(oItem) == sEnumName;
 	end
 	tEnumActual.__name 	= sEnumName;
+	tEnumActual.random = function()
+		return tEnumActual[tItemsByOrdinal[math.random(1, nItemCount)]];
+	end
 	tEnumActual.serialize = function()
 		return sEnumName;
+	end
+	tEnumActual.totable = function(vInputValue)
+	    local tRet 				= {};
+		local bUseInputValue 	= type(vInputValue) ~= "nil";
+		local vValue 			= vInputValue;
+
+	    for nOrdinal, eValue in ipairs(tEnumActual) do
+
+			if (bUseInputValue) then
+	        	tRet[eValue] = vInputValue;			
+			else
+				tRet[eValue] = eValue.value;
+			end
+
+	    end
+
+	    return tRet;
 	end
 
 	--used to iterate over each item in the enum

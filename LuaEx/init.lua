@@ -133,7 +133,7 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 					"nil", 		"not", 		"or", 		"repeat", 	"return", 	"then",
 					"true", 	"until", 	"while",
 					--LuaEx keywords
-					"constant", 	"enum", 	"struct",	"null"
+					"constant", 	"enum", 	"struct",	"null",	"class",	"interface",
 };
 
 --create the 'protected' table used by LuaEx
@@ -193,7 +193,7 @@ enum		= 	require("LuaEx.lib.enum");
 struct		= 	require("LuaEx.lib.struct");
 source		=	require("LuaEx.util.source");
 --run the 'directives'
-directive	=	require("LuaEx.lib.directive");
+--directive	=	require("LuaEx.lib.directive");
 
 --setup the global environment to properly manage enums, constants and their ilk
 setmetatable(_G,
@@ -207,18 +207,19 @@ setmetatable(_G,
 
 			rawset(t, k, v);
 		end,
-		__metatable = false,
+		--__metatable = false,
 		__index = _G.__LUAEX__,
 	}
 );
-
-class 		= require("LuaEx.class.class");
-base64 		= require("LuaEx.ext_lib.base64");
 
 --import lua extension modules (except 'typehook' which is loaded first [above])
 math 		= require("LuaEx.hook.mathhook");
 string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");
+
+interface	= require("LuaEx.class.interface");
+class 		= require("LuaEx.class.class");
+base64 		= require("LuaEx.ext_lib.base64");
 
 --import infusedhelp module
 infusedhelp	= require("LuaEx.class.infusedhelp");

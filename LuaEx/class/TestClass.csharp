@@ -1,0 +1,25 @@
+class Monster extends Creature {
+
+    -FIELDS-
+    private string Name;
+    private number HP;
+    private number MP;
+
+    -CONSTRUCTOR-
+    construct = function(this, sName)
+        this.Name   = sName;
+        this.HP     = 0;
+        this.MP     = 0;
+    end
+
+    -METHODS-
+    GetHP = function(this)
+        return this.HP;
+    end
+
+    GetMP = function(this)
+        return this.MP;
+    end
+
+
+}
