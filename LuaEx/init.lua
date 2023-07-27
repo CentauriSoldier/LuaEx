@@ -229,10 +229,13 @@ serialize 	= require("LuaEx.util.serialize");
 deserialize = require("LuaEx.util.deserialize");
 
 --import classes
-queue 		= require("LuaEx.class.queue");
-stack 		= require("LuaEx.class.stack");
-set 		= require("LuaEx.class.set");
-ini 		= require("LuaEx.class.ini");
+require("LuaEx.class.queue");
+--queue 		= require("LuaEx.class.queue");
+require("LuaEx.class.stack");
+--stack 		= require("LuaEx.class.stack");
+--set 		= require("LuaEx.class.set");
+require("LuaEx.class.set");
+--ini 		= require("LuaEx.class.ini"); --TODO convert to new class system
 
 --now that everything has loaded, create aliases
 table.serialize 	= serialize.table;

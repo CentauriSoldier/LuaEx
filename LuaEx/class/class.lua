@@ -7,7 +7,13 @@ local tClasses 			= {};
 
 --create a class system with inheritence, polymorphism and encapsulation
 -- __index and __newindex are special cases, handled separately
-local tMetaNames = {__add = true, __band = true, __bnot = true, __bor = true, __bxor = true, __close	= true,	__concat = true, __div = true, __eq	= true,	__gc = true, __idiv	= true,	__index = true,	__le = true, __len = true, __lt	= true,	__mod = true, __mode = true, __mul = true, __name = true, __newindex = true, __pow = true, __shl = true, __shr = true, __sub = true, __tostring	= true, __unm = true};
+local tMetaNames = {__add = true, 		__band = true, 		__bnot = true, 	__bor = true,
+					__bxor = true, 		__call = true, 		__close = true, __concat = true,
+					__div = true, 		__eq	= true,		__gc = true, 	__idiv	= true,
+					__index = true,		__le = true, 		__len = true, 	__lt	= true,
+					__mod = true, 		__mode = true, 		__mul = true,	__name = true,
+					__newindex = true, 	__pow = true, 		__shl = true,	__shr = true,
+					__sub = true, 		__tostring	= true, __unm = true};
 
 --localization
 local assert        = assert;
@@ -49,7 +55,7 @@ local function checkinput(sName, tMetamethods, tStaticProtected, tStaticPublic, 
 			assert(type(k) == "string", "Error creating class, ${class}. All table indices must be of type string. Got: (${type}) ${item} in table '${table}'" % {class = sName, type = type(k), item = tostring(v), table = sTable});
 
 			--ensure there's a constructor
-			if (k == sName) then
+			if (k == sName and type(v) == "function") then
 				--make sure there's not already a constructor
 				assert(not bIsConstructor, "Error creating class, ${class}. Redundant constructor detected in '${table}' table." % {class = sName, table = sTable});
 
@@ -156,7 +162,7 @@ local function class(sName, tMetamethods, tStaticProtected, tStaticPublic, tPriv
 		protected 		= {},
 		public      	= {},
 	};
-
+	tClassStaticPublic	= {};
 	--process the class items and store them in the appropriate table
 	for sVisibility, tInputMembers in pairs(tVisibilites) do
 
@@ -210,6 +216,12 @@ local function class(sName, tMetamethods, tStaticProtected, tStaticPublic, tPriv
 		--import the metamethods
 		importclassitems(tParent, "metamethods");
 
+		--import the staticprotected
+		--importclassitems(tParent, "staticprotected");
+
+		--import the staticpublic
+		importclassitems(tParent, "staticpublic");--TODO left off here...gotta think this through
+
 		--import the protected items
 		importclassitems(tParent, "protected");
 
@@ -233,16 +245,17 @@ local function class(sName, tMetamethods, tStaticProtected, tStaticPublic, tPriv
     local oClass = setmetatable(tClass, {--TODO seal metatable upon return
 		__type 	= "class",
         __call  = function(tClass, ...)
-			local tInstance 	= {}; --actual
-			local tShadow 		= { --shadow
-				metamethods 		= {},
-				private				= {},
-				protected 			= {},
-				public      		= {},
+			local bConstructorFound = false;
+			local fConstructor 		= nil;
+			local tInstance 		= {}; --actual
+			local tShadow 			= { --shadow
+				metamethods 			= {},
+				private					= {},
+				protected 				= {},
+				public      			= {},
 			};
 			local tInstanceMeta = {
 				__type = sName,
-				__blarg = "asdasd",
 			};
 --TODO pull out the contructor --Adjust for priavte or public constructor
 			--import the instance members
@@ -253,7 +266,14 @@ local function class(sName, tMetamethods, tStaticProtected, tStaticPublic, tPriv
 					local sRawTypeV = rawtype(v);
 
 					if (type(v) == "function") then
-						tShadow[sVisibility][k] = function(...) return v(tInstance, tClass.staticprotected, tShadow.private, tShadow.protected, tShadow.public, ...); end;
+
+						if (not bConstructorFound and k == sName) then
+							--here, we save the constructor for later but don't place it into the instance table
+							fConstructor 			= v;
+							bConstructorFound 		= true;
+						else
+							tShadow[sVisibility][k] = function(...) return v(tInstance, tClass.staticprotected, tShadow.private, tShadow.protected, tShadow.public, ...); end;
+						end
 
 					elseif (sTypeV == "table") then
 						tShadow[sVisibility][k] = table.clone(v);
@@ -282,7 +302,7 @@ local function class(sName, tMetamethods, tStaticProtected, tStaticPublic, tPriv
 			for k, v in pairs(tShadow.metamethods) do
 
 				if (tMetaNames[k] and k ~= "__index" and k ~= "__newindex" and k ~= "__type" and type(v) == "function") then
-					--TODO create each function indidually,...
+					--TODO create each function indidually,...TODO remove mdofication from above and do it here
 					tInstanceMeta[k] = v;
 				end
 
@@ -303,22 +323,27 @@ local function class(sName, tMetamethods, tStaticProtected, tStaticPublic, tPriv
 
 			end
 
-			--seal the intance's metatable
-			--tInstanceMeta.__metatable = error("Attempt to access sealed metatable in class instance, ${class}" % {class = sName});
-
 			--set the intance's metatable
 			tInstance = setmetatable(tInstance, tInstanceMeta);
 
 			--run the constructor
-			--TODO remove the constructor from the public or private table and store somewhere else...run it here
+			fConstructor(tInstance, tClass.staticprotected, tShadow.private, tShadow.protected, tShadow.public, ...);
 
 			return tInstance;
         end,
+
 		__index = function(t, k)--TODO use to get static values
+			local vRet = rawget(tClass.staticpublic, k) or nil;
 
+			if (vRet == nil) then
+				error("Key '${key}' not found in class, ${class}." % {class = sName, key = tostring(k)});
+			end
+
+			return vRet;
 		end,
-		__newindex = function(t, k, v)--TODO use to set static values
 
+		__newindex = function(t, k, v)--TODO use to set static values
+			--rawset(tClassStaticPublic, k, v);
 		end,
     });
 

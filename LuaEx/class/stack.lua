@@ -1,5 +1,3 @@
-local tStacks = {};
-
 --localization
 local assert 		= assert;
 local class 		= class;
@@ -10,70 +8,68 @@ local table			= table;
 local type 			= type;
 
 return class("stack",
-{
-	 __len = function(this)--doesn't work in < Lua v5.2
-		return tStacks[this].count;
+{--metamethods
+	 __len = function(this, spro, pri, pro, pub)--doesn't work in < Lua v5.2
+		return pri.count;
 	end,
 },
-{},
-{},
-{},
-{},
+{},--static protected
+{bug = 5},--static public
 {
-	stack = function(this)
-	   tStacks[this] = {
-		   count 	= 0,
-		   values	= {},
-	   };
+	count,
+	values,
+},--private
+{},--protected
+{--public
+	stack = function(this, spro, pri, pro, pub)
+		   pri.count 	= 0;
+		   pri.values	= {};
    end,
 
 	--TODO complete serialization
-	deserialize = function()
+	deserialize = function(this, spro, pri, pro, pub)
 
 	end,
 
 
-	destroy = function(this)
+--[[	destroy = function(this, spro, pri, pro, pub)
 		tQueues[this] = nil;
 		this = nil;
 	end,
+]]
 
+	pop = function(this, spro, pri, pro, pub)
 
-	pop = function(this)
-		local vRet = nil;
-		local tFields = tStacks[this];
-
-		if (rawtype(tFields.values[1]) ~= "nil") then
-			vRet = table.remove(tFields.values, 1);
-			tFields.count = tFields.count - 1;
+		if (rawtype(pri.values[1]) ~= "nil") then
+			vRet = table.remove(pri.values, 1);
+			pri.count = pri.count - 1;
 		end
 
 		return vRet;
 	end,
 
 
-	push = function(this, vValue)
+	push = function(this, spro, pri, pro, pub, vValue)
 
 		if (rawtype(vValue) ~= "nil") then
-			local tFields = tStacks[this];
-			table.insert(tFields.values, 1, vValue);
-			tFields.count = tFields.count + 1;
+			table.insert(pri.values, 1, vValue);
+			pri.count = pri.count + 1;
 		end
 
 		return this;
 	end,
 
 
-	size = function(this)
-		return tStacks[this].count;
+	size = function(this, spro, pri, pro, pub)
+		return pri.count;
 	end,
 
 
-	values = function(this)
+	values = function(this, spro, pri, pro, pub)
 		local tRet = {};
 
-		for nIndex = 1, tStacks[this].count do
-			tRet[nIndex] = tStacks[this].values[nIndex];
+		for nIndex = 1, pri.count do
+			tRet[nIndex] = pri.values[nIndex];
 		end
 
 		return tRet;

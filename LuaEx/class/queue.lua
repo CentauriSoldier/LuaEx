@@ -10,31 +10,29 @@ local table			= table;
 local type 			= type;
 
 return class("queue",
---metamethods
-{
+{--metamethods
 	__len = function(this)--doesn't work in < Lua v5.2
 		return tQueues[this].count;
 	end,
 },
 {},--static protected
 {},--static public
-{
-	count 	= 0,
-	values 	= {},
-},--private
+{--private
+	count,
+	values,
+},
 {},--protected
---public
-{
+{--public
 	queue = function(this, spro, pri, pro, pub)
-
+		pri.count 	= 0;
+		pri.values 	= {};
    end,
 
 	enqueue = function(this, spro, pri, pro, pub, vValue)
 
 		if (rawtype(vValue) ~= "nil") then
-			local tFields = pri;
-			table.insert(tFields.values, #tFields.values + 1, vValue);
-			tFields.count = tFields.count + 1;
+			table.insert(pri.values, #pri.values + 1, vValue);
+			pri.count = pri.count + 1;
 			return vValue;
 		end
 

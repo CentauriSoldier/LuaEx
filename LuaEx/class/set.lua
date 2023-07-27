@@ -1,108 +1,106 @@
-local tSets = {};
-
 local pairs = pairs;
 local table = table;
 
-local function addItem(this, vItem)
-	local bRet = false;
-	local oSet = tSets[this];
+return class("set",
+{--metamethods
+	__call = function(this, spro, pri, pro, pub)
+	   local nIndex = 0
+	   local nMax = pri.size;
 
-	if (oSet.set[vItem] == nil) then
-		oSet.set[vItem] 		= true;
-		oSet.size 				= oSet.size + 1;
-		oSet.indexed[oSet.size] = vItem;
+	   return function ()
+	      nIndex = nIndex + 1;
 
-		bRet = true;
+	      if (nIndex <= nMax) then
+	         return pri.indexed[nIndex];
+	      end
+
+	   end
+
+   end,
+
+	__tostring = function(this, spro, pri, pro, pub)
+		local sRet = "{";
+
+		--for item in this() do
+		--	sRet = sRet..tostring(item)..", ";
+		--end
+
+		return sRet:sub(1, #sRet - 2).."}";
 	end
+},
+{},--static protected
+{},--static public
+{--private
+	indexed = {},
+	set		= {},
+	size 	= 0,
 
-	return bRet;
-end
+	addItem = function(this, spro, pri, pro, pub, vItem)
+		local bRet = false;
 
-local function removeItem(this, vItem)
-	local bRet = false;
-	local oSet = tSets[this];
+		if (pri.set[vItem] == nil) then
+			pri.set[vItem] 			= true;
+			pri.size 				= pri.size + 1;
+			pri.indexed[pri.size] 	= vItem;
 
-	if (oSet.set[vItem] ~= nil) then
-		oSet.set[vItem] = nil;
-
-		for x = 1, oSet.size do
-
-			if (oSet.indexed[x] == vItem) then
-				table.remove(oSet.indexed, x);
-				break;
-			end
-
+			bRet = true;
 		end
 
-		oSet.size = oSet.size - 1;
+		return bRet;
+	end,
 
-		bRet = true;
-	end
+	removeItem = function(this, spro, pri, pro, pub, vItem)
+		local bRet = false;
 
-	return bRet;
-end
+		if (pri.set[vItem] ~= nil) then
+			pri.set[vItem] = nil;
 
-function iterator (this)
-   local nIndex = 0
-   local nMax = tSets[this].size;
+			for x = 1, pri.size do
 
-   return function ()
-      nIndex = nIndex + 1
+				if (pri.indexed[x] == vItem) then
+					table.remove(pri.indexed, x);
+					break;
+				end
 
-      if (nIndex <= nMax) then
-         return tSets[this].indexed[nIndex];
-      end
-
-   end
-
-end
-
-local set = class "set" {
-
-	__construct = function(this)
-		tSets[this] = {
-			indexed = {},
-			set		= {},
-			size 	= 0,
-		};
-
-		--create/reference the iterator function
-		local tMeta = getmetatable(this);
-		tMeta.__call = iterator;
-		tMeta.__tostring = function(this)
-			local sRet = "{";
-
-			for item in this() do
-				sRet = sRet..tostring(item)..", ";
 			end
 
-			return sRet:sub(1, #sRet - 2).."}";
+			pri.size = pri.size - 1;
+
+			bRet = true;
 		end
-		--TODO create operator overrides for union, removal etc
+
+		return bRet;
 	end,
 
-
-	add = function(this, vItem)
-		return addItem(this, vItem);
+},
+{},--protected
+{--public
+	set = function(this, spro, pri, pro, pub)
+		pri.indexed = {};
+		pri.set		= {};
+		pri.size 	= 0;
 	end,
 
-	addSet = function(this, oOther)
+	add = function(this, spro, pri, pro, pub, vItem)
+		return pri.addItem(vItem);
+	end,
+
+	addSet = function(this, spro, pri, pro, pub, oOther)
 
 		for item in oOther() do
-			addItem(this, item);
+			pri.addItem(item);
 		end
 
 	end,
 
-	clear = function(this)
-		tSets[this] = {
-			indexed = {},
-			set 	= {},
-			size 	= 0,
-		};
+	clear = function(this, spro, pri, pro, pub)
+		pri.indexed = {};
+		pri.set 	= {};
+		pri.size 	= 0;
+
 	end,
 
-	complement = function(this, oOther)
+	complement = function(this, spro, pri, pro, pub, oOther)
 		local oRet = set();
 
 		for item in oOther() do
@@ -116,11 +114,11 @@ local set = class "set" {
 		return oRet;
 	end,
 
-	contains = function(this, vItem)
-		return tSets[this].set[vItem] ~= nil;
+	contains = function(this, spro, pri, pro, pub, vItem)
+		return pri.set[vItem] ~= nil;
 	end,
 
-	equals = function(this, oOther)
+	equals = function(this, spro, pri, pro, pub, oOther)
 		local bRet = tSets[this]:size() == oOther:size();
 
 		if (bRet) then
@@ -139,7 +137,7 @@ local set = class "set" {
 		return bRet;
 	end,
 
-	intersection = function(this, oOther)
+	intersection = function(this, spro, pri, pro, pub, oOther)
 		local oRet = set();
 
 		for item in this() do
@@ -153,11 +151,11 @@ local set = class "set" {
 		return oRet;
 	end,
 
-	isempty = function(this)
+	isempty = function(this, spro, pri, pro, pub)
 		return tSets[this].size < 1;
 	end,
 
-	issubset = function(this, oOther)
+	issubset = function(this, spro, pri, pro, pub, oOther)
 		local bRet = true;
 
 		for item in this() do
@@ -172,28 +170,28 @@ local set = class "set" {
 		return bRet;
 	end,
 
-	remove = function(this, vItem)
-		return removeItem(this, vItem);
+	remove = function(this, spro, pri, pro, pub, vItem)
+		return pri.removeItem(vItem);
 	end,
 
-	removeset = function(this, oOther)
+	removeset = function(this, spro, pri, pro, pub, oOther)
 
 		for item in oOther() do
-			removeItem(this, item);
+			pri.removeItem(item);
 		end
 
 		return this;
 	end,
 
-	size = function(this)
-		return tSets[this].size;
+	size = function(this, spro, pri, pro, pub)
+		return pri.size;
 	end,
 
-	totable = function(this)--do i need this one?
+	totable = function(this, spro, pri, pro, pub)--do i need this one?
 
 	end,
 
-	union = function(this, oOther)
+	union = function(this, spro, pri, pro, pub, oOther)
 		local oRet = set();
 
 		for item in this do
@@ -206,6 +204,4 @@ local set = class "set" {
 
 		return oRet;
 	end,
-};
-
-return set;
+});
