@@ -8,6 +8,11 @@ local rawtype		= rawtype;
 local serialize		= serialize;
 local table			= table;
 local type 			= type;
+local nSpro			= class.args.staticprotected;
+local nPri 			= class.args.private;
+local nPro 			= class.args.protected;
+local nPub 			= class.args.public;
+local nIns			= class.args.instances;
 
 return class("queue",
 {--metamethods

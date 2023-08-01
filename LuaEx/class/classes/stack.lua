@@ -6,11 +6,16 @@ local rawtype		= rawtype;
 local serialize		= serialize;
 local table			= table;
 local type 			= type;
+local nSpro			= class.args.staticprotected;
+local nPri 			= class.args.private;
+local nPro 			= class.args.protected;
+local nPub 			= class.args.public;
+local nIns			= class.args.instances;
 
 return class("stack",
 {--metamethods
-	 __len = function(spro, pri, pro, pub, this)--doesn't work in < Lua v5.2
-		return pri.count;
+	 __len = function(args, this)--doesn't work in < Lua v5.2
+		return args[nPri].count;
 	end,
 },
 {},--static protected
@@ -21,13 +26,14 @@ return class("stack",
 },
 {},--protected
 {--public
-	stack = function(this, spro, pri, pro, pub)
-		   pri.count 	= 0;
-		   pri.values	= {};
+	stack = function(this, args)
+			local pri = args[nPri];
+			pri.count 	= 0;
+			pri.values	= {};
    end,
 
 	--TODO complete serialization
-	deserialize = function(this, spro, pri, pro, pub)
+	deserialize = function(this, args)
 
 	end,
 
@@ -38,7 +44,8 @@ return class("stack",
 	end,
 ]]
 
-	pop = function(this, spro, pri, pro, pub)
+	pop = function(this, args)
+		local pri = args[nPri];
 
 		if (rawtype(pri.values[1]) ~= "nil") then
 			vRet = table.remove(pri.values, 1);
@@ -49,7 +56,8 @@ return class("stack",
 	end,
 
 
-	push = function(this, spro, pri, pro, pub, vValue)
+	push = function(this, args, vValue)
+		local pri = args[nPri];
 
 		if (rawtype(vValue) ~= "nil") then
 			table.insert(pri.values, 1, vValue);
@@ -60,14 +68,16 @@ return class("stack",
 	end,
 
 
-	size = function(this, spro, pri, pro, pub)
+	size = function(this, args)
+		local pri = args[nPri];
 		return pri.count;
 	end,
 
 
-	values = function(this, spro, pri, pro, pub)
+	values = function(this, args)
 		local tRet = {};
-
+		local pri = args[nPri];
+		
 		for nIndex = 1, pri.count do
 			tRet[nIndex] = pri.values[nIndex];
 		end

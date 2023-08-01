@@ -22,7 +22,7 @@ local function visibilitytablehasfunction(tTable, sFunction)
 	local bRet = false;
 
 	for k, v in pairs(tTable) do
-		
+
 		if (type(v) == "function" and k == sFunction) then
 			bRet = true;
 			break;

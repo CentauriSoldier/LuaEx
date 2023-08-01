@@ -1,20 +1,37 @@
 --[[
 Planned features
 AutoGetter/Setter functions
+
+
+I've written a class system from scratch. It has inheritence, encapsulation, private, protected, public and static fields and methods. While a couple features are still in-progress, it's almost entirely complete. It also comes with interfaces allowing classes to imlpement 0 to many interfaces. Class may be extended by default or may be set to final and disallowed from being extented.
+
+Can you think of any features it could use?
+Even more importantly, can you think of ways it can be simplified, optimized or made moer readable? What do y'all think?
+
+Download here.
 ]]
 
---these related the index of the specific table in the container table passed into class methods
-constant("CLASS_ARGS_INDEX_STATIC_PROTECTED", 	1); --the class's static protected table
-constant("CLASS_ARGS_INDEX_PRIVATE", 			2);	--the instance's private table
-constant("CLASS_ARGS_INDEX_PROTECTED", 			3);	--the instance's protected table
-constant("CLASS_ARGS_INDEX_PUBLIC",				4);	--the instance's public table
-constant("CLASS_ARGS_INDEX_INSTANCES",			5);	--a table containing all the instances
+--this is the class.args table
+local tMasterArgsActual = {};
+--[[these relate tp the index of the specific table
+	in the container (args) table passed into class
+	methods]]
+local tMasterArgsShadow = {
+	staticprotected = 1,--the class's static protected table
+	private 		= 2,--the instance's private table
+	protected		= 3,--the instance's protected table
+	public 			= 4, --the instance's public table
+	instances		= 5, --a table containing all the instances
+};
 
-local CLASS_ARGS_INDEX_STATIC_PROTECTED = CLASS_ARGS_INDEX_STATIC_PROTECTED;
-local CLASS_ARGS_INDEX_PRIVATE 			= CLASS_ARGS_INDEX_PRIVATE;
-local CLASS_ARGS_INDEX_PROTECTED		= CLASS_ARGS_INDEX_PROTECTED;
-local CLASS_ARGS_INDEX_PUBLIC			= CLASS_ARGS_INDEX_PUBLIC;
-local CLASS_ARGS_INDEX_INSTANCES		= CLASS_ARGS_INDEX_INSTANCES;
+setmetatable(tMasterArgsActual,
+{
+	__index = function(t, k)
+		return tMasterArgsShadow[k] or nil;
+	end,
+	__newindex = function(t, k, v) end,
+});
+
 
 --[[
 	Takes the input tables from a call the class modules and stores the fields
@@ -31,6 +48,8 @@ local tClassBuilder		= {};
 	class creation.
 ]]
 local tClassObjects		= {};
+--this simply tracks the total number of classes created
+nClassCount = 0;
 
 -- __index and __newindex are special cases, handled separately
 local tMetaNames = {__add 		= true,	__band 		= true,	__bnot 	= true,	__bor 		= true,
@@ -318,11 +337,11 @@ local function class(_IGNORE_, sName, tMetamethods, tStaticProtected, tStaticPub
 
 			--ready the args table (this gets passed to all wrapped methods)
 			local tArgs = {
-				[CLASS_ARGS_INDEX_STATIC_PROTECTED]	= tClassBuilder[sName].staticprotected,
-				[CLASS_ARGS_INDEX_PRIVATE]			= tShadow.private,
-				[CLASS_ARGS_INDEX_PROTECTED]		= tShadow.protected,
-				[CLASS_ARGS_INDEX_PUBLIC]			= tShadow.public,
-				[CLASS_ARGS_INDEX_INSTANCES] 		= tClassIntanceRepo,--this exists so all instances and their fields & methods can be accessed from inside the class module
+				[tMasterArgsShadow.staticprotected]	= tClassBuilder[sName].staticprotected,
+				[tMasterArgsShadow.private]			= tShadow.private,
+				[tMasterArgsShadow.protected]		= tShadow.protected,
+				[tMasterArgsShadow.public]			= tShadow.public,
+				[tMasterArgsShadow.instances] 		= tClassIntanceRepo,--this exists so all instances and their fields & methods can be accessed from inside the class module
 			};
 
 			--store this instance and it's args for later use from inside the class module
@@ -424,6 +443,8 @@ local function class(_IGNORE_, sName, tMetamethods, tStaticProtected, tStaticPub
 		end,
     });
 
+	--keep track of the total number of classes
+	nClassCount = nClassCount + 1;
 	--store the class oject so it can be used for (potentially) extending
 	tClassObjects[oClass] = {
 		name 		= sName,
@@ -434,11 +455,19 @@ local function class(_IGNORE_, sName, tMetamethods, tStaticProtected, tStaticPub
 	return oClass;
 end
 
+local tMasterShadow = { --this is the shadow table for the final returned value
+	args = tMasterArgsActual,
+};
+
 return setmetatable(
 {
 
 },
 {
-	__call = class,
-
+	__call 		= class,
+	__len 		= function() return nClassCount end,
+	__index 	= function(t, k)
+		return tMasterShadow[k] or nil;
+	end,
+	__newindex 	= function(t, k, v) end,
 });

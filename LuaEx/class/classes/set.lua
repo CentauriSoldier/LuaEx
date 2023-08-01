@@ -1,25 +1,32 @@
 local pairs = pairs;
 local table = table;
+local nSpro	= class.args.staticprotected;
+local nPri 	= class.args.private;
+local nPro 	= class.args.protected;
+local nPub 	= class.args.public;
+local nIns	= class.args.instances;
 
 return class("set",
 {--metamethods
-	__call = function(spro, pri, pro, pub, this)
-	   local nIndex = 0
-	   local nMax = pri.size;
+	__call = function(args, this)
+		local pri = args[nPri];
+	   	local nIndex = 0;
+	   	local nMax = pri.size;
 
-	   return function ()
-	      nIndex = nIndex + 1;
+		return function ()
+	    	nIndex = nIndex + 1;
 
-	      if (nIndex <= nMax) then
-	         return pri.indexed[nIndex];
-	      end
+			if (nIndex <= nMax) then
+				return pri.indexed[nIndex];
+			end
 
-	   end
+		end
 
    end,
 
-	__tostring = function(spro, pri, pro, pub, this)
+	__tostring = function(args, this)
 		local sRet = "{";
+		local pri = args[nPri];
 
 		--for item in this() do
 		--	sRet = sRet..tostring(item)..", ";
@@ -35,8 +42,9 @@ return class("set",
 	set		= {},
 	size 	= 0,
 
-	addItem = function(this, spro, pri, pro, pub, vItem)
+	addItem = function(this, args, vItem)
 		local bRet = false;
+		local pri = args[nPri];
 
 		if (pri.set[vItem] == nil) then
 			pri.set[vItem] 			= true;
@@ -49,8 +57,9 @@ return class("set",
 		return bRet;
 	end,
 
-	removeItem = function(this, spro, pri, pro, pub, vItem)
+	removeItem = function(this, args, vItem)
 		local bRet = false;
+		local pri = args[nPri];
 
 		if (pri.set[vItem] ~= nil) then
 			pri.set[vItem] = nil;
@@ -75,17 +84,21 @@ return class("set",
 },
 {},--protected
 {--public
-	set = function(this, spro, pri, pro, pub)
+	set = function(this, args)
+		local pri = args[nPri];
+
 		pri.indexed = {};
 		pri.set		= {};
 		pri.size 	= 0;
 	end,
 
-	add = function(this, spro, pri, pro, pub, vItem)
+	add = function(this, args, vItem)
+		local pri = args[nPri];
 		return pri.addItem(vItem);
 	end,
 
-	addSet = function(this, spro, pri, pro, pub, oOther)
+	addSet = function(this, args, oOther)
+		local pri = args[nPri];
 
 		for item in oOther() do
 			pri.addItem(item);
@@ -93,14 +106,16 @@ return class("set",
 
 	end,
 
-	clear = function(this, spro, pri, pro, pub)
+	clear = function(this, args)
+		local pri = args[nPri];
+
 		pri.indexed = {};
 		pri.set 	= {};
 		pri.size 	= 0;
 
 	end,
 
-	complement = function(this, spro, pri, pro, pub, oOther)
+	complement = function(this, args, oOther)
 		local oRet = set();
 
 		for item in oOther() do
@@ -114,11 +129,11 @@ return class("set",
 		return oRet;
 	end,
 
-	contains = function(this, spro, pri, pro, pub, vItem)
+	contains = function(this, args, vItem)
 		return pri.set[vItem] ~= nil;
 	end,
 
-	equals = function(this, spro, pri, pro, pub, oOther)
+	equals = function(this, args, oOther)
 		local bRet = tSets[this]:size() == oOther:size();
 
 		if (bRet) then
@@ -137,7 +152,7 @@ return class("set",
 		return bRet;
 	end,
 
-	intersection = function(this, spro, pri, pro, pub, oOther)
+	intersection = function(this, args, oOther)
 		local oRet = set();
 
 		for item in this() do
@@ -151,11 +166,11 @@ return class("set",
 		return oRet;
 	end,
 
-	isempty = function(this, spro, pri, pro, pub)
+	isempty = function(this, args)
 		return tSets[this].size < 1;
 	end,
 
-	issubset = function(this, spro, pri, pro, pub, oOther)
+	issubset = function(this, args, oOther)
 		local bRet = true;
 
 		for item in this() do
@@ -170,11 +185,11 @@ return class("set",
 		return bRet;
 	end,
 
-	remove = function(this, spro, pri, pro, pub, vItem)
+	remove = function(this, args, vItem)
 		return pri.removeItem(vItem);
 	end,
 
-	removeset = function(this, spro, pri, pro, pub, oOther)
+	removeset = function(this, args, oOther)
 
 		for item in oOther() do
 			pri.removeItem(item);
@@ -183,15 +198,15 @@ return class("set",
 		return this;
 	end,
 
-	size = function(this, spro, pri, pro, pub)
+	size = function(this, args)
 		return pri.size;
 	end,
 
-	totable = function(this, spro, pri, pro, pub)--do i need this one?
+	totable = function(this, args)--do i need this one?
 
 	end,
 
-	union = function(this, spro, pri, pro, pub, oOther)
+	union = function(this, args, oOther)
 		local oRet = set();
 
 		for item in this do
