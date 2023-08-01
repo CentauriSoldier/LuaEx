@@ -9,16 +9,16 @@ local type 			= type;
 
 return class("stack",
 {--metamethods
-	 __len = function(this, spro, pri, pro, pub)--doesn't work in < Lua v5.2
+	 __len = function(spro, pri, pro, pub, this)--doesn't work in < Lua v5.2
 		return pri.count;
 	end,
 },
 {},--static protected
-{bug = 5},--static public
-{
+{bug = "JKAHSDUIYIQWUHEDIUY(@#*#)"},--static public
+{--private
 	count,
 	values,
-},--private
+},
 {},--protected
 {--public
 	stack = function(this, spro, pri, pro, pub)

@@ -1,4 +1,4 @@
-local tLuaEX = rawget(_G, "__LUAEX__");
+local tLuaEX = rawget(_G, "luaex");
 
 local assert				= assert;
 local isvariablecompliant 	= string.isvariablecompliant;

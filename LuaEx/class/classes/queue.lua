@@ -11,8 +11,8 @@ local type 			= type;
 
 return class("queue",
 {--metamethods
-	__len = function(this)--doesn't work in < Lua v5.2
-		return tQueues[this].count;
+	__len = function(spro, pri, pro, pub, this)--doesn't work in < Lua v5.2
+		return pri.count;
 	end,
 },
 {},--static protected

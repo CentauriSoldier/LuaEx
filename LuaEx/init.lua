@@ -49,13 +49,23 @@ For more information, please refer to <http://unlicense.org/>
 @versionhistory
 <ul>
 <li>
-	<b>0.7</b>
-	<br>
-	<p>Change: the rawtype function will now return LuaEx's type names for classes, constants, enums, structs, struct factories (and struct_factory_constructor) and null (and NULL) as oppossed to returning, "table".</p>
-	<p>Feature: added null type.</p>
-	<p>Feature: added the factory module.</p>
-	<p>Feature: added the luatype function (an alias for Lua's original, type, function.)</p>
-	<p>Feature: added the fulltype function.</p>
+	<b>0.8</b>
+		<br>
+		<p>Change: rewrote the class system from scratch.</p>
+		<p>Change: moved various modules to different directories.</p>
+		<p>Change: renames __LUAEX__ global table luaex.</p>
+		<p>Feature: added class interfaces.</p>
+		<p>Feature: class system now uses full encapsulation (static protected, static public, private, protected and public fields & methods).</p>
+		<p>Feature: luaex table now contains a _VERSION variable.</p>
+	</li>
+	<li>
+		<b>0.7</b>
+		<br>
+		<p>Change: the rawtype function will now return LuaEx's type names for classes, constants, enums, structs, struct factories (and struct_factory_constructor) and null (and NULL) as oppossed to returning, "table".</p>
+		<p>Feature: added null type.</p>
+		<p>Feature: added the factory module.</p>
+		<p>Feature: added the luatype function (an alias for Lua's original, type, function.)</p>
+		<p>Feature: added the fulltype function.</p>
 	</li>
 	<li>
 		<b>0.6</b>
@@ -149,15 +159,16 @@ local tLuaEx = {
 			__metatable = false,
 		}),
 		__KEYWORDS_COUNT__ = #tKeyWords,
+		_VERSION = "LuaEx 0.8",
 };
 
-_G.__LUAEX__ = setmetatable({},
+_G.luaex = setmetatable({},
 {
-	__index 		= tLuaEx,
+	__index 		= tLuaEx,--TODO should I use a shadow table?
 	__newindex 		= function(t, k, v)
 
 		if tLuaEx[k] then
-			error("Attempt to overwrite __LUAEX__ value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
+			error("Attempt to overwrite luaex value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
 		end
 
 		rawset(tLuaEx, k, v);
@@ -167,6 +178,7 @@ _G.__LUAEX__ = setmetatable({},
 
 --warn the user if debug is missing
 assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
+
 
 --determine the call location
 local sPath = debug.getinfo(1, "S").source;
@@ -178,66 +190,66 @@ sPath = sPath:sub(1, sPath:len() - 1);
 package.path = package.path..";"..sPath.."\\..\\?.lua";
 
 
-
---								🅸🅼🅿🅾🆁🆃 🅻🆄🅰🅴🆇 🅼🅾🅳🆄🅻🅴🆂
-
---import core modules and push them into the global environment
-type 		=  	require("LuaEx.hook.typehook");
-				require("LuaEx.lib.stdlib");
-constant 	= 	require("LuaEx.lib.constant");
-clausum		=	require("LuaEx.lib.clausum");
-local null	= 	require("LuaEx.lib.null");
-				rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
-				rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
-enum		= 	require("LuaEx.lib.enum");
-struct		= 	require("LuaEx.lib.struct");
-source		=	require("LuaEx.util.source");
+--🅸🅼🅿🅾🆁🆃 🅿🆁🅴🆁🅴🆀🆄🅸🆂🅸🆃🅴 🅼🅾🅳🆄🅻🅴🆂
+type 			=  	require("LuaEx.hook.typehook");
+					require("LuaEx.lib.stdlib");
+constant 		= 	require("LuaEx.lib.constant");
+clausum			=	require("LuaEx.lib.clausum");
+local null		= 	require("LuaEx.lib.null");
+					rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
+					rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
+enum			= 	require("LuaEx.lib.enum");
+struct			= 	require("LuaEx.lib.struct");
+source			=	require("LuaEx.util.source");
+infusedhelp		= 	require("LuaEx.lib.infusedhelp");
 --run the 'directives'
---directive	=	require("LuaEx.lib.directive");
+--directive	=	require("LuaEx.lib.directive"); TODO finish directives for enums (and classes?)
 
+--🅼🅾🅳🅸🅵🆈 🆃🅷🅴 🅶🅻🅾🅱🅰🅻 🅼🅴🆃🅰🆃🅰🅱🅻🅴
 --setup the global environment to properly manage enums, constants and their ilk
-setmetatable(_G,
-	{--TODO check for existing meta _G table.
-		__newindex = function(t, k, v)
+local tGMeta = getmetatable(_G) or {};
+tGMeta.__newindex = function(t, k, v)
 
-			--make sure functions such as constant, enum, etc., constant values and enums values aren't being overwritten
-			if _G.__LUAEX__[k] then
-				error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.__LUAEX__[k])..") with '"..tostring(v).."' ("..type(v)..").");
-			end
+	--make sure functions such as constant, enum, etc., constant values and enums values aren't being overwritten
+	if _G.luaex[k] then
+		error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.luaex[k])..") with '"..tostring(v).."' ("..type(v)..").");
+	end
 
-			rawset(t, k, v);
-		end,
-		--__metatable = false,
-		__index = _G.__LUAEX__,
-	}
-);
+	rawset(t, k, v);
+end
+--__metatable = false, TODO should this be set to false again?
+tGMeta.__index = _G.luaex,
+setmetatable(_G, tGMeta);
 
---import lua extension modules (except 'typehook' which is loaded first [above])
+--🅸🅼🅿🅾🆁🆃 🅾🆃🅷🅴🆁 🅼🅾🅳🆄🅻🅴🆂
+--import lua hook modules (except 'typehook' which is loaded first [above])
 math 		= require("LuaEx.hook.mathhook");
 string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");
 
+--import the class system
 interface	= require("LuaEx.class.interface");
 class 		= require("LuaEx.class.class");
-base64 		= require("LuaEx.ext_lib.base64");
 
---import infusedhelp module
-infusedhelp	= require("LuaEx.class.infusedhelp");
+--import external libraries
+base64 		= require("LuaEx.ext_lib.base64");
 
 --import other modules
 serialize 	= require("LuaEx.util.serialize");
 deserialize = require("LuaEx.util.deserialize");
 
---import classes
-require("LuaEx.class.queue");
---queue 		= require("LuaEx.class.queue");
-require("LuaEx.class.stack");
---stack 		= require("LuaEx.class.stack");
---set 		= require("LuaEx.class.set");
-require("LuaEx.class.set");
---ini 		= require("LuaEx.class.ini"); --TODO convert to new class system
+--import interfaces
+icloneable 		= require("LuaEx.class.interfaces.iclonable");
+iserializable 	= require("LuaEx.class.interfaces.iserializable");
+-- = require("LuaEx.class.interfaces.");
 
---now that everything has loaded, create aliases
+--import classes
+queue 		= require("LuaEx.class.classes.queue");
+stack 		= require("LuaEx.class.classes.stack");
+set 		= require("LuaEx.class.classes.set");
+--ini 		= require("LuaEx.class.classes.ini"); --TODO convert to new class system
+
+--🅰🅻🅸🅰🆂🅴🆂
 table.serialize 	= serialize.table;
 string.serialize 	= serialize.string;
 

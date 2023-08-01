@@ -1,4 +1,4 @@
-local tLuaEx 	= _G.__LUAEX__;
+local tLuaEX = rawget(_G, "luaex");
 local rawtype 	= rawtype;
 
 function sealmetatable(tInput)

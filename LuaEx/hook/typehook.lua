@@ -78,6 +78,7 @@ local tLuaExTypes = {
 	clausum				= true,
 	constant			= true,
 	enum 				= true,
+	interface			= true,
 	null 				= true,
 	struct				= true,
 	factory_constructor = true,

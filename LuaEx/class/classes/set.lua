@@ -3,7 +3,7 @@ local table = table;
 
 return class("set",
 {--metamethods
-	__call = function(this, spro, pri, pro, pub)
+	__call = function(spro, pri, pro, pub, this)
 	   local nIndex = 0
 	   local nMax = pri.size;
 
@@ -18,7 +18,7 @@ return class("set",
 
    end,
 
-	__tostring = function(this, spro, pri, pro, pub)
+	__tostring = function(spro, pri, pro, pub, this)
 		local sRet = "{";
 
 		--for item in this() do
