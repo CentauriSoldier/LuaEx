@@ -16,8 +16,8 @@ local nIns			= class.args.instances;
 
 return class("queue",
 {--metamethods
-	__len = function(spro, pri, pro, pub, this)--doesn't work in < Lua v5.2
-		return pri.count;
+	__len = function(args, this)--doesn't work in < Lua v5.2
+		return args[nPri].count;
 	end,
 },
 {},--static protected
@@ -28,12 +28,15 @@ return class("queue",
 },
 {},--protected
 {--public
-	queue = function(this, spro, pri, pro, pub)
+	queue = function(this, args)
+		local pri = args[nPri];
+
 		pri.count 	= 0;
 		pri.values 	= {};
    end,
 
-	enqueue = function(this, spro, pri, pro, pub, vValue)
+	enqueue = function(this, args)
+		local pri = args[nPri];
 
 		if (rawtype(vValue) ~= "nil") then
 			table.insert(pri.values, #pri.values + 1, vValue);
@@ -50,9 +53,9 @@ return class("queue",
 	end,]]
 
 
-	dequeue = function(this, spro, pri, pro, pub)
+	dequeue = function(this, args)
 		local vRet = nil;
-		local tFields = pri;
+		local pri = args[nPri];
 
 		if (pri.count > 0) then
 			vRet = table.remove(pri.values, 1);
@@ -63,13 +66,14 @@ return class("queue",
 	end,
 
 
-	size = function(this, spro, pri, pro, pub)
-		return pri.count;
+	size = function(this, args)
+		return args[nPri].count;
 	end,
 
 
-	values = function(this, spro, pri, pro, pub)
+	values = function(this, args)
 		local tRet = {};
+		local pri = args[nPri];
 
 		for nIndex = 1, pri.count do
 			tRet[nIndex] = pri.values[nIndex];

@@ -1,0 +1,19 @@
+public class creature -]>
+
+    private hp;
+    private name;
+
+    creature(sName) -]>
+        this.hp = 0;
+        this.name = sName;
+    <[-
+
+    public function getHP() -]>
+        return this.hp;
+    <[-
+
+    public function setHP(thehp) -]>
+        this.hp = thehp;
+    <[-
+
+<[-

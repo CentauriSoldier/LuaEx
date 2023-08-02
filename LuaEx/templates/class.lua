@@ -6,13 +6,13 @@ local nIns	= class.args.instances;
 
 --__metamethod(args, ...)
 --nonmetamethod(this, args, ...)
---e.g. 
+--e.g.
 
---spro = args[nSpro];
---pri = args[nPri];
---pro = args[nPro];
---pub = args[nPub];
---ins = args[nIns];
+--local spro = args[nSpro];
+--local pri = args[nPri];
+--local pro = args[nPro];
+--local pub = args[nPub];
+--local ins = args[nIns];
 
 local myclass = class(
 "myclass",
