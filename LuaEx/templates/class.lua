@@ -36,7 +36,7 @@ local myclass = class(
 },
 nil,    --extending class
 nil,    --interface(s) (either nil, an interface or a table of interfaces)
-false  --if the class is final
+false   --if the class is final
 );
 
 return myclass;
