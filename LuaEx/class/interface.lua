@@ -38,7 +38,7 @@ local function validatevisibilitytable(sClass, sInterface, tClass, tInterface, s
 	for sFunction, _ in pairs(tInterface[sVisibility]) do
 
 		assert(visibilitytablehasfunction(	tClass[sVisibility], sFunction),
-											"Error creating class, ${class}. Class impliments interface, ${interface}, but is missing ${visibility}method, ${method}."
+											"Error creating class, ${class}. Class impliments interface, ${interface}, but is missing ${visibility} method, ${method}."
 											% {class = sClass, interface = sInterface, method = sFunction, visibility = tVisibilityToErrorString[sVisibility]});
 	end
 
