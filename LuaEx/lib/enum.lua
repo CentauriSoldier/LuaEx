@@ -9,7 +9,7 @@ local string		= string;
 local setmetatable 	= setmetatable;
 local tostring 		= tostring;
 local type 			= type;
-
+--TODO consider the value of using __pairs/__ipairs metamethods.
 --[[
 ██╗░░░░░░█████╗░░█████╗░░█████╗░██╗░░░░░  ███████╗██╗░░░██╗███╗░░██╗░█████╗░████████╗██╗░█████╗░███╗░░██╗░██████╗
 ██║░░░░░██╔══██╗██╔══██╗██╔══██╗██║░░░░░  ██╔════╝██║░░░██║████╗░██║██╔══██╗╚══██╔══╝██║██╔══██╗████╗░██║██╔════╝
@@ -340,7 +340,7 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
 	    for nOrdinal, eValue in ipairs(tEnumActual) do
 
 			if (bUseInputValue) then
-	        	tRet[eValue] = vInputValue;			
+	        	tRet[eValue] = vInputValue;
 			else
 				tRet[eValue] = eValue.value;
 			end
