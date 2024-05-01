@@ -1,0 +1,21 @@
+Variables are prefixed with the following symbols based on their type/application.
+
+b	|	boolean
+c	|	class
+e	|	enum
+f	| 	function
+h	|	file\window\etc. handle (number)
+n	|	number
+o	|	class/other (object)
+p	|	file/dir path (string)
+r	|	struct
+s	|	string
+t	|	table
+u	| 	userdata
+v	|	variable/unknowm type
+z	|	type (string) (e.g., "string", "table", etc.)
+
+Types ignored by this convention are types nil and null since prefixing such a variable type would, generally, serve no real purpose.
+
+Exceptions:
+In for loops, sometimes 'x' is used to indicate active index while 'k' and 'v' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.

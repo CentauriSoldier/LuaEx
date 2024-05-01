@@ -26,7 +26,19 @@ Download here.
 	class creation.
 ]]
 
+--constants
+constant("CLASS_ACCESS_INDEX_METATABLES",  0);
+constant("CLASS_ACCESS_INDEX_PRIVATE",     1);
+constant("CLASS_ACCESS_INDEX_PROTECTED",   2);
+constant("CLASS_ACCESS_INDEX_PUBLIC",      3);
+constant("CLASS_ACCESS_INDEX_INSTANCES",   4);
+
 --localization
+local CAI_MET = CLASS_ACCESS_INDEX_METATABLES;
+local CAI_PRI = CLASS_ACCESS_INDEX_PRIVATE;
+local CAI_PRO = CLASS_ACCESS_INDEX_PROTECTED;
+local CAI_PUB = CLASS_ACCESS_INDEX_PUBLIC;
+local CAI_INS = CLASS_ACCESS_INDEX_INSTANCES;
 
 -- __index and __newindex are special cases, handled separately
 local tMetaNames = {__add 		= true,	__band 		= true,	__bnot 	= true,	__bor 		= true,
@@ -53,10 +65,10 @@ local tMasterArgsActual = {};
 	in the container (args) table passed into class
 	methods]]
 local tVisibilityIndices = {
-	private 		= 1,--the instance's private table
-	protected		= 2,--the instance's protected table
-	public 			= 3, --the instance's public table
-	instances		= 4, --a table containing all the instances
+	private 		= CAI_PRI,--the instance's private table
+	protected		= CAI_PRO,--the instance's protected table
+	public 			= CAI_PUB, --the instance's public table
+	instances		= CAI_INS, --a table containing all the instances
 };
 
 setmetatable(tMasterArgsActual,
@@ -401,13 +413,14 @@ kit = {
 
 		return tRet;
 	end,
-    import = function(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vImplements, bIsFinal)
-		--check the input
+    import = function(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vImplements, bIsFinal)
+
+        --validate the input
 		kit.validatename(sName);
         kit.validatetables(tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
 		kit.validateinterfaces(vImplements);
 
-		--import the kit
+		--import/create the elements which will comprise the class kit
 		local tKit = {
 			--properties
 			children		= {
@@ -437,6 +450,9 @@ kit = {
             tKit.parent.children.byname[sName] = tKit;
 		end
 
+        --check for public/protected shadowing
+        kit.shadowcheck(tKit);
+
 		--now that this class kit has been validated, imported & stored, build and return the class object
 		return kit.build(tKit);
 	end,
@@ -445,10 +461,10 @@ kit = {
         local tVIs          = tVisibilityIndices;
 
         local tInstance     = {     --this is the actual, hidden instance table referenced by the returned decoy, instance object
-            [tVIs.private]      = table.clone(tKit.private),    --create the private members
-            [tVIs.protected]    = table.clone(tKit.protected),  ---etc.
-            [tVIs.public]       = table.clone(tKit.public),
-            [tVIs.instances]    = tKit.instances,               --TODO should this go here? I think so.....\
+            [CAI_PRI] = table.clone(tKit.private),    --create the private members
+            [CAI_PRO] = table.clone(tKit.protected),  ---etc.
+            [CAI_PUB] = table.clone(tKit.public),--TODO should I use clone item or wil this do for clining custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
+            [CAI_INS] = tKit.instances,               --TODO should this go here? I think so.....\
             children            = {},--TODO move to class level or to here? Is there any use for it here?
             decoy               = oInstance,                    -- for internal reference if I need to reach the decoy of a given actual
             metadata            = {},                           --info about the instance
@@ -459,13 +475,13 @@ kit = {
         tInstance.metadata.kit = tKit;
 
         --shorthand
-        local tPrivate      = tInstance[tVIs.private];
-        local tProtected    = tInstance[tVIs.protected];
-        local tPublic       = tInstance[tVIs.public];
-        local tInstances    = tInstance[tVIs.instances];
+        local tPrivate      = tInstance[CAI_PRI];
+        local tProtected    = tInstance[CAI_PRO];
+        local tPublic       = tInstance[CAI_PUB];
+        local tInstances    = tInstance[CAI_INS];
 
 
-                    --TODO instance metatables
+                    --TODO instance metatables (use a record-keeping system to determine which meta methods came from which parent so they can call the correct function with one call instead of many)
         --[[┌────────────────────────────────────────────┐
             │             🅼🅴🆃🅰🅼🅴🆃🅷🅾🅳🆂            │
             └────────────────────────────────────────────┘]]
@@ -489,7 +505,7 @@ kit = {
                     end
 
                     if (sTypeCurrent == "function") then
-                        error("Error in class ${name}. Attempt to modify class method, ${member}." % {
+                        error("Error in class ${name}. Attempt to modify public class method, ${member}, outside of a subclass context." % {
                             name = tKit.name, member = tostring(k)});
                     end
 
@@ -515,13 +531,13 @@ kit = {
 --TODO I need to update the children field of each parent (OR do I?)
             --TODO I still need to setup parent and super for the decoy (returned object)
             --setup inheritence for public members
-            setmetatable(tPublic, {
+            setmetatable(tPublic, {--TODO even if this doesn't have aprent, it still needs a metatable...figure this out.
                 __index = function(t, k)
                     local vRet = tPublic[k] or nil;
 
                     --if there's no such public key in the instance, check the parent
                     if (type(vRet) == "nil") then
-                        vRet = tParent[tVIs.public][k];
+                        vRet = tParent[CAI_PUB][k];
                     end
 
                     --if none exists, throw an error
@@ -535,7 +551,7 @@ kit = {
                 __newindex = function(t, k, v)
 
                     if not (tPublic[k]) then
-                        vRet = tParent[tVIs.public][k];
+                        vRet = tParent[CAI_PUB][k];
                     end
 
                     return vRet;
@@ -544,27 +560,7 @@ kit = {
 
             --TODO check for public and protected members in each class and handle them
             --ensure there are no public value overrights
-            local tCheckParent = tParent;
 
-            while (tCheckParent) do
-
-                for k, v in pairs(tPublic) do
-
-                    if (tCheckParent[tVIs.public][k]) then
-
-                        if (type(tCheckParent[tVIs.public][k]) == "function" and type(v) == "function") then
-                            --TODO override here...
-                        else
-                            error("Error in class ${name}. Attempt to shadow existing public member, ${member}, in parent class, ${parent}." % {
-                                name = tKit.name, member = tostring(k), parent = tKit.parent.name});
-                        end
-
-                    end
-
-                end
-
-                tCheckParent = tCheckParent.parent;
-            end
 
 
             --[[┌────────────────────────────────────────────┐
@@ -595,6 +591,39 @@ kit = {
 
 		return bRet;
 	end,
+    shadowcheck = function(tKit) --checks for public/protected shadowing
+        local tParent   = tKit.parent;
+
+        local tCheckIndices  = {
+            [CAI_PRO]  = "protected",
+            [CAI_PUB]     = "public",
+        };
+
+        while (tParent) do
+
+            --iterate over each visibility level
+            for nVisibility, sVisibility in ipairs(tCheckIndices) do
+
+                --shadow check each member of the class
+                for sKey, vChildValue in pairs(tKit[nVisibility]) do
+                    local zParentValue  = rawtype(tParent[nVisibility][sKey]);
+                    local zChildValue   = rawtype(vChildValue);
+
+                    --the same key found in any parent is allowed in the child class only if it's a function override, otherwise throw a shadowing error
+                    if (zParentValue ~= "nil" and not (zParentValue == "function" and zChildValue == "function")) then
+                        error(  "Error in class ${name}. Attempt to shadow existing ${visibility} member, ${member}, in parent class, ${parent}." % {
+                                name = tKit.name, visibility = sVisibility, member = tostring(vChildValue), parent = tParent.name});
+                    end
+
+                end
+
+            end
+
+            --check the next parent above this level (if any)
+            tParent = tParent.parent;
+        end
+
+    end,
 	validatename = function(sName)
 		assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								% {					type = type(sName), 			item = tostring(sName)});
 		assert(sName:isvariablecompliant(),					"Error creating class, ${class}. Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
@@ -620,10 +649,10 @@ kit = {
 		for sTable, tTable in pairs(tTables) do
 
 			for k, v in pairs(tTable) do
-				assert(type(k) == "string", "Error creating class, ${class}. All table indices must be of type string. Got: (${type}) ${item} in table '${table}'" % {class = sName, type = type(k), item = tostring(v), table = sTable});
-
+				assert(rawtype(k) == "string", "Error creating class, ${class}. All table indices must be of type string. Got: (${type}) ${item} in table '${table}'" % {class = sName, type = type(k), item = tostring(v), table = sTable});
+--TODO consider what visibility constructors must have (no need for private consttructors since static classes are not really needed in Lua?)
 				--ensure there's a constructor
-				if (sTable == "public" and k == sName and type(v) == "function") then
+				if (sTable == "public" and k == sName and rawtype(v) == "function") then
 
 					--make sure there's not already a constructor
 					assert(not bIsConstructor, "Error creating class, ${class}. Redundant constructor detected in '${table}' table." % {class = sName, table = sTable});
