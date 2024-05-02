@@ -32,9 +32,78 @@ package.path = package.path..";"..sPath.."\\..\\?.lua;";
 require("LuaEx.init");
 --============= TEST CODE BELOW =============
 
+--localization
+local MET = CLASS_ACCESS_INDEX_METATABLES;
+local PRI = CLASS_ACCESS_INDEX_PRIVATE;
+local PRO = CLASS_ACCESS_INDEX_PROTECTED;
+local PUB = CLASS_ACCESS_INDEX_PUBLIC;
+local INS = CLASS_ACCESS_INDEX_INSTANCES;
+
+Creature = class("Creature",
+{ --metamethods
+
+},
+{ --static public
+
+},
+{ --private
+    HP      = 80,
+    HPMax   = 100,
+},
+{ --protected
+
+},
+{ --public
+    Creature = function(this, cdat, sName, nMaxHP)
+        cdat[PRO].HPMax = nMaxHP;
+        print(cdat[PRO].HPMax)
+    end,
+    GetHP = function(this, cdat)
+        --print(cdat[PRO].HP)
+        return cdat[PRI].HP;
+    end,
+    SetHP = function(this, cdat, nVal)
+        --print(cdat[PRO].HP)
+        cdat[PRI].HP = nVal;
+        return this;
+    end,
+    k = 4,
+
+}, NO_PARENT, NO_INTERFACES, false);
+
+local Dragon = Creature("Dragon", 2000);
+---print(Dragon.GetHP());
+
+--print(type(Dragon.k))
+Human = class("Human",
+{ --metamethods
+
+},
+{ --static public
+
+},
+{ --private
+    test = 567,
+},
+{ --protected
+    Test = null,
+},
+{ --public
+    Human = function(this, cdat, sName, nMaxHP)
+        cdat[PRO].HPMax = nMaxHP;
+        print(cdat[PRO].HPMax)
+    end,
+    Hits = 55,
+}, Creature, NO_INTERFACES, false);
 
 
 
+local Kaleb = Human("Kaleb", 120);
+--Kaleb.Test = 4;
+
+--print(Kaleb.SetHP(33).GetHP());
+Kaleb.Hits = -34;
+print(Kaleb.Hits)
 --print(tostring(os.getenv("string")))
 
 --print(math.rgbtolong( 	0, 	255, 	0))

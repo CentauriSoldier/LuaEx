@@ -38,7 +38,7 @@ Protected, function values are able to be overridden by child classes but are ot
 Public and protected, non-function values are strongly-typed.
 
 Working Thoughts, Notes and Questions
-
+Rethinking public and protected access.
 
 1. Should parent constructors be auto-called if not explicitly called?
 

@@ -244,9 +244,9 @@ iserializable 	= require("LuaEx.class.interfaces.iserializable");
 -- = require("LuaEx.class.interfaces.");
 
 --import classes
-queue 		= require("LuaEx.class.classes.queue");
-stack 		= require("LuaEx.class.classes.stack");
-set 		= require("LuaEx.class.classes.set");
+--queue 		= require("LuaEx.class.classes.queue");
+--stack 		= require("LuaEx.class.classes.stack");
+--set 		= require("LuaEx.class.classes.set");
 --ini 		= require("LuaEx.class.classes.ini"); --TODO convert to new class system
 
 --🅰🅻🅸🅰🆂🅴🆂
