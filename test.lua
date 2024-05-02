@@ -68,7 +68,7 @@ Creature = class("Creature",
         return this;
     end,
     k = 4,
-
+    Hits = 44,
 }, NO_PARENT, NO_INTERFACES, false);
 
 local Dragon = Creature("Dragon", 2000);
@@ -93,7 +93,7 @@ Human = class("Human",
         cdat[PRO].HPMax = nMaxHP;
         print(cdat[PRO].HPMax)
     end,
-    Hits = 55,
+    --Hits = 55,
 }, Creature, NO_INTERFACES, false);
 
 
@@ -103,6 +103,7 @@ local Kaleb = Human("Kaleb", 120);
 
 --print(Kaleb.SetHP(33).GetHP());
 Kaleb.Hits = -34;
+Kaleb.Hits = "sdad";
 print(Kaleb.Hits)
 --print(tostring(os.getenv("string")))
 

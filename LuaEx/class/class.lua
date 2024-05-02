@@ -476,6 +476,7 @@ kit = {
             children            = {},--TODO move to class level or to here? Is there any use for it here?
             decoy               = oInstance,                    -- for internal reference if I need to reach the decoy of a given actual
             metadata            = {},                           --info about the instance
+            kit                 = tKit,
             --super               = nil, --the decoy parent (if one exists)
             parent              = nil, --the actual parent (if one exists)
         };
@@ -497,6 +498,8 @@ kit = {
             [CAI_INS] = tInstances,
             --parent    = nil,
         };
+        --TODO we need to introduce a meta table for lookup.
+        local tClassDataMeta = {};
 
                     --TODO instance metatables (use a record-keeping system to determine which meta methods came from which parent so they can call the correct function with one call instead of many)
 --TODO wrap these too
@@ -508,7 +511,8 @@ kit = {
 
 
         --preform the method wrapping (private, protected and public methods)
-        for _, nCAI in ipairs({CAI_PRI, CAI_PRO, CAI_PUB}) do
+        for _, nCAI in ipairs({CAI_PRI, CAI_PRO, CAI_PUB}) do --export this to a local table so we don't have to make new table every time
+            local tActive = tInstance[nCAI];
 
             for k, v in pairs(tInstance[nCAI]) do
 
@@ -519,6 +523,74 @@ kit = {
                     end);
 
                 end
+
+            end
+
+            if (nCAI == CAI_PRO or nCAI == CAI_PUB) then
+                setmetatable(tInstance[nCAI], {
+                    __index = function(t, k)
+                        local vRet          = rawget(tInstance[nCAI], k);
+                        local zRet          = rawtype(vRet);
+                        local tNextParent   = tInstance.parent or nil;
+
+                        --if there's no such public key in the instance, check each parent
+                        while (zRet == "nil" and tNextParent) do
+                            vRet        = rawget(tNextParent[nCAI], k);
+                            zRet        = rawtype(vRet);
+                            tNextParent = tNextParent.parent;
+                        end
+
+                        --if none exists, throw an error
+                        if (rawtype(vRet) == "nil") then
+                            error("Error in class, '${name}'. Attempt to access public member, '${member}', a nil value." % {
+                                name = tKit.name, member = tostring(k)});
+                        end
+
+                        return vRet;
+                    end,
+                    __newindex = function(t, k, v)
+                        print(t, k, v)
+                        local tTarget       = tInstance[nCAI];
+                        local vVal          = rawget(tTarget, k);
+                        local zVal          = rawtype(vVal);
+                        local tNextParent   = tInstance.parent or nil;
+
+                        --if there's no such public key in the instance, check each parent
+                        while (zVal == "nil" and tNextParent) do
+                            tTarget     = tNextParent[nCAI];
+                            vVal        = rawget(tTarget, k);
+                            zVal        = rawtype(vVal);
+                            tNextParent = tNextParent.parent;
+                        end
+
+                        --if none exists, throw an error
+                        if (rawtype(vVal) == "nil") then
+                            error("Error in class, '${name}'. Attempt to modify public member, '${member}', a nil value." % {
+                                name = tKit.name, member = tostring(k)});
+                        end
+
+                        local sTypeCurrent  = type(tTarget[k]);
+                        local sTypeNew      = type(v);
+                        print(tostring(sTypeCurrent), tostring(sTypeNew))
+                        if (sTypeNew == "nil") then
+                            error("Error in class, '${name}'. Cannot set public member, '${member}', to nil." % {
+                                name = tKit.name, member = tostring(k)});
+                        end
+
+                        if (sTypeCurrent == "function") then
+                            error("Error in class, '${name}'. Attempt to override public class method, '${member}', outside of a subclass context." % {
+                                name = tKit.name, member = tostring(k)});
+                        end
+
+                        if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
+                            error("Error in class, '${name}'. Attempt to change type for member, '${member}', from ${typecurrent} to ${typenew}." % {
+                                name = tKit.name, member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
+                        end
+
+                        rawset(tTarget, k, v);
+                        --return oInstance;
+                    end,
+                });
 
             end
 
@@ -537,51 +609,7 @@ kit = {
         end
 
         --🅿🆄🅱🅻🅸🅲  | setup inheritence for public members
-        setmetatable(tPublic, { --TODO iterate and make apply to pub and pro (just skip pri)
-            __index = function(t, k)
-                local vRet          = rawget(tPublic, k);
-                local zRet          = rawtype(vRet);
-                local tNextParent   = tInstance.parent or nil;
 
-                --if there's no such public key in the instance, check each parent
-                while (zRet == "nil" and tNextParent) do
-                    vRet        = rawget(tNextParent[CAI_PUB], k);
-                    zRet        = rawtype(vRet);
-                    tNextParent = tNextParent.parent;
-                end
-
-                --if none exists, throw an error
-                if (rawtype(vRet) == "nil") then
-                    error("Error in class, '${name}'. Attempt to access public member, '${member}', a nil value." % {
-                        name = tKit.name, member = tostring(k)});
-                end
-
-                return vRet;
-            end,
-            __newindex = function(t, k, v)
-                local tTarget       = tPublic;
-                local vVal          = rawget(tPublic, k);
-                local zVal          = rawtype(vVal);
-                local tNextParent   = tInstance.parent or nil;
-
-                --if there's no such public key in the instance, check each parent
-                while (zVal == "nil" and tNextParent) do
-                    tTarget     = tNextParent[CAI_PUB];
-                    vVal        = rawget(tTarget, k);
-                    zVal        = rawtype(vVal);
-                    tNextParent = tNextParent.parent;
-                end
-
-                --if none exists, throw an error
-                if (rawtype(vVal) == "nil") then
-                    error("Error in class, '${name}'. Attempt to modify public member, '${member}', a nil value." % {
-                        name = tKit.name, member = tostring(k)});
-                end
-
-                rawset(tTarget, k, v);
-                return v;
-            end,
-        });
 
             --TODO check for public and protected members in each class and handle them
             --ensure there are no public value overrights
@@ -622,6 +650,8 @@ kit = {
     setinstancemetatable = function(tKit, oInstance, tInstance)
         local tPublic = tInstance[CLASS_ACCESS_INDEX_PUBLIC];
 
+        --TODO add user metatable stuff here
+
         setmetatable(
             oInstance,
             { --this is the instance metatable
@@ -629,30 +659,13 @@ kit = {
                     return tPublic[k] or nil;
                 end,
                 __newindex  = function(t, k, v)
+                    tPublic[k] = v;
 
-                    if (tPublic[k]) then--TODO move this @!!!!!!!!!!!!
-                        local sTypeCurrent  = type(tPublic[k]);
-                        local sTypeNew      = type(v);
+                    --if (rawtype(tPublic[k]) ~= "nil") then
+                    --    tPublic[k] = v; --DO NOT use rawset and rawget here because this needs to rely on the tPublic metatable for lookup (to account for parents)
+                    --end
 
-                        if (sTypeNew == "nil") then
-                            error("Error in class, '${name}'. Cannot set public member, '${member}', to nil." % {
-                                name = tKit.name, member = tostring(k)});
-                        end
-
-                        if (sTypeCurrent == "function") then
-                            error("Error in class, '${name}'. Attempt to override public class method, '${member}', outside of a subclass context." % {
-                                name = tKit.name, member = tostring(k)});
-                        end
-
-                        if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
-                            error("Error in class, '${name}'. Attempt to change type for member, '${member}', from ${typecurrent} to ${typenew}." % {
-                                name = tKit.name, member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
-                        end
-
-                        tPublic[k] = v; --DO NOT use rawset and rawget here because this needs to rely on the tPublic metatable for lookup (to account for parents)
-                    end
-
-                    return tPublic[k] or nil;
+                    --return tPublic[k] or nil; --the tPublic metatable returns the instance object
                 end,
                 __type = tKit.name,
             }
