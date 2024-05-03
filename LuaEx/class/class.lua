@@ -40,14 +40,53 @@ local CAI_PRO = CLASS_ACCESS_INDEX_PROTECTED;
 local CAI_PUB = CLASS_ACCESS_INDEX_PUBLIC;
 local CAI_INS = CLASS_ACCESS_INDEX_INSTANCES;
 
--- __index and __newindex are special cases, handled separately
-local tMetaNames = {__add 		= true,	__band 		= true,	__bnot 	= true,	__bor 		= true,
-					__bxor 		= true,	__call 		= true,	__close = true, __concat 	= true,
-					__div 		= true,	__eq		= true,	__gc 	= true,	__idiv		= true,
-					__le 		= true,	__len 		= true,	__lt	= true,	__mod 		= true,
-					__mode 		= true,	__mul 		= true,	__name 	= true,	__pow 		= true,
-					__shl 		= true,	__shr 		= true,	__sub 	= true,	__tostring	= true,
-					__unm 		= true};
+constant("CLASS_FINAL_MARKER",   "_FNL");
+constant("CLASS_FINAL_MARKER_LENGTH", #CLASS_FINAL_MARKER);
+
+local CFM   = CLASS_FINAL_MARKER;
+local CFML  = CLASS_FINAL_MARKER_LENGTH;
+
+constant("CLASS_NO_PARENT", "CLASS_NO_PARENT");
+
+local tCAINames = {
+    [CAI_MET] = "metamethods";
+    [CAI_PRI] = "private";
+    [CAI_PRO] = "protected";
+    [CAI_PUB] = "public";
+    [CAI_INS] = "instances";
+};
+
+--used during instantiation
+local tClassDataToWrap = {CAI_PRI, CAI_PRO, CAI_PUB};
+
+local tMetaNames = {
+__add 		= true,     __band        = true,     __bnot      = true,
+__bor 		= true,     __bxor        = true,	  __call      = true,
+__close     = false,    __concat 	  = true,     __div	      = true,
+__eq        = true,	    __gc 	      = false,    __idiv	  = true,
+__index     = false,    __ipairs      = true,     __le        = true,
+__len       = true,	    __lt	      = true,	  __metatable = false,
+__mod 		= true,     __mode 		  = false,    __mul 	  = true,
+__name 	    = true,	    __newindex    = false,    __pairs     = true,
+__pow 		= true,     __shl 		  = true,	  __shr       = true,
+__sub 	    = true,	    __tostring	  = true,     __unm 	  = true};
+
+local function GetMetaNamesAsString()
+    local sRet              = "";
+    local tSortedMetaNames  = {};
+
+    for sName, _ in pairs(tMetaNames) do
+        table.insert(tSortedMetaNames, sName);
+    end
+
+    table.sort(tSortedMetaNames);
+
+    for _, sName in pairs(tSortedMetaNames) do
+        sRet = sRet..sName..", ";
+    end
+
+    return sRet:sub(1, #sRet - 2);
+end
 
 local assert        = assert;
 local getmetatable  = getmetatable;
@@ -437,6 +476,10 @@ kit = {
 				byname 		= {}, --updated on import (here)
 				byobject 	= {}, --updated when a class object is created
 			},
+            finalmethodnames= {   --this keeps track of methods marked as final to prevent overriding
+                protected   = {},
+                public      = {},
+            },
 			instances		= {},
 			isfinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
 			name 			= sName,
@@ -448,6 +491,9 @@ kit = {
 			protected 		= table.clone(tProtected, 		true),
 			public      	= table.clone(tPublic, 			true),
 		};
+
+        --note and rename final methods
+        kit.processfinalmethods(tKit);
 
 		--increment the class kit count
 		kit.count = kit.count + 1;
@@ -467,53 +513,67 @@ kit = {
 		return kit.build(tKit);
 	end,
     instantiate = function(tKit, bIsRecursionCall)
-        local oInstance     = {};   --this is the decoy instance object that gets returned
-        local tInstance     = {     --this is the actual, hidden instance table referenced by the returned decoy, instance object
-            [CAI_PRI] = table.clone(tKit.private),    --create the private members
-            [CAI_PRO] = table.clone(tKit.protected),  ---etc.
-            [CAI_PUB] = table.clone(tKit.public),--TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
-            [CAI_INS] = tKit.instances,               --TODO should this go here? I think so.....\
-            children            = {},--TODO move to class level or to here? Is there any use for it here?
-            decoy               = oInstance,                    -- for internal reference if I need to reach the decoy of a given actual
-            metadata            = {},                           --info about the instance
-            kit                 = tKit,
-            --super               = nil, --the decoy parent (if one exists)
-            parent              = nil, --the actual parent (if one exists)
+        local oInstance     = {};                       --this is the decoy instance object that gets returned
+        local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
+            [CAI_MET] = table.clone(tKit.metamethods),  --create the metamethods
+            [CAI_PRI] = table.clone(tKit.private),      --create the private members
+            [CAI_PRO] = table.clone(tKit.protected),    ---etc.
+            [CAI_PUB] = table.clone(tKit.public),       --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
+            [CAI_INS] = tKit.instances,                 --TODO should this go here? I think so.....\
+            children            = {},                   --TODO move to class level or to here? Is there any use for it here?
+            decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
+            metadata            = {                     --info about the instance
+                kit = tKit,
+            },
+            parent              = nil,                  --the actual parent (if one exists)
         };
 
-        --log the class kit in the instance metadata field
-        tInstance.metadata.kit = tKit;
-
-        --shorthand TODO these need more metatables or reviewed metatables
-        local tPrivate      = tInstance[CAI_PRI];
-        local tProtected    = tInstance[CAI_PRO];
-        local tPublic       = tInstance[CAI_PUB];
-        local tInstances    = tInstance[CAI_INS];
-
-        --this gets pushed through the wrapped methods
-        local tClassData     = {
-            [CAI_PRI] = tPrivate,
-            [CAI_PRO] = tProtected,
-            [CAI_PUB] = tPublic,
-            [CAI_INS] = tInstances,
-            --parent    = nil,
+        local tClassDataActual = { --actual class data
+            [CAI_PRI] = {},
+            [CAI_PRO] = {},
+            [CAI_PUB] = {},
+            [CAI_INS] = {},
+            --parent    = null,
         };
-        --TODO we need to introduce a meta table for lookup.
-        local tClassDataMeta = {};
+        local tClassData     = {}; --decoy class data (this gets pushed through the wrapped methods)
+
+        setmetatable(tClassData, {
+            __index = function(t, k, v)--throw an error if the client access a non-existent Class Data index.
+
+                if (rawtype(rawget(tClassDataActual, k)) == "nil") then
+                    local sIndices = "";
+                    for vIndex, _ in pairs(tClassDataActual) do
+                        sIndices = sIndices .. "'"..tostring(vIndex).."', ";
+                    end
+                    sIndices = sIndices:sub(1, #sIndices - 2);
+                    error("Error in class, '${class}'. Attempt to access non-existent class data index, '${index}'.\nValid indices are ${indices}." % {class = tKit.name, index = tostring(k), indices = sIndices});
+                end
+
+                return tClassDataActual[k];
+
+            end,
+            __newindex = function(t, k, v) --disallows modifications to or deletetions from the tClassData table. TODO make the messsage depending on if event is a change, addition or deletion (for more clarity)
+                    error("Error in class, '${class}'. Attempt to modify read-only class data." % {class = tKit.name});
+            end,
+            __metatable = true,
+        });
 
                     --TODO instance metatables (use a record-keeping system to determine which meta methods came from which parent so they can call the correct function with one call instead of many)
---TODO wrap these too
-        --[[┌────────────────────────────────────────────┐
-            │             🅼🅴🆃🅰🅼🅴🆃🅷🅾🅳🆂            │
-            └────────────────────────────────────────────┘]]
 
-            --TODO make AI table values strongly typed
+        --wrap the metamethods
+        kit.wrapmetamethods(oInstance, tInstance, tClassData)
 
+        --[[for sMetamethod, fMetamethod in pairs(tInstance[CAI_MET]) do
+            rawset(tInstance[CAI_MET], k, function(...)
+                return v(oInstance, tClassData, ...);
+            end);
+        end]]
 
-        --preform the method wrapping (private, protected and public methods)
-        for _, nCAI in ipairs({CAI_PRI, CAI_PRO, CAI_PUB}) do --export this to a local table so we don't have to make new table every time
-            local tActive = tInstance[nCAI];
+        --perform the private, protected and public method wrapping
+        for _, nCAI in ipairs(tClassDataToWrap) do
+            --local tActive = tClassData[nCAI];
 
+            --wrap the classdata functions
             for k, v in pairs(tInstance[nCAI]) do
 
                 if (rawtype(v) == "function") then
@@ -526,15 +586,22 @@ kit = {
 
             end
 
-            if (nCAI == CAI_PRO or nCAI == CAI_PUB) then
-                setmetatable(tInstance[nCAI], {
+            local bIsPrivate        = nCAI == CAI_PRI;
+            local bIsProteced       = nCAI == CAI_PRO;
+            local bIsPublic         = nCAI == CAI_PUB;
+            --local bIsMetaMethods    = nCAI == CAI_MET;
+
+            if (bIsPrivate or bIsProteced or bIsPublic) then
+                local bAllowUpSearch = bIsProteced or bIsPublic;
+
+                setmetatable(tClassData[nCAI], {
                     __index = function(t, k)
                         local vRet          = rawget(tInstance[nCAI], k);
                         local zRet          = rawtype(vRet);
                         local tNextParent   = tInstance.parent or nil;
 
                         --if there's no such public key in the instance, check each parent
-                        while (zRet == "nil" and tNextParent) do
+                        while (bAllowUpSearch and zRet == "nil" and tNextParent) do
                             vRet        = rawget(tNextParent[nCAI], k);
                             zRet        = rawtype(vRet);
                             tNextParent = tNextParent.parent;
@@ -542,21 +609,20 @@ kit = {
 
                         --if none exists, throw an error
                         if (rawtype(vRet) == "nil") then
-                            error("Error in class, '${name}'. Attempt to access public member, '${member}', a nil value." % {
-                                name = tKit.name, member = tostring(k)});
+                            error("Error in class, '${name}'. Attempt to access ${visibility} member, '${member}', a nil value." % {
+                                name = tKit.name, visibility = tCAINames[nCAI], member = tostring(k)});
                         end
 
                         return vRet;
                     end,
                     __newindex = function(t, k, v)
-                        print(t, k, v)
                         local tTarget       = tInstance[nCAI];
                         local vVal          = rawget(tTarget, k);
                         local zVal          = rawtype(vVal);
                         local tNextParent   = tInstance.parent or nil;
 
                         --if there's no such public key in the instance, check each parent
-                        while (zVal == "nil" and tNextParent) do
+                        while (bAllowUpSearch and zVal == "nil" and tNextParent) do
                             tTarget     = tNextParent[nCAI];
                             vVal        = rawget(tTarget, k);
                             zVal        = rawtype(vVal);
@@ -565,39 +631,42 @@ kit = {
 
                         --if none exists, throw an error
                         if (rawtype(vVal) == "nil") then
-                            error("Error in class, '${name}'. Attempt to modify public member, '${member}', a nil value." % {
-                                name = tKit.name, member = tostring(k)});
+                            error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
+                                name = tKit.name, visibility = tCAINames[nCAI], member = tostring(k)});
                         end
 
                         local sTypeCurrent  = type(tTarget[k]);
                         local sTypeNew      = type(v);
-                        print(tostring(sTypeCurrent), tostring(sTypeNew))
+
                         if (sTypeNew == "nil") then
-                            error("Error in class, '${name}'. Cannot set public member, '${member}', to nil." % {
-                                name = tKit.name, member = tostring(k)});
+                            error("Error in class, '${name}'. Cannot set ${visibility} member, '${member}', to nil." % {
+                                name = tKit.name, visibility = tCAINames[nCAI], member = tostring(k)});
                         end
 
-                        if (sTypeCurrent == "function") then
-                            error("Error in class, '${name}'. Attempt to override public class method, '${member}', outside of a subclass context." % {
-                                name = tKit.name, member = tostring(k)});
+                        if (sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
+                        --if (bIsPublic and sTypeCurrent == "function") then
+                            error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
+                                name = tKit.name, visibility = tCAINames[nCAI], member = tostring(k)});
                         end
 
                         if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
-                            error("Error in class, '${name}'. Attempt to change type for member, '${member}', from ${typecurrent} to ${typenew}." % {
-                                name = tKit.name, member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
+                            error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
+                                name = tKit.name, visibility = tCAINames[nCAI], visibility = tCAINames[nCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
                         end
 
                         rawset(tTarget, k, v);
-                        --return oInstance;
                     end,
+                    __metatable = true,
                 });
 
             end
 
         end
 
+        --metamethods
+
         --create and set the instance metatable
-        kit.setinstancemetatable(tKit, oInstance, tInstance);
+        kit.setinstancemetatable(tKit, oInstance, tInstance, tClassData);
 
         --create parents (if any)
         if (tKit.parent) then
@@ -608,22 +677,10 @@ kit = {
                                             --TODO I need to update the children field of each parent (OR do I?)
         end
 
-        --🅿🆄🅱🅻🅸🅲  | setup inheritence for public members
 
+--TODO prevent public static items form being overwritten as public ones are
 
-            --TODO check for public and protected members in each class and handle them
-            --ensure there are no public value overrights
-
-
-
-            --[[┌────────────────────────────────────────────┐
-                │               🅿🆁🅾🆃🅴🅲🆃🅴🅳             │
-                └────────────────────────────────────────────┘]]
-
-
---TODO prevent public static items form being overwritten as public ones are (and no oew ones should be allowwed to be added after class creation).
-
-
+        --TODO make sure contrsuctors fire only once then are deleted
 
         --TODO contructors  (also static initializers for altering static fields ONCE at runtime)
 
@@ -634,65 +691,140 @@ kit = {
 
         return oInstance, tInstance;
     end,
-    mayextend = function(sName, cExtendor) --TODO this is allow the extending of final classes...fix this (it may be that the class is not being added to the repo in import yet)
+    mayextend = function(sName, cExtendor)
 		local bRet = false;
 
 		--check that the extending class exists
 		if (type(cExtendor) == "class") then
-			assert(type(kit.repo.byobject[cExtendor]) == "table", "Error extending class, '${class}'. Parent class, '${item}', does not exist. Got (${type}) '${item}'."	% {class = sName, type = type(cExtendor), item = tostring(cExtendor)});
-			assert(kit.repo.byobject[cExtendor].isfinal == false, "Error extending class, '${class}'. Parent class '${parent}' is final and cannot be extended."	% {class = sName, parent = kit.repo.byobject[cExtendor].name})
+			assert(type(kit.repo.byobject[cExtendor]) == "table", "Error creating derived class, '${class}'. Parent class, '${item}', does not exist. Got (${type}) '${item}'."	% {class = sName, type = type(cExtendor), item = tostring(cExtendor)}); --TODO since nil is allowed, this never fires. Why have it here?
+			assert(kit.repo.byobject[cExtendor].isfinal == false, "Error creating derived class, '${class}'. Parent class '${parent}' is final and cannot be extended."	% {class = sName, parent = kit.repo.byobject[cExtendor].name})
 
 			bRet = true;
 		end
 
 		return bRet;
 	end,
-    setinstancemetatable = function(tKit, oInstance, tInstance)
-        local tPublic = tInstance[CLASS_ACCESS_INDEX_PUBLIC];
+    prepclassdata = function(tKit)--TODO this currently not being used
+        local tActual = {
+            [CAI_PRI] = setmetatable({}, {
+                __newindex
+            }),
+            [CAI_PRO] = {},
+            [CAI_PUB] = {},
+            [CAI_INS] = {},
+        };
+        local tDecoy = {};
+        setmetatable(tDecoy, {
+            __index = function(t, k, v)
 
-        --TODO add user metatable stuff here
+                if (rawtype(rawget(tActual, k)) == "nil") then
+                    error("Error in class, '${class}'. Attempt to access non-existent class data index, '${index}'." % {class = tKit.name, index = tostring(k)});
+                end
 
-        setmetatable(
-            oInstance,
-            { --this is the instance metatable
-                __index     = function(t, k)
-                    return tPublic[k] or nil;
-                end,
-                __newindex  = function(t, k, v)
-                    tPublic[k] = v;
+            end,
+            __newindex = function(t, k, v)
 
-                    --if (rawtype(tPublic[k]) ~= "nil") then
-                    --    tPublic[k] = v; --DO NOT use rawset and rawget here because this needs to rely on the tPublic metatable for lookup (to account for parents)
-                    --end
+                if (rawtype(rawget(tActual, k)) == "nil") then
+                    error("Error in class, '${class}'. Attempt to modify read-only class data." % {class = tKit.name});
+                end
 
-                    --return tPublic[k] or nil; --the tPublic metatable returns the instance object
-                end,
-                __type = tKit.name,
-            }
-        );
+            end,
+            __metatable = true,
+        });
+
+        return tDecoy;
+    end,
+    processfinalmethods = function(tKit)
+        local sMarker = CLASS_FINAL_MARKER.."$";
+        local tChange = {};
+
+        for _, nCAI in pairs({CAI_PRO, CAI_PUB}) do --TODO export table for efficieny
+            local tVisibility = tKit[tCAINames[nCAI]];
+            tChange[tCAINames[nCAI]] = {};
+
+            for sName, vMethod in pairs(tVisibility) do
+
+                if (rawtype(vMethod) == "function" and sName ~= tKit.name) then --ignores contructors
+
+                    if (sName:match(sMarker)) then
+                        tChange[tCAINames[nCAI]][sName] = vMethod;
+                    end
+
+                end
+
+            end
+
+        end
+
+        for sVisibility, tNames in pairs(tChange) do
+
+            for sName, fMethod in pairs(tNames) do
+                --clean the name
+                local sNewName = sName:sub(1, #sName - CLASS_FINAL_MARKER_LENGTH);
+                --add/delete proper key
+                tKit[sVisibility][sNewName] = fMethod;
+                tKit[sVisibility][sName] = nil;
+                --log the method as final
+                tKit.finalmethodnames[sVisibility][sNewName] = true;
+            end
+
+        end
+
+    end,
+    setinstancemetatable = function(tKit, oInstance, tInstance, tClassData)
+        local tMeta = {};
+        local tPublic = tClassData[CLASS_ACCESS_INDEX_PUBLIC];
+
+
+        for k, v in pairs(tInstance[CAI_MET]) do
+            tMeta[k] = v;
+        end
+
+        tMeta.__index     = function(t, k)
+            return tPublic[k] or nil;
+        end;
+        tMeta.__newindex  = function(t, k, v)
+            tPublic[k] = v;
+        end;
+        tMeta.__type = tKit.name;
+
+        setmetatable(oInstance, tMeta);
     end,
     shadowcheck = function(tKit) --checks for public/protected shadowing
         local tParent   = tKit.parent;
 
         local tCheckIndices  = {
-            [CAI_PRO] = "protected",
-            [CAI_PUB] = "public",
+            [CAI_PRO] = tCAINames[CAI_PRO],
+            [CAI_PUB] = tCAINames[CAI_PUB],
         };
 
         while (tParent) do
 
             --iterate over each visibility level
-            for nVisibility, sVisibility in ipairs(tCheckIndices) do
+            for nVisibility, sVisibility in pairs(tCheckIndices) do
 
                 --shadow check each member of the class
-                for sKey, vChildValue in pairs(tKit[nVisibility]) do
-                    local zParentValue  = rawtype(tParent[nVisibility][sKey]);
-                    local zChildValue   = rawtype(vChildValue);
+                for sKey, vChildValue in pairs(tKit[sVisibility]) do
+                    --print("Kit-"..tKit.name, "sVisibility-"..sVisibility, "Parent-"..tParent.name, "Key-"..sKey, "Key Type In Parent-"..type(tParent[sVisibility][sKey]))
+                    local zParentValue          = rawtype(tParent[sVisibility][sKey]);
+                    local zChildValue           = rawtype(vChildValue);
+                    local bIsFunctionOverride   = (zParentValue == "function" and zChildValue == "function");
 
                     --the same key found in any parent is allowed in the child class only if it's a function override, otherwise throw a shadowing error
-                    if (zParentValue ~= "nil" and not (zParentValue == "function" and zChildValue == "function")) then
-                        error(  "Error in class, '${name}'. Attempt to shadow existing ${visibility} member, '${member}', in parent class, '${parent}'." % {
-                                name = tKit.name, visibility = sVisibility, member = tostring(vChildValue), parent = tParent.name});
+                    if (zParentValue ~= "nil") then
+
+                        if (bIsFunctionOverride) then
+
+                            if (tKit.parent.finalmethodnames[sVisibility][sKey]) then
+                                error(  "Error in class, '${name}'. Attempt to override final ${visibility} method, '${member}', in parent class, '${parent}'." % {
+                                    name = tKit.name, visibility = sVisibility, member = tostring(sKey), parent = tParent.name});
+                            end
+
+                        else
+                            error(  "Error in class, '${name}'. Attempt to shadow existing ${visibility} member, '${member}', in parent class, '${parent}'." % {
+                                name = tKit.name, visibility = sVisibility, member = tostring(sKey), parent = tParent.name});
+                        end
+
                     end
 
                 end
@@ -703,20 +835,20 @@ kit = {
             tParent = tParent.parent;
         end
 
-    end,--TODO edit errors adding commas and, class names, quotes, etc. Pretty pretty
+    end,--TODO edit errors adding commas and, class names, quotes, etc. Pretty pretty ALSO check for _FNL duplicates (e.g., MyFunc and MyFunc_FNL)
 	validatename = function(sName)
 		assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								% {					type = type(sName), 			item = tostring(sName)});
-		assert(sName:isvariablecompliant(),					"Error creating class, ${class}. Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
-		assert(type(kit.repo.byname[sName])	== "nil", 		"Error creating class, ${class}. Class already exists."													% {class = sName});
+		assert(sName:isvariablecompliant(),					"Error creating class, '${class}.' Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
+		assert(type(kit.repo.byname[sName])	== "nil", 		"Error creating class, '${class}.' Class already exists."													% {class = sName});
 	end,
     validatetables = function(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
-		assert(type(tMetamethods)			== "table", 	"Error creating class, ${class}. Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
-		assert(type(tStaticPublic)			== "table", 	"Error creating class, ${class}. Static public values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
-		assert(type(tPrivate) 				== "table", 	"Error creating class, ${class}. Private values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
-		assert(type(tProtected) 			== "table", 	"Error creating class, ${class}. Protected values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
-		assert(type(tPublic) 				== "table", 	"Error creating class, ${class}. Static values table expected.\r\nGot: (${type}) ${item}." 				% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
+		assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}.' Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
+		assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}.' Static public values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
+		assert(type(tPrivate) 				== "table", 	"Error creating class, '${class}.' Private values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
+		assert(type(tProtected) 			== "table", 	"Error creating class, '${class}.' Protected values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
+		assert(type(tPublic) 				== "table", 	"Error creating class, '${class}.' Static values table expected.\r\nGot: (${type}) ${item}." 				% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
 
-		local bIsConstructor = false;
+        local bIsConstructor = false;
 		local tTables = {
 			metamethods 	= tMetamethods,
 			staticpublic 	= tStaticPublic,
@@ -729,13 +861,13 @@ kit = {
 		for sTable, tTable in pairs(tTables) do
 
 			for k, v in pairs(tTable) do
-				assert(rawtype(k) == "string", "Error creating class, ${class}. All table indices must be of type string. Got: (${type}) ${item} in table '${table}'" % {class = sName, type = type(k), item = tostring(v), table = sTable});
+				assert(rawtype(k) == "string", "Error creating class, '${class}.' All table indices must be of type string. Got: (${type}) ${item} in table, ${table}" % {class = sName, type = type(k), item = tostring(v), table = sTable});
 --TODO consider what visibility constructors must have (no need for private consttructors since static classes are not really needed in Lua?)
 				--ensure there's a constructor
-				if (sTable == "public" and k == sName and rawtype(v) == "function") then
+				if ((sTable == "public" or sTable == "protected") and k == sName and rawtype(v) == "function") then
 
 					--make sure there's not already a constructor
-					assert(not bIsConstructor, "Error creating class, ${class}. Redundant constructor detected in '${table}' table." % {class = sName, table = sTable});
+					assert(not bIsConstructor, "Error creating class, '${class}.' Redundant constructor detected in ${table} table." % {class = sName, table = sTable});
 
 					--make sure it's in the public table
 					--assert(sTable == "public", "Error creating class, ${class}. Constructor must be declared in the 'public' table. Currently declared in the '${table}' table." % {class = sName, table = sTable});
@@ -746,6 +878,12 @@ kit = {
 			end
 
 		end
+
+        --validate the metamethods
+        for sMetaItem, vMetaItem in pairs(tMetamethods) do
+            assert(tMetaNames[sMetaItem],               "Error creating class, '${class}.' Invalid metamethod, '${metaname}.'\nPermitted metamethods are:\n${metanames}"   % {class = sName, metaname = sMetaItem, metanames = GetMetaNamesAsString()});
+            assert(rawtype(vMetaItem) == "function",    "Error creating class, '${class}.' Invalid metamethod type for metamethod, '${metaname}.'\nExpected type function, got type ${type}."     % {class = sName, metaname = sMetaItem, type = type(vMetaItem)});
+        end
 
         --TODO import metamethods ONLY if they are legit metanames
 		assert(bIsConstructor, "Error creating class, '${class}'. No constructor provided." % {class = sName});
@@ -768,6 +906,66 @@ kit = {
 		end
 
 	end,
+    wrapmetamethods = function(oInstance, tInstance, tClassData)
+        --print("wrapping: "..tInstance.metadata.kit.name)
+        --[[rawset(tInstance[nCAI], k, function(...)
+            return v(oInstance, tClassData, ...);
+        end);
+        for sMetamethod, fMetamethod in pairs(tInstance[CAI_MET]) do
+
+            if (    sMetamethod == "__tostring" or sMetamethod == "__name"
+                 or sMetamethod == "__pairs"    or sMetamethod == "__ipairs"
+                 or sMetamethod == "__call") then
+
+                rawset(tInstance[CAI_MET], sMetamethod, function(...)
+                    return fMetamethod(oInstance, tClassData, ...);
+                end);
+
+            else
+
+                rawset(tInstance[CAI_MET], sMetamethod, function(...)
+                    return fMetamethod(..., tClassData);
+                end);
+
+            end
+
+        end
+        ]]
+        for sMetamethod, fMetamethod in pairs(tInstance[CAI_MET]) do
+
+            if (sMetamethod == "__add"      or sMetamethod == "__band"      or sMetamethod == "__bor"   or
+                sMetamethod == "__bxor"     or sMetamethod == "__concat"    or sMetamethod == "__div"   or
+                sMetamethod == "__eq"       or sMetamethod == "__idiv"      or sMetamethod == "__le"    or
+                sMetamethod == "__lt"       or sMetamethod == "__mod"       or sMetamethod == "__mul"   or
+                sMetamethod == "__pow"      or sMetamethod == "__shl"       or sMetamethod == "__sub"   or
+                sMetamethod == "__pairs"    or sMetamethod == "__ipairs")  then
+
+                rawset(tInstance[CAI_MET], sMetamethod, function(a, b)
+                    return fMetamethod(a, b, tClassData);
+                end);
+
+            elseif (sMetamethod == "__bnot" or sMetamethod == "__len" or sMetamethod == "__shr" or sMetamethod == "__unm" ) then
+
+                rawset(tInstance[CAI_MET], sMetamethod, function(a)
+                    return fMetamethod(a, tClassData);
+                end);
+
+            elseif (sMetamethod == "__call" or sMetamethod == "__name") then
+                rawset(tInstance[CAI_MET], sMetamethod, function(...)
+                    return fMetamethod(oInstance, tClassData, ...)
+                end);
+
+            elseif (sMetamethod == "__tostring") then
+
+                rawset(tInstance[CAI_MET], sMetamethod, function(a)
+                    return fMetamethod(a, tClassData)
+                end);
+
+            end
+
+        end
+
+    end,
 };
 
 

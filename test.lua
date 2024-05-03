@@ -47,11 +47,11 @@ Creature = class("Creature",
 
 },
 { --private
-    HP      = 80,
-    HPMax   = 100,
+
 },
 { --protected
-
+    HP      = 80,
+    HPMax   = 100,
 },
 { --public
     Creature = function(this, cdat, sName, nMaxHP)
@@ -60,11 +60,11 @@ Creature = class("Creature",
     end,
     GetHP = function(this, cdat)
         --print(cdat[PRO].HP)
-        return cdat[PRI].HP;
+        return cdat[PRO].HP;
     end,
     SetHP = function(this, cdat, nVal)
         --print(cdat[PRO].HP)
-        cdat[PRI].HP = nVal;
+        cdat[PRO].HP = nVal;
         return this;
     end,
     k = 4,
@@ -87,31 +87,77 @@ Human = class("Human",
 },
 { --protected
     Test = null,
+    --HP = 33,
 },
 { --public
     Human = function(this, cdat, sName, nMaxHP)
         cdat[PRO].HPMax = nMaxHP;
         print(cdat[PRO].HPMax)
     end,
+    Jump = function(this, cdat)
+        print("Human")
+        --cdat[PRO] = 6; --TODO make this throw an error
+        --print(setmetatable(cdat, {}))
+        --cdat[PRI].test = "asd";
+        --print(cdat.ieur)
+        --cdat.test = 34;
+    end,
+    Boop = function(this, cdat)
+        print("Boop! It's a human.")
+    end,
+    loerwer = 90354
     --Hits = 55,
 }, Creature, NO_INTERFACES, false);
 
+Soldier = class("Soldier",
+{ --metamethods
+    __add = function(this, other, cdat)
+        --print(this.GetHP(), other.GetHP(), cdat[PRI].test)--, other.GetHP())
+        --print(type(this), type(other), type(cdat), type(t4))
+    end,
+    __len = function(this, cdat)
+        return cdat[PRI].test;
+    end,
+},
+{ --static public
 
+},
+{ --private
+    test = 567,
+},
+{ --protected
+    --Test = null,
+    --HP = 33,
+},
+{ --public
+    Soldier = function(this, cdat, sName, nMaxHP)
+        cdat[PRO].HPMax = nMaxHP;
+        print(cdat[PRO].HPMax)
+    end,
+    Jump = function(this, cdat)
+        print("Soldier")
+        --cdat[PRO] = 6; --TODO make this throw an error
+        --print(setmetatable(cdat, {}))
+        --cdat[PRI].test = "asd";
+        --print(cdat.ieur)
+        --cdat.test = 34;
+    end,
+    Boop = function(this, cdat)
+        print("Boop! It's a soldier.")
+    end,
+    --Hits = 55,
+}, Human, NO_INTERFACES, false);
 
-local Kaleb = Human("Kaleb", 120);
+local Kaleb = Soldier("Kaleb", 120);
+local Bob   = Soldier("Bob", 39);
+local j = Kaleb + Bob
+print(#Kaleb)
 --Kaleb.Test = 4;
 
 --print(Kaleb.SetHP(33).GetHP());
-Kaleb.Hits = -34;
-Kaleb.Hits = "sdad";
-print(Kaleb.Hits)
---print(tostring(os.getenv("string")))
-
---print(math.rgbtolong( 	0, 	255, 	0))
---print(math.longtorgb(math.rgbtolong(255, 255, 255)))
---local tLuaEX = _G.__LUAEX__;
---print(serialize.table(tLuaEX.__KEYWORDS__));
-
---print(tLuaEX.__KEYWORDS__[1]);
---print(string.iskeyword("nil"));
---test:pop()
+--Kaleb.SetHP(65);
+--print(Kaleb.GetHP())
+--Kaleb.Jump()
+Kaleb.Boop()
+--Kaleb.Hits = "sdad";
+--print(Kaleb.Hits)
