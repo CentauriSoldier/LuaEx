@@ -192,6 +192,7 @@ package.path = package.path..";"..sPath.."\\..\\?.lua";
 
 --🅸🅼🅿🅾🆁🆃 🅿🆁🅴🆁🅴🆀🆄🅸🆂🅸🆃🅴 🅼🅾🅳🆄🅻🅴🆂
 type 			=  	require("LuaEx.hook.typehook");
+                    require("LuaEx.hook.metahook");
 					require("LuaEx.lib.stdlib");
 constant 		= 	require("LuaEx.lib.constant");
 clausum			=	require("LuaEx.lib.clausum");
@@ -248,6 +249,8 @@ iserializable 	= require("LuaEx.class.interfaces.iserializable");
 --stack 		= require("LuaEx.class.classes.stack");
 --set 		= require("LuaEx.class.classes.set");
 --ini 		= require("LuaEx.class.classes.ini"); --TODO convert to new class system
+
+
 
 --🅰🅻🅸🅰🆂🅴🆂
 table.serialize 	= serialize.table;

@@ -77,7 +77,9 @@ local Dragon = Creature("Dragon", 2000);
 --print(type(Dragon.k))
 Human = class("Human",
 { --metamethods
-
+    __unm = function(this, cdat)
+        return cdat[PRI].test;
+    end,
 },
 { --static public
 
@@ -115,15 +117,13 @@ Soldier = class("Soldier",
         --print(this.GetHP(), other.GetHP(), cdat[PRI].test)--, other.GetHP())
         --print(type(this), type(other), type(cdat), type(t4))
     end,
-    __len = function(this, cdat)
-        return cdat[PRI].test;
-    end,
+
 },
 { --static public
 
 },
 { --private
-    test = 567,
+    test = 400,
 },
 { --protected
     --Test = null,
@@ -150,8 +150,13 @@ Soldier = class("Soldier",
 
 local Kaleb = Soldier("Kaleb", 120);
 local Bob   = Soldier("Bob", 39);
-local j = Kaleb + Bob
-print(#Kaleb)
+--local j = Kaleb + Bob
+print(-Kaleb)
+--local meta = setmetatable(Kaleb, {});
+--print(table.serialize(meta))
+--meta.__type = "donky";
+print(getmetatable(Kaleb).__type)
+--print(Kaleb.GetHP())
 --Kaleb.Test = 4;
 
 --print(Kaleb.SetHP(33).GetHP());

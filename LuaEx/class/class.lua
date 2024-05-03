@@ -88,15 +88,17 @@ local function GetMetaNamesAsString()
     return sRet:sub(1, #sRet - 2);
 end
 
-local assert        = assert;
-local getmetatable  = getmetatable;
-local pairs         = pairs;
-local rawget 		= rawget;
-local rawset		= rawset;
-local setmetatable  = setmetatable;
-local string        = string;
-local table         = table;
-local type          = type;
+local assert            = assert;
+local getmetatable      = getmetatable;
+local pairs             = pairs;
+local rawget            = rawget;
+local rawgetmetatable   = rawgetmetatable;
+local rawset            = rawset;
+local rawtype           = rawtype;
+local setmetatable      = setmetatable;
+local string            = string;
+local table             = table;
+local type              = type;
 
 --this is the class.args table
 local tMasterArgsActual = {};
@@ -110,7 +112,7 @@ local tVisibilityIndices = {
 	instances		= CAI_INS, --a table containing all the instances
 };
 
-setmetatable(tMasterArgsActual,
+rawsetmetatable(tMasterArgsActual,
 {
 	__index = function(t, k)
 		return tVisibilityIndices[k] or nil;
@@ -173,7 +175,7 @@ class = {
 		local tShadow 			= { 	--shadow
 			metamethods				= {},
 			private					= {},
-			protected 				= setmetatable({}, {}),
+			protected 				= rawsetmetatable({}, {}),
 			public      			= {},
 		};
 		local tInstanceMeta = {
@@ -186,7 +188,7 @@ class = {
 
 		--return oClass;
 
-		setmetatable(oClass, {
+		rawsetmetatable(oClass, {
 			__tostring = sName,
 			__type 	= "class",
 	        __call  = function(t, ...)
@@ -285,7 +287,7 @@ class = {
 				end
 
 				--set the instance's metatable
-				tInstance = setmetatable(tInstance, tInstanceMeta);
+				tInstance = rawsetmetatable(tInstance, tInstanceMeta);
 
 				--run the constructor
 				fConstructor(tInstance, tArgs, ...);
@@ -409,7 +411,7 @@ kit = {
             __name = sName,
         };
 
-        setmetatable(oClass, tClassMeta);
+        rawsetmetatable(oClass, tClassMeta);
 
         --update the repos
         kit.repo.byobject[oClass]       = tKit;
@@ -426,7 +428,7 @@ kit = {
 			vRet = table.clone(vItem);
 
 		elseif (rawtype(vItem) == "table") then
-			local tMeta = getmetatable(vItem);
+			local tMeta = rawgetmetatable(vItem);
 
 			if (tMeta and tMeta.__is_luaex_class) then
 				vRet = vItem.clone();--TODO what is this?
@@ -537,7 +539,7 @@ kit = {
         };
         local tClassData     = {}; --decoy class data (this gets pushed through the wrapped methods)
 
-        setmetatable(tClassData, {
+        rawsetmetatable(tClassData, {
             __index = function(t, k, v)--throw an error if the client access a non-existent Class Data index.
 
                 if (rawtype(rawget(tClassDataActual, k)) == "nil") then
@@ -562,12 +564,6 @@ kit = {
 
         --wrap the metamethods
         kit.wrapmetamethods(oInstance, tInstance, tClassData)
-
-        --[[for sMetamethod, fMetamethod in pairs(tInstance[CAI_MET]) do
-            rawset(tInstance[CAI_MET], k, function(...)
-                return v(oInstance, tClassData, ...);
-            end);
-        end]]
 
         --perform the private, protected and public method wrapping
         for _, nCAI in ipairs(tClassDataToWrap) do
@@ -594,7 +590,7 @@ kit = {
             if (bIsPrivate or bIsProteced or bIsPublic) then
                 local bAllowUpSearch = bIsProteced or bIsPublic;
 
-                setmetatable(tClassData[nCAI], {
+                rawsetmetatable(tClassData[nCAI], {
                     __index = function(t, k)
                         local vRet          = rawget(tInstance[nCAI], k);
                         local zRet          = rawtype(vRet);
@@ -663,11 +659,6 @@ kit = {
 
         end
 
-        --metamethods
-
-        --create and set the instance metatable
-        kit.setinstancemetatable(tKit, oInstance, tInstance, tClassData);
-
         --create parents (if any)
         if (tKit.parent) then
             --instantiate the parent
@@ -677,6 +668,8 @@ kit = {
                                             --TODO I need to update the children field of each parent (OR do I?)
         end
 
+        --create and set the instance metatable
+        kit.setinstancemetatable(tKit, oInstance, tInstance, tClassData);
 
 --TODO prevent public static items form being overwritten as public ones are
 
@@ -706,7 +699,7 @@ kit = {
 	end,
     prepclassdata = function(tKit)--TODO this currently not being used
         local tActual = {
-            [CAI_PRI] = setmetatable({}, {
+            [CAI_PRI] = rawsetmetatable({}, {
                 __newindex
             }),
             [CAI_PRO] = {},
@@ -714,7 +707,7 @@ kit = {
             [CAI_INS] = {},
         };
         local tDecoy = {};
-        setmetatable(tDecoy, {
+        rawsetmetatable(tDecoy, {
             __index = function(t, k, v)
 
                 if (rawtype(rawget(tActual, k)) == "nil") then
@@ -772,23 +765,62 @@ kit = {
 
     end,
     setinstancemetatable = function(tKit, oInstance, tInstance, tClassData)
-        local tMeta = {};
-        local tPublic = tClassData[CLASS_ACCESS_INDEX_PUBLIC];
+        local tMeta         = {}; --actual
 
+        --iterate over all metanames
+        for sMetamethod, bAllowed in pairs(tMetaNames) do
 
-        for k, v in pairs(tInstance[CAI_MET]) do
-            tMeta[k] = v;
+            if (bAllowed) then --only add if it's allowed
+                local fMetamethod = tInstance[CAI_MET][sMetamethod] or nil; --check if the metamethod exists in this class
+
+                if (fMetamethod) then
+                    tMeta[sMetamethod] = fMetamethod;
+
+                else --if it does not exist, try to add one from a parent instance
+                    local tNextParent = tInstance.parent;
+
+                    while (tNextParent) do
+                        local fParentMetamethod = tNextParent[CAI_MET][sMetamethod] or nil; --check if the metamethod exists in this class
+
+                        if (fParentMetamethod) then
+                            tMeta[sMetamethod] = fParentMetamethod;
+                            tNextParent = nil; --indicate that we're done searching
+                        else
+                            tNextParent = tNextParent.parent or nil; --continue the search
+                        end
+
+                    end
+
+                end
+
+            end
+
         end
 
         tMeta.__index     = function(t, k)
-            return tPublic[k] or nil;
+            return tClassData[CAI_PUB][k] or nil;
         end;
+
         tMeta.__newindex  = function(t, k, v)
-            tPublic[k] = v;
+            tClassData[CAI_PUB][k] = v;
         end;
+
         tMeta.__type = tKit.name;
 
-        setmetatable(oInstance, tMeta);
+        tMeta.__is_luaex_class = true;
+
+        tMetaDecoy = table.clone(tMeta, false);
+
+        local tMetaDecoy    = {--this secures the instance metatable from being modified
+            __newindex = function(t, k, v)
+                error("Error in class, '${class}'. Attempt to modify read-only instance metatable." % {class = tInstance.metadata.kit.name});
+            end,
+            __index = function(t, k)
+                return tMeta[k] or nil;
+            end,
+        };
+
+        rawsetmetatable(oInstance, tMeta);
     end,
     shadowcheck = function(tKit) --checks for public/protected shadowing
         local tParent   = tKit.parent;
@@ -907,30 +939,7 @@ kit = {
 
 	end,
     wrapmetamethods = function(oInstance, tInstance, tClassData)
-        --print("wrapping: "..tInstance.metadata.kit.name)
-        --[[rawset(tInstance[nCAI], k, function(...)
-            return v(oInstance, tClassData, ...);
-        end);
-        for sMetamethod, fMetamethod in pairs(tInstance[CAI_MET]) do
 
-            if (    sMetamethod == "__tostring" or sMetamethod == "__name"
-                 or sMetamethod == "__pairs"    or sMetamethod == "__ipairs"
-                 or sMetamethod == "__call") then
-
-                rawset(tInstance[CAI_MET], sMetamethod, function(...)
-                    return fMetamethod(oInstance, tClassData, ...);
-                end);
-
-            else
-
-                rawset(tInstance[CAI_MET], sMetamethod, function(...)
-                    return fMetamethod(..., tClassData);
-                end);
-
-            end
-
-        end
-        ]]
         for sMetamethod, fMetamethod in pairs(tInstance[CAI_MET]) do
 
             if (sMetamethod == "__add"      or sMetamethod == "__band"      or sMetamethod == "__bor"   or
@@ -969,11 +978,11 @@ kit = {
 };
 
 
-local tMasterShadow = { --this is the shadow table for the final returned value TODO do i even need this anymore?
+local tMasterShadow = { --this is the shadow table for the final returned value TODO do i even need this anymore? YEs, this is the Public Static table (though it needs onfigured properly)
 	args = tMasterArgsActual,
 };
 
-return setmetatable(
+return rawsetmetatable(
 {
 
 },
