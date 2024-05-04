@@ -1,5 +1,7 @@
 local tLuaEX = rawget(_G, "luaex");
 local rawtype 	= rawtype;
+local getmetatable = getmetatable;
+local setmetatable = setmetatable;
 
 function sealmetatable(tInput)
 	local bRet = false;
@@ -12,7 +14,7 @@ function sealmetatable(tInput)
 		if (sMetaType == "table" or bIsNil) then
 			tMeta = bIsNil and {} or tMeta;
 			tMeta.__metatable = false;
-			setmetatable(tInput, tMeta);
+			rawsetmetatable(tInput, tMeta);
 		end
 
 	end
@@ -50,7 +52,7 @@ function setmetatable(tInput, tMeta)
     if (tCurrentMeta) then
 
         if (rawtype(tCurrentMeta["__is_luaex_class"]) ~= "nil" and tCurrentMeta.__is_luaex_class) then
-            error("Error in class, '${}.' Attempt to modify class metatable.")
+            error("Error in class, '${class}.' Attempt to modify class metatable." % {class = tCurrentMeta.__name or "UNKNOWN"});
         end
 
     end

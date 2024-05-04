@@ -222,6 +222,7 @@ local function class(_, name)
 	loadstring([[function is${classname}(vInput)
 		return type(vInput) == "${classname}";
 	end]] % {classname = name})();
+return 98;
 
 	-- first return an intermediate class, on which you still need to call
 	-- with the method table. i.e. this is the stage that handles `class "name"`
@@ -254,7 +255,7 @@ local function class(_, name)
 			-- i.e. in your __construct(this): `this:super(a, b, c)`
 			class_object.super = function(instance, ...)
 				local parent = getmetatable(class_object).__parent;
-				if (parent and type(parent.__construct) == "function") then					
+				if (parent and type(parent.__construct) == "function") then
 					local current_mt = getmetatable(instance);
 					--parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tProtectedFieldsAndMethods[class_object], ...);
 					--parent.__construct(setmetatable(instance, getmetatable(parent).__instance_mt), tShared, ...);

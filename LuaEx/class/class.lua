@@ -26,6 +26,18 @@ Download here.
 	class creation.
 ]]
 
+local assert            = assert;
+local getmetatable      = getmetatable;
+local pairs             = pairs;
+local rawget            = rawget;
+local rawgetmetatable   = rawgetmetatable;
+local rawset            = rawset;
+local rawtype           = rawtype;
+local setmetatable      = setmetatable;
+local string            = string;
+local table             = table;
+local type              = type;
+
 --constants
 constant("CLASS_ACCESS_INDEX_METATABLES",  0);
 constant("CLASS_ACCESS_INDEX_PRIVATE",     1);
@@ -88,17 +100,17 @@ local function GetMetaNamesAsString()
     return sRet:sub(1, #sRet - 2);
 end
 
-local assert            = assert;
-local getmetatable      = getmetatable;
-local pairs             = pairs;
-local rawget            = rawget;
-local rawgetmetatable   = rawgetmetatable;
-local rawset            = rawset;
-local rawtype           = rawtype;
-local setmetatable      = setmetatable;
-local string            = string;
-local table             = table;
-local type              = type;
+--these are the types that can be changed when static public
+local tMutableStaticPublicTypes = {
+    ["boolean"]     = true,
+    ["number"]      = true,
+    ["string"]      = true,
+    ["table"]       = true,
+};
+
+local function IsMutableStaticPublicType(sType)
+    return (tMutableStaticPublicTypes[sType] or false);
+end
 
 --this is the class.args table
 local tMasterArgsActual = {};
@@ -129,213 +141,6 @@ class = {
 		byname    = {},
         objects   = {},
 	},
-	build = function(sName, ...)
-		local oClass = {};
-		local tKit = kit.get(sName);
-		--local class.buildinstancecall(tKit);
-
-		--process the parents ()
-		local tParents = {};
-		--this will be called by the instance using this.super
-		local fParentConstructor = nil;
-
-		--create the tParents table with top-most classes in descending order
-		if (bExtend) then
-			local tParent = getparent(tClasses[cExtendor].name);
-			--store this as a child of the parent ????TODO CHECK THIS
-			tParent.children[sName] = tClassBuilder[sName];
-
-			while tParent ~= nil do
-				--store the parent
-				table.insert(tParents, 1, tParent);
-				--find the next parent
-				tParent = getparent(tParent.name);
-			end
-
-			--store the lowest parent constructor
-			local tFirstParent = tParents[#tParents];
-			fParentConstructor = tFirstParent.public[tFirstParent.name];
-		end
-
-
-
-
-		--ready the args table (this gets passed to all wrapped methods)
-		local tVI = tVisibilityIndices;
-		local tClassArgs = {
-			[tVI.private]			= tShadow.private,
-			[tVI.protected]			= tShadow.protected,
-			[tVI.public]			= tShadow.public,
-			[tVI.instances] 		= tClassIntanceRepo,--this exists so all instances and their fields & methods can be accessed from inside the class module TODO doesn't this need to be declared somewhere?
-		};
-
-		local bConstructorFound = false;
-		local fConstructor 		= nil;
-		local tInstance 		= {}; 	--actual
-		local tShadow 			= { 	--shadow
-			metamethods				= {},
-			private					= {},
-			protected 				= rawsetmetatable({}, {}),
-			public      			= {},
-		};
-		local tInstanceMeta = {
-			__type = sName,
-			__is_luaex_class = true,
-		};
-
-		local tUserArgs = arg or {...};--5.1/5.4 compatibility
-
-
-		--return oClass;
-
-		rawsetmetatable(oClass, {
-			__tostring = sName,
-			__type 	= "class",
-	        __call  = function(t, ...)
-				local bConstructorFound = false;
-				local fConstructor 		= nil;
-				local tInstance 		= {}; 	--actual
-				local tShadow 			= { 	--shadow
-					metamethods				= {},
-					private					= {},
-					protected 				= {},
-					public      			= {},
-				};
-				local tInstanceMeta = {
-					__type = sName,
-					__is_luaex_class = true,
-				};
-
-
-
-				--store this instance and it's args for later use from inside the class module
-				tClassIntanceRepo[tInstance] = tArgs;
-
-				--import the instance members
-				for sVisibility, tVisibility in pairs(tShadow) do
-
-					for k, v in pairs(tClass[sVisibility]) do
-
-						local sTypeV 	= type(v);
-						local sRawTypeV = rawtype(v);
-
-						if (type(v) == "function") then
-
-							if (not bConstructorFound and k == sName) then
-								--here, we save the constructor for later but don't place it into the instance table
-								fConstructor 			= v;
-								bConstructorFound 		= true;
-							else
-
-								if (sVisibility == "metamethods") then
-
-									if (tMetaNames[k]) then
-										tShadow[sVisibility][k] = function(...) return v(tArgs, ...) end;
-									end
-
-								else
-									tShadow[sVisibility][k] = function(...) return v(tInstance, tArgs, ...); end;
-								end
-
-							end
-
-						elseif (sTypeV == "table") then
-							tShadow[sVisibility][k] = table.clone(v);
-
-						elseif (sRawTypeV == "table") then
-							local tMeta = getmetatable(v);
-
-							if (tMeta and tMeta.__is_luaex_class) then
-								tShadow[sVisibility][k] = v.clone();
-
-							else
-								tShadow[sVisibility][k] = table.clone(v);
-
-							end
-
-						else
-							tShadow[sVisibility][k] = v;
-
-						end
-
-					end
-
-				end
-
-				--setup the instance metamethods
-				for k, v in pairs(tShadow.metamethods) do
-					tInstanceMeta[k] = v;
-				end
-
-
-				tInstanceMeta.__index = function(t, k)
-					local vRet = rawget(tShadow.public, k);
-
-					if (vRet) then
-						return vRet;
-					elseif (type(k) == "string" and k == "super") then --parent constructor
-						assert(type(fParentConstructor) == "function", "Error calling parent constructor in class, '${name}'. Prent constructor does not exist." % {name = sName})--TODO this should never happen as a constructor is ALWAYS required during class creation. THis section in not needed
-						return fParentConstructor;
-					else
-						error("Index, '${index}', not found in class, '${class}'." % {index = tostring(k), class = sName});
-					end
-
-				end
-
-				tInstanceMeta.__newindex = function(t, k, v);--deadcall
-
-				end
-
-				--set the instance's metatable
-				tInstance = rawsetmetatable(tInstance, tInstanceMeta);
-
-				--run the constructor
-				fConstructor(tInstance, tArgs, ...);
-
-				--[[TODO determine if the above-constructor
-					called the parent's constructor and, if
-					not, call it here.]]
-
-
-				return tInstance;
-	        end,
-
-			__index = function(t, k)--TODO use to get static values
-				local vRet = rawget(tClass.staticpublic, k);
-
-				if (vRet == nil) then
-					error("Key, '${key}', not found in class, '${class}'." % {class = sName, key = tostring(k)});
-				end
-
-				return vRet;
-			end,
-
-			__newindex = function(t, k, v)--TODO use to set static values
-				error("Attempt to set or assign read-only static, property (${key} = ${value}) in class, '${class}'." % {class = sName, key = tostring(k), value = tostring(v)});
-			end,
-	    });
-
-		--keep track of the total number of classes
-		nClassCount = nClassCount + 1;
-		--store the class oject so it can be used for (potentially) extending
-		tClasses[oClass] = {
-			name 		= sName,
-			instances	= tClassIntanceRepo;
-			isFinal		= type(bIsFinal) == "boolean" and bIsFinal or false,
-		};
-		tClassesByName[name] = {
-			instances	= tClassIntanceRepo;
-			isFinal		= type(bIsFinal) == "boolean" and bIsFinal or false,
-			object 		= oClass,
-		};
-	end,--TODO where is the class object returned?
-	buildinstancecall = function(tKit, ...)
-		return function(_ignored_, tKit, ...)
-
-
-		end
-
-	end,
 };
 
 kit = {
@@ -355,57 +160,36 @@ kit = {
     !]]
     build = function(tKit)
         local oClass    = {}; --this is the class object that gets returned
-        --shorthand
-        local tVIs      = tVisibilityIndices;
         local sName     = tKit.name;
+
+
 
         --this is the actual, hidden class table referenced by the returned class object
         local tClass            = table.clone(tKit.staticpublic);   --create the static public members
-        --tClass[tVIs.private]    = table.clone(tKit.private);        --create the private members
-        --tClass[tVIs.protected]  = table.clone(tKit.protected);      ---etc.
-        --tClass[tVIs.public]     = table.clone(tKit.public);
-        --tClass[tVIs.instances]  = table.clone(tKit.instances);
---[[
-        local tClassArgs = { --this gets passed to the appropriate class methods TODO does this get done on instantiation?  NO, that would be very inefficient
-            [tVIs.private]     = tClass[tVIs.private],
-            [tVIs.protected]   = tClass[tVIs.protected],
-            [tVIs.public]      = tClass[tVIs.public],
-            [tVIs.instances]   = tClass[tVIs.instances],
-        };]]
---TODO create/modify instances table
-        --check for and process parents
-        --local tParent   = tKit.parent;
-        --local tParents  = {};
-
-        --while (tParent) do
-            --table.insert(tParents, 1, tParent); --top-most parent is first in line
-            --tParent = tParent.parent;
-        --end
-
-        --tMetaNames
 
         local tClassMeta = { --the decoy (returned class object) meta table
             __call      = function(t, ...) --instantiate the class
-                local oInstance, tInstance = kit.instantiate(tKit, false); --this is the returned instance
-
-                --TODO SHOULD I INSTNTIATE EACH OBJECT THEN LOOP OVER THEM TO CREATE/MODIFY METATABLES?
-                --HERE IT IS...instatiate self | check for parent and if exists, instantiate that (recursively) | ammend metatables for parent loopup Now, what about protected items? Lookup those too?
-                --TODO create parent instances recursively on top of already-created self instance
-                --if (#tParents) > 0 then
-
-                --end
---TODO add instance to instances table
-                --apply metamethods
-
-                --wrap the class methods
-
+                local oInstance, tInstance = kit.instantiate(tKit, false, ...); --this is the returned instance
                 return oInstance;
             end,
             __index     = function(t, k)
                 return tClass[k] or nil;
             end,
             __newindex  = function(t, k, v) --TODO create a param option to silence this (globally and per class object)
-                error("Attempt to modify class object, '${class},' using value, '${value}.'" % {value = tostring(v), class = sName});
+                local sType = rawtype(tClass[k]);
+
+                if (sType ~= "nil") then
+
+                    if (IsMutableStaticPublicType(sType)) then
+                        tClass[k] = v;
+                    else
+                        error("Error in class object, '${class}'. Attempt to modify immutable public static member, '${index},' using value, '${value}.'" % {class = sName, index = tostring(k), value = tostring(v)});
+                    end
+
+                else
+                    error("Error in class object, '${class}'. Attempt to modify non-existent public static member, '${index},' using value, '${value}.'" % {class = sName, index = tostring(k), value = tostring(v)});
+                end
+
             end,
             __type = "class",
             __name = sName,
@@ -507,14 +291,14 @@ kit = {
 		if (tKit.parent) then
             tKit.parent.children.byname[sName] = tKit;
 		end
-
+--TODO remove constructor from visible table
         --check for public/protected shadowing
         kit.shadowcheck(tKit);
 
 		--now that this class kit has been validated, imported & stored, build and return the class object
 		return kit.build(tKit);
 	end,
-    instantiate = function(tKit, bIsRecursionCall)
+    instantiate = function(tKit, bIsRecursionCall, ...)
         local oInstance     = {};                       --this is the decoy instance object that gets returned
         local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
             [CAI_MET] = table.clone(tKit.metamethods),  --create the metamethods
@@ -537,6 +321,13 @@ kit = {
             [CAI_INS] = {},
             --parent    = null,
         };
+
+        --add cdat aliases
+        tClassDataActual.pri = tClassDataActual[CAI_PRI];
+        tClassDataActual.pro = tClassDataActual[CAI_PRO];
+        tClassDataActual.pub = tClassDataActual[CAI_PUB];
+        tClassDataActual.ins = tClassDataActual[CAI_INS];
+
         local tClassData     = {}; --decoy class data (this gets pushed through the wrapped methods)
 
         rawsetmetatable(tClassData, {
@@ -585,7 +376,6 @@ kit = {
             local bIsPrivate        = nCAI == CAI_PRI;
             local bIsProteced       = nCAI == CAI_PRO;
             local bIsPublic         = nCAI == CAI_PUB;
-            --local bIsMetaMethods    = nCAI == CAI_MET;
 
             if (bIsPrivate or bIsProteced or bIsPublic) then
                 local bAllowUpSearch = bIsProteced or bIsPublic;
@@ -602,7 +392,7 @@ kit = {
                             zRet        = rawtype(vRet);
                             tNextParent = tNextParent.parent;
                         end
-
+print("Searching: "..tInstance.metadata.kit.name, k, vRet)
                         --if none exists, throw an error
                         if (rawtype(vRet) == "nil") then
                             error("Error in class, '${name}'. Attempt to access ${visibility} member, '${member}', a nil value." % {
@@ -626,7 +416,8 @@ kit = {
                         end
 
                         --if none exists, throw an error
-                        if (rawtype(vVal) == "nil") then
+                        --if (rawtype(vVal) == "nil") then
+                        if (zVal == "nil") then
                             error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
                                 name = tKit.name, visibility = tCAINames[nCAI], member = tostring(k)});
                         end
@@ -649,8 +440,9 @@ kit = {
                             error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
                                 name = tKit.name, visibility = tCAINames[nCAI], visibility = tCAINames[nCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
                         end
-
+                        print("before setting: ", tostring(tInstance.metadata.kit.name), k, rawget(tTarget, k), "-> ", v)
                         rawset(tTarget, k, v);
+                        print("after setting: ", rawget(tTarget, k))
                     end,
                     __metatable = true,
                 });
@@ -671,15 +463,14 @@ kit = {
         --create and set the instance metatable
         kit.setinstancemetatable(tKit, oInstance, tInstance, tClassData);
 
---TODO prevent public static items form being overwritten as public ones are
-
-        --TODO make sure contrsuctors fire only once then are deleted
-
-        --TODO contructors  (also static initializers for altering static fields ONCE at runtime)
-
-
         if not (bIsRecursionCall) then
             tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
+
+            --call only the bottom-most constructor. Enforce manual parent constructor calls.
+            --TODO make sure contrsuctors fire only once then are deleted
+            --TODO constructors  (also static initializers for altering static fields ONCE at runtime)
+            --print(tInstance.metadata.kit.name)
+            tInstance[CAI_PUB][tInstance.metadata.kit.name](...);
         end
 
         return oInstance, tInstance;
@@ -809,7 +600,7 @@ kit = {
 
         tMeta.__is_luaex_class = true;
 
-        tMetaDecoy = table.clone(tMeta, false);
+        --[[tMetaDecoy = table.clone(tMeta, false);
 
         local tMetaDecoy    = {--this secures the instance metatable from being modified
             __newindex = function(t, k, v)
@@ -818,7 +609,7 @@ kit = {
             __index = function(t, k)
                 return tMeta[k] or nil;
             end,
-        };
+        };]]
 
         rawsetmetatable(oInstance, tMeta);
     end,
@@ -976,11 +767,13 @@ kit = {
 
     end,
 };
-
-
+--TODO fix metahook
+--TODO public static should be read-only!
+--TODO add directives like auto-setter/mutator methods
 local tMasterShadow = { --this is the shadow table for the final returned value TODO do i even need this anymore? YEs, this is the Public Static table (though it needs onfigured properly)
 	args = tMasterArgsActual,
 };
+
 
 return rawsetmetatable(
 {
