@@ -54,11 +54,9 @@ local CAI_INS = CLASS_ACCESS_INDEX_INSTANCES;
 
 constant("CLASS_FINAL_MARKER",   "_FNL");
 constant("CLASS_FINAL_MARKER_LENGTH", #CLASS_FINAL_MARKER);
-constant("CLASS_CONSTRUCTOR_NAME",         "super");
 
 local CFM   = CLASS_FINAL_MARKER;
 local CFML  = CLASS_FINAL_MARKER_LENGTH;
-local CCN   = CLASS_CONSTRUCTOR_NAME;
 
 constant("CLASS_NO_PARENT", "CLASS_NO_PARENT");
 
@@ -164,68 +162,14 @@ kit = {
         local oClass    = {}; --this is the class object that gets returned
         local sName     = tKit.name;
 
+
+
         --this is the actual, hidden class table referenced by the returned class object
         local tClass            = table.clone(tKit.staticpublic);   --create the static public members
 
         local tClassMeta = { --the decoy (returned class object) meta table
             __call      = function(t, ...) --instantiate the class
-
-                --make a list of the parents (if any)
-                local tParents          = {};
-                local tParentKit        = tKit.parent;
-
-                --order them from top-most, descending
-                while (tParentKit) do
-                    table.insert(tParents, 1, {
-                        kit     = tParentKit,
-                        decoy   = nil,
-                        actual  = nil,
-                        }
-                    );
-
-                    tParentKit = tParentKit.parent;
-                end
-
-                --instantiate each parent
-                for nIndex, tParentInfo in ipairs(tParents) do
-                    local tMyParent = nil;
-
-                    if nIndex > 1 then
-                        tMyParent = tParents[nIndex - 1].actual;
-                    end
-                    --local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT";
---print("\n\nInstantiating "..tParentInfo.kit.name.." with parent "..(sParenttext))
-                    --instantiate the parent object
-                    local oParent, tParent = kit.instantiate(tParentInfo.kit, false, tMyParent);
-
-                    --store this info for the next iteration
-                    tParentInfo.decoy   = oParent;
-                    tParentInfo.actual  = tParent;
-                end
---print("\n\nInstantiating "..tKit.name.." with parent "..tParents[#tParents].actual.metadata.kit.name)
-                local oInstance, tInstance = kit.instantiate(tKit, true, tParents[#tParents].actual or nil); --this is the returned instance
-
-                --TODO run and delete primary constructor here (also do checks for parent calls)
-                tInstance[CLASS_ACCESS_INDEX_PUBLIC][sName](...);
-                rawset(tInstance[CLASS_ACCESS_INDEX_PUBLIC], sName, nil);
-
-                --validate (constructor calls and delete constructors
-                local nParents = #tParents;
-                for x = nParents, 1, -1 do
-                    local tParentInfo   = tParents[x];
-                    local sParent       = tParentInfo.kit.name;
-
-                    --local sClass = x == nParents and tKit.name or tParents[x + 1].kit.name;
-                    --print(tParentInfo.kit.name.." -> "..tParentInfo.actual.constructorcalled)
-                    if not (tParentInfo.actual.constructorcalled) then
-                        --error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}.'" % {class = sClass, parent = sParent});
-                        error("Error in class constructor. Failed to call parent constructor, '${parent}.'" % {parent = sParent});
-                    end
-
-                    rawset(tParentInfo.actual[CAI_PUB], sParent, nil); --TODO change this index once other types of constructors are permitted
-
-                end
-
+                local oInstance, tInstance = kit.instantiate(tKit, false, ...); --this is the returned instance
                 return oInstance;
             end,
             __index     = function(t, k)
@@ -354,7 +298,7 @@ kit = {
 		--now that this class kit has been validated, imported & stored, build and return the class object
 		return kit.build(tKit);
 	end,
-    instantiate = function(tKit, bIsPrimaryCall, tParentActual)
+    instantiate = function(tKit, bIsRecursionCall, ...)
         local oInstance     = {};                       --this is the decoy instance object that gets returned
         local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
             [CAI_MET] = table.clone(tKit.metamethods),  --create the metamethods
@@ -363,12 +307,11 @@ kit = {
             [CAI_PUB] = table.clone(tKit.public),       --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
             [CAI_INS] = tKit.instances,                 --TODO should this go here? I think so.....\
             children            = {},                   --TODO move to class level or to here? Is there any use for it here?
-            constructorcalled   = false,                --helps enforce constructor calls
             decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
             metadata            = {                     --info about the instance
                 kit = tKit,
             },
-            parent              = tParentActual,         --the actual parent (if one exists)
+            parent              = nil,                  --the actual parent (if one exists)
         };
 
         local tClassDataActual = { --actual class data
@@ -422,31 +365,10 @@ kit = {
             for k, v in pairs(tInstance[nCAI]) do
 
                 if (rawtype(v) == "function") then
-
-                    if (k == tKit.name and tKit.parent) then --deal with the constuctor
-                        local tParent = tInstance.parent;
-                        --fParentConstructor = tParent[nCAI][tParent.metadata.kit.name] --TODO change the nCAI index when allowing muliple constructors
-                        --print("GRABBING "..tParent.metadata.kit.name.." constructor: "..tostring(rawget(tParent[nCAI], tParent.metadata.kit.name)))
-                        --local pc = tParent[nCAI][tParent.metadata.kit.name];
-                        --local fa = function(...)
-                            --tParent[nCAI][tParent.metadata.kit.name] = nil;
-                        --    return v(oInstance, tClassData, rawget(tParent[nCAI], tParent.metadata.kit.name), ...);
-                        --end
-                        --print("Wrapping constructor ".." ("..tostring(fa)..")".." for class "..tKit.name.." and including parent constructor from class "..tParent.metadata.kit.name.." ("..tostring(fParentConstructor)..")")
-                        rawset(tInstance[nCAI], k, function(...)
-                            --tParent[nCAI][tParent.metadata.kit.name] = nil;
-                            local vRet =  v(oInstance, tClassData, rawget(tParent[nCAI], tParent.metadata.kit.name), ...)
-                            tParent.constructorcalled = true;
-                            print(tParent.metadata.kit.name.." constructor called: "..tParent.constructorcalled)
-                            return vRet;
-                        end);
-                    else --deal with non-constructors
-                        local fPC = function(...)
-                            return v(oInstance, tClassData, ...);
-                        end
-                        --print(tInstance.metadata.kit.name..": Wrapping '"..k.."' ("..tostring(fa)..")".." with cdata ID of '"..tostring(tClassData))
-                        rawset(tInstance[nCAI], k, fPC);
-                    end
+                    print(tInstance.metadata.kit.name..": Wrapping '"..k.."' with cdata ID of '"..tostring(tClassData))
+                    rawset(tInstance[nCAI], k, function(...)
+                        return v(oInstance, tClassData, ...);
+                    end);
 
                 end
 
@@ -472,7 +394,7 @@ kit = {
                             if (tNextParent and tNextParent.metadata and tNextParent.metadata.kit and tNextParent.metadata.kit.name) then
                                 parenttext = tNextParent.metadata.kit.name;
                             end
-                            --print(tInstance.metadata.kit.name.." searching in "..tostring(parenttext).." for index '"..k.."'.", vRet)
+                            print(tInstance.metadata.kit.name.." searching in "..tostring(parenttext).." for index '"..k.."'.", vRet)
                             zRet        = rawtype(vRet);
                             tNextParent = tNextParent.parent or nil;
                         end
@@ -497,7 +419,7 @@ kit = {
                             tTarget     = tNextParent[nCAI];
                             vVal        = rawget(tTarget, k);
                             zVal        = rawtype(vVal);
-                            --print("SEARCHING:........"..tNextParent.metadata.kit.name)
+                            print("SEARCHING:........"..tNextParent.metadata.kit.name)
                             tNextParent = tNextParent.parent;
                         end
 
@@ -540,31 +462,31 @@ kit = {
         end
 
         --create parents (if any)
-        --if (tKit.parent) then
-
+        if (tKit.parent) then
+            print("\n<<<Creating parent, '${parent}', for class, '${class}'.>>>\n" % {parent = tKit.parent.name, class = tKit.name})
             --instantiate the parent
-            --local oParent, tParent = kit.instantiate(tKit.parent, true);
+            local oParent, tParent = kit.instantiate(tKit.parent, true);
             --log the parent info for later use
-            --tInstance.parent = tParent;
+            tInstance.parent = tParent;
                                             --TODO I need to update the children field of each parent (OR do I?)
-        --end
-        --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
+        end
+        --TODO add serialize missing warrning (or just automatically create the method if it's missing)
         --create and set the instance metatable
         kit.setinstancemetatable(tKit, oInstance, tInstance, tClassData);
         --kit.setinstancemetatable(tKit, oInstance, tInstance, tClassDataActual);--TODO TESTING LINE (NOT FOR PRODUCTION)
 
         if not (bIsRecursionCall) then
-            ---TODO move to kit.build tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
+            tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
 
             --call only the bottom-most constructor. Enforce manual parent constructor calls.
             --TODO make sure contrsuctors fire only once then are deleted
             --TODO constructors  (also static initializers for altering static fields ONCE at runtime)
             --print(tInstance.metadata.kit.name)
-            --tInstance[CAI_PUB][tInstance.metadata.kit.name](...);
+            tInstance[CAI_PUB][tInstance.metadata.kit.name](...);
 
             --TODO check for the presence of the parent constructor (should have been edeleted after call) Also, TODO delete constructor after call
         end
-        --print("\n---->>>>Returning instance for "..tKit.name..".<<<<----\n")
+        print("\n---->>>>Returning instance for "..tKit.name..".<<<<----\n")
         --print(tInstance.metadata.kit.name..": \n"..table.serialize(tInstance))
         return oInstance, tInstance;
     end,

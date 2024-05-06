@@ -42,7 +42,7 @@ local INS = CLASS_ACCESS_INDEX_INSTANCES;
 Creature = class("Creature",
 { --metamethods
     __unm = function(this, cdat)
-        cdat.pro.HP = 0;
+        cdat[pro].HP = 0;
         return this;
     end,
 },
@@ -56,18 +56,18 @@ Creature = class("Creature",
     DonkeyPoints = 667,
 },
 { --protected
-    HP      = 80,
+    HP      = 20,
     HPMax   = 45,
-    super   = function(...)
-        --constr
-    end,
 },
 { --public
     Creature = function(this, cdat, sName, nMaxHP)
-
+        --print(type(this).." here we are.")
         --print("Creature", type(this), type(cdat), type(sName), type(nMaxHP))
-        cdat.pro.HPMax = nMaxHP;
-        print("HPMAX SET: "..cdat.pro.HPMax)
+        --cdat.pro.HPMax = nMaxHP;
+        --print("HPMAX SET: "..cdat.pro.HPMax)
+        --cdat[PRO].HPMax = nMaxHP;
+
+        --print("HPMAX SET: "..cdat[PRO].HPMax)
         --cdat[PRO].HPMax = nMaxHP;
         --print(cdat[PRO].HPMax)
     end,
@@ -77,7 +77,15 @@ Creature = class("Creature",
     end,
     GetHPMax = function(this, cdat)
         --print(cdat[PRO].HP)
-        return cdat.pro.HPMax;
+        --print("GetHPMax method is being called from type "..type(this).." and my HPMax is "..cdat[PRO].HPMax..". Also my cdat table id is "..tostring(cdat))
+
+        return cdat[PRO].HPMax;
+    end,
+    GetHPMaxs = function(this, cdat)
+        --print(cdat[PRO].HP)
+        print("I am of type..."..type(this), cdat[PRO].HPMax)
+
+        return cdat[PRO].HPMax;
     end,
     SetHP = function(this, cdat, nVal)
         --print(cdat[PRO].HP)
@@ -112,9 +120,13 @@ Human = class("Human",
     --HP = 33,
 },
 { --public
-    Human = function(this, cdat, sName, nMaxHP)
+    Human = function(this, cdat, super, sName, nMaxHP)
+        super(sName, nMaxHP);
+        --print(rawtype(this).."->"..sName)
+        --print("from "..type(this)..": super is -> "..tostring(super))
         --print("Human", type(this), type(cdat), type(sName), type(nMaxHP))
-        Creature(sName, nMaxHP);
+        --cdat[PRO].HPMax = nMaxHP;
+        --print(type(this).." Constructor: HPMax set to "..cdat[PRO].HPMax..". Also my cdat table id is "..tostring(cdat))
         --cdat[PRO].HPMax = nMaxHP;
         --print(cdat[PRO].HPMax)
     end,
@@ -129,8 +141,10 @@ Human = class("Human",
         print("Boop! It's a human.")
     end,
     Attack = function(this, cdat)
-        print("I'm attacking.")
+        print("I'm attacking from "..type(type).." and my cdat table id is "..tostring(cdat))
+
     end,
+
     loerwer = 90354
     --Hits = 55,
 }, Creature, NO_INTERFACES, false);
@@ -154,12 +168,18 @@ Soldier = class("Soldier",
 { --protected
     --Test = null,
     --HP = 33,
+
 },
 { --public
-    Soldier = function(this, cdat, sName, nMaxHP)
+    Soldier = function(this, cdat, super, sName, nMaxHP)
+        super(sName, nMaxHP)
+        --super(sName, nMaxHP)
+        --print(type(super))
         --print("Soldier", type(this), type(cdat), type(sName), type(nMaxHP))
-        Human(sName, nMaxHP);
-        --cdat[PRO].HPMax = nMaxHP;
+        --print("from "..type(this)..": super is -> "..tostring(super))
+        --super(sName, nMaxHP);
+        --print(cdat[PRO].HPMax)
+        cdat[PRO].HPMax = nMaxHP;
         --print(cdat.pro.HPMax);
         --print(cdat.pri.DonkeyPoints)
     end,
@@ -171,19 +191,27 @@ Soldier = class("Soldier",
         --cdat.test = 34;
     end,
     Boost = function(this, cdat)
-        cdat.pro.HP = cdat.pro.HP * 2;
+        cdat[PRO].HP = cdat[PRO].HP * 2;
     end,
     Boop = function(this, cdat)
-        print(cdat.pri.test)
+        return(cdat[PRO].HPMax)
     end,
+
     --Hits = 55,
 }, Human, NO_INTERFACES, false);
 
 
 --local Dragon = Creature("Dragon", 2000);
 --print(Dragon.GetHPMax());
-local Kaleb = Soldier("Kaleb", 120);
+
+
+local Kaleb = Soldier("Kaleb", 250);
 print(Kaleb.GetHPMax());
+--Kaleb.Attack();
+
+
+--print("Boop: "..Kaleb.Boop())
+--print(table.serialize(Kaleb))
 --local Bob   = Soldier("Bob", 39);
 --local j = Kaleb + Bob
 --print(-Kaleb)
