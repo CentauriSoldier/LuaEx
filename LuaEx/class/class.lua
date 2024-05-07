@@ -49,12 +49,17 @@ local pub       = "pub"; --the instance's public table
 local ins       = "ins"; --a table containing all the instances
 
 local tCAINames = {--TODO get rid of these too
-    met = "met"; --the instance's metatable
-    pri = "pri"; --the instance's private table
-    pro = "pro"; --the instance's protected table
-    pub = "pub"; --the instance's public table
-    ins = "ins"; --a table containing all the instances
+    met = "metamethods"; --the instance's metatable
+    pri = "private"; --the instance's private table
+    pro = "protected"; --the instance's protected table
+    pub = "public"; --the instance's public table
+    ins = "instances"; --a table containing all the instances
 };
+
+--gets the full name of a Class Access Index given the shortname
+local function getCAIName(sCAI)
+    return tCAINames[sCAI] or "UNKOWN";
+end
 
 local CFM   = CLASS_FINAL_MARKER;
 local CFML  = CLASS_FINAL_MARKER_LENGTH;
@@ -388,7 +393,7 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
                         --tParent[sCAI][tParent.metadata.kit.name] = nil;
                         local vRet =  v(oInstance, tClassData, rawget(tParent[sCAI], tParent.metadata.kit.name), ...)
                         tParent.constructorcalled = true;
-                        print(tParent.metadata.kit.name.." constructor called: "..tParent.constructorcalled)
+                        --print(tParent.metadata.kit.name.." constructor called: "..tParent.constructorcalled)
                         return vRet;
                     end);
                 else --deal with non-constructors
@@ -432,7 +437,7 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
                     --if (rawtype(vRet) == "nil") then
                     if (zRet == "nil") then
                         error("Error in class, '${name}'. Attempt to access ${visibility} member, '${member}', a nil value." % {
-                            name = tKit.name, visibility = sCAI, member = tostring(k)});
+                            name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
                     end
 
                     return vRet;
@@ -456,7 +461,7 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
                     --if (rawtype(vVal) == "nil") then
                     if (zVal == "nil") then
                         error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
-                            name = tKit.name, visibility = sCAI, member = tostring(k)});
+                            name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
                     end
 
                     local sTypeCurrent  = type(tTarget[k]);
@@ -464,18 +469,18 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
 
                     if (sTypeNew == "nil") then
                         error("Error in class, '${name}'. Cannot set ${visibility} member, '${member}', to nil." % {
-                            name = tKit.name, visibility = sCAI, member = tostring(k)});
+                            name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
                     end
 
                     if (sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
                     --if (bIsPublic and sTypeCurrent == "function") then
                         error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
-                            name = tKit.name, visibility = sCAI, member = tostring(k)});
+                            name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
                     end
 
                     if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
                         error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
-                            name = tKit.name, visibility = sCAI, visibility = sCAI, member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
+                            name = tKit.name, visibility = getCAIName(sCAI), visibility = getCAIName(sCAI), member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
                     end
                     local te = tNextParent or tInstance;
                 --    print("before setting: ", tostring(te.metadata.kit.name), k, rawget(tTarget, k), "-> ", v)
@@ -697,7 +702,7 @@ function kit.import(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tPro
     --note and rename final methods
     kit.processfinalmethods(tKit);
 
-    --check for public/protected shadowing
+    --check for member shadowing
     kit.shadowcheck(tKit);
 
     --now that this class kit has been validated, imported & stored, build the class object
@@ -710,7 +715,7 @@ function kit.import(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tPro
     kit.repo.byname[sName]      = tKit;
     kit.repo.byobject[oClass]   = tKit;
 
-    --if this has a parent, update the parent kit
+    --if this has a parent, update the parent kit's child table
     if (tKit.parent) then
         tKit.parent.children.byname[sName]      = tKit;
         tKit.parent.children.byobject[oClass]   = tKit;
@@ -774,16 +779,18 @@ function kit.processfinalmethods(tKit)
 
     end
 
-    for sVisibility, tNames in pairs(tChange) do
+    for sCAI, tNames in pairs(tChange) do
 
         for sName, fMethod in pairs(tNames) do
+
             --clean the name
             local sNewName = sName:sub(1, #sName - CLASS_FINAL_MARKER_LENGTH);
             --add/delete proper key
-            tKit[sVisibility][sNewName] = fMethod;
-            tKit[sVisibility][sName] = nil;
+            tKit[sCAI][sNewName] = fMethod;
+            tKit[sCAI][sName] = nil;
+
             --log the method as final
-            tKit.finalmethodnames[sVisibility][sNewName] = true;
+            tKit.finalmethodnames[sCAI][sNewName] = true;
         end
 
     end
@@ -806,12 +813,12 @@ function kit.shadowcheck(tKit) --checks for public/protected shadowing
     while (tParent) do
 
         --iterate over each visibility level
-        for _, sVisibility in pairs(tCheckIndices) do
+        for _, sCAI in pairs(tCheckIndices) do
 
             --shadow check each member of the class
-            for sKey, vChildValue in pairs(tKit[sVisibility]) do
-                --print("Kit-"..tKit.name, "sVisibility-"..sVisibility, "Parent-"..tParent.name, "Key-"..sKey, "Key Type In Parent-"..type(tParent[sVisibility][sKey]))
-                local zParentValue          = rawtype(tParent[sVisibility][sKey]);
+            for sKey, vChildValue in pairs(tKit[sCAI]) do
+                --print("Kit-"..tKit.name, "sVisibility-"..sCAI, "Parent-"..tParent.name, "Key-"..sKey, "Key Type In Parent-"..type(tParent[sCAI][sKey]))
+                local zParentValue          = rawtype(tParent[sCAI][sKey]);
                 local zChildValue           = rawtype(vChildValue);
                 local bIsFunctionOverride   = (zParentValue == "function" and zChildValue == "function");
 
@@ -820,14 +827,14 @@ function kit.shadowcheck(tKit) --checks for public/protected shadowing
 
                     if (bIsFunctionOverride) then
 
-                        if (tKit.parent.finalmethodnames[sVisibility][sKey]) then
+                        if (tParent.finalmethodnames[sCAI][sKey]) then --throw an error if the parent method is final
                             error(  "Error in class, '${name}'. Attempt to override final ${visibility} method, '${member}', in parent class, '${parent}'." % {
-                                name = tKit.name, visibility = sVisibility, member = tostring(sKey), parent = tParent.name});
+                                name = tKit.name, visibility = getCAIName(sCAI), member = tostring(sKey), parent = tParent.name});
                         end
 
                     else
                         error(  "Error in class, '${name}'. Attempt to shadow existing ${visibility} member, '${member}', in parent class, '${parent}'." % {
-                            name = tKit.name, visibility = sVisibility, member = tostring(sKey), parent = tParent.name});
+                            name = tKit.name, visibility = getCAIName(sCAI), member = tostring(sKey), parent = tParent.name});
                     end
 
                 end
@@ -880,7 +887,7 @@ end
 @ret class A class object.
 !]]
 function kit.validatename(sName)
-    assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								% {					type = type(sName), 			item = tostring(sName)});
+    assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
     assert(sName:isvariablecompliant(),					"Error creating class, '${class}.' Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
     assert(type(kit.repo.byname[sName])	== "nil", 		"Error creating class, '${class}.' Class already exists."													% {class = sName});
 end
@@ -896,10 +903,10 @@ end
 !]]
 function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
     assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}.' Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
-    assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}.' Static public values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
+    assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}.' Static public values table expected.\r\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
     assert(type(tPrivate) 				== "table", 	"Error creating class, '${class}.' Private values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
-    assert(type(tProtected) 			== "table", 	"Error creating class, '${class}.' Protected values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
-    assert(type(tPublic) 				== "table", 	"Error creating class, '${class}.' Static values table expected.\r\nGot: (${type}) ${item}." 				% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
+    assert(type(tProtected) 			== "table", 	"Error creating class, '${class}.' Protected values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
+    assert(type(tPublic) 				== "table", 	"Error creating class, '${class}.' Static values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
 
     local bIsConstructor = false;
     local tTables = {
@@ -1067,6 +1074,6 @@ return rawsetmetatable({}, {
 	__index 	= function(t, k)
 		return tClassActual[k] or nil;
 	end,
-	__newindex 	= function(t, k, v) end,--deadcall function to prevent adding external entries to the class module
+	__newindex 	= function(t, k, v) end,--deadcall function to prevent adding external entries to the class module TODO put error here
 
 });

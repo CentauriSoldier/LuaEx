@@ -32,6 +32,19 @@ package.path = package.path..";"..sPath.."\\..\\?.lua;";
 require("LuaEx.init");
 --============= TEST CODE BELOW =============
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 Creature = class("Creature",
 { --metamethods
     __unm = function(this, cdat)
@@ -54,6 +67,7 @@ Creature = class("Creature",
 },
 { --public
     Creature = function(this, cdat, sName, nMaxHP)
+        print(type(this).." constructor firing.")
         --print(type(this).." here we are.")
         --print("Creature", type(this), type(cdat), type(sName), type(nMaxHP))
         --cdat.pro.HPMax = nMaxHP;
@@ -64,19 +78,13 @@ Creature = class("Creature",
         --cdat[PRO].HPMax = nMaxHP;
         --print(cdat[PRO].HPMax)
     end,
-    GetHP = function(this, cdat)
+    GetHP_FNL = function(this, cdat)
         --print(cdat[PRO].HP)
         return cdat.pro.HP;
     end,
-    GetHPMax = function(this, cdat)
+    GetHPMax_FNL = function(this, cdat)
         --print(cdat[PRO].HP)
-        --print("GetHPMax method is being called from type "..type(this).." and my HPMax is "..cdat[PRO].HPMax..". Also my cdat table id is "..tostring(cdat))
-
-        return cdat.pro.HPMax;
-    end,
-    GetHPMaxs = function(this, cdat)
-        --print(cdat[PRO].HP)
-        print("I am of type..."..type(this), cdat.pro.HPMax)
+        --print("I am of type..."..type(this), cdat.pro.HPMax)
 
         return cdat.pro.HPMax;
     end,
@@ -94,6 +102,14 @@ Creature = class("Creature",
         print("hello, I'm a creature.")
     end
 }, NO_PARENT, NO_INTERFACES, false);
+
+
+
+
+
+
+
+
 
 --print(type(Dragon.k))
 Human = class("Human",
@@ -114,6 +130,7 @@ Human = class("Human",
 },
 { --public
     Human = function(this, cdat, super, sName, nMaxHP)
+        print(type(this).." constructor firing.")
         super(sName, nMaxHP);
         --print(rawtype(this).."->"..sName)
         --print("from "..type(this)..": super is -> "..tostring(super))
@@ -142,6 +159,18 @@ Human = class("Human",
     --Hits = 55,
 }, Creature, NO_INTERFACES, false);
 
+
+
+
+
+
+
+
+
+
+
+
+
 Soldier = class("Soldier",
 { --metamethods
     __add = function(this, other, cdat)
@@ -165,6 +194,7 @@ Soldier = class("Soldier",
 },
 { --public
     Soldier = function(this, cdat, super, sName, nMaxHP)
+        print(type(this).." constructor firing.")
         super(sName, nMaxHP)
         --super(sName, nMaxHP)
         --print(type(super))
@@ -189,17 +219,63 @@ Soldier = class("Soldier",
     Boop = function(this, cdat)
         return(cdat.pro.HPMax)
     end,
-
     --Hits = 55,
 }, Human, NO_INTERFACES, false);
+
+
+
+
+
+
 
 
 --local Dragon = Creature("Dragon", 2000);
 --print(Dragon.GetHPMax());
 
+function writeToFile(text)
+    local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
+    if file then
+        file:write(text)  -- Write text to file
+        file:close()  -- Close the file
+        print("Text written to file successfully.")
+    else
+        print("Error: Unable to open file for writing.")
+    end
+end
 
-local Kaleb = Soldier("Kaleb", 250);
-print(Kaleb.GetHPMax());
+-- Example usage:
+local k = 4;
+local function test()
+    print("hello "..k)
+end
+
+
+--https://leafo.net/guides/function-cloning-in-lua.html
+local function clone_function(fn)
+  local dumped = string.dump(fn)
+  local cloned = loadstring(dumped)
+  local i = 1
+  while true do
+    local name = debug.getupvalue(fn, i)
+    if not name then
+      break
+    end
+    debug.upvaluejoin(cloned, i, fn, i)
+    i = i + 1
+  end
+  return cloned
+end
+
+local fh = clone_function(test)
+
+
+local Kaleb = Soldier("Kaleb", 999);
+--local y = loadstring(string.dump(Kaleb.GetHPMax))();
+
+--writeToFile(string.dump(Kaleb.GetHPMax))
+
+print(fh())
+--print(Kaleb.GetHPMax());
 --Kaleb.Attack();
 
 --print(Soldier == Creature)
