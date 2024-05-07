@@ -32,17 +32,10 @@ package.path = package.path..";"..sPath.."\\..\\?.lua;";
 require("LuaEx.init");
 --============= TEST CODE BELOW =============
 
---localization
-local MET = CLASS_ACCESS_INDEX_METATABLES;
-local PRI = CLASS_ACCESS_INDEX_PRIVATE;
-local PRO = CLASS_ACCESS_INDEX_PROTECTED;
-local PUB = CLASS_ACCESS_INDEX_PUBLIC;
-local INS = CLASS_ACCESS_INDEX_INSTANCES;
-
 Creature = class("Creature",
 { --metamethods
     __unm = function(this, cdat)
-        cdat[pro].HP = 0;
+        cdat.pro.HP = 0;
         return this;
     end,
 },
@@ -73,23 +66,23 @@ Creature = class("Creature",
     end,
     GetHP = function(this, cdat)
         --print(cdat[PRO].HP)
-        return cdat[PRO].HP;
+        return cdat.pro.HP;
     end,
     GetHPMax = function(this, cdat)
         --print(cdat[PRO].HP)
         --print("GetHPMax method is being called from type "..type(this).." and my HPMax is "..cdat[PRO].HPMax..". Also my cdat table id is "..tostring(cdat))
 
-        return cdat[PRO].HPMax;
+        return cdat.pro.HPMax;
     end,
     GetHPMaxs = function(this, cdat)
         --print(cdat[PRO].HP)
-        print("I am of type..."..type(this), cdat[PRO].HPMax)
+        print("I am of type..."..type(this), cdat.pro.HPMax)
 
-        return cdat[PRO].HPMax;
+        return cdat.pro.HPMax;
     end,
     SetHP = function(this, cdat, nVal)
         --print(cdat[PRO].HP)
-        cdat[PRO].HP = nVal;
+        cdat.pro.HP = nVal;
         return this;
     end,
     IsDead = function(this, cdat)
@@ -179,7 +172,7 @@ Soldier = class("Soldier",
         --print("from "..type(this)..": super is -> "..tostring(super))
         --super(sName, nMaxHP);
         --print(cdat[PRO].HPMax)
-        cdat[PRO].HPMax = nMaxHP;
+        cdat.pro.HPMax = nMaxHP;
         --print(cdat.pro.HPMax);
         --print(cdat.pri.DonkeyPoints)
     end,
@@ -191,10 +184,10 @@ Soldier = class("Soldier",
         --cdat.test = 34;
     end,
     Boost = function(this, cdat)
-        cdat[PRO].HP = cdat[PRO].HP * 2;
+        cdat.pro.HP = cdat[PRO].HP * 2;
     end,
     Boop = function(this, cdat)
-        return(cdat[PRO].HPMax)
+        return(cdat.pro.HPMax)
     end,
 
     --Hits = 55,
@@ -209,7 +202,17 @@ local Kaleb = Soldier("Kaleb", 250);
 print(Kaleb.GetHPMax());
 --Kaleb.Attack();
 
+--print(Soldier == Creature)
 
+
+--Creature.Count = null;
+--Creature.Count = "aasdasd";
+--print(Creature.Count)
+
+
+
+
+--Creature.Desc = null
 --print("Boop: "..Kaleb.Boop())
 --print(table.serialize(Kaleb))
 --local Bob   = Soldier("Bob", 39);
