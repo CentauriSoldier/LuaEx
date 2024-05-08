@@ -192,6 +192,11 @@ function class.build(tKit)
                     }
                 );
 
+                --[[tParents[#tParents + 1] = {
+                    kit     = tParentKit,
+                    decoy   = nil,
+                    actual  = nil,
+                };]]
                 tParentKit = tParentKit.parent;
             end
 
@@ -208,12 +213,12 @@ function class.build(tKit)
                 --print("\n\nInstantiating "..tParentInfo.kit.name.." with parent "..(sParenttext))
                 --instantiate the parent object
                 local oParent, tParent = instance.build(tParentInfo.kit, false, tMyParent);
-
+                print("Instantiate Ordinal #"..nIndex.." "..tParentInfo.kit.name.."("..tostring(oParent)..")\n")
                 --store this info for the next iteration
                 tParentInfo.decoy   = oParent;
                 tParentInfo.actual  = tParent;
             end
-            --print("\n\nInstantiating "..tKit.name.." with parent "..tParents[#tParents].actual.metadata.kit.name)
+            print("\n\nInstantiating "..tKit.name.." with parent "..tParents[#tParents].actual.metadata.kit.name.."("..tostring(tParents[#tParents].decoy)..")\n")
             local oInstance, tInstance = instance.build(tKit, true, tParents[#tParents].actual or nil); --this is the returned instance
 
             tInstance.pub[sName](...);
@@ -394,14 +399,18 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
                     --    return v(oInstance, tClassData, rawget(tParent[sCAI], tParent.metadata.kit.name), ...);
                     --end
                     --print("Wrapping constructor ".." ("..tostring(fa)..")".." for class "..tKit.name.." and including parent constructor from class "..tParent.metadata.kit.name.." ("..tostring(fParentConstructor)..")")
-                    rawset(tInstance[sCAI], k, function(...)
+                    local fCons;
+                    fCons = function(...)
                         --tParent[sCAI][tParent.metadata.kit.name] = nil;
-                        local vRet =  v(oInstance, tClassData, rawget(tParent[sCAI], tParent.metadata.kit.name), ...)--TODO do i really need rawget here? maybe to get nil
-                        print(tParent.metadata.kit.name.." constructor ("..tostring(vRet)..") being called... "..tParent.constructorcalled.." | caller -> "..tKit.name)
+                        local vRet =  v(oInstance, tClassData, rawget(tParent[sCAI], tParent.metadata.kit.name), ...)--TODO do i really need rawget here? maybe to get nil without error
+                        print(tParent.metadata.kit.name.." constructor ("..tostring(fCons)..") is attached ".." | caller -> "..tInstance.metadata.kit.name.." as 'super'.")
                         tParent.constructorcalled = true;
-                        print(tParent.metadata.kit.name.." constructor ("..tostring(vRet)..") has been called: "..tParent.constructorcalled.." | caller -> "..tKit.name)
+                        --print(tParent.metadata.kit.name.." constructor ("..tostring(fCons)..") has been called: "..tParent.constructorcalled.." | caller -> "..tKit.name)
                         return vRet;--TODO consctructors shouls return nothing
-                    end);
+                    end
+                    print("Confirming "..tParent.metadata.kit.name.. " construcotr ID: "..tostring(fCons))
+
+                    rawset(tInstance[sCAI], k, fCons);
                 else --deal with non-constructors
                     local fPC = function(...)
                         return v(oInstance, tClassData, ...);
