@@ -195,14 +195,16 @@ function class.build(tKit)
                 tParentKit = tParentKit.parent;
             end
 
+
             --instantiate each parent
             for nIndex, tParentInfo in ipairs(tParents) do
+                --print("Instantiate Ordinal #"..nIndex.." "..tParentInfo.kit.name)
                 local tMyParent = nil;
 
                 if nIndex > 1 then
                     tMyParent = tParents[nIndex - 1].actual;
                 end
-                --local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT";
+                local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT";
                 --print("\n\nInstantiating "..tParentInfo.kit.name.." with parent "..(sParenttext))
                 --instantiate the parent object
                 local oParent, tParent = instance.build(tParentInfo.kit, false, tMyParent);
@@ -220,15 +222,18 @@ function class.build(tKit)
 
             --validate (constructor calls and delete constructors
             local nParents = #tParents;
+
             for x = nParents, 1, -1 do
                 local tParentInfo   = tParents[x];
                 local sParent       = tParentInfo.kit.name;
-
+--print("Constructor Check Ordinal #"..x.." "..sParent.." | "..tParentInfo.actual.constructorcalled.." | c-type: "..type(tParentInfo.actual.pub[sParent]))
                 --local sClass = x == nParents and tKit.name or tParents[x + 1].kit.name;
                 --print(tParentInfo.kit.name.." -> "..tParentInfo.actual.constructorcalled)
                 if not (tParentInfo.actual.constructorcalled) then
                     --error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}.'" % {class = sClass, parent = sParent});
                     error("Error in class constructor. Failed to call parent constructor, '${parent}.'" % {parent = sParent});
+                else
+                    print("Yay! in class constructor. Called parent constructor, '${parent}.'" % {parent = sParent});
                 end
 
                 rawset(tParentInfo.actual.pub, sParent, nil); --TODO change this index once other types of constructors are permitted
@@ -323,7 +328,7 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
         pri = table.clone(tKit.pri), --create the private members
         pro = table.clone(tKit.pro), --etc.
         pub = table.clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
-        ins = tKit.ins,              --TODO should this go here? I think so.....\
+        ins = tKit.ins,              --TODO should this go here? I think so.....\ NO, it needs a decoy
         children            = {},    --TODO move to class level or to here? Is there any use for it here?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
@@ -391,10 +396,11 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
                     --print("Wrapping constructor ".." ("..tostring(fa)..")".." for class "..tKit.name.." and including parent constructor from class "..tParent.metadata.kit.name.." ("..tostring(fParentConstructor)..")")
                     rawset(tInstance[sCAI], k, function(...)
                         --tParent[sCAI][tParent.metadata.kit.name] = nil;
-                        local vRet =  v(oInstance, tClassData, rawget(tParent[sCAI], tParent.metadata.kit.name), ...)
+                        local vRet =  v(oInstance, tClassData, rawget(tParent[sCAI], tParent.metadata.kit.name), ...)--TODO do i really need rawget here? maybe to get nil
+                        print(tParent.metadata.kit.name.." constructor ("..tostring(vRet)..") being called... "..tParent.constructorcalled.." | caller -> "..tKit.name)
                         tParent.constructorcalled = true;
-                        --print(tParent.metadata.kit.name.." constructor called: "..tParent.constructorcalled)
-                        return vRet;
+                        print(tParent.metadata.kit.name.." constructor ("..tostring(vRet)..") has been called: "..tParent.constructorcalled.." | caller -> "..tKit.name)
+                        return vRet;--TODO consctructors shouls return nothing
                     end);
                 else --deal with non-constructors
                     local fPC = function(...)
@@ -602,7 +608,7 @@ end
 @desc Builds a complete class object given the name of the kit. This is called by kit.import().
 @ret class A class object.
 !]]
-function instance.wrapmetamethods(oInstance, tInstance, tClassData)
+function instance.wrapmetamethods(oInstance, tInstance, tClassData)--TODO double check these
 
     for sMetamethod, fMetamethod in pairs(tInstance.met) do
 

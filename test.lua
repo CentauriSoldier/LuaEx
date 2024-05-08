@@ -67,7 +67,7 @@ Creature = class("Creature",
 },
 { --public
     Creature = function(this, cdat, sName, nMaxHP)
-        print(type(this).." constructor firing.")
+        print(type(this).." constructor ("..tostring(super)..") firing.")
         --print(type(this).." here we are.")
         --print("Creature", type(this), type(cdat), type(sName), type(nMaxHP))
         --cdat.pro.HPMax = nMaxHP;
@@ -130,7 +130,7 @@ Human = class("Human",
 },
 { --public
     Human = function(this, cdat, super, sName, nMaxHP)
-        print(type(this).." constructor firing.")
+        print(type(this).." constructor ("..tostring(super)..") firing.")
         super(sName, nMaxHP);
         --print(rawtype(this).."->"..sName)
         --print("from "..type(this)..": super is -> "..tostring(super))
@@ -194,7 +194,7 @@ Soldier = class("Soldier",
 },
 { --public
     Soldier = function(this, cdat, super, sName, nMaxHP)
-        print(type(this).." constructor firing.")
+        print(type(this).." constructor ("..tostring(super)..") firing.")
         super(sName, nMaxHP)
         --super(sName, nMaxHP)
         --print(type(super))
@@ -225,7 +225,9 @@ Soldier = class("Soldier",
 
 
 
-
+for x = 45, 1, -1 do
+--print (x)
+end
 
 
 
@@ -274,7 +276,7 @@ local Kaleb = Soldier("Kaleb", 999);
 
 --writeToFile(string.dump(Kaleb.GetHPMax))
 
-print(fh())
+--print(fh())
 --print(Kaleb.GetHPMax());
 --Kaleb.Attack();
 
