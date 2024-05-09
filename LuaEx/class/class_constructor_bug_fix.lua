@@ -323,6 +323,7 @@ end
 @desc Builds a complete class object given the name of the kit. This is called by kit.import().
 @ret class A class object.
 !]]
+local tClassDataToWrap = {pri, pro, pub};
 function instance.build(tKit, bIsPrimaryCall, tParentActual)
     local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
@@ -340,56 +341,15 @@ function instance.build(tKit, bIsPrimaryCall, tParentActual)
         parent              = tParentActual,         --the actual parent (if one exists)
     };
 
-
-    local tClassData = instance.prepclassdata(tInstance);
-
-    --wrap the metamethods
-    instance.wrapmetamethods(tInstance, tClassData)
-
-    --perform the private, protected and public method wrapping
-    instance.wrapmethods(tInstance, tClassData)
-
-    --create parents (if any)
-    --if (tKit.parent) then
-
-        --instantiate the parent
-        --local oParent, tParent = instance.build(tKit.parent, true);
-        --log the parent info for later use
-        --tInstance.parent = tParent;
-                                        --TODO I need to update the children field of each parent (OR do I?)
-    --end
-    --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
-    --create and set the instance metatable
-    instance.setmetatable(tInstance, tClassData);
-    --instance.setmetatable(tKit, oInstance, tInstance, tClassDataActual);--TODO TESTING LINE (NOT FOR PRODUCTION)
-
-    if not (bIsRecursionCall) then
-        ---TODO move to kit.buildclass tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
-
-        --call only the bottom-most constructor. Enforce manual parent constructor calls.
-        --TODO make sure contrsuctors fire only once then are deleted
-        --TODO constructors  (also static initializers for altering static fields ONCE at runtime)
-        --print(tInstance.metadata.kit.name)
-        --tInstance.pub[tInstance.metadata.kit.name](...);
-
-        --TODO check for the presence of the parent constructor (should have been edeleted after call) Also, TODO delete constructor after call
-    end
-    --print("\n---->>>>Returning instance for "..tKit.name..".<<<<----\n")
-    --print(tInstance.metadata.kit.name..": \n"..table.serialize(tInstance))
-    return oInstance, tInstance;
-end
-
-
-function instance.prepclassdata(tInstance)
-    local tKit = tInstance.metadata.kit;
-    local tClassData        = {}; --decoy class data (this gets pushed through the wrapped methods)
-    local tClassDataActual  = { --actual class data  TODO should this be at the class level? What does this table do exactly?
+    local tClassDataActual = { --actual class data
         pri = {},
         pro = {},
         pub = {},
         ins = {},
         --parent    = null,
     };
+
+    local tClassData     = {}; --decoy class data (this gets pushed through the wrapped methods)
 
     rawsetmetatable(tClassData, {
         __index = function(t, k, v)--throw an error if the client access a non-existent Class Data index.
@@ -413,138 +373,12 @@ function instance.prepclassdata(tInstance)
         __metatable = true,
     });
 
-    return tClassData;
-end
+                --TODO instance metatables (use a record-keeping system to determine which meta methods came from which parent so they can call the correct function with one call instead of many)
 
---[[!TODO
-@module class
-@func kit.
-@param table tKit The kit that is to be built.
-@scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.import().
-@ret class A class object.
-!]]
-function instance.setmetatable(tInstance, tClassData)
-    local tMeta     = {}; --actual
-    local tKit      = tInstance.metadata.kit;
-    local oInstance = tInstance.decoy;
+    --wrap the metamethods
+    instance.wrapmetamethods(oInstance, tInstance, tClassData)
 
-    --iterate over all metanames
-    for sMetamethod, bAllowed in pairs(tMetaNames) do
-
-        if (bAllowed) then --only add if it's allowed
-            local fMetamethod = tInstance.met[sMetamethod] or nil; --check if the metamethod exists in this class
-
-            if (fMetamethod) then
-                tMeta[sMetamethod] = fMetamethod;
-
-            else --if it does not exist, try to add one from a parent instance
-                local tNextParent = tInstance.parent;
-
-                while (tNextParent) do
-                    local fParentMetamethod = tNextParent.met[sMetamethod] or nil; --check if the metamethod exists in this class
-
-                    if (fParentMetamethod) then
-                        tMeta[sMetamethod] = fParentMetamethod;
-                        tNextParent = nil; --indicate that we're done searching
-                    else
-                        tNextParent = tNextParent.parent or nil; --continue the search
-                    end
-
-                end
-
-            end
-
-        end
-
-    end
-
-    tMeta.__index     = function(t, k)
-        return tClassData.pub[k] or nil;
-    end;
-
-    tMeta.__newindex  = function(t, k, v)
-        tClassData.pub[k] = v;
-    end;
-
-    tMeta.__type = tKit.name;
-
-    tMeta.__is_luaex_class = true;
-
-    --[[tMetaDecoy = table.clone(tMeta, false);
-
-    local tMetaDecoy    = {--this secures the instance metatable from being modified
-        __newindex = function(t, k, v)
-            error("Error in class, '${class}'. Attempt to modify read-only instance metatable." % {class = tInstance.metadata.kit.name});
-        end,
-        __index = function(t, k)
-            return tMeta[k] or nil;
-        end,
-    };]]
-
-    rawsetmetatable(oInstance, tMeta);
-end
-
-
---[[!TODO
-@module class
-@func kit.
-@param table tKit The kit that is to be built.
-@scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.import().
-@ret class A class object.
-!]]
-function instance.wrapmetamethods(tInstance, tClassData)--TODO double check these
-    local oInstance = tInstance.decoy;
-
-    for sMetamethod, fMetamethod in pairs(tInstance.met) do
-
-        if (sMetamethod == "__add"      or sMetamethod == "__band"      or sMetamethod == "__bor"   or
-            sMetamethod == "__bxor"     or sMetamethod == "__concat"    or sMetamethod == "__div"   or
-            sMetamethod == "__eq"       or sMetamethod == "__idiv"      or sMetamethod == "__le"    or
-            sMetamethod == "__lt"       or sMetamethod == "__mod"       or sMetamethod == "__mul"   or
-            sMetamethod == "__pow"      or sMetamethod == "__shl"       or sMetamethod == "__sub"   or
-            sMetamethod == "__pairs"    or sMetamethod == "__ipairs")  then
-
-            rawset(tInstance.met, sMetamethod, function(a, b)
-                return fMetamethod(a, b, tClassData);
-            end);
-
-        elseif (sMetamethod == "__bnot" or sMetamethod == "__len" or sMetamethod == "__shr" or sMetamethod == "__unm" ) then
-
-            rawset(tInstance.met, sMetamethod, function(a)
-                return fMetamethod(a, tClassData);
-            end);
-
-        elseif (sMetamethod == "__call" or sMetamethod == "__name") then
-            rawset(tInstance.met, sMetamethod, function(...)
-                return fMetamethod(oInstance, tClassData, ...)
-            end);
-
-        elseif (sMetamethod == "__tostring") then
-
-            rawset(tInstance.met, sMetamethod, function(a)
-                return fMetamethod(a, tClassData)
-            end);
-
-        end
-
-    end
-
-end
-
-
---[[!TODO
-@module class
-@func kit.
-@param table tKit The kit that is to be built.
-@scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.import().
-@ret class A class object.
-!]]
-local tClassDataToWrap = {pri, pro, pub};
-function instance.wrapmethods(tInstance, tClassData)
-    local tKit = tInstance.metadata.kit;
+    --perform the private, protected and public method wrapping
     for _, sCAI in ipairs(tClassDataToWrap) do
         --local tActive = tClassData[sCAI];
 
@@ -669,6 +503,149 @@ function instance.wrapmethods(tInstance, tClassData)
                 end,
                 __metatable = true,
             });
+
+        end
+
+    end
+
+    --create parents (if any)
+    --if (tKit.parent) then
+
+        --instantiate the parent
+        --local oParent, tParent = instance.build(tKit.parent, true);
+        --log the parent info for later use
+        --tInstance.parent = tParent;
+                                        --TODO I need to update the children field of each parent (OR do I?)
+    --end
+    --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
+    --create and set the instance metatable
+    instance.setmetatable(tKit, oInstance, tInstance, tClassData);
+    --instance.setmetatable(tKit, oInstance, tInstance, tClassDataActual);--TODO TESTING LINE (NOT FOR PRODUCTION)
+
+    if not (bIsRecursionCall) then
+        ---TODO move to kit.buildclass tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
+
+        --call only the bottom-most constructor. Enforce manual parent constructor calls.
+        --TODO make sure contrsuctors fire only once then are deleted
+        --TODO constructors  (also static initializers for altering static fields ONCE at runtime)
+        --print(tInstance.metadata.kit.name)
+        --tInstance.pub[tInstance.metadata.kit.name](...);
+
+        --TODO check for the presence of the parent constructor (should have been edeleted after call) Also, TODO delete constructor after call
+    end
+    --print("\n---->>>>Returning instance for "..tKit.name..".<<<<----\n")
+    --print(tInstance.metadata.kit.name..": \n"..table.serialize(tInstance))
+    return oInstance, tInstance;
+end
+
+
+--[[!TODO
+@module class
+@func kit.
+@param table tKit The kit that is to be built.
+@scope local
+@desc Builds a complete class object given the name of the kit. This is called by kit.import().
+@ret class A class object.
+!]]
+function instance.setmetatable(tKit, oInstance, tInstance, tClassData)
+    local tMeta         = {}; --actual
+
+    --iterate over all metanames
+    for sMetamethod, bAllowed in pairs(tMetaNames) do
+
+        if (bAllowed) then --only add if it's allowed
+            local fMetamethod = tInstance.met[sMetamethod] or nil; --check if the metamethod exists in this class
+
+            if (fMetamethod) then
+                tMeta[sMetamethod] = fMetamethod;
+
+            else --if it does not exist, try to add one from a parent instance
+                local tNextParent = tInstance.parent;
+
+                while (tNextParent) do
+                    local fParentMetamethod = tNextParent.met[sMetamethod] or nil; --check if the metamethod exists in this class
+
+                    if (fParentMetamethod) then
+                        tMeta[sMetamethod] = fParentMetamethod;
+                        tNextParent = nil; --indicate that we're done searching
+                    else
+                        tNextParent = tNextParent.parent or nil; --continue the search
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+    tMeta.__index     = function(t, k)
+        return tClassData.pub[k] or nil;
+    end;
+
+    tMeta.__newindex  = function(t, k, v)
+        tClassData.pub[k] = v;
+    end;
+
+    tMeta.__type = tKit.name;
+
+    tMeta.__is_luaex_class = true;
+
+    --[[tMetaDecoy = table.clone(tMeta, false);
+
+    local tMetaDecoy    = {--this secures the instance metatable from being modified
+        __newindex = function(t, k, v)
+            error("Error in class, '${class}'. Attempt to modify read-only instance metatable." % {class = tInstance.metadata.kit.name});
+        end,
+        __index = function(t, k)
+            return tMeta[k] or nil;
+        end,
+    };]]
+
+    rawsetmetatable(oInstance, tMeta);
+end
+
+
+--[[!TODO
+@module class
+@func kit.
+@param table tKit The kit that is to be built.
+@scope local
+@desc Builds a complete class object given the name of the kit. This is called by kit.import().
+@ret class A class object.
+!]]
+function instance.wrapmetamethods(oInstance, tInstance, tClassData)--TODO double check these
+
+    for sMetamethod, fMetamethod in pairs(tInstance.met) do
+
+        if (sMetamethod == "__add"      or sMetamethod == "__band"      or sMetamethod == "__bor"   or
+            sMetamethod == "__bxor"     or sMetamethod == "__concat"    or sMetamethod == "__div"   or
+            sMetamethod == "__eq"       or sMetamethod == "__idiv"      or sMetamethod == "__le"    or
+            sMetamethod == "__lt"       or sMetamethod == "__mod"       or sMetamethod == "__mul"   or
+            sMetamethod == "__pow"      or sMetamethod == "__shl"       or sMetamethod == "__sub"   or
+            sMetamethod == "__pairs"    or sMetamethod == "__ipairs")  then
+
+            rawset(tInstance.met, sMetamethod, function(a, b)
+                return fMetamethod(a, b, tClassData);
+            end);
+
+        elseif (sMetamethod == "__bnot" or sMetamethod == "__len" or sMetamethod == "__shr" or sMetamethod == "__unm" ) then
+
+            rawset(tInstance.met, sMetamethod, function(a)
+                return fMetamethod(a, tClassData);
+            end);
+
+        elseif (sMetamethod == "__call" or sMetamethod == "__name") then
+            rawset(tInstance.met, sMetamethod, function(...)
+                return fMetamethod(oInstance, tClassData, ...)
+            end);
+
+        elseif (sMetamethod == "__tostring") then
+
+            rawset(tInstance.met, sMetamethod, function(a)
+                return fMetamethod(a, tClassData)
+            end);
 
         end
 
