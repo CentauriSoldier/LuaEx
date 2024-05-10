@@ -2,13 +2,6 @@
 Planned features
 AutoGetter/Setter functions
 
-
-I've written a class system from scratch. It has inheritence, encapsulation, private, protected, public and static fields and methods. While a couple features are still in-progress, it's almost entirely complete. It also comes with interfaces allowing classes to imlpement 0 to many interfaces. Class may be extended by default or may be set to final and disallowed from being extented.
-
-Can you think of any features it could use?
-Even more importantly, can you think of ways it can be simplified, optimized or made moer readable? What do y'all think?
-
-Download here.
 ]]
 
 --[[TODOs, REVIEWs, BUGs, FIXMEs, HACKs, NOTEs, IMPORTANTs, REVIEWs, OPTIMIZEs,
