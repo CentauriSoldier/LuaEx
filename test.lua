@@ -67,7 +67,7 @@ Creature = class("Creature",
 },
 { --public
     Creature = function(this, cdat, sName, nMaxHP)
-        print(type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
+        print("[In Creature] "..type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
         --print(type(this).." here we are.")
         --print("Creature", type(this), type(cdat), type(sName), type(nMaxHP))
         --cdat.pro.HPMax = nMaxHP;
@@ -130,7 +130,7 @@ Human = class("Human",
 },
 { --public
     Human = function(this, cdat, super, sName, nMaxHP)
-        print(type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
+        print("[In Human] "..type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
         super(sName, nMaxHP);
         --print(rawtype(this).."->"..sName)
         --print("from "..type(this)..": super is -> "..tostring(super))
@@ -194,7 +194,7 @@ Soldier = class("Soldier",
 },
 { --public
     Soldier = function(this, cdat, super, sName, nMaxHP)
-        print(type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
+        print("[In Soldier] "..type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
         super(sName, nMaxHP)
         --super(sName, nMaxHP)
         --print(type(super))
