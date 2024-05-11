@@ -76,7 +76,7 @@ Creature = class("Creature",
 
         --print("HPMAX SET: "..cdat[PRO].HPMax)
         --cdat[PRO].HPMax = nMaxHP;
-        --print(cdat[PRO].HPMax)
+        --print(cdat.pro.HPMax)
     end,
     GetHP_FNL = function(this, cdat)
         --print(cdat[PRO].HP)
@@ -225,53 +225,29 @@ Soldier = class("Soldier",
 
 
 
-for x = 45, 1, -1 do
---print (x)
-end
 
 
 
---local Dragon = Creature("Dragon", 2000);
---print(Dragon.GetHPMax());
 
-function writeToFile(text)
-    local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
-    if file then
-        file:write(text)  -- Write text to file
-        file:close()  -- Close the file
-        print("Text written to file successfully.")
-    else
-        print("Error: Unable to open file for writing.")
-    end
-end
-
--- Example usage:
-local k = 4;
-local function test()
-    print("hello "..k)
-end
+Specialist = class("Specialist",
+{},
+{},
+{},
+{},
+{
+    Specialist = function(this, cdat, super)
+        super("asd", 76);
+    end,
+},
+Soldier, NO_INTERFACES, false);
 
 
---https://leafo.net/guides/function-cloning-in-lua.html
-local function clone_function(fn)
-  local dumped = string.dump(fn)
-  local cloned = loadstring(dumped)
-  local i = 1
-  while true do
-    local name = debug.getupvalue(fn, i)
-    if not name then
-      break
-    end
-    debug.upvaluejoin(cloned, i, fn, i)
-    i = i + 1
-  end
-  return cloned
-end
-
-local fh = clone_function(test)
 
 
-local Kaleb = Soldier("Kaleb", 999);
+
+
+
+local Bob = Specialist("Bob", 999);
 --local y = loadstring(string.dump(Kaleb.GetHPMax))();
 
 --writeToFile(string.dump(Kaleb.GetHPMax))
@@ -323,3 +299,42 @@ local Kaleb = Soldier("Kaleb", 999);
 
 --Kaleb.Hits = "sdad";
 --print(Kaleb.Hits)
+
+
+
+
+function writeToFile(text)
+    local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
+    if file then
+        file:write(text)  -- Write text to file
+        file:close()  -- Close the file
+        print("Text written to file successfully.")
+    else
+        print("Error: Unable to open file for writing.")
+    end
+end
+
+-- Example usage:
+local k = 4;
+local function test()
+    print("hello "..k)
+end
+
+
+--https://leafo.net/guides/function-cloning-in-lua.html
+local function clone_function(fn)
+  local dumped = string.dump(fn)
+  local cloned = loadstring(dumped)
+  local i = 1
+  while true do
+    local name = debug.getupvalue(fn, i)
+    if not name then
+      break
+    end
+    debug.upvaluejoin(cloned, i, fn, i)
+    i = i + 1
+  end
+  return cloned
+end
+
+local fh = clone_function(test)

@@ -227,7 +227,7 @@ function class.build(tKit)
                 local sClass        = x == nParents and tKit.name or tParents[x + 1].kit.name;
 
                 if not (tParentInfo.actual.constructorcalled) then
-                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}.'" % {class = sClass, parent = sParent});
+                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}.'" % {class = sClass, parent = sParent});--TODO should i set a third arg for the errors?
                 end
 
                 rawset(tParentInfo.actual.pub, sParent, nil); --TODO change this index once other types of constructors are permitted
@@ -637,7 +637,7 @@ function instance.wrapmethods(tInstance, tClassData)
 
             if (rawtype(v) == "function") then
 
-                if (k == tKit.name and tKit.parent) then --wrap constuctors
+                if (k == tKit.name) then --wrap constuctors
                     local tParent = tInstance.parent;
 
                     if (tParent) then
@@ -653,11 +653,9 @@ function instance.wrapmethods(tInstance, tClassData)
                     end
 
                 else --wrap non-constructors
-                    local fPC = function(...)
+                    rawset(tInstance[sCAI], k, function(...)
                         return v(oInstance, tClassData, ...);
-                    end
-
-                    rawset(tInstance[sCAI], k, fPC);
+                    end);
                 end
 
             end
