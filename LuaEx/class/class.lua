@@ -196,24 +196,24 @@ function class.build(tKit)
 
             --instantiate each parent
             for nIndex, tParentInfo in ipairs(tParents) do
-                --print("Instantiate Ordinal #"..nIndex.." "..tParentInfo.kit.name)
                 local tMyParent = nil;
 
                 if nIndex > 1 then
                     tMyParent = tParents[nIndex - 1].actual;
                 end
+
                 local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT";
-                --print("\n\nInstantiating "..tParentInfo.kit.name.." with parent "..(sParenttext))
+
                 --instantiate the parent object
                 local oParent, tParent = instance.build(tParentInfo.kit, tMyParent);
-                print("[class.build] Instantiate Ordinal #"..nIndex.." "..tParentInfo.kit.name.."("..tostring(oParent)..")\n")
+
                 --store this info for the next iteration
                 tParentInfo.decoy   = oParent;
                 tParentInfo.actual  = tParent;
             end
-            print("[class.build] Instantiating "..tKit.name.." with parent "..tParents[#tParents].actual.metadata.kit.name.."("..tostring(tParents[#tParents].decoy)..")\n")
+
             local oInstance, tInstance = instance.build(tKit, tParents[#tParents].actual or nil); --this is the returned instance
-            print(tInstance.metadata.kit.name, tParents[#tParents].actual.metadata.kit.name)
+
             tInstance.pub[sName](...);
             tInstance.constructorcalled = true;
             rawset(tInstance.pub, sName, nil);
@@ -224,18 +224,13 @@ function class.build(tKit)
             for x = nParents, 1, -1 do
                 local tParentInfo   = tParents[x];
                 local sParent       = tParentInfo.kit.name;
---print("Constructor Check Ordinal #"..x.." "..sParent.." | "..tParentInfo.actual.constructorcalled.." | c-type: "..type(tParentInfo.actual.pub[sParent]))
-                --local sClass = x == nParents and tKit.name or tParents[x + 1].kit.name;
-                --print(tParentInfo.kit.name.." -> "..tParentInfo.actual.constructorcalled)
+                local sClass        = x == nParents and tKit.name or tParents[x + 1].kit.name;
+
                 if not (tParentInfo.actual.constructorcalled) then
-                    --error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}.'" % {class = sClass, parent = sParent});
-                    error("Error in class constructor. Failed to call parent constructor, '${parent}.'" % {parent = sParent});
-                else
-                    print("[class.build] Yay! in class constructor. Called parent constructor, '${parent}.'" % {parent = sParent});
+                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}.'" % {class = sClass, parent = sParent});
                 end
 
                 rawset(tParentInfo.actual.pub, sParent, nil); --TODO change this index once other types of constructors are permitted
-
             end
 
             return oInstance;
@@ -439,7 +434,7 @@ function instance.setclassdatametatable(tInstance, tClassData)
                     if (tNextParent and tNextParent.metadata and tNextParent.metadata.kit and tNextParent.metadata.kit.name) then
                         parenttext = tNextParent.metadata.kit.name;
                     end
-                    --print(tInstance.metadata.kit.name.." searching in "..tostring(parenttext).." for index '"..k.."'.", vRet)
+
                     zRet        = rawtype(vRet);
                     tNextParent = tNextParent.parent or nil;
                 end
@@ -458,13 +453,13 @@ function instance.setclassdatametatable(tInstance, tClassData)
                 local vVal          = rawget(tTarget, k);
                 local zVal          = rawtype(vVal);
                 local tNextParent   = tInstance.parent or nil;
-                --print(bAllowUpSearch, zVal, tNextParent)
+
                 --if there's no such public key in the instance, check each parent
                 while (bAllowUpSearch and zVal == "nil" and tNextParent) do
                     tTarget     = tNextParent[sCAI];
                     vVal        = rawget(tTarget, k);
                     zVal        = rawtype(vVal);
-                    --print("SEARCHING:........"..tNextParent.metadata.kit.name)
+
                     tNextParent = tNextParent.parent;
                 end
 
@@ -484,7 +479,6 @@ function instance.setclassdatametatable(tInstance, tClassData)
                 end
 
                 if (sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
-                --if (bIsPublic and sTypeCurrent == "function") then
                     error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
                         name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
                 end
@@ -493,11 +487,8 @@ function instance.setclassdatametatable(tInstance, tClassData)
                     error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
                         name = tKit.name, visibility = getCAIName(sCAI), visibility = getCAIName(sCAI), member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
                 end
-                --local te = tNextParent or tInstance;
-            --    print("before setting: ", tostring(te.metadata.kit.name), k, rawget(tTarget, k), "-> ", v)
+
                 rawset(tTarget, k, v);
-                --print("after setting: ", tostring(te.metadata.kit.name), k ,rawget(tTarget, k))
-                --print(tostring(tTarget), rawget(tTarget, k), tTarget[k])
             end,
             __metatable = true,
         });
@@ -640,42 +631,32 @@ function instance.wrapmethods(tInstance, tClassData)
     local tClassDataIndices = {pri, pro, pub};
 
     for _, sCAI in ipairs(tClassDataIndices) do
-        --local tActive = tClassData[sCAI];
 
         --wrap the classdata functions
         for k, v in pairs(tInstance[sCAI]) do
 
             if (rawtype(v) == "function") then
 
-                if (k == tKit.name and tKit.parent) then --deal with the constuctor
+                if (k == tKit.name and tKit.parent) then --wrap constuctors
                     local tParent = tInstance.parent;
-                    --fParentConstructor = tParent[sCAI][tParent.metadata.kit.name] --TODO change the sCAI index when allowing muliple constructors
-                    --print("GRABBING "..tParent.metadata.kit.name.." constructor: "..tostring(rawget(tParent[sCAI], tParent.metadata.kit.name)))
-                    --local pc = tParent[sCAI][tParent.metadata.kit.name];
-                    --local fa = function(...)
-                        --tParent[sCAI][tParent.metadata.kit.name] = nil;
-                    --    return v(oInstance, tClassData, rawget(tParent[sCAI], tParent.metadata.kit.name), ...);
-                    --end
-                    --print("Wrapping constructor ".." ("..tostring(fa)..")".." for class "..tKit.name.." and including parent constructor from class "..tParent.metadata.kit.name.." ("..tostring(fParentConstructor)..")")
-                    local fCons;
-                    local fParentConst = tParent[sCAI][tParent.metadata.kit.name];
-                    local sMsg = "[instance.wrapmethods] "..tParent.metadata.kit.name.." constructor ("..tostring(fCons)..") is attached ".." | caller -> "..tInstance.metadata.kit.name.." as 'super'.";
-                    fCons = function(...)
-                        --tParent[sCAI][tParent.metadata.kit.name] = nil;
-                        local vRet =  v(oInstance, tClassData, fParentConst, ...)--TODO do i really need rawget here? maybe to get nil without error
-                        print(sMsg)
-                        tParent.constructorcalled = true;
-                        --print(tParent.metadata.kit.name.." constructor ("..tostring(fCons)..") has been called: "..tParent.constructorcalled.." | caller -> "..tKit.name)
-                        return vRet;--TODO consctructors shouls return nothing
-                    end
-                    print("[instance.wrapmethods] ".."Confirming "..tParent.metadata.kit.name.. " constructor ID: "..tostring(fCons))
 
-                    rawset(tInstance[sCAI], k, fCons);
-                else --deal with non-constructors
+                    if (tParent) then
+                        rawset(tInstance[sCAI], k, function(...)
+                            v(oInstance, tClassData, tParent[sCAI][tParent.metadata.kit.name], ...);
+                            tInstance.constructorcalled = true;
+                        end);
+                    else
+                        rawset(tInstance[sCAI], k, function(...)
+                            v(oInstance, tClassData, ...);
+                            tInstance.constructorcalled = true;
+                        end);
+                    end
+
+                else --wrap non-constructors
                     local fPC = function(...)
                         return v(oInstance, tClassData, ...);
                     end
-                    --print(tInstance.metadata.kit.name..": Wrapping '"..k.."' ("..tostring(fa)..")".." with cdata ID of '"..tostring(tClassData))
+
                     rawset(tInstance[sCAI], k, fPC);
                 end
 
@@ -710,7 +691,7 @@ end
 @param table tProtected A table containing all protected class members.
 @param table tPublic A table containing all public class members.
 @param class|nil cExtendor The parent class from which this class derives (if any). If there is no parent class, this argument should be nil.
-@param string|table|nil The name (or numerically-indexed table of names) of the interfaces this class implements (or nil, if none).
+@param interface|table|nil The interface (or numerically-indexed table of interface) this class implements (or nil, if none).
 @param boolean bIsFinal A boolean value indicating whether this class is final.
 @scope local
 @desc Imports a kit for later use in building class objects
@@ -774,7 +755,7 @@ end
 
 --[[!TODO
 @module class
-@func kit.
+@func kit.mayextend
 @param table tKit The kit to build.
 @scope local
 @desc Builds a complete class object given the name of the kit. This is called by kit.build().
@@ -795,13 +776,12 @@ function kit.mayextend(sName, cExtendor)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func kit.processfinalmethods
+@param table tKit The kit within which the methods will be processed.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Iterates over all protected and public methods to process them if they're marked as final. !TODO add metamethods
 !]]
 local tFinalVisibility = {pro, pub}; --TODO allow final metamethods
 function kit.processfinalmethods(tKit)
@@ -845,13 +825,12 @@ function kit.processfinalmethods(tKit)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func kit.shadowcheck
+@param table tKit The kit the check for member shadowing.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Ensures there is no member shadowing happening in the class.
 !]]
 local tCheckIndices  = {pro, pub};
 function kit.shadowcheck(tKit) --checks for public/protected shadowing
@@ -864,7 +843,6 @@ function kit.shadowcheck(tKit) --checks for public/protected shadowing
 
             --shadow check each member of the class
             for sKey, vChildValue in pairs(tKit[sCAI]) do
-                --print("Kit-"..tKit.name, "sVisibility-"..sCAI, "Parent-"..tParent.name, "Key-"..sKey, "Key Type In Parent-"..type(tParent[sCAI][sKey]))
                 local zParentValue          = rawtype(tParent[sCAI][sKey]);
                 local zChildValue           = rawtype(vChildValue);
                 local bIsFunctionOverride   = (zParentValue == "function" and zChildValue == "function");
@@ -899,8 +877,8 @@ end
 
 --[[!TODO
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func kit.validateinterfaces
+@param interface|table|nil The interface (or numerically-indexed table of interface) this class implements (or nil, if none).
 @scope local
 @desc Builds a complete class object given the name of the kit. This is called by kit.build().
 @ret class A class object.
@@ -925,13 +903,12 @@ function kit.validateinterfaces(vImplements, tKit)--TODO complete this!!!
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func kit.validatename
+@param string sName The name to be checked.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Ensure the class name is a variable-compliant string.
 !]]
 function kit.validatename(sName)
     assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
@@ -940,13 +917,17 @@ function kit.validatename(sName)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func kit.validatetables
+@param string sName The class name.
+@param table tMetamethods The metamethods input table.
+@param table tStaticPublic The static public input table.
+@param table tPrivate The private input table.
+@param table tProtected The protected input table.
+@param table tPublic The public input table.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Validates all class input tables.
 !]]
 function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
     assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}.' Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
@@ -1017,7 +998,7 @@ return rawsetmetatable({}, {
     @param table tProtected A table containing the protected class members.
     @param table tPublic A table containing the public class members.
     @param class cExtendor The parent class (if any) from which this class is derived.
-    @param interface/table vImplements An interface or numerically-indexed table of interfaces (if any) which this class implements.
+    @param interface|table|nil The interface (or numerically-indexed table of interface) this class implements (or nil, if none).
     @param boolean bIsFinal Whether this class is final.
     @scope global
     @desc Builds a class.<br>Note: every method within the static public, private, protected and public tables must accept the instance object and class data table as their first and second arguments respectively.<br>Note: all metamethod within the metamethods table also accept the class instance and cdat table but may also accept a second item depending on if the metamethod is using binary operators such as +, %, etc.<br>Note: The class data table is indexed my pri (private members), pro (protected members), pub (public members) and ins (for all class instances of this class type) and each grants access to the items in that table.<br>Note: to prevent fatal conflicts within the code, all class members are strongly typed. No member's type may be changed with the exception of the null type. Types may be set to and from null; however, items which begin as null, once set to another type, cannot be changed from that type to another non-null type. Items that begins as a type and are then set to null, may be changed back to that original type only. In addition, no class member may be set to nil.<br>Class methods cannot be changed to other methods but may be overridden by methods of the same name within child classes. The one exception to this is methods which have the _FNL suffix added to their name. These methods are final and may not be overridden. Note: though the _FNL suffix appears within the method name in the class table, that suffix is removed during class creation. That is, a method such as, MyMethod_FNL will be called as MyMethod(), leaving off the _FNL suffix during calls to that method. _FNL (and other such suffixes that may be added in the future) can be thought of as a directive to the class building code which, after it renames the method to remove the suffix, marks it as final within the class code to prevent overrides.
