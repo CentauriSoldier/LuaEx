@@ -59,6 +59,6 @@ end
 class Dog extends Creature
 
 
-TODO check each member against the static members
+
 TODO use the __FINAL__extension to prevent overriding
 ]]

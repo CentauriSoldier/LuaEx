@@ -48,12 +48,21 @@ For more information, please refer to <http://unlicense.org/>
 @version 0.5
 @versionhistory
 <ul>
-<li>
+    <li>
+    <b>0.81</b>
+        <br>
+        <p>Change: removed class system from 0.8 as it had a fatal flaw.</p>
+        <p>Change: rewrote the class system again from scratch.</p>
+        <p>change: removed static protected members from the class system as using them is, almost always, an anti-pattern.</p>
+        <p>Bugfix: renamed the __LUAEX__ table reference in the enum module that got missed.</p>
+        <p>Feature: class members are now strongly typed.</p>
+    </li>
+    <li>
 	<b>0.8</b>
 		<br>
 		<p>Change: rewrote the class system from scratch.</p>
 		<p>Change: moved various modules to different directories.</p>
-		<p>Change: renames __LUAEX__ global table luaex.</p>
+		<p>Change: renamed __LUAEX__ global table luaex.</p>
 		<p>Feature: added class interfaces.</p>
 		<p>Feature: class system now uses full encapsulation (static protected, static public, private, protected and public fields & methods).</p>
 		<p>Feature: luaex table now contains a _VERSION variable.</p>
@@ -164,7 +173,7 @@ local tLuaEx = {
 
 _G.luaex = setmetatable({},
 {
-	__index 		= tLuaEx,--TODO should I use a shadow table?
+	__index 		= tLuaEx,
 	__newindex 		= function(t, k, v)
 
 		if tLuaEx[k] then
@@ -242,14 +251,12 @@ deserialize = require("LuaEx.util.deserialize");
 --import interfaces
 icloneable 		= require("LuaEx.class.interfaces.iclonable");
 iserializable 	= require("LuaEx.class.interfaces.iserializable");
--- = require("LuaEx.class.interfaces.");
 
 --import classes
---queue 		= require("LuaEx.class.classes.queue");
---stack 		= require("LuaEx.class.classes.stack");
+--queue 	= require("LuaEx.class.classes.queue");
+--stack 	= require("LuaEx.class.classes.stack");
 --set 		= require("LuaEx.class.classes.set");
 --ini 		= require("LuaEx.class.classes.ini"); --TODO convert to new class system
-
 
 
 --🅰🅻🅸🅰🆂🅴🆂

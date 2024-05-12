@@ -1,4 +1,4 @@
-local tLuaEX = rawget(_G, "luaex");
+local tLuaEx = rawget(_G, "luaex");
 
 local assert				= assert;
 local isvariablecompliant 	= string.isvariablecompliant;
@@ -12,9 +12,9 @@ local function isvariablecompliant(sInput, bSkipKeywordCheck)
 
 	--make certain it's not a keyword
 	if (not bSkipKeywordCheck) then
-		for x = 1, tLuaEX.__KEYWORDS_COUNT__ do
+		for x = 1, tLuaEx.__KEYWORDS_COUNT__ do
 
-			if sInput == tLuaEX.__KEYWORDS__[x] then
+			if sInput == tLuaEx.__KEYWORDS__[x] then
 				bIsKeyWord = true;
 				break;
 			end
@@ -39,13 +39,13 @@ local function constant(sName, vVal)
 	--check that the name string can be a valid variable
 	assert(isvariablecompliant(sName), "Constant name must be a string whose text is compliant with lua variable rules; input string is '"..sName.."'");
 	--make sure the variable doesn't alreay exist
-	assert(rawtype(_G[sName]) == "nil" and rawtype(tLuaEX[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing item.");
+	assert(rawtype(_G[sName]) == "nil" and rawtype(tLuaEx[sName] == "nil"), "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing item.");
 	--make sure the constant is not nil
 	assert(rawtype(vVal) ~= "nil", "Cannot create constant; value cannot be nil.");
 	--make sure the value doesn't alreay exist
 	assert(rawtype(_G[sName]) == "nil", "Variable "..sName.." has already been assigned a non-nil value. Cannot overwrite existing variable.");
 	--put the const into the global environment (via the luaex protected table)
-	rawset(tLuaEX, sName, vVal);
+	rawset(tLuaEx, sName, vVal);
 end
 
 return constant;

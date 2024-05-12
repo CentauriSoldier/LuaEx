@@ -1,6 +1,5 @@
 --[[
 Planned features
-AutoGetter/Setter functions
 
 ]]
 
@@ -16,11 +15,19 @@ AutoGetter/Setter functions
 --TODO add directives like auto-setter/mutator methods
 ]]
 
-constant("CLASS_FINAL_MARKER",          "_FNL");
-constant("CLASS_FINAL_MARKER_LENGTH",   #CLASS_FINAL_MARKER);
-constant("CLASS_CONSTRUCTOR_NAME",      "super");--TODO delete if not used
+constant("CLASS_DIRECTIVE_FINAL",           "_FNL"); --this directive causes a method to be final
+constant("CLASS_DIRECTIVE_FINAL_LENGTH",    #CLASS_DIRECTIVE_FINAL);
+constant("CLASS_DIRECTIVE_AUTO",            "_AUTO"); --this directive allows the automatic creation of accessor/mutator methods
+constant("CLASS_DIRECTIVE_AUTO_LENGTH",     #CLASS_DIRECTIVE_AUTO);
+constant("CLASS_CONSTRUCTOR_NAME",          "super");--TODO delete if not used
 
 --localization
+local CLASS_DIRECTIVE_FINAL         = CLASS_DIRECTIVE_FINAL;
+local CLASS_DIRECTIVE_FINAL_LENGTH  = CLASS_DIRECTIVE_FINAL_LENGTH;
+local CLASS_DIRECTIVE_AUTO          = CLASS_DIRECTIVE_AUTO;
+local CLASS_DIRECTIVE_AUTO_LENGTH   = CLASS_DIRECTIVE_AUTO_LENGTH;
+local CLASS_CONSTRUCTOR_NAME        = CLASS_CONSTRUCTOR_NAME;
+
 local met       = "met"; --the instance's metatable
 local stapub    = "stapub"
 local pri       = "pri"; --the instance's private table
@@ -28,37 +35,13 @@ local pro       = "pro"; --the instance's protected table
 local pub       = "pub"; --the instance's public table
 local ins       = "ins"; --a table containing all the instances
 
-local tCAINames = {--TODO get rid of these too
+local tCAINames = { --primarily used for error messages
     met = "metamethods"; --the instance's metatable
     pri = "private"; --the instance's private table
     pro = "protected"; --the instance's protected table
     pub = "public"; --the instance's public table
     ins = "instances"; --a table containing all the instances
 };
-
-local tErrors = {
-    validatetables = {
-        [1]     = "Error creating class, '${class}.' Metamethods values table expected.\r\nGot: (${type}) ${item}.",
-        [2]     = "Error creating class, '${class}.' Static public values table expected.\r\nGot: (${type}) ${item}.",
-        [3]     = "Error creating class, '${class}.' Private values table expected.\r\nGot: (${type}) ${item}.",
-        [4]     = "Error creating class, '${class}.' Protected values table expected.\r\nGot: (${type}) ${item}.",
-        [5]     = "Error creating class, '${class}.' Static values table expected.\r\nGot: (${type}) ${item}.",
-        [6]     = "Error creating class, '${class}.' All table indices must be of type string. Got: (${type}) ${item} in table, ${table}",
-        [7]     = "Error creating class, '${class}.' Redundant constructor detected in ${table} table.",
-        [8]     = "Error creating class, '${class}.' Invalid metamethod, '${metaname}.'\nPermitted metamethods are:\n${metanames}",
-        [9]     = "Error creating class, '${class}.' Invalid metamethod type for metamethod, '${metaname}.'\nExpected type function, got type ${type}.",
-        [10]    =  "Error creating class, '${class}'. No constructor provided.",
-    }
-};
-
---gets the full name of a Class Access Index given the shortname
-local function getCAIName(sCAI)
-    return tCAINames[sCAI] or "UNKOWN";
-end
-
-local CFM   = CLASS_FINAL_MARKER;
-local CFML  = CLASS_FINAL_MARKER_LENGTH;
-local CCN   = CLASS_CONSTRUCTOR_NAME; --TODO delete if not used
 
 local assert            = assert;
 local getmetatable      = getmetatable;
@@ -114,7 +97,7 @@ local function IsMutableStaticPublicType(sType)
     return (tMutableStaticPublicTypes[sType] or false);
 end
 
-
+--TODO make sure all these values are being updated
 local class = {
     count = 0,
 	repo  = { --updated on kit.build()
@@ -143,15 +126,13 @@ local kit = {
 };
 
 
-                                                --[[
-                                                 ________  ___       ________  ________   ________
-                                                |\   ____\|\  \     |\   __  \|\   ____\ |\   ____\
-                                                \ \  \___|\ \  \    \ \  \|\  \ \  \___|_\ \  \___|_
-                                                 \ \  \    \ \  \    \ \   __  \ \_____  \\ \_____  \
-                                                  \ \  \____\ \  \____\ \  \ \  \|____|\  \\|____|\  \
-                                                   \ \_______\ \_______\ \__\ \__\____\_\  \ ____\_\  \
-                                                    \|_______|\|_______|\|__|\|__|\_________\\_________\
-                                                                                 \|_________\|_________|]]
+
+                            --[[ ██████╗██╗      █████╗ ███████╗███████╗
+                                ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
+                                ██║     ██║     ███████║███████╗███████╗
+                                ██║     ██║     ██╔══██║╚════██║╚════██║
+                                ╚██████╗███████╗██║  ██║███████║███████║
+                                ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝]]
 
 
 --[[!
@@ -296,14 +277,12 @@ function class.build(tKit)
 end
 
 
-                                        --[[
-                                         ___  ________   ________  _________  ________  ________   ________  _______
-                                        |\  \|\   ___  \|\   ____\|\___   ___\\   __  \|\   ___  \|\   ____\|\  ___ \
-                                        \ \  \ \  \\ \  \ \  \___|\|___ \  \_\ \  \|\  \ \  \\ \  \ \  \___|\ \   __/|
-                                         \ \  \ \  \\ \  \ \_____  \   \ \  \ \ \   __  \ \  \\ \  \ \  \    \ \  \_|/__
-                                          \ \  \ \  \\ \  \|____|\  \   \ \  \ \ \  \ \  \ \  \\ \  \ \  \____\ \  \_|\ \
-                                           \ \__\ \__\\ \__\____\_\  \   \ \__\ \ \__\ \__\ \__\\ \__\ \_______\ \_______\
-                                            \|__|\|__| \|__|\_________\   \|__|  \|__|\|__|\|__| \|__|\|_______|\|_______|]]
+                --[[██╗███╗   ██╗███████╗████████╗ █████╗ ███╗   ██╗ ██████╗███████╗
+                    ██║████╗  ██║██╔════╝╚══██╔══╝██╔══██╗████╗  ██║██╔════╝██╔════╝
+                    ██║██╔██╗ ██║███████╗   ██║   ███████║██╔██╗ ██║██║     █████╗
+                    ██║██║╚██╗██║╚════██║   ██║   ██╔══██║██║╚██╗██║██║     ██╔══╝
+                    ██║██║ ╚████║███████║   ██║   ██║  ██║██║ ╚████║╚██████╗███████╗
+                    ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝]]
 
 
 --[[!TODO
@@ -344,9 +323,11 @@ function instance.build(tKit, tParentActual)
     --wrap the private, protected and public methods
     instance.wrapmethods(tInstance, tClassData)
 
+    ----create auto getter/setter methods
+    instance.buildautomethods(tInstance, tClassData);
+
     --create and set the instance metatable
     instance.setmetatable(tInstance, tClassData);
-    --instance.setmetatable(tInstance, tClassDataActual);--WARNING TESTING LINE (NOT FOR PRODUCTION)
 
     --TODO I need to update the children field of each parent (OR do I?)
     --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
@@ -356,6 +337,36 @@ function instance.build(tKit, tParentActual)
     --TODO check for the presence of the parent constructor (should have been edeleted after call) Also, TODO delete constructor after call
 
     return oInstance, tInstance;
+end
+
+
+--[[!TODO
+@module class
+@func kit.
+@param table tKit The kit that is to be built.
+@scope local
+@desc Builds a complete class object given the name of the kit. This is called by kit.build().
+@ret class A class object.
+!]]
+function instance.buildautomethods(tInstance, tClassData)
+    local tKit = tInstance.metadata.kit;
+
+    for sName, tItem in pairs(tKit.auto) do
+        local sVisibility = tItem.CAI;
+
+        --create the accesor method
+        tInstance.pub["Get"..tItem.formattedname] = function()
+            return tClassData[sVisibility][tItem.formattedname];
+        end
+
+        --create the mutator method
+        tInstance.pub["Set"..tItem.formattedname] = function(vVal)
+            tClassData[sVisibility][tItem.formattedname] = vVal;
+            return tInstance.decoy;
+        end
+
+    end
+
 end
 
 
@@ -413,7 +424,8 @@ end
 @ret class A class object.
 !]]
 function instance.setclassdatametatable(tInstance, tClassData)
-    local tClassDataIndices  = {pri, pro, pub};
+    local tClassDataIndices = {pri, pro, pub};
+    local sName             = tInstance.metadata.kit.name;
 
     for _, sCAI in pairs(tClassDataIndices) do
         local bIsPrivate        = sCAI == pri;
@@ -443,7 +455,7 @@ function instance.setclassdatametatable(tInstance, tClassData)
                 --if (rawtype(vRet) == "nil") then
                 if (zRet == "nil") then
                     error("Error in class, '${name}'. Attempt to access ${visibility} member, '${member}', a nil value." % {
-                        name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
                 end
 
                 return vRet;
@@ -467,7 +479,7 @@ function instance.setclassdatametatable(tInstance, tClassData)
                 --if (rawtype(vVal) == "nil") then
                 if (zVal == "nil") then
                     error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
-                        name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
                 end
 
                 local sTypeCurrent  = type(tTarget[k]);
@@ -475,17 +487,17 @@ function instance.setclassdatametatable(tInstance, tClassData)
 
                 if (sTypeNew == "nil") then
                     error("Error in class, '${name}'. Cannot set ${visibility} member, '${member}', to nil." % {
-                        name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
                 end
 
                 if (sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
                     error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
-                        name = tKit.name, visibility = getCAIName(sCAI), member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
                 end
 
                 if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
                     error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
-                        name = tKit.name, visibility = getCAIName(sCAI), visibility = getCAIName(sCAI), member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
+                        name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
                 end
 
                 rawset(tTarget, k, v);
@@ -667,18 +679,14 @@ function instance.wrapmethods(tInstance, tClassData)
 end
 
 
-
---[[
-                                                                 ___  __    ___  _________
-                                                                |\  \|\  \ |\  \|\___   ___\
-                                                                \ \  \/  /|\ \  \|___ \  \_|
-                                                                 \ \   ___  \ \  \   \ \  \
-                                                                  \ \  \\ \  \ \  \   \ \  \
-                                                                   \ \__\\ \__\ \__\   \ \__\
-                                                                    \|__| \|__|\|__|    \|__|]]
+                                        --[[██╗  ██╗██╗████████╗
+                                            ██║ ██╔╝██║╚══██╔══╝
+                                            █████╔╝ ██║   ██║
+                                            ██╔═██╗ ██║   ██║
+                                            ██║  ██╗██║   ██║
+                                            ╚═╝  ╚═╝╚═╝   ╚═╝ ]]
 
 
---functions
 --[[!
 @module class
 @func kit.build
@@ -701,10 +709,11 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.validatename(sName);
     kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
     kit.validateinterfaces(vImplements);
-
+    --TODO check each member against the static members
     --import/create the elements which will comprise the class kit
     local tKit = {
         --properties
+        auto            = {}, --these are the auto getter/setter methods to build on instantiation
         children		= {
             byname 		= {}, --updated on build
             byobject 	= {}, --updated when a class object is created
@@ -726,7 +735,10 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     };
 
     --note and rename final methods
-    kit.processfinalmethods(tKit);  --TODO allow final metamethods
+    kit.processdirectiveauto(tKit);
+
+    --note and rename final methods
+    kit.processdirectivefinal(tKit);  --TODO allow final metamethods
 
     --check for member shadowing
     kit.shadowcheck(tKit);
@@ -776,26 +788,49 @@ end
 
 --[[
 @module class
-@func kit.processfinalmethods
-@param table tKit The kit within which the methods will be processed.
+@func kit.processdirectiveauto
+@param table tKit The kit within which the directives will be processed.
 @scope local
-@desc Iterates over all protected and public methods to process them if they're marked as final. !TODO add metamethods
+@desc Iterates over all private and protected members to process them if they have an auto directive.
 !]]
-local tFinalVisibility = {pro, pub}; --TODO allow final metamethods
-function kit.processfinalmethods(tKit)
-    local sMarker = CLASS_FINAL_MARKER.."$";
-    local tChange = {};
+local tAutoVisibility = {pri, pro};
+function kit.processdirectiveauto(tKit)
+    local sAutoMarker   = CLASS_DIRECTIVE_AUTO.."$";
+    local tAuto         = {};
 
-    for _, sCAI in pairs(tFinalVisibility) do
+    for _, sCAI in pairs(tAutoVisibility) do
         local tVisibility = tKit[sCAI];
-        tChange[sCAI] = {};
 
-        for sName, vMethod in pairs(tVisibility) do
+        for sName, vItem in pairs(tVisibility) do
+            local sItemType = rawtype(vItem);
 
-            if (rawtype(vMethod) == "function" and sName ~= tKit.name) then --ignores contructors
+            if (sItemType ~= "function") then
 
-                if (sName:match(sMarker)) then
-                    tChange[sCAI][sName] = vMethod;
+                if (sName:match(sAutoMarker)) then
+                    local sFormattedName = sName:gsub(CLASS_DIRECTIVE_AUTO, '');
+
+                    if (type(tKit[sCAI][sFormattedName]) ~= "nil") then
+                        error(  "Error in class, '${class}'. Attempt to create accessor/mutator methods using the '${directive}' directive for duplicate members, '${name}', of ${visibility} visibility." %
+                                {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = tCAINames[sCAI]});
+                    end
+
+                    if (type(tAuto[sName]) ~= "nil") then
+                        local sVisibility1 = tCAINames[sCAI];
+                        local sVisibility2 = tCAINames[tAuto[sName].CAI];
+                        error(  "Error in class, '${class}'. Attempt to create multiple accessor/mutator methods using the '${directive}' directive for members of the same name, '${index}', of visibility ${visibility1} and ${visibility2}." %
+                                {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, index = sFormattedName, visibility1 = sVisibility1, visibility2 = sVisibility2});
+                    end
+
+                    tAuto[sName] = {
+                        item            = vItem,
+                        itemtype        = sItemType,
+                        CAI             = sCAI,
+                        formattedname   = sFormattedName,
+                    };
+
+                    --set the proper name
+                    tKit[sCAI][sFormattedName]  = vItem;
+                    tKit[sCAI][sName]           = nil;
                 end
 
             end
@@ -804,12 +839,86 @@ function kit.processfinalmethods(tKit)
 
     end
 
-    for sCAI, tNames in pairs(tChange) do
+
+    for sName, tItem in pairs(tAuto) do
+        local sGet              = "Get"..tItem.formattedname;
+        local sSet              = "Set"..tItem.formattedname;
+        local sVisibility       = tItem.CAI;
+        local sFormattedName    = tItem.formattedname;
+
+        --ensure there are not already getter/setter methods in this kit
+        if (type(tKit.pub[sGet]) ~= "nil") then
+            error(  "Error in class, '${class}'. Attempt to overwrite existing public method with auto accessor, '${method}', for ${visibility} member, '${member}' ('${name}')." %
+                    {class = tKit.name, method = sGet, visibility = tCAINames[sVisibility], member = sFormattedName, name = sName});
+        end
+
+        if (type(tKit.pub[sSet]) ~= "nil") then
+            error(  "Error in class, '${class}'. Attempt to overwrite existing public method with auto mutator, '${method}', for ${visibility} member, '${member}' ('${name}')." %
+                    {class = tKit.name, method = sSet, visibility = tCAINames[sVisibility], member = sFormattedName, name = sName});
+        end
+
+        --look for final getter/setter methods & auto directives in parents
+        local tParentKit = tKit.parent;
+
+        while (tParentKit) do
+
+            if ((type(tParentKit.pub[sGet]) ~= "nil" and tParentKit.finalmethodnames.pub[sGet]) or (type(tParentKit.pub[sSet]) ~= "nil" and tParentKit.finalmethodnames.pub[sSet])) then
+                error(  "Error in class, '${class}'. Attempt to create accessor/mutator methods for member, '${name}', of ${visibility} visibility\nusing the '${directive}' directive which would override final methods in parent class, '${parent}'." %
+                        {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = tCAINames[sVisibility], parent = tParentKit.name});
+            end
+
+            if (tParentKit.auto[sName]) then
+                error(  "Error in class, '${class}'. Attempt to create accessor/mutator methods for member, '${name}', of ${visibility} visibility\nusing the '${directive}' directive which would override auto-created mutator/accessor methods in parent class, '${parent}'." %
+                        {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = tCAINames[sVisibility], parent = tParentKit.name});
+            end
+
+            tParentKit = tParentKit.parent;
+        end
+
+        --store the auto settings for later creation in instantiation
+        tKit.auto[sName] = tItem;
+    end
+
+end
+
+
+--[[
+@module class
+@func kit.processdirectivefinal
+@param table tKit The kit within which the directives will be processed.
+@scope local
+@desc Iterates over all protected and public members to process them if they have a directive. !TODO add metamethods
+!]]
+local tFinalVisibility = {pro, pub}; --TODO allow final metamethods
+function kit.processdirectivefinal(tKit)
+    local sFinalMarker  = CLASS_DIRECTIVE_FINAL.."$";
+    local tFinal        = {};
+
+    for _, sCAI in pairs(tFinalVisibility) do
+        local tVisibility = tKit[sCAI];
+        tFinal[sCAI] = {};
+
+        for sName, vItem in pairs(tVisibility) do
+            local sItemType = rawtype(vItem);
+
+            if (sItemType == "function") then
+
+                if (sName ~= tKit.name and sName:match(sFinalMarker)) then --ignore contructors
+                    tFinal[sCAI][sName] = vItem;
+                end
+
+            end
+
+        end
+
+    end
+
+    for sCAI, tNames in pairs(tFinal) do
 
         for sName, fMethod in pairs(tNames) do
 
             --clean the name
-            local sNewName = sName:sub(1, #sName - CLASS_FINAL_MARKER_LENGTH);
+            local sNewName = sName:sub(1, #sName - CLASS_DIRECTIVE_FINAL_LENGTH);
             --add/delete proper key
             tKit[sCAI][sNewName] = fMethod;
             tKit[sCAI][sName] = nil;
@@ -852,12 +961,12 @@ function kit.shadowcheck(tKit) --checks for public/protected shadowing
 
                         if (tParent.finalmethodnames[sCAI][sKey]) then --throw an error if the parent method is final
                             error(  "Error in class, '${name}'. Attempt to override final ${visibility} method, '${member}', in parent class, '${parent}'." % {
-                                name = tKit.name, visibility = getCAIName(sCAI), member = tostring(sKey), parent = tParent.name});
+                                name = tKit.name, visibility = tCAINames[sCAI], member = tostring(sKey), parent = tParent.name});
                         end
 
                     else
                         error(  "Error in class, '${name}'. Attempt to shadow existing ${visibility} member, '${member}', in parent class, '${parent}'." % {
-                            name = tKit.name, visibility = getCAIName(sCAI), member = tostring(sKey), parent = tParent.name});
+                            name = tKit.name, visibility = tCAINames[sCAI], member = tostring(sKey), parent = tParent.name});
                     end
 
                 end
@@ -1013,15 +1122,13 @@ return rawsetmetatable({}, {
 
 
 
---[[ ________  ________  ________  ___  ___  ___  ___      ___ _______
-    |\   __  \|\   __  \|\   ____\|\  \|\  \|\  \|\  \    /  /|\  ___ \
-    \ \  \|\  \ \  \|\  \ \  \___|\ \  \\\  \ \  \ \  \  /  / | \   __/|
-     \ \   __  \ \   _  _\ \  \    \ \   __  \ \  \ \  \/  / / \ \  \_|/__
-      \ \  \ \  \ \  \\  \\ \  \____\ \  \ \  \ \  \ \    / /   \ \  \_|\ \
-       \ \__\ \__\ \__\\ _\\ \_______\ \__\ \__\ \__\ \__/ /     \ \_______\
-        \|__|\|__|\|__|\|__|\|_______|\|__|\|__|\|__|\|__|/       \|_______|
-
-
+--[[
+ █████╗ ██████╗  ██████╗██╗  ██╗██╗██╗   ██╗███████╗
+██╔══██╗██╔══██╗██╔════╝██║  ██║██║██║   ██║██╔════╝
+███████║██████╔╝██║     ███████║██║██║   ██║█████╗
+██╔══██║██╔══██╗██║     ██╔══██║██║╚██╗ ██╔╝██╔══╝
+██║  ██║██║  ██║╚██████╗██║  ██║██║ ╚████╔╝ ███████╗
+╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚══════╝
 NOTE This area may contain some useful functions but, as of yet, they have not been integrated
 
 Takes the input tables from a call the class modules and stores the fields

@@ -1,4 +1,4 @@
-local tLuaEX = rawget(_G, "luaex");
+local tLuaEx = rawget(_G, "luaex");
 local rawtype 	= rawtype;
 
 function protect(sReference)

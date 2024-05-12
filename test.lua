@@ -62,7 +62,7 @@ Creature = class("Creature",
     DonkeyPoints = 667,
 },
 { --protected
-    HP      = 20,
+    HP_AUTO = 20,
     HPMax   = 45,
 },
 { --public
@@ -78,7 +78,7 @@ Creature = class("Creature",
         --cdat[PRO].HPMax = nMaxHP;
         --print(cdat.pro.HPMax)
     end,
-    GetHP_FNL = function(this, cdat)
+    GsetHP_FNL = function(this, cdat)
         --print(cdat[PRO].HP)
         return cdat.pro.HP;
     end,
@@ -88,7 +88,7 @@ Creature = class("Creature",
 
         return cdat.pro.HPMax;
     end,
-    SetHP = function(this, cdat, nVal)
+    sSetHP = function(this, cdat, nVal)
         --print(cdat[PRO].HP)
         cdat.pro.HP = nVal;
         return this;
@@ -232,22 +232,31 @@ Soldier = class("Soldier",
 Specialist = class("Specialist",
 {},
 {},
-{},
-{},
+{
+    --HP_AUTO = 0,
+    RPs = 33,
+},
+{
+    --RP_AUTO = 34,
+},
 {
     Specialist = function(this, cdat, super)
         super("asd", 76);
+    end,
+    sGetHP = function(this, cdat)
+        return cdat.pro.HP;
+    end,
+    Tester = function(this, cdat, num)
+        cdat.pri.RP = cdat.pri.RP + num;
     end,
 },
 Soldier, NO_INTERFACES, false);
 
 
-
-
-
-
-
 local Bob = Specialist("Bob", 999);
+print(Bob.GetHP())
+--print(Bob.SetHP(345).GetHP())
+
 --local y = loadstring(string.dump(Kaleb.GetHPMax))();
 
 --writeToFile(string.dump(Kaleb.GetHPMax))

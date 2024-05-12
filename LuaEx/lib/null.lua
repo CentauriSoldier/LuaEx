@@ -1,4 +1,4 @@
---NOTE: DONT LOCALIZE null. Strange things happen...
+--WARNING: DON'T LOCALIZE null. Strange things happen...
 local type 			= type;
 local setmetatable 	= setmetatable;
 
@@ -40,6 +40,9 @@ local function tostr()
 end
 
 return setmetatable({
+    clone = function()
+        return "null";
+    end,
 	serialize = function()
 		return "null";
 	end,
