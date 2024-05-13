@@ -1,25 +1,5 @@
-local tLuaEX = rawget(_G, "luaex");
+local tLuaEx = rawget(_G, "luaex");
 local rawtype 	= rawtype;
-
-function sealmetatable(tInput)
-	local bRet = false;
-
-	if (rawtype(tInput) == "table") then
-		local tMeta 	= getmetatable(tInput);
-		local sMetaType = rawtype(tInput);
-		local bIsNil 	= sMetaType == "nil";
-
-		if (sMetaType == "table" or bIsNil) then
-			tMeta = bIsNil and {} or tMeta;
-			tMeta.__metatable = false;
-			setmetatable(tInput, tMeta);
-		end
-
-	end
-
-	return bRet;
-end
-
 
 function protect(sReference)
 	local sReferenceType 	= rawtype(sReference);

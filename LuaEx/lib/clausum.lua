@@ -10,7 +10,7 @@ local function clausum(sType)
         --keeps track of the items entered (in order)
         local tItemsByEntry	= {};
 
-        --used to iterate over each item in the enum
+        --used to iterate over each item in the clausum
         local function itemsIterator(tTheClausum, nTheIndex)
 
             if (nTheIndex < #tItemsByEntry) then --todo use count value
@@ -20,7 +20,7 @@ local function clausum(sType)
 
         end
 
-        --the iterator setup function for the __call metamethod in the enum object
+        --the iterator setup function for the __call metamethod in the clausum object
         local function items(tTheClausum)
             return itemsIterator, tTheClausum, 0;
         end

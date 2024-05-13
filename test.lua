@@ -33,15 +33,192 @@ require("LuaEx.init");
 --============= TEST CODE BELOW =============
 
 
+Creature = class("Creature",
+{--metamethods
+},
+{--public static members
+},
+{--private members
+
+},
+{--protected members
+    HP_AUTO     = 10,
+    HPMax_AUTO  = 100,
+    Damage_AUTO = 5,
+    AC_AUTO     = 0,
+    Armour_AUTO = 0,
+    Move = function(this, cdat)
+
+    end
+},
+{--public members
+    Creature = function(this, cdat, nHP, nHPMax)
+        cdat.pro.HP     = nHP < 1 and 1 or nHP;
+        cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
+        cdat.pro.HPMax  = nHPMax;
+    end,
+    isdead = function(this, cdat)
+        return cdat.pro.HP <= 0;
+    end,
+},
+NO_PARENT, NO_INTERFACES, false);
 
 
---print(tostring(os.getenv("string")))
 
---print(math.rgbtolong( 	0, 	255, 	0))
---print(math.longtorgb(math.rgbtolong(255, 255, 255)))
---local tLuaEX = _G.__LUAEX__;
---print(serialize.table(tLuaEX.__KEYWORDS__));
+local HP_MAX = 120; -- this is an example of a private static field
 
---print(tLuaEX.__KEYWORDS__[1]);
---print(string.iskeyword("nil"));
---test:pop()
+Human = class("Human",
+{--metamethods
+},
+{--public static members
+},
+{--private members
+    Name_AUTO = "",
+},
+{--protected members
+},
+{--public members
+    Human = function(this, cdat, super, sName, nHP)
+        --print("human", sName, nHP, HP_MAX)
+        super(nHP, HP_MAX);
+        cdat.pri.Name = sName;
+    end,
+},
+Creature, NO_INTERFACES, false);
+
+
+
+Soldier = class("Soldier",
+{--metamethods
+    __add = function(left, right, cdat)
+
+    end,
+},
+{--public static members
+    RANK = enum("RANK",
+    {"Private", "PrivateSecondClass",   "PrivateFirstClass",    "Specialist", "Corporal", "Sergeant", "StaffSergeant",  "SergeantFirstClass",   "MasterSergeant",   "FirstSergeant",    "SergeantMajor",    "CommandSergeantMajor",     "SergeantMajoroftheArmy"},
+    {"Private", "Private Second Class", "Private First Class",  "Specialist", "Corporal", "Sergeant", "Staff Sergeant", "Sergeant First Class", "Master Sergeant",  "First Sergeant",   "Sergeant Major",   "Command Sergeant Major",   "Sergeant Major of the Army"}, true);
+},
+{--private members
+    Rank = null--Soldier.RANK,
+},
+{--protected members
+},
+{--public members
+    Soldier = function(this, cdat, super, sName, nHP, eRank)
+        --print("Soldier", sName, nHP)
+        super(sName, nHP);
+        --cdat.pri.Rank = eRank;
+    end,
+    serialize = function(this, cdat)
+        return "Name: ${name}\r\nMax HP: ${hpmax}\r\nHP: ${hp}\t\nDamage: ${damage}\r\nAmour: ${armour}" % {
+            name = this.GetName(), hpmax = cdat.pro.HPMax, hp = cdat.pro.HP, damage = cdat.pro.Damage, armour = cdat.pro.Armour
+        };
+    end,
+    TVal = null,
+},
+Human, iCombator, false);
+
+
+
+
+
+Wheeler = Soldier("Wheeler",    50);
+Ellis   = Soldier("Ellis",      85);
+print(Wheeler.GetHPMax())
+print(Wheeler.TVal)
+print(Wheeler.TVal)
+
+
+
+
+
+
+
+
+--print(fh())
+
+--Kaleb.Attack();
+
+--print(Soldier == Creature)
+
+
+--Creature.Count = null;
+--Creature.Count = "aasdasd";
+--print(Creature.Count)
+
+
+
+
+--Creature.Desc = null
+--print("Boop: "..Kaleb.Boop())
+--print(table.serialize(Kaleb))
+--local Bob   = Soldier("Bob", 39);
+--local j = Kaleb + Bob
+--print(-Kaleb)
+--local meta = setmetatable(Kaleb, {});
+--print(table.serialize(meta))
+--meta.__type = "donky";
+--Kaleb.Boost();
+--Creature.Desc = function()end
+--Creature.Desc();
+--Creature.iut = 9;
+--Creature.Count = 9;
+--print(Creature.Count);
+--Creature.Desc = 5;
+--print(bVal)
+--print(Kaleb.IsDead())
+--Kaleb = -Kaleb
+--print(Kaleb.GetHP())
+--print(Kaleb.IsDead())
+--Kaleb.Test = 4;
+--Creature.SayHello()
+
+--Soldier.rty = 98
+
+--print(Kaleb.SetHP(33).GetHP());
+--Kaleb.SetHP(65);
+--print(Kaleb.GetHP())
+--Kaleb.Jump()
+
+--Kaleb.Hits = "sdad";
+--print(Kaleb.Hits)
+
+
+
+
+function writeToFile(text)
+    local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
+    if file then
+        file:write(text)  -- Write text to file
+        file:close()  -- Close the file
+        print("Text written to file successfully.")
+    else
+        print("Error: Unable to open file for writing.")
+    end
+end
+
+-- Example usage:
+local k = 4;
+local function test()
+    print("hello "..k)
+end
+
+
+--https://leafo.net/guides/function-cloning-in-lua.html
+local function clone_function(fn)
+  local dumped = string.dump(fn)
+  local cloned = loadstring(dumped)
+  local i = 1
+  while true do
+    local name = debug.getupvalue(fn, i)
+    if not name then
+      break
+    end
+    debug.upvaluejoin(cloned, i, fn, i)
+    i = i + 1
+  end
+  return cloned
+end
+
+local fh = clone_function(test)

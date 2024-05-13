@@ -189,7 +189,7 @@ local function createfactory(t, sSubType, tProperties)--, bPrivate)
 				__lt		= lt,--TODO finish
 				__mod		= errmathinstance,
 				__call 		= function()--TODO finish
-					---TODO make ieterator
+					---TODO make iterator
 				end,
 				__index 	= function(t, k)
 					return tFactory[k].value;

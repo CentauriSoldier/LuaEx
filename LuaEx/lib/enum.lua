@@ -1,3 +1,4 @@
+local tLuaEx        = rawget(_G, "luaex");
 local error			= error;
 local getmetatable	= getmetatable;
 local ipairs 		= ipairs;
@@ -9,7 +10,7 @@ local string		= string;
 local setmetatable 	= setmetatable;
 local tostring 		= tostring;
 local type 			= type;
-
+--TODO consider the value of using __pairs/__ipairs metamethods.
 --[[
 ██╗░░░░░░█████╗░░█████╗░░█████╗░██╗░░░░░  ███████╗██╗░░░██╗███╗░░██╗░█████╗░████████╗██╗░█████╗░███╗░░██╗░██████╗
 ██║░░░░░██╔══██╗██╔══██╗██╔══██╗██║░░░░░  ██╔════╝██║░░░██║████╗░██║██╔══██╗╚══██╔══╝██║██╔══██╗████╗░██║██╔════╝
@@ -23,7 +24,7 @@ local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
 				   "local", "nil", "not", "or", "repeat", "return",
 				   "then", "true", "until", "while",
 				   --LuaEx keywords
-				   "constant","enum"
+				   "class","constant","enum"
 			   };
 local nKeywords = #tKeyWords;
 
@@ -340,7 +341,7 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
 	    for nOrdinal, eValue in ipairs(tEnumActual) do
 
 			if (bUseInputValue) then
-	        	tRet[eValue] = vInputValue;			
+	        	tRet[eValue] = vInputValue;
 			else
 				tRet[eValue] = eValue.value;
 			end
@@ -399,7 +400,7 @@ local function createenum(_, sEnumName, tNames, tValues, bPrivate)
 
 	--[[█░█ ▄▀█ █▀█ █ ▄▀█ █▄▄ █░░ █▀▀   █▀▀ █░█ █▀▀ █▀▀ █▄▀   ▄▀█ █▄░█ █▀▄   █▀ █▀▀ ▀█▀ █░█ █▀█
 		▀▄▀ █▀█ █▀▄ █ █▀█ █▄█ █▄▄ ██▄   █▄▄ █▀█ ██▄ █▄▄ █░█   █▀█ █░▀█ █▄▀   ▄█ ██▄ ░█░ █▄█ █▀▀]]
-	local tLuaEX = _G.__LUAEX__;
+	--local tLuaEx = _G.luaex;
 
 	--insure the name input is a string
 	assert(sEnumName:gsub("%s", "") ~= "", "Enum name must be of type string and be non-blank; input value is '"..tostring(sEnumName).."' of type "..type(sEnumName));
@@ -409,7 +410,7 @@ local function createenum(_, sEnumName, tNames, tValues, bPrivate)
 		--check that the name string can be a valid variable
 		assert(isvariablecompliant(sEnumName), "Enum name must be a string whose text is compliant with lua variable rules; input string is '"..sEnumName.."'");
 		--make sure the variable doesn't already exist
-		assert(type(_G[sEnumName]) == "nil" and type(tLuaEX[sEnumName] == "nil"), "Variable "..sEnumName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
+		assert(type(_G[sEnumName]) == "nil" and type(tLuaEx[sEnumName] == "nil"), "Variable "..sEnumName.." has already been assigned a non-nil value. Enum cannot overwrite existing variable.");
 	end
 
 	--check the names table
@@ -430,7 +431,7 @@ local function createenum(_, sEnumName, tNames, tValues, bPrivate)
 
 	if (not bPrivate) then
 		--put the enum into the global environment
-		tLuaEX[sEnumName] = tEnumDecoy;
+		tLuaEx[sEnumName] = tEnumDecoy;
 	end
 
 	return tEnumDecoy;

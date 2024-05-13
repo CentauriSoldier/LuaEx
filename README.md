@@ -25,16 +25,36 @@ This project is made to be consistent both with Lua's naming & coding convention
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
-#### Alpha v0.7
+#### Alpha v0.81
 <details>
-<summary>See Changes</summary>
+<summary>View Changelog</summary>
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
-**v0.7**
+**v0.81**
+- Bugfix: renamed the **\_\_LUAEX\_\_** table reference in the **enum** module that got missed.
+- Change: removed class system from **v0.8** as it had a fatal, uncorrectable flaw.
+- Change: rewrote the class system again from scratch, avoiding fatal flaw in previous system.
+- Change: removed static protected members from the class system as using them is, almost always, an anti-pattern.
+- Change: class members are now strongly typed.
+- Change: ***temporarily*** disabled compulsory classes until they're refactored for new class system.
+- Change: ***temporarily*** removed class interfaces until it's rewritten to operate with the new class system.
+- Change: removed most of the non-basic classes to another repository in an ongoing effort to keep **LuaEx** simple and small.
+- Change: cleaned up and reorganized a lot of the files in the **LuaEx** module.
+
+**v0.80**
+- Change: rewrote the class system from scratch.
+- Change: moved various modules to different directories.
+- Change: renamed **\_\_LUAEX\_\_** global table **luaex**.
+- Feature: added class interfaces.
+- Feature: class system now uses full encapsulation (static protected, static public, private, protected and public fields & methods).
+- Feature: **luaex** table now contains a **\_VERSION** variable.
+
+**v0.70**
 - Change: enum items now use functions (.) instead of methods (:) and automatically input themselves as arguments.
 - Change: enum items' ***next*** and ***previous*** functions can now wrap around to the start and end respectively.
 - Change: moved all type items to **types.lua**.
 - Change: renamed functions in various modules to conform with Lua's lowercase naming convention.
+- Change:
 - Change: improved the **string.totable** function.
 - Change: the ***xtype*** function will now ignore user-defined types but return **LuaEx**'s type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as opposed to returning, *"table"*. *Use the **rawtype** function to ignore all **LuaEx** type mechanics*.
 - Change: renamed the ***string.delimitedtotable*** function to ***string.totable***.
@@ -45,13 +65,13 @@ This project is made to be consistent both with Lua's naming & coding convention
 - Feature: added serialization to enums.
 - Feature: added the **ini** module.
 - Feature: added ***string.isnumeric*** function.
-- Feature: added a ***__mod*** metamethod for string which allows for easy interpolation.
+- Feature: added a ***\_\_mod*** metamethod for string which allows for easy interpolation.
 - Feature: added null type.
 - Feature: added the **struct** factory module.
 - Feature: added the ***xtype*** function.
 - Feature: added the ***fulltype*** function.
 
-**v0.6**
+**v0.60**
 - Feature: removed ***string.left*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
 - Feature: removed ***string.right*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
 - Feature: added ***string.trim*** function.
@@ -62,7 +82,7 @@ This project is made to be consistent both with Lua's naming & coding convention
 - Refactor: appended ***string***, ***math*** & ***table*** module files with "hook" without which they would not load properly.
 - Update: updated README with more information.
 
-**v0.5**
+**v0.50**
 - Bugfix: ***table.lock*** was altering the metatable of enums when it should not have been.
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible).
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling script to handle.
@@ -82,24 +102,24 @@ This project is made to be consistent both with Lua's naming & coding convention
 - Feature: added ***set*** class.
 - Feature: added ***stack*** class.
 
-**v0.4**
+**v0.40**
 - Bugfix: metavalue causing custom type check to fail to return the proper value.
 - Bugfix: typo that caused global enums to not be put into the global environment.
 - Feature: enums can now also be non-global.
 - Feature: the enum created by a call to the enum function is now returned.
 
-**v0.3**
+**v0.30**
 - Hardened the protected table to prevent accidental tampering.
-- Added a meta table to ***_G*** in the **init** module.
+- Added a meta table to ***\_G*** in the **init** module.
 - Changed the name of the const module and function to constant for Lua 5.1 - 5.4 compatibility.
-- Altered the way constants and enums work by using the new, ***_G*** metatable to prevent deletion or overwriting.
+- Altered the way constants and enums work by using the new, ***\_G*** metatable to prevent deletion or overwriting.
 - Updated several modules.
 
-**v0.2**
+**v0.20**
 - Added the enum object.
 - Updated a few modules.
 
-**v0.1**
+**v0.10**
 - Compiled various modules into **LuaEx**.
 </details>
 
@@ -158,16 +178,18 @@ Below is the complete list of modules in **LuaEx**.
 - #### [🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​🇦​​​​​🇳​​​​​🇹​​](https://centaurisoldier.github.io/LuaEx/api/constant.html)
 - #### [🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​](https://centaurisoldier.github.io/LuaEx/api/deserialize.html)
 - #### [🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​](https://centaurisoldier.github.io/LuaEx/api/enum.html)
-- #### [🇮​​​​​🇳​​​​​🇮​​​​​](https://centaurisoldier.github.io/LuaEx/api/ini.html)
 - #### [🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​](https://centaurisoldier.github.io/LuaEx/api/math.html)
-- #### [🇶​​​​​🇺​​​​​🇪​​​​​🇺​​​​​🇪​​​​​](https://centaurisoldier.github.io/LuaEx/api/queue.html)
 - #### [🇸​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​](https://centaurisoldier.github.io/LuaEx/api/serialize.html)
-- #### [🇸​​​​​🇪​​​​​🇹​​​​​](https://centaurisoldier.github.io/LuaEx/api/set.html)
-- #### [🇸​​​​​🇹​​​​​🇦​​​​​🇨​​​​​🇰​​​​​](https://centaurisoldier.github.io/LuaEx/api/stack.html)
 - #### [🇸​​​​​🇹​​​​​🇩​​​​​🇱​​​​​🇮​​​​​🇧​​​​​](https://centaurisoldier.github.io/LuaEx/api/stdlib.html)
 - #### [🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​](https://centaurisoldier.github.io/LuaEx/api/string.html)
 - #### [🇸​​​​​🇹​​​​​🇷​​​​​🇺​​​​​🇨​​​​​🇹​​​​​](https://centaurisoldier.github.io/LuaEx/api/struct.html)
 - #### [🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​](https://centaurisoldier.github.io/LuaEx/api/table.html)
+
+## 🅲🅻🅰🆂🆂🅴🆂 ♾️
+LuaEx does ship with a few, basic classes. (*More classes are available at [this repository](https://github.com/CentauriSoldier/LuaEx_Class_Modules))*.
+- ##### Queue
+- ##### Set
+- ##### Stack
 
 ## 🅲🆁🅴🅳🅸🆃🆂 ⚛
 - Huge thanks to [Bas Groothedde](https://github.com/imagine-programming) at Imagine Programming for creating the original **class** module.
