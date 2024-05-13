@@ -1,55 +1,56 @@
 local pairs = pairs;
 local table = table;
-local nSpro	= class.args.staticprotected;
-local nPri 	= class.args.private;
-local nPro 	= class.args.protected;
-local nPub 	= class.args.public;
-local nIns	= class.args.instances;
 
 return class("set",
 {--metamethods
-	__call = function(args, this)
-		local pri = args[nPri];
-	   	local nIndex = 0;
-	   	local nMax = pri.size;
+	__call = function(this, cdat)
+        local nIndex = 0;
+	   	local nMax = cdat.pri.size;
 
 		return function ()
 	    	nIndex = nIndex + 1;
 
 			if (nIndex <= nMax) then
-				return pri.indexed[nIndex];
+				return cdat.pri.indexed[nIndex];
 			end
 
 		end
 
    end,
 
-	__tostring = function(args, this)
+	__tostring = function(this, cdat)
 		local sRet = "{";
-		local pri = args[nPri];
 
-		--for item in this() do
-		--	sRet = sRet..tostring(item)..", ";
-		--end
+		for item in this() do
+			sRet = sRet..tostring(item)..", ";
+		end
 
 		return sRet:sub(1, #sRet - 2).."}";
-	end
+	end,
+
+    __len = function(this, cdat)
+       return cdat.pri.size;
+   end,
+
+   __unm = function(this, cdat)
+       cdat.pri.indexed = {};
+   	   cdat.pri.set		= {};
+   	   cdat.pri.size 	= 0;
+   end,
 },
-{},--static protected
 {},--static public
 {--private
 	indexed = {},
 	set		= {},
 	size 	= 0,
 
-	addItem = function(this, args, vItem)
+	addItem = function(this, cdat, vItem)
 		local bRet = false;
-		local pri = args[nPri];
 
-		if (pri.set[vItem] == nil) then
-			pri.set[vItem] 			= true;
-			pri.size 				= pri.size + 1;
-			pri.indexed[pri.size] 	= vItem;
+		if (cdat.pri.set[vItem] == nil) then
+			cdat.pri.set[vItem] 		       = true;
+			cdat.pri.size 				       = cdat.pri.size + 1;
+			cdat.pri.indexed[cdat.pri.size] = vItem;
 
 			bRet = true;
 		end
@@ -57,23 +58,22 @@ return class("set",
 		return bRet;
 	end,
 
-	removeItem = function(this, args, vItem)
+	removeItem = function(this, cdat, vItem)
 		local bRet = false;
-		local pri = args[nPri];
 
-		if (pri.set[vItem] ~= nil) then
-			pri.set[vItem] = nil;
+		if (cdat.pri.set[vItem] ~= nil) then
+			cdat.pri.set[vItem] = nil;
 
-			for x = 1, pri.size do
+			for x = 1, cdat.pri.size do
 
-				if (pri.indexed[x] == vItem) then
-					table.remove(pri.indexed, x);
+				if (cdat.pri.indexed[x] == vItem) then
+					table.remove(cdat.pri.indexed, x);
 					break;
 				end
 
 			end
 
-			pri.size = pri.size - 1;
+			cdat.pri.size = cdat.pri.size - 1;
 
 			bRet = true;
 		end
@@ -84,38 +84,29 @@ return class("set",
 },
 {},--protected
 {--public
-	set = function(this, args)
-		local pri = args[nPri];
+	set = function(this, cdat)
 
-		pri.indexed = {};
-		pri.set		= {};
-		pri.size 	= 0;
 	end,
 
-	add = function(this, args, vItem)
-		local pri = args[nPri];
-		return pri.addItem(vItem);
+	add = function(this, cdat, vItem)
+		return cdat.pri.addItem(vItem);
 	end,
 
 	addSet = function(this, args, oOther)
-		local pri = args[nPri];
 
-		for item in oOther() do
-			pri.addItem(item);
+        for item in oOther() do
+			cdat.pri.addItem(item);
 		end
 
 	end,
 
-	clear = function(this, args)
-		local pri = args[nPri];
-
-		pri.indexed = {};
-		pri.set 	= {};
-		pri.size 	= 0;
-
+	clear = function(this, cdat)
+		cdat.pri.indexed = {};
+		cdat.pri.set 	 = {};
+		cdat.pri.size 	 = 0;
 	end,
 
-	complement = function(this, args, oOther)
+	complement = function(this, cdat, oOther)
 		local oRet = set();
 
 		for item in oOther() do
@@ -129,11 +120,11 @@ return class("set",
 		return oRet;
 	end,
 
-	contains = function(this, args, vItem)
-		return pri.set[vItem] ~= nil;
+	contains = function(this, cdat, vItem)
+		return cdat.pri.set[vItem] ~= nil;
 	end,
 
-	equals = function(this, args, oOther)
+	equals = function(this, cdat, oOther)
 		local bRet = tSets[this]:size() == oOther:size();
 
 		if (bRet) then
@@ -166,11 +157,11 @@ return class("set",
 		return oRet;
 	end,
 
-	isempty = function(this, args)
-		return tSets[this].size < 1;
+	isempty = function(this, cdat)
+		return cdatpri.pri.size < 1;
 	end,
 
-	issubset = function(this, args, oOther)
+	issubset = function(this, cdat, oOther)
 		local bRet = true;
 
 		for item in this() do
@@ -185,28 +176,28 @@ return class("set",
 		return bRet;
 	end,
 
-	remove = function(this, args, vItem)
-		return pri.removeItem(vItem);
+	remove = function(this, cdat, vItem)
+		return cdat.pri.removeItem(vItem);
 	end,
 
-	removeset = function(this, args, oOther)
+	removeset = function(this, cdat, oOther)
 
 		for item in oOther() do
-			pri.removeItem(item);
+			cdat.pri.removeItem(item);
 		end
 
 		return this;
 	end,
 
-	size = function(this, args)
-		return pri.size;
+	size = function(this, cdat)
+		return cdat.pri.size;
 	end,
 
-	totable = function(this, args)--do i need this one?
+	totable = function(this, cdat)--do i need this one?
 
 	end,
 
-	union = function(this, args, oOther)
+	union = function(this, cdat, oOther)
 		local oRet = set();
 
 		for item in this do
@@ -219,4 +210,4 @@ return class("set",
 
 		return oRet;
 	end,
-});
+}, nil, nil, false);

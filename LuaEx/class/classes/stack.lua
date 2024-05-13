@@ -6,34 +6,55 @@ local rawtype		= rawtype;
 local serialize		= serialize;
 local table			= table;
 local type 			= type;
-local nSpro			= class.args.staticprotected;
-local nPri 			= class.args.private;
-local nPro 			= class.args.protected;
-local nPub 			= class.args.public;
-local nIns			= class.args.instances;
 
 return class("stack",
 {--metamethods
-	 __len = function(args, this)--doesn't work in < Lua v5.2
-		return args[nPri].count;
+    --__call TODO make iterator
+	 __len = function(this, cdat)
+		return cdat.pri.count;
 	end,
+
+    __unm = function(this, cdat)
+        cdat.pri.count  = 0;
+        cdat.pri.values = {};
+    end,
+
+    __bnot = function(this, cdat) --TODO make this reverse the order of things
+
+    end,
+
+    __shl = function(this, other, cdat) --same as push
+
+        if (rawtype(other) ~= "nil") then
+			table.insert(cdat.pri.values, 1, other);
+			cdat.pri.count = cdat.pri.count + 1;
+		end
+
+    end,
+
+    __shr = function(this, other, cdat) --same as pop
+
+        if (rawtype(cdat.pri.values[1]) ~= "nil") then
+			vRet = table.remove(cdat.pri.values, 1);
+			cdat.pri.count = cdat.pri.count - 1;
+		end
+
+		return vRet;
+    end,
 },
-{},--static protected
-{bug = "JKAHSDUIYIQWUHEDIUY(@#*#)"},--static public
+{bugs = 45,},--"JKAHSDUIYIQWUHEDIUY(@#*#)"},--static public TODO static public is not working
 {--private
-	count,
-	values,
+	count  = 0,
+	values = {},
 },
 {},--protected
 {--public
-	stack = function(this, args)
-			local pri = args[nPri];
-			pri.count 	= 0;
-			pri.values	= {};
+	stack = function(this, cdat)
+
    end,
 
 	--TODO complete serialization
-	deserialize = function(this, args)
+	deserialize = function(this, cdat)
 
 	end,
 
@@ -44,44 +65,39 @@ return class("stack",
 	end,
 ]]
 
-	pop = function(this, args)
-		local pri = args[nPri];
+	pop = function(this, cdat)
 
-		if (rawtype(pri.values[1]) ~= "nil") then
-			vRet = table.remove(pri.values, 1);
-			pri.count = pri.count - 1;
+		if (rawtype(cdat.pri.values[1]) ~= "nil") then
+			vRet = table.remove(cdat.pri.values, 1);
+			cdat.pri.count = cdat.pri.count - 1;
 		end
 
 		return vRet;
 	end,
 
 
-	push = function(this, args, vValue)
-		local pri = args[nPri];
+	push = function(this, cdat, vValue)
 
 		if (rawtype(vValue) ~= "nil") then
-			table.insert(pri.values, 1, vValue);
-			pri.count = pri.count + 1;
+			table.insert(cdat.pri.values, 1, vValue);
+			cdat.pri.count = cdat.pri.count + 1;
 		end
 
-		return this;
 	end,
 
 
-	size = function(this, args)
-		local pri = args[nPri];
-		return pri.count;
+	size = function(this, cdat)
+		return cdat.pri.count;
 	end,
 
 
-	values = function(this, args)
+	values = function(this, cdat)
 		local tRet = {};
-		local pri = args[nPri];
-		
-		for nIndex = 1, pri.count do
-			tRet[nIndex] = pri.values[nIndex];
+
+		for nIndex = 1, cdat.pri.count do
+			tRet[nIndex] = cdat.pri.values[nIndex];
 		end
 
 		return tRet;
 	end,
-});
+}, nil, nil, false);

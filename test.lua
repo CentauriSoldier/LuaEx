@@ -123,18 +123,25 @@ Human, iCombator, false);
 
 
 
-Wheeler = Soldier("Wheeler",    50);
-Ellis   = Soldier("Ellis",      85);
-print(Wheeler.GetHPMax())
-print(Wheeler.TVal)
-print(Wheeler.TVal)
+--Wheeler = Soldier("Wheeler",    50);
+--Ellis   = Soldier("Ellis",      85);
 
 
+local Plates = stack();
 
+Plates.push(34)
+Plates.push(44)
+Plates.push(54)
+--print(Plates.pop())
+--print(Plates.pop())
+--print(Plates.pop())
+local r = Plates << "Cat";
+--print(#Plates)
+local r = Plates >> "Cat";
 
-
-
-
+for k, v in pairs(Plates.values()) do
+    print(k, v)
+end
 
 --print(fh())
 

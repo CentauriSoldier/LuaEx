@@ -1,4 +1,4 @@
-Variables are prefixed with the following symbols based on their type/application.
+Variables are prefixed with the following lower-case symbols based on their type/application.
 
 b	|	boolean
 c	|	class

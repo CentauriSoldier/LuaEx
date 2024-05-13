@@ -13,6 +13,7 @@
 	<li>
         <b>0.7</b>
         <br>
+        <p>Bugfix: corrected __shr method not providing 'other' parameter to client.</p>
         <p>Feature: added _FNL directive allowing for final methods.</p>
         <p>Feature: added _AUTO directive allowing automatically created mutator and accessor methods for members.</p>
         <b>0.6</b>
@@ -197,9 +198,12 @@ function class.build(tKit)
             --make a list of the parents (if any)
             local tParents          = {};
             local tParentKit        = tKit.parent;
+            local bHasParent        = false;
 
             --order them from top-most, descending
             while (tParentKit) do
+                bHasParent = true;
+
                 table.insert(tParents, 1, {
                     kit     = tParentKit,
                     decoy   = nil,
@@ -234,7 +238,7 @@ function class.build(tKit)
                 tParentInfo.actual  = tParent;
             end
 
-            local oInstance, tInstance = instance.build(tKit, tParents[#tParents].actual or nil); --this is the returned instance
+            local oInstance, tInstance = instance.build(tKit, bHasParent and tParents[#tParents].actual or nil); --this is the returned instance
 
             tInstance.pub[sName](...);
             tInstance.constructorcalled = true;
@@ -639,14 +643,14 @@ function instance.wrapmetamethods(tInstance, tClassData)--TODO double check thes
             sMetamethod == "__bxor"     or sMetamethod == "__concat"    or sMetamethod == "__div"   or
             sMetamethod == "__eq"       or sMetamethod == "__idiv"      or sMetamethod == "__le"    or
             sMetamethod == "__lt"       or sMetamethod == "__mod"       or sMetamethod == "__mul"   or
-            sMetamethod == "__pow"      or sMetamethod == "__shl"       or sMetamethod == "__sub"   or
-            sMetamethod == "__pairs"    or sMetamethod == "__ipairs")  then
+            sMetamethod == "__pow"      or sMetamethod == "__shl"       or sMetamethod == "__shr"   or
+            sMetamethod == "__sub"      or sMetamethod == "__pairs"     or sMetamethod == "__ipairs")  then
 
             rawset(tInstance.met, sMetamethod, function(a, b)
                 return fMetamethod(a, b, tClassData);
             end);
 
-        elseif (sMetamethod == "__bnot" or sMetamethod == "__len" or sMetamethod == "__shr" or sMetamethod == "__unm" ) then
+        elseif (sMetamethod == "__bnot" or sMetamethod == "__len" or sMetamethod == "__unm" ) then
 
             rawset(tInstance.met, sMetamethod, function(a)
                 return fMetamethod(a, tClassData);

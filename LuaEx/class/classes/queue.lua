@@ -1,5 +1,3 @@
---local tQueues = {};
-
 --localization
 local assert 		= assert;
 local class 		= class;
@@ -8,77 +6,74 @@ local rawtype		= rawtype;
 local serialize		= serialize;
 local table			= table;
 local type 			= type;
-local nSpro			= class.args.staticprotected;
-local nPri 			= class.args.private;
-local nPro 			= class.args.protected;
-local nPub 			= class.args.public;
-local nIns			= class.args.instances;
 
 return class("queue",
 {--metamethods
-	__len = function(args, this)--doesn't work in < Lua v5.2
-		return args[nPri].count;
+	__len = function(this, cdat)
+		return cdat.pri.count;
 	end,
+
+    __unm = function(this, cdat)
+        cdat.pri.count  = 0;
+        cdat.pri.values = {};
+    end,
+
+    __bnot = function(this, cdat) --TODO make this reverse the order of things
+
+    end,
 },
-{},--static protected
 {},--static public
 {--private
-	count,
-	values,
+	count  = 0,
+	values = {},
 },
 {},--protected
 {--public
-	queue = function(this, args)
-		local pri = args[nPri];
+	queue = function(this, cdat)
+		--local pri = args[nPri];
 
-		pri.count 	= 0;
-		pri.values 	= {};
+		--cdat.pri.count 	= 0;
+		--cdat.pri.values = {};
    end,
 
-	enqueue = function(this, args)
-		local pri = args[nPri];
+	enqueue = function(this, cdat, vValue)
 
 		if (rawtype(vValue) ~= "nil") then
-			table.insert(pri.values, #pri.values + 1, vValue);
-			pri.count = pri.count + 1;
+			table.insert(cdat.pri.values, #cdat.pri.values + 1, vValue);
+			cdat.pri.count = cdat.pri.count + 1;
 			return vValue;
 		end
 
 	end,
-
 
 	--[[destroy = function(this)
 		tQueues[this] = nil;
 		this = nil;
 	end,]]
 
-
-	dequeue = function(this, args)
+	dequeue = function(this, cdat)
 		local vRet = nil;
-		local pri = args[nPri];
 
-		if (pri.count > 0) then
-			vRet = table.remove(pri.values, 1);
-			pri.count = pri.count - 1;
+		if (cdat.pri.count > 0) then
+			vRet = table.remove(cdat.pri.values, 1);
+			cdat.pri.count = cdat.pri.count - 1;
 		end
 
 		return vRet;
 	end,
 
-
-	size = function(this, args)
-		return args[nPri].count;
+	size = function(this, cdat)
+		return cdat.pri.count;
 	end,
 
-
-	values = function(this, args)
+	values = function(this, cdat)
 		local tRet = {};
-		local pri = args[nPri];
 
-		for nIndex = 1, pri.count do
-			tRet[nIndex] = pri.values[nIndex];
+		for nIndex = 1, cdat.pri.count do
+			tRet[nIndex] = cdat.pri.values[nIndex];
 		end
 
 		return tRet;
 	end,
-});
+},
+nil, nil, false);
