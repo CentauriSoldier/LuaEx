@@ -173,23 +173,27 @@ All documentation for **LuaEx** is on ***GitHub Pages*** found here:
 ## 🅼🅾🅳🆄🅻🅴🆂 ⚙
 Below is the complete list of modules in **LuaEx**.
 
-- #### [🇧​​​​​🇦​​​​​🇸​​​​​🇪​​​​​64](https://centaurisoldier.github.io/LuaEx/api/base64.html)
-- #### [🇨​​​​​🇱​​​​​🇦​​​​​🇸​​​​​🇸​​​​​](https://centaurisoldier.github.io/LuaEx/api/class.html)
-- #### [🇨​​​​​🇴​​​​​🇳​​​​​🇸​​​​​🇹​​​​​🇦​​​​​🇳​​​​​🇹​​](https://centaurisoldier.github.io/LuaEx/api/constant.html)
-- #### [🇩​​​​​🇪​​​​​🇸​​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​](https://centaurisoldier.github.io/LuaEx/api/deserialize.html)
-- #### [🇪​​​​​🇳​​​​​🇺​​​​​🇲​​​​​](https://centaurisoldier.github.io/LuaEx/api/enum.html)
-- #### [🇲​​​​​🇦​​​​​🇹​​​​​🇭​​​​​](https://centaurisoldier.github.io/LuaEx/api/math.html)
-- #### [🇸​​​​🇪​​​​​🇷​​​​​🇮​​​​​🇦​​​​​🇱​​​​​🇮​​​​​🇿🇪​​​​​](https://centaurisoldier.github.io/LuaEx/api/serialize.html)
-- #### [🇸​​​​​🇹​​​​​🇩​​​​​🇱​​​​​🇮​​​​​🇧​​​​​](https://centaurisoldier.github.io/LuaEx/api/stdlib.html)
-- #### [🇸​​​​​🇹​​​​​🇷​​​​​🇮​​​​​🇳​​​​​🇬​​​​​](https://centaurisoldier.github.io/LuaEx/api/string.html)
-- #### [🇸​​​​​🇹​​​​​🇷​​​​​🇺​​​​​🇨​​​​​🇹​​​​​](https://centaurisoldier.github.io/LuaEx/api/struct.html)
-- #### [🇹​​​​​🇦​​​​​🇧​​​​​🇱​​​​​🇪​​​​​](https://centaurisoldier.github.io/LuaEx/api/table.html)
+- #### [base64](https://centaurisoldier.github.io/LuaEx/api/base64.html)
+- #### [class](https://centaurisoldier.github.io/LuaEx/api/class.html)
+- #### [constant](https://centaurisoldier.github.io/LuaEx/api/constant.html)
+- #### [deserialize](https://centaurisoldier.github.io/LuaEx/api/deserialize.html)
+- #### [enum](https://centaurisoldier.github.io/LuaEx/api/enum.html)
+- #### [math](https://centaurisoldier.github.io/LuaEx/api/math.html)
+- #### [serialize](https://centaurisoldier.github.io/LuaEx/api/serialize.html)
+- #### [stdlib](https://centaurisoldier.github.io/LuaEx/api/stdlib.html)
+- #### [string](https://centaurisoldier.github.io/LuaEx/api/string.html)
+- #### [struct](https://centaurisoldier.github.io/LuaEx/api/struct.html)
+- #### [table](https://centaurisoldier.github.io/LuaEx/api/table.html)
 
-## 🅲🅻🅰🆂🆂🅴🆂 ♾️
-LuaEx does ship with a few, basic classes. (*More classes are available at [this repository](https://github.com/CentauriSoldier/LuaEx_Class_Modules))*.
-- ##### Queue
-- ##### Set
-- ##### Stack
+## 🅲🅻🅰🆂🆂🅴🆂 & 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂 ♾️
+LuaEx does ship with a few, basic classes and interfaces. (*More classes are available at [this repository](https://github.com/CentauriSoldier/LuaEx_Class_Modules))*.
+### Classes
+- ##### queue
+- ##### set
+- ##### stack
+### Interfaces
+- ##### iclonable
+- ##### iserializable
 
 ## 🅲🆁🅴🅳🅸🆃🆂 ⚛
 - Huge thanks to [Bas Groothedde](https://github.com/imagine-programming) at Imagine Programming for creating the original **class** module.
