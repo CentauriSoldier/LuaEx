@@ -1,4 +1,8 @@
-return class("MyClass",
+--__metamethod(this, [other], cdat, ...)
+--nonmetamethod(this, cdat, ...)
+--e.g.
+
+return class("myclass",
 {--metamethods
 
 },

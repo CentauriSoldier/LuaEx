@@ -8,8 +8,8 @@ Definitions:
 Process of class creation:
 
 1. A class is created using the 'class' function where class details are declared.
-    a.  The 'class' function calls the 'kit.build' function that takes the class-related tables (metamethods, private, public, extends, metc.) as parameters and creates a class build kit.
-        i.  The 'kit.build' function takes all the class parameters (sName, tMetamethods, tStaticProtected, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vImplements, bIsFinal).
+    a.  The 'class' function calls the 'kit.build' function that takes the class-related tables (metamethods, private, public, extends, etc.) as parameters and creates a class build kit.
+        i.  The 'kit.build' function takes all the class parameters (sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vImplements, bIsFinal).
         ii. It then validates the class name.
             A.  Name must be a variable-compliant string and one which, obviously, has not been used already to create a class.
         iii.   Then, it validates the class tables using the 'kit.validatetables' function.
@@ -57,8 +57,4 @@ function AdjustHP(nVal)
 end
 
 class Dog extends Creature
-
-
-
-TODO use the __FINAL__extension to prevent overriding
 ]]

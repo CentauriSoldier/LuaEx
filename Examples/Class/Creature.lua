@@ -1,26 +1,31 @@
-local cExtendor     = nil;
-local vImplements   = nil;
-local bIsFinal      = false;
+return class("Creature",
+{--metamethods
+},
+{--public static members
+},
+{--private members
 
-local metamethods   = {};
-local static        = {
-    count = 0,
-};
-local private       = {};
-local protected     = {
-    getHP = function()
+},
+{--protected members
+    HP_AUTO     = 10,
+    HPMax_AUTO  = 100,
+    Damage_AUTO = 5,
+    AC_AUTO     = 0,
+    Armour_AUTO = 0,
+    Move = function(this, cdat)
 
+    end
+},
+{--public members
+    Creature = function(this, cdat, nHP, nHPMax)
+        print(type(cdat.pro["HPMax"]))
+        --print("Creature", nHP, nHPMax)
+        --cdat.pro.HP     = nHP < 1 and 1 or nHP;
+        --cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
+        --cdat.pro.HPMax  = nHPMax;
     end,
-};
-local public        = {
-    Creature = function(this)
-
+    isdead = function(this, cdat)
+        return cdat.pro.HP <= 0;
     end,
-};
-
-
-
-return class(   "Creature",
-                metamethods, static,
-                private, protected, public,
-                cExtendor, vImplements, bIsFinal);
+},
+NO_PARENT, NO_INTERFACES, false);

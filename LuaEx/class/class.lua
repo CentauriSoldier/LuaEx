@@ -1,7 +1,50 @@
+--[[*
+@author Centauri Soldier
+@copyright See LuaEx License
+@description
+	<h2>class</h2>
+	<h3>Brining Object Oriented Programming to Lua</h3>
+	<p>The class module aims to bring a simple-to-use, fully function OOP class system to Lua.</p>
+    @license <p>Same as LuaEx license.</p>
+@moduleid class
+@version 0.7
+@versionhistory
+<ul>
+	<li>
+        <b>0.7</b>
+        <br>
+        <p>Feature: added _FNL directive allowing for final methods.</p>
+        <p>Feature: added _AUTO directive allowing automatically created mutator and accessor methods for members.</p>
+        <b>0.6</b>
+        <br>
+        <p>Change: rewrote class system again from the ground up, avoiding the logic error in the second class system.</p>
+        <b>0.5</b>
+        <br>
+        <p>Change: removed new class system as it had a fatal, uncorrectable flaw.</p>
+        <b>0.4</b>
+        <br>
+        <p>Feature: added interfaces.</p>
+        <b>0.3</b>
+        <br>
+        <p>Change: rewrote class system from scratch.</p>
+        <b>0.2</b>
+        <br>
+        <p>Feature: added several features to the existing class system.</p>
+		<b>0.1</b>
+		<br>
+		<p>Imported <a href="https://github.com/Imagine-Programming/" target="_blank">Bas Groothedde's</a> class module.</p>
+	</li>
+</ul>
+@website https://github.com/CentauriSoldier/Dox
+*]]
+
 --[[
 Planned features
 
 ]]
+
+--__metamethod(this, [other], cdat, ...)
+--nonmetamethod(this, cdat, ...)
 
 --[[TODOs, REVIEWs, BUGs, FIXMEs, HACKs, NOTEs, IMPORTANTs, REVIEWs, OPTIMIZEs,
     DEPRECATEDs, DEBUGs, ISSUEs, QUESTIONs, IMPROVEMENTs
@@ -19,14 +62,12 @@ constant("CLASS_DIRECTIVE_FINAL",           "_FNL"); --this directive causes a m
 constant("CLASS_DIRECTIVE_FINAL_LENGTH",    #CLASS_DIRECTIVE_FINAL);
 constant("CLASS_DIRECTIVE_AUTO",            "_AUTO"); --this directive allows the automatic creation of accessor/mutator methods
 constant("CLASS_DIRECTIVE_AUTO_LENGTH",     #CLASS_DIRECTIVE_AUTO);
-constant("CLASS_CONSTRUCTOR_NAME",          "super");--TODO delete if not used
 
 --localization
 local CLASS_DIRECTIVE_FINAL         = CLASS_DIRECTIVE_FINAL;
 local CLASS_DIRECTIVE_FINAL_LENGTH  = CLASS_DIRECTIVE_FINAL_LENGTH;
 local CLASS_DIRECTIVE_AUTO          = CLASS_DIRECTIVE_AUTO;
 local CLASS_DIRECTIVE_AUTO_LENGTH   = CLASS_DIRECTIVE_AUTO_LENGTH;
-local CLASS_CONSTRUCTOR_NAME        = CLASS_CONSTRUCTOR_NAME;
 
 local met       = "met"; --the instance's metatable
 local stapub    = "stapub"
@@ -68,7 +109,7 @@ __name 	    = true,	    __newindex    = false,    __pairs     = true,
 __pow 		= true,     __shl 		  = true,	  __shr       = true,
 __sub 	    = true,	    __tostring	  = true,     __unm 	  = true};
 
-local function GetMetaNamesAsString()
+local function getmetanamesasstring()
     local sRet              = "";
     local tSortedMetaNames  = {};
 
@@ -93,7 +134,7 @@ local tMutableStaticPublicTypes = {
     ["table"]       = true,
 };
 
-local function IsMutableStaticPublicType(sType)
+local function ssmutablestaticpublictype(sType)
     return (tMutableStaticPublicTypes[sType] or false);
 end
 
@@ -224,7 +265,7 @@ function class.build(tKit)
 
             if (sType ~= "nil") then
 
-                if (IsMutableStaticPublicType(sType)) then
+                if (ssmutablestaticpublictype(sType)) then
                     tClass[k] = v;
                 else
                     error("Error in class object, '${class}'. Attempt to modify immutable public static member, '${index},' using value, '${value}.'" % {class = sName, index = tostring(k), value = tostring(v)});
@@ -285,15 +326,15 @@ end
                     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝]]
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func instance.build
+@param table tKit The kit from which the instance is to be built.
+@param table tParentActual The (actual) parent instance table (if any).
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Builds an instance of an object given the name of the kit.
+@ret object|table oInstance|tInstance The instance object (decoy) and the instance table (actual).
 !]]
---function instance.build(tKit, bIsPrimaryCall, tParentActual)
 function instance.build(tKit, tParentActual)
     local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
@@ -340,13 +381,13 @@ function instance.build(tKit, tParentActual)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func instance.buildautomethods
+@param table tInstance The (actual) instance table.
+@param table tClassData The (decoy) class data table.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Iterates over instance members to create auto accessor/mutaor methods for those marked with the _AUTO directive.
 !]]
 function instance.buildautomethods(tInstance, tClassData)
     local tKit = tInstance.metadata.kit;
@@ -370,18 +411,18 @@ function instance.buildautomethods(tInstance, tClassData)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func instance.prepclassdata
+@param table tInstance The (actual) instance table.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Creates and prepares the decoy and actual class data tables for use by the instance input.
+@ret table tClassData The decoy class data table.
 !]]
 function instance.prepclassdata(tInstance)
     local tKit = tInstance.metadata.kit;
-    local tClassData        = {}; --decoy class data (this gets pushed through the wrapped methods)
-    local tClassDataActual  = { --actual class data
+    local tClassData        = {};   --decoy class data (this gets pushed through the wrapped methods)
+    local tClassDataActual  = {     --actual class data
         pri = {},
         pro = {},
         pub = {},
@@ -415,13 +456,13 @@ function instance.prepclassdata(tInstance)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func instance.setclassdatametatable
+@param table tInstance The (actual) instance table.
+@param table tClassData The (decoy) class data table.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Creates and sets the instance's class data metatable, helping prevent incidental, erroneous acces and alteration of the class data.
 !]]
 function instance.setclassdatametatable(tInstance, tClassData)
     local tClassDataIndices = {pri, pro, pub};
@@ -510,13 +551,13 @@ function instance.setclassdatametatable(tInstance, tClassData)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func instance.setmetatable
+@param table tInstance The (actual) instance table.
+@param table tClassData The (decoy) class data table.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Creates and sets the instance's metatable.
 !]]
 function instance.setmetatable(tInstance, tClassData)
     local tMeta     = {}; --actual
@@ -581,13 +622,13 @@ function instance.setmetatable(tInstance, tClassData)
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func instance.wrapmetamethods
+@param table tInstance The (actual) instance table.
+@param table tClassData The (decoy) class data table.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Wraps all the instance metamethods so they have access to the instance object (decoy) and the class data.
 !]]
 function instance.wrapmetamethods(tInstance, tClassData)--TODO double check these
     local oInstance = tInstance.decoy;
@@ -629,13 +670,13 @@ function instance.wrapmetamethods(tInstance, tClassData)--TODO double check thes
 end
 
 
---[[!TODO
+--[[
 @module class
-@func kit.
-@param table tKit The kit that is to be built.
+@func instance.wrapmethods
+@param table tInstance The (actual) instance table.
+@param table tClassData The (decoy) class data table.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Wraps all the instance methods so they have access to the instance object (decoy) and the class data.
 !]]
 function instance.wrapmethods(tInstance, tClassData)
     local tKit              = tInstance.metadata.kit;
@@ -645,28 +686,28 @@ function instance.wrapmethods(tInstance, tClassData)
     for _, sCAI in ipairs(tClassDataIndices) do
 
         --wrap the classdata functions
-        for k, v in pairs(tInstance[sCAI]) do
+        for k, fWrapped in pairs(tInstance[sCAI]) do
 
-            if (rawtype(v) == "function") then
+            if (rawtype(fWrapped) == "function") then
 
                 if (k == tKit.name) then --wrap constuctors
                     local tParent = tInstance.parent;
 
                     if (tParent) then
                         rawset(tInstance[sCAI], k, function(...)
-                            v(oInstance, tClassData, tParent[sCAI][tParent.metadata.kit.name], ...);
+                            fWrapped(oInstance, tClassData, tParent[sCAI][tParent.metadata.kit.name], ...);
                             tInstance.constructorcalled = true;
                         end);
                     else
                         rawset(tInstance[sCAI], k, function(...)
-                            v(oInstance, tClassData, ...);
+                            fWrapped(oInstance, tClassData, ...);
                             tInstance.constructorcalled = true;
                         end);
                     end
 
                 else --wrap non-constructors
                     rawset(tInstance[sCAI], k, function(...)
-                        return v(oInstance, tClassData, ...);
+                        return fWrapped(oInstance, tClassData, ...);
                     end);
                 end
 
@@ -735,10 +776,13 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     };
 
     --note and rename final methods
-    kit.processdirectiveauto(tKit);
+    kit.processdirectiveauto(tKit); --TODO all thse to be bet set as final too
 
     --note and rename final methods
     kit.processdirectivefinal(tKit);  --TODO allow final metamethods
+
+    --kit.processdirectivecombinatory(tKit);  --TODO this will be the directive which is both auto and final
+    --TODO add abstract classes and methods
 
     --check for member shadowing
     kit.shadowcheck(tKit);
@@ -794,8 +838,7 @@ end
 @desc Iterates over all private and protected members to process them if they have an auto directive.
 !]]
 local tAutoVisibility = {pri, pro};
-function kit.processdirectiveauto(tKit)
-    local sAutoMarker   = CLASS_DIRECTIVE_AUTO.."$";
+function kit.processdirectiveauto(tKit)--TODO allow these to be set as final too...firgure out how to do that
     local tAuto         = {};
 
     for _, sCAI in pairs(tAutoVisibility) do
@@ -803,11 +846,10 @@ function kit.processdirectiveauto(tKit)
 
         for sName, vItem in pairs(tVisibility) do
             local sItemType = rawtype(vItem);
-
             if (sItemType ~= "function") then
 
-                if (sName:match(sAutoMarker)) then
-                    local sFormattedName = sName:gsub(CLASS_DIRECTIVE_AUTO, '');
+                if (sName:sub(-CLASS_DIRECTIVE_AUTO_LENGTH) == CLASS_DIRECTIVE_AUTO) then
+                    local sFormattedName = sName:sub(1, #sName - CLASS_DIRECTIVE_AUTO_LENGTH);
 
                     if (type(tKit[sCAI][sFormattedName]) ~= "nil") then
                         error(  "Error in class, '${class}'. Attempt to create accessor/mutator methods using the '${directive}' directive for duplicate members, '${name}', of ${visibility} visibility." %
@@ -891,8 +933,8 @@ end
 !]]
 local tFinalVisibility = {pro, pub}; --TODO allow final metamethods
 function kit.processdirectivefinal(tKit)
-    local sFinalMarker  = CLASS_DIRECTIVE_FINAL.."$";
-    local tFinal        = {};
+    ---local sFinalMarker  = CLASS_DIRECTIVE_FINAL.."$";
+    local tFinal = {};
 
     for _, sCAI in pairs(tFinalVisibility) do
         local tVisibility = tKit[sCAI];
@@ -903,7 +945,7 @@ function kit.processdirectivefinal(tKit)
 
             if (sItemType == "function") then
 
-                if (sName ~= tKit.name and sName:match(sFinalMarker)) then --ignore contructors
+                if (sName ~= tKit.name and sName:sub(-CLASS_DIRECTIVE_FINAL_LENGTH) == CLASS_DIRECTIVE_FINAL) then --ignore contructors
                     tFinal[sCAI][sName] = vItem;
                 end
 
@@ -1078,7 +1120,7 @@ function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
 --TODO import metamethods ONLY if they are legit metanames
     --validate the metamethods
     for sMetaItem, vMetaItem in pairs(tMetamethods) do
-        assert(tMetaNames[sMetaItem],               "Error creating class, '${class}.' Invalid metamethod, '${metaname}.'\nPermitted metamethods are:\n${metanames}"   % {class = sName, metaname = sMetaItem, metanames = GetMetaNamesAsString()});
+        assert(tMetaNames[sMetaItem],               "Error creating class, '${class}.' Invalid metamethod, '${metaname}.'\nPermitted metamethods are:\n${metanames}"   % {class = sName, metaname = sMetaItem, metanames = getmetanamesasstring()});
         assert(rawtype(vMetaItem) == "function",    "Error creating class, '${class}.' Invalid metamethod type for metamethod, '${metaname}.'\nExpected type function, got type ${type}."     % {class = sName, metaname = sMetaItem, type = type(vMetaItem)});
     end
 

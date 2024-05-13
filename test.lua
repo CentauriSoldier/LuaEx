@@ -33,236 +33,111 @@ require("LuaEx.init");
 --============= TEST CODE BELOW =============
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 Creature = class("Creature",
-{ --metamethods
-    __unm = function(this, cdat)
-        cdat.pro.HP = 0;
-        return this;
-    end,
+{--metamethods
 },
-{ --static public
-    Desc = function()
-        print("Creatures are good, they do stuff.")
-    end,
-    Count = 0,
+{--public static members
 },
-{ --private
-    DonkeyPoints = 667,
-},
-{ --protected
-    HP_AUTO = 20,
-    HPMax   = 45,
-},
-{ --public
-    Creature = function(this, cdat, sName, nMaxHP)
-        --print("[In Creature] "..type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
-        --print(type(this).." here we are.")
-        --print("Creature", type(this), type(cdat), type(sName), type(nMaxHP))
-        --cdat.pro.HPMax = nMaxHP;
-        --print("HPMAX SET: "..cdat.pro.HPMax)
-        --cdat[PRO].HPMax = nMaxHP;
+{--private members
 
-        --print("HPMAX SET: "..cdat[PRO].HPMax)
-        --cdat[PRO].HPMax = nMaxHP;
-        --print(cdat.pro.HPMax)
-    end,
-    GsetHP_FNL = function(this, cdat)
-        --print(cdat[PRO].HP)
-        return cdat.pro.HP;
-    end,
-    GetHPMax_FNL = function(this, cdat)
-        --print(cdat[PRO].HP)
-        --print("I am of type..."..type(this), cdat.pro.HPMax)
+},
+{--protected members
+    HP_AUTO     = 10,
+    HPMax_AUTO  = 100,
+    Damage_AUTO = 5,
+    AC_AUTO     = 0,
+    Armour_AUTO = 0,
+    Move = function(this, cdat)
 
-        return cdat.pro.HPMax;
-    end,
-    sSetHP = function(this, cdat, nVal)
-        --print(cdat[PRO].HP)
-        cdat.pro.HP = nVal;
-        return this;
-    end,
-    IsDead = function(this, cdat)
-        return cdat[PRO].HP <= 0;
-    end,
-    k = 4,
-    Hits = 44,
-    SayHello = function()
-        print("hello, I'm a creature.")
     end
-}, NO_PARENT, NO_INTERFACES, false);
+},
+{--public members
+    Creature = function(this, cdat, nHP, nHPMax)
+        cdat.pro.HP     = nHP < 1 and 1 or nHP;
+        cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
+        cdat.pro.HPMax  = nHPMax;
+    end,
+    isdead = function(this, cdat)
+        return cdat.pro.HP <= 0;
+    end,
+},
+NO_PARENT, NO_INTERFACES, false);
 
 
 
+local HP_MAX = 120; -- this is an example of a private static field
 
-
-
-
-
-
---print(type(Dragon.k))
 Human = class("Human",
-{ --metamethods
-    --__unm = function(this, cdat)
-    --    return cdat[PRI].test;
-    --end,
+{--metamethods
 },
-{ --static public
-
+{--public static members
 },
-{ --private
-    test = 567,
+{--private members
+    Name_AUTO = "",
 },
-{ --protected
-    Test = null,
-    --HP = 33,
+{--protected members
 },
-{ --public
-    Human = function(this, cdat, super, sName, nMaxHP)
-        --print("[In Human] "..type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
-        super(sName, nMaxHP);
-        --print(rawtype(this).."->"..sName)
-        --print("from "..type(this)..": super is -> "..tostring(super))
-        --print("Human", type(this), type(cdat), type(sName), type(nMaxHP))
-        --cdat[PRO].HPMax = nMaxHP;
-        --print(type(this).." Constructor: HPMax set to "..cdat[PRO].HPMax..". Also my cdat table id is "..tostring(cdat))
-        --cdat[PRO].HPMax = nMaxHP;
-        --print(cdat[PRO].HPMax)
+{--public members
+    Human = function(this, cdat, super, sName, nHP)
+        --print("human", sName, nHP, HP_MAX)
+        super(nHP, HP_MAX);
+        cdat.pri.Name = sName;
     end,
-    Jump = function(this, cdat)
-        --cdat[PRO] = 6; --TODO make this throw an error
-        --print(setmetatable(cdat, {}))
-        --cdat[PRI].test = "asd";
-        --print(cdat.ieur)
-        --cdat.test = 34;
-    end,
-    Boop = function(this, cdat)
-        print("Boop! It's a human.")
-    end,
-    Attack = function(this, cdat)
-        print("I'm attacking from "..type(type).." and my cdat table id is "..tostring(cdat))
-
-    end,
-
-    loerwer = 90354
-    --Hits = 55,
-}, Creature, NO_INTERFACES, false);
-
-
-
-
-
-
-
-
-
-
+},
+Creature, NO_INTERFACES, false);
 
 
 
 Soldier = class("Soldier",
-{ --metamethods
-    __add = function(this, other, cdat)
-        print(this.GetHP())
-        print(other.GetHP())
-        --print(this.GetHP(), other.GetHP(), cdat[PRI].test)--, other.GetHP())
-        --print(type(this), type(other), type(cdat), type(t4))
-    end,
+{--metamethods
+    __add = function(left, right, cdat)
 
-},
-{ --static public
-
-},
-{ --private
-    test = 400,
-},
-{ --protected
-    --Test = null,
-    --HP = 33,
-
-},
-{ --public
-    Soldier = function(this, cdat, super, sName, nMaxHP)
-        --print("[In Soldier] "..type(this).." constructor firing and calling parent constructor  ("..tostring(super)..") .")
-        super(sName, nMaxHP)
-        --super(sName, nMaxHP)
-        --print(type(super))
-        --print("Soldier", type(this), type(cdat), type(sName), type(nMaxHP))
-        --print("from "..type(this)..": super is -> "..tostring(super))
-        --super(sName, nMaxHP);
-        --print(cdat[PRO].HPMax)
-        cdat.pro.HPMax = nMaxHP;
-        --print(cdat.pro.HPMax);
-        --print(cdat.pri.DonkeyPoints)
-    end,
-    Jump = function(this, cdat)
-        --cdat[PRO] = 6; --TODO make this throw an error
-        --print(setmetatable(cdat, {}))
-        --cdat[PRI].test = "asd";
-        --print(cdat.ieur)
-        --cdat.test = 34;
-    end,
-    Boost = function(this, cdat)
-        cdat.pro.HP = cdat[PRO].HP * 2;
-    end,
-    Boop = function(this, cdat)
-        return(cdat.pro.HPMax)
-    end,
-    --Hits = 55,
-}, Human, NO_INTERFACES, false);
-
-
-
-
-
-
-
-
-Specialist = class("Specialist",
-{},
-{},
-{
-    --HP_AUTO = 0,
-    RPs = 33,
-},
-{
-    --RP_AUTO = 34,
-},
-{
-    Specialist = function(this, cdat, super)
-        super("asd", 76);
-    end,
-    sGetHP = function(this, cdat)
-        return cdat.pro.HP;
-    end,
-    Tester = function(this, cdat, num)
-        cdat.pri.RP = cdat.pri.RP + num;
     end,
 },
-Soldier, NO_INTERFACES, false);
+{--public static members
+    RANK = enum("RANK",
+    {"Private", "PrivateSecondClass",   "PrivateFirstClass",    "Specialist", "Corporal", "Sergeant", "StaffSergeant",  "SergeantFirstClass",   "MasterSergeant",   "FirstSergeant",    "SergeantMajor",    "CommandSergeantMajor",     "SergeantMajoroftheArmy"},
+    {"Private", "Private Second Class", "Private First Class",  "Specialist", "Corporal", "Sergeant", "Staff Sergeant", "Sergeant First Class", "Master Sergeant",  "First Sergeant",   "Sergeant Major",   "Command Sergeant Major",   "Sergeant Major of the Army"}, true);
+},
+{--private members
+    Rank = null--Soldier.RANK,
+},
+{--protected members
+},
+{--public members
+    Soldier = function(this, cdat, super, sName, nHP, eRank)
+        --print("Soldier", sName, nHP)
+        super(sName, nHP);
+        --cdat.pri.Rank = eRank;
+    end,
+    serialize = function(this, cdat)
+        return "Name: ${name}\r\nMax HP: ${hpmax}\r\nHP: ${hp}\t\nDamage: ${damage}\r\nAmour: ${armour}" % {
+            name = this.GetName(), hpmax = cdat.pro.HPMax, hp = cdat.pro.HP, damage = cdat.pro.Damage, armour = cdat.pro.Armour
+        };
+    end,
+    TVal = null,
+},
+Human, iCombator, false);
 
 
-local Bob = Specialist("Bob", 999);
-print(Bob.GetHP())
---print(Bob.SetHP(345).GetHP())
 
---local y = loadstring(string.dump(Kaleb.GetHPMax))();
 
---writeToFile(string.dump(Kaleb.GetHPMax))
+
+Wheeler = Soldier("Wheeler",    50);
+Ellis   = Soldier("Ellis",      85);
+print(Wheeler.GetHPMax())
+print(Wheeler.TVal)
+print(Wheeler.TVal)
+
+
+
+
+
+
+
 
 --print(fh())
---print(Kaleb.GetHPMax());
+
 --Kaleb.Attack();
 
 --print(Soldier == Creature)
