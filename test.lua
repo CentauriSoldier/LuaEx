@@ -27,7 +27,7 @@ local sPath = getsourcepath();
 
 --update the package.path (use the main directory to prevent namespace issues)
 package.path = package.path..";"..sPath.."\\..\\?.lua;";
-
+print("PATH "..sPath)
 --load LuaEx
 require("LuaEx.init");
 --============= TEST CODE BELOW =============
