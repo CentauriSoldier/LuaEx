@@ -345,7 +345,7 @@ function instance.build(tKit, tParentActual)
         met = table.clone(tKit.met), --create the metamethods
         pri = table.clone(tKit.pri), --create the private members
         pro = table.clone(tKit.pro), --etc.
-        pub = table.clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...        
+        pub = table.clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
         children            = {},    --TODO move to class level or to here? Is there any use for it here?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
@@ -402,12 +402,12 @@ function instance.buildautomethods(tInstance, tClassData)
         local sVisibility = tItem.CAI;
 
         --create the accesor method
-        tInstance.pub["Get"..tItem.formattedname] = function()
+        tInstance.pub["get"..tItem.formattedname] = function()
             return tClassData[sVisibility][tItem.formattedname];
         end
 
         --create the mutator method
-        tInstance.pub["Set"..tItem.formattedname] = function(vVal)
+        tInstance.pub["set"..tItem.formattedname] = function(vVal)
             tClassData[sVisibility][tItem.formattedname] = vVal;
             return tInstance.decoy;
         end

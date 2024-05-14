@@ -39,7 +39,8 @@ Creature = class("Creature",
 {--public static members
 },
 {--private members
-
+    DeathCount = 0,
+    Allies = {},
 },
 {--protected members
     HP_AUTO     = 10,
@@ -47,9 +48,6 @@ Creature = class("Creature",
     Damage_AUTO = 5,
     AC_AUTO     = 0,
     Armour_AUTO = 0,
-    Move = function(this, cdat)
-
-    end
 },
 {--public members
     Creature = function(this, cdat, nHP, nHPMax)
@@ -57,9 +55,15 @@ Creature = class("Creature",
         cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
         cdat.pro.HPMax  = nHPMax;
     end,
-    isdead = function(this, cdat)
+    isDead = function(this, cdat)
         return cdat.pro.HP <= 0;
     end,
+    kill = function(this, cdat)
+        cdat.pro.HP = 0;
+    end,
+    move = function(this, cdat)
+
+    end
 },
 NO_PARENT, NO_INTERFACES, false);
 
@@ -86,7 +90,21 @@ Human = class("Human",
 },
 Creature, NO_INTERFACES, false);
 
+local Dan = Human("Dan", 45);
+print("Name: "..Dan.getName());                         --> "Name: Dan"
+print("HP: "..Dan.getHP());                             --> "HP: 45:"
+print("Type: "..type(Dan));                             --> "Type: Human"
+print("Is Dead? "..Dan.isDead());                       --> "Is Dead? false"
+print("Kill Dan ):!"); Dan.kill();                      --> "Kill Dan ):!"
+print("Is Dead? "..Dan.isDead());                       --> "Is Dead? true"
+print("Set Name: Dead Dan"); Dan.setName("Dead Dan");   --> "Set Name: Dead Dan"
+print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 
+print(null < 1);    --> true
+print(null < "");   --> true
+print(null < nil);  --> false
+local k = null;
+print(k)            --> null
 
 Soldier = class("Soldier",
 {--metamethods
@@ -112,13 +130,12 @@ Soldier = class("Soldier",
     end,
     serialize = function(this, cdat)
         return "Name: ${name}\r\nMax HP: ${hpmax}\r\nHP: ${hp}\t\nDamage: ${damage}\r\nAmour: ${armour}" % {
-            name = this.GetName(), hpmax = cdat.pro.HPMax, hp = cdat.pro.HP, damage = cdat.pro.Damage, armour = cdat.pro.Armour
+            name = this.getName(), hpmax = cdat.pro.HPMax, hp = cdat.pro.HP, damage = cdat.pro.Damage, armour = cdat.pro.Armour
         };
     end,
     TVal = null,
 },
 Human, iCombator, false);
-
 
 
 
@@ -162,7 +179,7 @@ Others.add("bat")
 local oCpmp = Others.complement(Items);
 
 for k in oCpmp() do
-    print(k)
+    --print(k)
 end
 
 --print(Others.size())
@@ -197,6 +214,8 @@ local oInterset = Items.intersection(Others);
 for k in oInterset() do
     --print(k)
 end
+
+print(#true)
 
 --print(fh())
 

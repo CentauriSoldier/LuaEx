@@ -4,6 +4,149 @@
 ## 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓ 🔬
 Simply put, **LuaEx** is a collection of scripts that extend Lua's functionality.
 
+Below are some of the features in **LuaEx** (*See documentation for full details*).
+
+##### New Type System
+- Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new LuaEx types (such as enum, class, struct, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***subtype*** function to check that).
+- boolean to number/string coercion, number to boolean coercion, boolean math, boolean negation, etc.
+```lua
+print(#1); --> true
+print(#0); --> false
+print(#true); --> 1
+print(#false); --> 0   
+print(-true); --> false
+print(-false); --> true
+print(-#0); --> true
+print(-#1); --> false
+print(false + false); -->false
+print(true + false); -->true
+print("This value is "..true); -->"This value is true"
+--etc.
+```
+- The ***null*** (or ***NULL***) type now exists for the main purpose of retaining table keys while providing no real value. While setting a table key to nil will remove it, setting it to ***null*** will not.  
+The ***null*** value can be compared to other types and itself.  
+In addition, it allows for the an undeclared initial type in **classes** and **structs**.  
+As shown above, The ***null*** value has an alias: ***NULL***.  
+***WARNING***: <u>*never*</u> localize the ***null*** (or ***NULL***) value! Strange things happen...you've been warned. **☠ ☣ ☢ 💥**
+```lua
+print(null < 1);    --> true
+print(null < "");   --> true
+print(null < nil);  --> false
+local k = null;
+print(k)            --> null
+```
+
+
+##### Constants
+While **Lua 5.4** offers constants natively, previous versions don't.  
+As **LueEx** is not built for 5.4, constants are provided. They may be of any non-nill type (*though null [or NULL] should never be set as a constant, as it already is*).
+
+```lua
+constant("MAX_CREATURES", 45);
+print(MAX_CREATURES);           --> 45
+constant("ERROR_MARKER", "err:");
+print(ERROR_MARKER);            --> "err:"
+```
+
+##### String Interpolation
+```lua
+"I can embed variables like, ${var1}, in my strings and make ${adjective} madlibs." % {var1 = "Frog", adjective = "crazy"};
+```
+
+
+##### Class System
+- A fully-functional, [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
+- The class system also takes advantage of metatables and allows user to create, inherit and override these for class objects.
+- Auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.    
+- Strongly typed values (although allowing initial null values).
+- Optional final methods (preventing subclass overrides).
+- Optional final classes.
+- **More** features inbound...
+
+###### Example
+<details>
+<summary>View Code</summary>
+
+```lua
+Creature = class("Creature",
+{--metamethods
+},
+{--public static members
+},
+{--private members
+    DeathCount = 0,
+    Allies = {},
+},
+{--protected members
+    HP_AUTO     = 10,
+    HPMax_AUTO  = 100,
+    Damage_AUTO = 5,
+    AC_AUTO     = 0,
+    Armour_AUTO = 0,
+},
+{--public members
+    Creature = function(this, cdat, nHP, nHPMax)
+        cdat.pro.HP     = nHP < 1 and 1 or nHP;
+        cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
+        cdat.pro.HPMax  = nHPMax;
+    end,
+    isDead = function(this, cdat)
+        return cdat.pro.HP <= 0;
+    end,
+    kill = function(this, cdat)
+        cdat.pro.HP = 0;
+    end,
+    move = function(this, cdat)
+
+    end
+},
+NO_PARENT, NO_INTERFACES, false);
+
+
+
+local HP_MAX = 120; -- this is an example of a private static field
+
+Human = class("Human",
+{--metamethods
+},
+{--public static members
+},
+{--private members
+    Name_AUTO = "",
+},
+{--protected members
+},
+{--public members
+    Human = function(this, cdat, super, sName, nHP)
+        --print("human", sName, nHP, HP_MAX)
+        super(nHP, HP_MAX);
+        cdat.pri.Name = sName;
+    end,
+},
+Creature, NO_INTERFACES, false);
+
+local Dan = Human("Dan", 45);
+print("Name: "..Dan.getName());                         --> "Name: Dan"
+print("HP: "..Dan.getHP());                             --> "HP: 45:"
+print("Type: "..type(Dan));                             --> "Type: Human"
+print("Is Dead? "..Dan.isDead());                       --> "Is Dead? false"
+print("Kill Dan ):!"); Dan.kill();                      --> "Kill Dan ):!"
+print("Is Dead? "..Dan.isDead());                       --> "Is Dead? true"
+print("Set Name: Dead Dan"); Dan.setName("Dead Dan");   --> "Set Name: Dead Dan"
+print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
+```
+</details>
+
+##### Enums
+- Can be local or global and even embedded at runtime.
+- Have the option for custom value types for items.
+- Strict ordinal adherence.
+- Built-in iterator.
+- QoL methods and properties like ***next***, ***previous***, etc.
+
+##### Structs
+
+
 ## 🅳🅴🆅🅴🅻🅾🅿🅼🅴🅽🆃 🅶🅾🅰🅻🆂 ⌨
 
 #### Why Write LuaEx?
@@ -21,7 +164,16 @@ This project is made to be consistent both with Lua's naming & coding convention
 #### Principle of Least Astonishment
 In developing **LuaEx**, I strive to take full advantage of the flexibility of the Lua language while still adhering to the [Principle of Least Astonishment](https://en.wikipedia.org/wiki/Principle_of_least_astonishment).
 
-The only *limited* exceptions made are for new features (*whose developments are generally permitted exclusively by Lua*) not otherwise found in other OOP languages.
+The only *limited* exceptions made are for new features (*whose developments are generally permitted exclusively by Lua*) not otherwise found in other OOP languages.  
+Simply put, things are intended to be intuitive.
+
+#### User Feedback
+While I develop LuaEx for my own projects, it's also designed to be used by others.  
+For my their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
+
+## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
+**LuaEx** is designed for **Lua 5.3**; however, I will make every possible effort to make it backward compatible with the latest version of **Lua 5.1**.  
+To that end, if you're using **Lua 5.1** and come across a bug that appears specific to that version, please submit a issue and I'll address it.
 
 ## 🆁🅴🆂🅾🆄🆁🅲🅴🆂 ⚒
 - Logo: https://cooltext.com/
@@ -178,7 +330,6 @@ All documentation for **LuaEx** is on ***GitHub Pages*** found here:
 ## 🅼🅾🅳🆄🅻🅴🆂 ⚙
 Below is the complete list of modules in **LuaEx**.
 
-- #### [base64](https://centaurisoldier.github.io/LuaEx/api/base64.html)
 - #### [class](https://centaurisoldier.github.io/LuaEx/api/class.html)
 - #### [constant](https://centaurisoldier.github.io/LuaEx/api/constant.html)
 - #### [deserialize](https://centaurisoldier.github.io/LuaEx/api/deserialize.html)
@@ -191,7 +342,10 @@ Below is the complete list of modules in **LuaEx**.
 - #### [table](https://centaurisoldier.github.io/LuaEx/api/table.html)
 
 ## 🅲🅻🅰🆂🆂🅴🆂 & 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂 ♾️
-LuaEx does ship with a few, basic classes and interfaces. (*More classes are available at [this repository](https://github.com/CentauriSoldier/LuaEx_Class_Modules))*.
+LuaEx does ship with a few, basic classes and interfaces.
+
+*More classes, interfaces, structs, etc. are available at my [LuaExAlt](https://github.com/CentauriSoldier/LuaEx_Class_Modules) repository*.
+
 ### Classes
 - ##### queue
 - ##### set
@@ -202,5 +356,3 @@ LuaEx does ship with a few, basic classes and interfaces. (*More classes are ava
 
 ## 🅲🆁🅴🅳🅸🆃🆂 ⚛
 - Huge thanks to [Bas Groothedde](https://github.com/imagine-programming) at Imagine Programming for creating the original **class** module.
-- Thanks to Alex Kloss (alexthkloss@web.de) for creating the **base64** module.
-- Thanks to [Carreras Nicolas](https://github.com/Sledmine/lua-ini) for creating the original **ini** module.
