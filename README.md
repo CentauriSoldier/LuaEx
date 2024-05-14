@@ -7,7 +7,7 @@ Simply put, **LuaEx** is a collection of scripts that extend Lua's functionality
 Below are some of the features in **LuaEx** (*See documentation for full details*).
 
 ##### New Type System
-- Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new LuaEx types (such as enum, class, struct, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***subtype*** function to check that).
+- Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new LuaEx types (such as **enum**, **class**, **struct**, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***subtype*** function to check that).
 - boolean to number/string coercion, number to boolean coercion, boolean math, boolean negation, etc.
 ```lua
 print(#1); --> true
@@ -39,7 +39,7 @@ print(k)            --> null
 
 ##### Constants
 While **Lua 5.4** offers constants natively, previous versions don't.  
-As **LueEx** is not built for 5.4, constants are provided. They may be of any non-nill type (*though null [or NULL] should never be set as a constant, as it already is*).
+As **LueEx** is not built for **5.4**, constants are provided. They may be of any non-nill type (*though ***null*** [or ***NUL***] should never be set as a constant, as it already is*).
 
 ```lua
 constant("MAX_CREATURES", 45);
@@ -58,7 +58,7 @@ print(ERROR_MARKER);            --> "err:"
 - A fully-functional, [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
 - The class system also takes advantage of metatables and allows user to create, inherit and override these for class objects.
 - Auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.    
-- Strongly typed values (although allowing initial null values).
+- Strongly typed values (although allowing initial ******null*** values).
 - Optional final methods (preventing subclass overrides).
 - Optional final classes.
 - **More** features inbound...
@@ -155,8 +155,8 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 #### Big Things Come in Small Package
 Keeping this module small is essential to making it useful. You shouldn't have to spend a year learning how to use something designed to be easy to use; **LuaEx** is developed with that in mind.
 
-##### Simplicity
-Retaining simplicity of the code is also a primary goal of this module. The code should be intuitive and I strive toward that end.
+#### Simplicity
+Retaining simplicity of the code is also a primary goal of this module. The code should be intuitive and I strive toward that end. The purpose being that both you and I should be able to read the code and understand it.
 
 #### Conventional Consistency
 This project is made to be consistent both with Lua's naming & coding conventions as well as internally.
@@ -169,7 +169,7 @@ Simply put, things are intended to be intuitive.
 
 #### User Feedback
 While I develop LuaEx for my own projects, it's also designed to be used by others.  
-For my their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
+For their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
 
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
 **LuaEx** is designed for **Lua 5.3**; however, I will make every possible effort to make it backward compatible with the latest version of **Lua 5.1**.  
