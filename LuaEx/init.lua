@@ -112,7 +112,7 @@ interface	= require("LuaEx.class.interface");
 class 		= require("LuaEx.class.class");
 
 --import external libraries
-base64 		= require("LuaEx.ext_lib.base64");
+--base64 		= require("LuaEx.ext_lib.base64");
 
 --import other modules
 serialize 	= require("LuaEx.util.serialize");
