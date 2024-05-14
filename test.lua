@@ -126,21 +126,76 @@ Human, iCombator, false);
 --Wheeler = Soldier("Wheeler",    50);
 --Ellis   = Soldier("Ellis",      85);
 
+local tShared = {};
 
-local Plates = stack();
+local Items = set();
+Items.add(34)
+Items.add(44)
+Items.add(54)
+Items.add("cat")
+Items.add("moose")
+Items.add("frog")
+Items.add("bug")
+Items.add({})
+Items.add(true)
+Items.add(false)
+Items.add(nil)
+Items.add(null)
 
-Plates.push(34)
-Plates.push(44)
-Plates.push(54)
+RemoveME = set().addset(Items).remove("bug");
+--print(Items.issubset(RemoveME))
+--Items.removeset(RemoveME);
+
+--print(Items.contains("ASdasd"));
+
+local Others = set();
+--Others.add(tShared)
+Others.add(34)
+Others.add(44)
+Others.add(700)
+Others.add({})
+Others.add("bunny")
+Others.add("frog")
+Others.add(false)
+Others.add("bat")
+
+local oCpmp = Others.complement(Items);
+
+for k in oCpmp() do
+    print(k)
+end
+
+--print(Others.size())
+--for k in Others() do
+    --print(k)
+--end
+
+local tPlates = stack();
+tPlates.push(1)
+tPlates.push(2)
+tPlates.push(3)
+tPlates.push(4)
+tPlates.push(5)
+tPlates.push(6)
+tPlates.push(7)
+
+local oLine = queue();
+oLine.enqueue(1);
+oLine.enqueue(2);
+oLine.enqueue(3);
+oLine.enqueue(4);
+oLine.enqueue(5);
+oLine.enqueue(6);
 --print(Plates.pop())
 --print(Plates.pop())
 --print(Plates.pop())
-local r = Plates << "Cat";
---print(#Plates)
-local r = Plates >> "Cat";
-
-for k, v in pairs(Plates.values()) do
-    print(k, v)
+--Plates.reverse();
+--Plates.clear()return
+local oInterset = Items.intersection(Others);
+--local oClone = oInterset.clone();
+--print(Others.peek())
+for k in oInterset() do
+    --print(k)
 end
 
 --print(fh())
@@ -193,7 +248,7 @@ end
 
 
 
-
+--[[
 function writeToFile(text)
     local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
     if file then
@@ -228,4 +283,5 @@ local function clone_function(fn)
   return cloned
 end
 
-local fh = clone_function(test)
+--local fh = clone_function(test)
+]]

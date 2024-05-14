@@ -345,8 +345,7 @@ function instance.build(tKit, tParentActual)
         met = table.clone(tKit.met), --create the metamethods
         pri = table.clone(tKit.pri), --create the private members
         pro = table.clone(tKit.pro), --etc.
-        pub = table.clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
-        ins = tKit.ins,              --TODO should this go here? I think so.....\ NO, it needs a decoy
+        pub = table.clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...        
         children            = {},    --TODO move to class level or to here? Is there any use for it here?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
@@ -380,6 +379,9 @@ function instance.build(tKit, tParentActual)
     --TODO make sure contrsuctors fire only once then are deleted
     --TODO constructors  (also static initializers for altering static fields ONCE at runtime)
     --TODO check for the presence of the parent constructor (should have been edeleted after call) Also, TODO delete constructor after call
+
+    --store the class data so it can be used interally by classes to access other object cdat.
+    tKit.ins[oInstance] = tClassData;
 
     return oInstance, tInstance;
 end
@@ -430,7 +432,7 @@ function instance.prepclassdata(tInstance)
         pri = {},
         pro = {},
         pub = {},
-        ins = {},
+        ins = tKit.ins,
         --parent    = null,
     };
 
@@ -767,7 +769,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             pro = {},
             pub = {},
         },
-        ins		        = {}, --TODO if not already done, set a metatable so instances can't be altered
+        ins		        = {}, --TODO set a metatable so instances can't be altered
         isfinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
         name 			= sName,
         parent			= kit.mayextend(sName, cExtendor) and kit.repo.byobject[cExtendor] or nil, --note the parent kit

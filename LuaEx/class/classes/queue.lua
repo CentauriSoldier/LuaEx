@@ -9,18 +9,23 @@ local type 			= type;
 
 return class("queue",
 {--metamethods
-	__len = function(this, cdat)
+    __call = function(this, cdat)
+        local index = 0
+        local count = cdat.pri.count
+
+        return function ()
+            index = index + 1
+
+            if index <= count then
+                return cdat.pri.values[index]
+            end
+        end
+    end,
+
+
+    __len = function(this, cdat)
 		return cdat.pri.count;
 	end,
-
-    __unm = function(this, cdat)
-        cdat.pri.count  = 0;
-        cdat.pri.values = {};
-    end,
-
-    __bnot = function(this, cdat) --TODO make this reverse the order of things
-
-    end,
 },
 {},--static public
 {--private
@@ -29,28 +34,43 @@ return class("queue",
 },
 {},--protected
 {--public
-	queue = function(this, cdat)
-		--local pri = args[nPri];
+    --[[!
+    @mod queue
+    @func queue
+    @scope public
+    @desc Constructs a new queue object.
+    @ret queue A new queue object.
+    !]]
+	queue = function(this, cdat) end,
 
-		--cdat.pri.count 	= 0;
-		--cdat.pri.values = {};
-   end,
 
+    --[[!
+    @module queue
+    @func queue.enqueue
+    @scope public
+    @desc Adds an element to the end of the queue.
+    @param any vValue The value to enqueue.
+    @ret any The queue object after enqueueing the item.
+    !]]
 	enqueue = function(this, cdat, vValue)
 
 		if (rawtype(vValue) ~= "nil") then
 			table.insert(cdat.pri.values, #cdat.pri.values + 1, vValue);
 			cdat.pri.count = cdat.pri.count + 1;
-			return vValue;
 		end
 
+        return this;
 	end,
 
-	--[[destroy = function(this)
-		tQueues[this] = nil;
-		this = nil;
-	end,]]
 
+    --[[!
+    @module queue
+    @func queue.dequeue
+    @scope public
+    @desc Adds an element to the end of the queue.
+    @param any vValue The value to dequeue.
+    @ret any The value dequeue.
+    !]]
 	dequeue = function(this, cdat)
 		local vRet = nil;
 
@@ -62,18 +82,54 @@ return class("queue",
 		return vRet;
 	end,
 
+
+    --[[!
+    @mod queue
+    @func queue.deserialize
+    @scope public
+    @desc Deserializes the queue object from a string.
+    !]]
+    deserialize = function(this, cdat)
+        error("ERROR: queue.deserialize mmethod still in development.");
+    end,
+
+
+    --[[!
+    @module queue
+    @func queue.peek
+    @scope public
+    @param table cdat The class data table.
+    @desc Retrieves the next-in-line element from the queue without removing it.
+    @ret any The next-in-line element in the queue, or nil if the queue is empty.
+    !]]
+    peek = function(this, cdat)
+        return cdat.pri.values[1] or nil;
+    end,
+
+
+    --TODO reverse method
+
+
+    --[[!
+    @mod queue
+    @func queue.serialize
+    @scope public
+    @desc Serializes the queue object to a string.
+    @ret string A string representing the queue object which can be stored and later deserialized.
+    !]]
+    serialize = function(this, cdat)
+        return "ERROR: queue.serialize mmethod still in development.";
+    end,
+
+    --[[!
+    @module queue
+    @func queue.size
+    @scope public
+    @desc Returns the number of elements currently in the queue.
+    @ret number The number of elements in the queue.
+    !]]
 	size = function(this, cdat)
 		return cdat.pri.count;
-	end,
-
-	values = function(this, cdat)
-		local tRet = {};
-
-		for nIndex = 1, cdat.pri.count do
-			tRet[nIndex] = cdat.pri.values[nIndex];
-		end
-
-		return tRet;
 	end,
 },
 nil, nil, false);

@@ -125,8 +125,7 @@ deserialize = require("LuaEx.util.deserialize");
 --import classes
 queue 	    = require("LuaEx.class.classes.queue");
 stack 	    = require("LuaEx.class.classes.stack");
---set 		= require("LuaEx.class.classes.set");
---ini 		= require("LuaEx.class.classes.ini"); --TODO convert to new class system
+set 		= require("LuaEx.class.classes.set");
 
 
 --🅰🅻🅸🅰🆂🅴🆂

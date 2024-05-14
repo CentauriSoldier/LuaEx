@@ -18,6 +18,11 @@ Retaining simplicity of the code is also a primary goal of this module. The code
 #### Conventional Consistency
 This project is made to be consistent both with Lua's naming & coding conventions as well as internally.
 
+#### Principle of Least Astonishment
+In developing **LuaEx**, I strive to take full advantage of the flexibility of the Lua language while still adhering to the [Principle of Least Astonishment](https://en.wikipedia.org/wiki/Principle_of_least_astonishment).
+
+The only *limited* exceptions made are for new features (*whose developments are generally permitted exclusively by Lua*) not otherwise found in other OOP languages.
+
 ## 🆁🅴🆂🅾🆄🆁🅲🅴🆂 ⚒
 - Logo: https://cooltext.com/
 - Special ASCII Fonts: https://fsymbols.com/generators/carty/
