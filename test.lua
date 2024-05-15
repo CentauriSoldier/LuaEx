@@ -117,6 +117,9 @@ Soldier = class("Soldier",
     --__unm = function(this, cdat)
     --    print("soldier")
     --end,
+    __add = function(left, right, cdat)
+        print(type.matachesonlyleft(right))
+    end,
 },
 {--public static members
     RANK = enum("RANK",
@@ -272,6 +275,7 @@ function checkme(vVal, sExpected)
 end
 --print(isCreature(Wheeler))
 --print(isSoldier(Wheeler))
+local isCreature = type.isCreature;
 print(isCreature(Wheeler))
 --isSoldier(Wheeler)
 --print(serialize.table(type.getall()))

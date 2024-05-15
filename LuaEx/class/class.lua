@@ -312,7 +312,7 @@ function class.build(tKit)
     class.repo.byname[tKit.name]    = oClass;
 
     --create the 'is' function (e.g., isCreature(vVal))
-    rawset(_G, "is" .. tKit.name,
+    rawset(type, "is" .. tKit.name,
         function(vVal)
             local sType         = type(vVal)
             local sTargetType   = tKit.name;

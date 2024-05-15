@@ -16,8 +16,8 @@ debug.setmetatable(tBooleanMeta, {
 		end
 
 	end,
-	__len = function(s)
-		return s and 1 or 0;
+	__len = function(bVal)
+		return bVal and 1 or 0;
 	end,
 	__mul = function(bLeft, bRight)
 		return bLeft and bRight;
@@ -39,16 +39,16 @@ debug.setmetatable(tNumberMeta, {
 	__len = function(nVal)
 		local bRet = nil;
 
-		if (nVal == 1) then
-			bRet = true;
-		elseif (nVal == 0) then
+		if (nVal == 0) then
 			bRet = false;
+		elseif (nVal == 1) then
+			bRet = true;
 		end
 
 		return bRet;
 	end,
-	__tostring = function(bVal)
-		return sBlank..(bVal)..sBlank;
+	__tostring = function(nVal)
+		return sBlank..(nVal)..sBlank;
 	end,
 });
 
@@ -83,7 +83,7 @@ local tLuaExTypes = {
 	struct				= true,
 	factory_constructor = true,
 };
-
+--TODO add class and truct types here somwhere (when instances are created)
 --user can add/remove the items in this table
 local tUserTypes = {};
 
@@ -92,7 +92,7 @@ local __type__ = type;
 type = nil;
 
 local type = {
-	mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)
+	mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?
 		return (sLeftType == sObjType and sRightType ~= sTypeInQuestion);
 	end,
 	mathchesonlyright = function(sLeftType, sRightType, sTypeInQuestion)
@@ -228,7 +228,7 @@ local type = {
 
 		return sType;
 	end,
-	x = function(vObject)
+	x = function(vObject) --TODO rename this be 'ex' for clarity
 		local sType = __type__(vObject);
 
 		if (sType == "table") then
@@ -281,7 +281,7 @@ local function newindex(t, k, v)
 
 end
 
---aliases for ease-of use
+--aliases for ease-of use TODO these should be removed and localized as needed
 rawtype 	= type.raw;
 xtype 		= type.x;
 fulltype	= type.full;
@@ -289,26 +289,22 @@ subtype 	= type.sub;
 settype		= type.set;
 setsubtype	= type.setsub;
 
---NOTE: doing a test in _G...local tIsTable = type;
-local tIsTable = _G;
-
---NOTE This also gets done in the class system
-
 --setup the 'is' functions for all types
 for sType, _ in pairs(tLuaTypes) do
-	rawset(tIsTable, "is"..sType, function(vVal)
+	rawset(type, "is"..sType, function(vVal)
 		return __type__(vVal) == sType;
 	end);
 end
 
 for sType, _ in pairs(tLuaExTypes) do
-	rawset(tIsTable, "is"..sType, function(vVal)
+	rawset(type, "is"..sType, function(vVal)
 		return type(vVal) == sType;
 	end);
 end
 
+--TODO consider removing this...is there really a need for it and would it follow POLA?
 for sType, _ in pairs(tUserTypes) do
-	rawset(tIsTable, "is"..sType, function(vVal)
+	rawset(type, "is"..sType, function(vVal)
 		return type(vVal) == sType;
 	end);
 end
