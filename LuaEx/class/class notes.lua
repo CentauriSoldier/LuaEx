@@ -1,5 +1,17 @@
 --[[
 
+TODO model this behavior
+In C#, static public values (fields) can indeed be changed, but this depends on how they are defined. Here are a few key points to consider:
+
+    Static Fields:
+        If a static field is not declared as readonly, it can be changed.
+        If a static field is declared as readonly, it can only be assigned a value during its declaration or within a static constructor.
+
+    Static Properties:
+        If a static property has both a getter and a setter, it can be changed.
+        If a static property has only a getter (or the setter is private), it cannot be changed from outside the class.
+
+
 Definitions:
     [ Class Kit (kit) ]
     A kit can be thought of as an Erector set, Lego set, gun parts kit, etc. in that it's merely a collection of components used to build an object, not an object itself. The purpose of kits is handling inheritance. Due to the nature of Lua, parts must be reused (and references to those parts) when building class objects and their children. Kits facilitate the correct association of data in inheritance allowing children to be created and to interact properly with their parent(s). Note that each kit is used to create a single class object though parent kits are referenced when creating class children (that functionality being the entire purpose of kits). In addition, a kit stores metadata about the resulting class.

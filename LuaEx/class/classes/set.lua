@@ -67,8 +67,42 @@ removeitem = function(cdat, vItem)
     return bRet;
 end
 
+
 return class("set",
 {--metamethods
+
+
+    --[[!
+    @module set
+    @func __add
+    @scope public
+    @desc Returns the union of this set with another set (A + B).
+    @param set other The other set with which to form the union.
+    @ret set A new set containing items that are the union of this set and the other.
+    !]]
+    __add = function(left, right, cdat)
+        assert(type(left)   == "set", sOtherError % {method = "__add"}..type(left)..'.');
+        assert(type(right)  == "set", sOtherError % {method = "__add"}..type(right)..'.');
+
+		local oRet      = set();
+        local newcdat   = cdat.ins[oRet];
+        local leftcdat  = cdat.ins[left];
+        local rightcdat = cdat.ins[right];
+
+        --add this set's items to the new set
+		for nIndex, vItem in pairs(leftcdat.pri.indexed) do
+			additem(newcdat, vItem);
+		end
+
+        --add the other set items to the new set
+        for nIndex, vItem in pairs(rightcdat.pri.indexed) do
+			additem(newcdat, vItem);
+		end
+
+		return oRet;
+    end,
+
+
     --[[!
     @module set
     @func __call
@@ -92,6 +126,78 @@ return class("set",
    end,
 
 
+   --[[!
+   @module set
+   @func __eq
+   @scope global
+   @desc Determines of the two sets are equal.
+   @ret boolean True if the two sets are equal, false otherwise.
+   !]]
+   __eq = function(left, right, cdat)
+       assert(type(left)   == "set", sOtherError % {method = "__eq"}..type(left)..'.');
+       assert(type(right)  == "set", sOtherError % {method = "__eq"}..type(right)..'.');
+       local leftcdat  = cdat.ins[left];
+       local rightcdat = cdat.ins[right];
+
+       --start by checking their size
+       local bRet = leftcdat.pri.size == rightcdat.pri.size;
+
+       --check each value for existence in the other set
+       for nIndex, vItem in pairs(leftcdat.pri.indexed) do
+
+           if (rawtype(rightcdat.pri.set[vItem]) == "nil") then
+               bRet = false;
+               break;
+           end
+
+       end
+
+       return bRet;
+   end,
+
+
+   --[[!
+   @module set
+   @func __len
+   @scope global
+   @desc Returns the number of elements currently in the set.
+   @ret number The number of elements in the set.
+   !]]
+   __len = function(this, cdat)
+      return cdat.pri.size;
+    end,
+
+
+   --[[!
+   @module set
+   @func __sub
+   @scope public
+   @desc Returns the relative complement of this set with repeect to another set (A - B).
+   @param set other The other set with which to find the relative complement.
+   @ret set A new set containting values that are in this set but not in the other set.
+   !]]
+   __sub = function(left, right, cdat)
+       assert(type(left)    == "set", sOtherError % {method = "__sub"}..type(left)..'.');
+       assert(type(right)   == "set", sOtherError % {method = "__sub"}..type(right)..'.');
+
+       local oRet      = set();
+       local newcdat   = cdat.ins[oRet];
+       local leftcdat  = cdat.ins[left];
+       local rightcdat = cdat.ins[right];
+
+       --iterate over the left set
+       for nIndex, vItem in pairs(leftcdat.pri.indexed) do
+
+           if not (rightcdat.pri.set[vItem]) then
+               additem(newcdat, vItem);
+           end
+
+       end
+
+       return oRet;
+   end,
+
+
     --[[!
     @module set
     @func __tostring
@@ -108,18 +214,6 @@ return class("set",
 
 		return sRet:sub(1, #sRet - 2).."}";
 	end,
-
-
-    --[[!
-    @module set
-    @func __len
-    @scope global
-    @desc Returns the number of elements currently in the set.
-    @ret number The number of elements in the set.
-    !]]
-    __len = function(this, cdat)
-       return cdat.pri.size;
-   end,
 },
 {},--static public
 {--private
@@ -133,9 +227,20 @@ return class("set",
     @module set
     @func set
     @scope public
+    @param table|nil A table of items to add to the set (optional).
     @desc Constructs a new set object.
     !]]
-	set = function(this, cdat) end,
+	set = function(cdat, cdat, tItems)
+
+        if (type(tItems) == "table") then
+
+            for _, vItem in pairs(tItems) do
+                additem(cdat, vItem);
+            end
+
+        end
+
+    end,
 
 
     --[[!
@@ -149,26 +254,6 @@ return class("set",
     !]]
 	add = function(this, cdat, vItem)
 		additem(cdat, vItem);
-        return this;
-	end,
-
-
-    --[[!
-    @module set
-    @func set.addSet
-    @scope public
-    @desc Adds all items from another set to this set.
-    @param set oOther The other set containing items to add.
-    @ret set The set object after adding the item.
-    !]]
-	addset = function(this, cdat, other)
-        assert(type(other) == "set", sOtherError % {method = "addset"}..type(other)..'.');
-        local othercdat = cdat.ins[other];
-
-        for nIndex, vItem in ipairs(othercdat.pri.indexed) do
-            additem(cdat, vItem);
-		end
-
         return this;
 	end,
 
@@ -198,33 +283,6 @@ return class("set",
 
     --[[!
     @module set
-    @func set.complement
-    @scope public
-    @desc Returns the complement of this set with another set.
-    @param set other The other set with which to find the complement.
-    @ret set A new set containting values that are the complement of this set and the other set.
-    !]]
-	complement = function(this, cdat, other)--TODO use cdat
-        assert(type(other) == "set", sOtherError % {method = "complement"}..type(other)..'.');
-        local oRet      = set();
-        local newcdat   = cdat.ins[oRet];
-        local othercdat = cdat.ins[other];
-
-        --iterate over the other set to find complement items
-        for nIndex, vItem in pairs(othercdat.pri.indexed) do
-
-            if not (cdat.pri.set[vItem]) then
-                additem(newcdat, vItem);
-            end
-
-		end
-
-		return oRet;
-	end,
-
-
-    --[[!
-    @module set
     @func set.contains
     @scope public
     @desc Checks if the set contains a specific item.
@@ -237,35 +295,6 @@ return class("set",
 
 
     --[[!
-    @module set
-    @func set.equals
-    @scope public
-    @desc Checks if this set is equal to another set.
-    @param set other The other set to compare with.
-    @ret boolean Returns true if the sets are equal, false otherwise.
-    !]]
-	equals = function(this, cdat, other)--TODO use cdat
-        assert(type(other) == "set", sOtherError % {method = "equals"}..type(other)..'.');
-		local bRet = tSets[this]:size() == other:size();
-
-		if (bRet) then
-
-			for item in other() do
-
-				if not (this:contains(item)) then
-					bRet = false;
-					break;
-				end
-
-			end
-
-		end
-
-		return bRet;
-	end,
-
-
-    --[[!
     @mod set
     @func set.deserialize
     @scope public
@@ -274,6 +303,26 @@ return class("set",
     deserialize = function(this, cdat)
         return "ERROR: set.deserialize mmethod still in development.";
     end,
+
+
+    --[[!
+    @module set
+    @func set.importset
+    @scope public
+    @desc Adds all items from another set to this set.
+    @param set oOther The other set containing items to add.
+    @ret set This set object after adding the items found in the other set.
+    !]]
+	importset = function(this, cdat, other)
+        assert(type(other) == "set", sOtherError % {method = "addset"}..type(other)..'.');
+        local othercdat = cdat.ins[other];
+
+        for nIndex, vItem in ipairs(othercdat.pri.indexed) do
+            additem(cdat, vItem);
+		end
+
+        return this;
+	end,
 
 
     --[[!
@@ -356,13 +405,13 @@ return class("set",
 
     --[[!
     @module set
-    @func set.removeset
+    @func set.purgeset
     @scope public
     @desc Removes all items from this set that are present in another set.
     @param set other The other set containing items to remove.
-    @ret set The set object after removing items.
+    @ret set This set object after removing items found in the other set.
     !]]
-	removeset = function(this, cdat, other)
+	purgeset = function(this, cdat, other)
         assert(type(other) == "set", sOtherError % {method = "removeset"}..type(other)..'.');
         local othercdat = cdat.ins[other];
         local indexedCopy = {table.unpack(cdat.pri.indexed)}
@@ -395,40 +444,10 @@ return class("set",
     @module set
     @func set.size
     @scope public
-    @desc Returns the number of items in the set.
+    @desc Returns the number of items in the set (Same as #MySet).
     @ret number The number of items in the set.
     !]]
 	size = function(this, cdat)
 		return cdat.pri.size;
 	end,
-
-
-    --[[!
-    @module set
-    @func set.union
-    @scope public
-    @desc Returns the union of this set with another set.
-    @param set other The other set with which to form the union.
-    @ret set A new set containing items that are the union of this set and the other.
-    !]]
-	union = function(this, cdat, other)--TODO use cdat
-        assert(type(other) == "set", sOtherError % {method = "union"}..type(other)..'.');
-		local oRet      = set();
-        local newcdat   = cdat.ins[oRet];
-        local othercdat = cdat.ins[other];
-
-        --add this set's items to the new set
-		for nIndex, vItem in pairs(cdat.pri.indexed) do
-			additem(newcdat, vItem);
-		end
-
-        --add the other set items to the new set
-        for nIndex, vItem in pairs(othercdat.pri.indexed) do
-			additem(newcdat, vItem);
-		end
-
-		return oRet;
-	end,
-
-
 }, nil, nil, false);

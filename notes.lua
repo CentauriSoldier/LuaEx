@@ -3,12 +3,48 @@ NEW LUAEX FUNCTIONS
 ]]
 
 
+--[[
+function writeToFile(text)
+    local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
+    if file then
+        file:write(text)  -- Write text to file
+        file:close()  -- Close the file
+        print("Text written to file successfully.")
+    else
+        print("Error: Unable to open file for writing.")
+    end
+end
 
+-- Example usage:
+local k = 4;
+local function test()
+    print("hello "..k)
+end
+
+
+--https://leafo.net/guides/function-cloning-in-lua.html
+local function clone_function(fn)
+  local dumped = string.dump(fn)
+  local cloned = loadstring(dumped)
+  local i = 1
+  while true do
+    local name = debug.getupvalue(fn, i)
+    if not name then
+      break
+    end
+    debug.upvaluejoin(cloned, i, fn, i)
+    i = i + 1
+  end
+  return cloned
+end
+
+--local fh = clone_function(test)
+]]
 
 
 getmetatable("").__bor = string.delimitedtotable;
 
---TODO add __unm using a defualt demilimter (and create an accessor/mustor function for the delimter)
+--TODO add __unm using a defualt demilimter (and create an accessor/mutator function for the delimter)
 
 --[[
 determines if a string, delimted by .'s is useable as table indices
@@ -156,7 +192,7 @@ add documentation for ini.lua
 
 
 
-for AMS
+for AMS TODO allow, ...
 function p(v1, v2)
 	local bOneArg 	= v2 == nil;
 	local sTitle 	= bOneArg and type(v1) 		or tostring(v1);

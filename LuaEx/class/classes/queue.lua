@@ -9,6 +9,15 @@ local type 			= type;
 
 return class("queue",
 {--metamethods
+
+
+    --[[!
+    @module queue
+    @func __call
+    @scope public
+    @desc Creates an iterator function to iterate over the elements of the queue.
+    @ret function An iterator function that returns each element of the queue.
+    !]]
     __call = function(this, cdat)
         local index = 0
         local count = cdat.pri.count
@@ -23,9 +32,34 @@ return class("queue",
     end,
 
 
+    --[[!
+    @module queue
+    @func __len
+    @scope public
+    @desc Returns the number of elements currently in the queue.
+    @ret number The number of elements in the queue.
+    !]]
     __len = function(this, cdat)
 		return cdat.pri.count;
 	end,
+
+
+    --[[!
+    @module queue
+    @func __tostring
+    @scope public
+    @desc Returns a string representing the items in the queue.
+    @ret string A string representing the items in the queue.
+    !]]
+    __tostring = function(this, cdat)
+        local sRet = "";
+
+        for _, vItem in ipairs(cdat.pri.values) do
+            sRet = sRet..tostring(vItem)..", ";
+        end
+
+        return "{"..sRet:sub(1, #sRet - 2).."}";
+    end,
 },
 {},--static public
 {--private
@@ -39,9 +73,40 @@ return class("queue",
     @func queue
     @scope public
     @desc Constructs a new queue object.
+    @param table|nil A numerically-indexed table of items to add to enqueue (optional).
     @ret queue A new queue object.
     !]]
-	queue = function(this, cdat) end,
+	queue = function(this, cdat, tItems)
+
+        if (type(tItems) == "table") then
+
+            for _, vItem in ipairs(tItems) do
+
+                if (rawtype(vItem) ~= "nil") then
+        			table.insert(cdat.pri.values, #cdat.pri.values + 1, vItem);
+        			cdat.pri.count = cdat.pri.count + 1;
+        		end
+
+            end
+
+        end
+
+    end,
+
+
+    --[[!
+    @module queue
+    @func queue.clear
+    @scope public
+    @desc Removes all items from the queue.
+    ret queue The queue object after clearing all items.
+    !]]
+    clear = function(this, cdat)
+       cdat.pri.count  = 0;
+       cdat.pri.values = {};
+
+       return this;
+    end,
 
 
     --[[!
@@ -107,7 +172,23 @@ return class("queue",
     end,
 
 
-    --TODO reverse method
+    --[[!
+    @mod queue
+    @func queue.reverse
+    @scope public
+    @desc Reverses the order of elements in the queue.
+    @ret queue The queue object after reversing the elements.
+    !]]
+    reverse = function(this, cdat)
+        local values    = cdat.pri.values
+        local count     = cdat.pri.count
+
+        for x = 1, math.floor(count / 2) do
+            values[x], values[count - x + 1] = values[count - x + 1], values[x];
+        end
+
+        return this;
+    end,
 
 
     --[[!
@@ -120,6 +201,7 @@ return class("queue",
     serialize = function(this, cdat)
         return "ERROR: queue.serialize mmethod still in development.";
     end,
+
 
     --[[!
     @module queue

@@ -3,7 +3,7 @@
 @copyright See LuaEx License
 @description
 	<h2>class</h2>
-	<h3>Brining Object Oriented Programming to Lua</h3>
+	<h3>Bringing Object Oriented Programming to Lua</h3>
 	<p>The class module aims to bring a simple-to-use, fully function OOP class system to Lua.</p>
     @license <p>Same as LuaEx license.</p>
 @moduleid class
@@ -13,9 +13,12 @@
 	<li>
         <b>0.7</b>
         <br>
-        <p>Bugfix: corrected __shr method not providing 'other' parameter to client.</p>
-        <p>Feature: added _FNL directive allowing for final methods.</p>
+        <p>Bugfix: public static members could not be set or retrieved.</p>
+        <p>Bugfix: __shr method not providing 'other' parameter to client.</p>
+        <p>Feature: added _FNL directive allowing for final methods and metamethods.</p>
         <p>Feature: added _AUTO directive allowing automatically created mutator and accessor methods for members.</p>
+        <p>Feature: rewrote <em>(and improved)</em> set, stack and queue classes for new class system.</p>
+        <p>Feature: global <strong><em>is</em></strong> functions are now created for classes upon class creation (e.g., isCreature(vInput)).</p>
         <b>0.6</b>
         <br>
         <p>Change: rewrote class system again from the ground up, avoiding the logic error in the second class system.</p>
@@ -27,6 +30,7 @@
         <p>Feature: added interfaces.</p>
         <b>0.3</b>
         <br>
+        <p>Change: removed current class system.</p>
         <p>Change: rewrote class system from scratch.</p>
         <b>0.2</b>
         <br>
@@ -39,26 +43,6 @@
 @website https://github.com/CentauriSoldier/Dox
 *]]
 
---[[
-Planned features
-
-]]
-
---__metamethod(this, [other], cdat, ...)
---nonmetamethod(this, cdat, ...)
-
---[[TODOs, REVIEWs, BUGs, FIXMEs, HACKs, NOTEs, IMPORTANTs, REVIEWs, OPTIMIZEs,
-    DEPRECATEDs, DEBUGs, ISSUEs, QUESTIONs, IMPROVEMENTs
---BUG  public static value types are able to be changed to other types
-
---NOTE
-
---TODO edit errors adding commas and, class names, quotes, etc.
---TODO check for _FNL duplicates (e.g., MyFunc and MyFunc_FNL)
---TODO fix metahook
---TODO add directives like auto-setter/mutator methods
-]]
-
 constant("CLASS_DIRECTIVE_FINAL",           "_FNL"); --this directive causes a method to be final
 constant("CLASS_DIRECTIVE_FINAL_LENGTH",    #CLASS_DIRECTIVE_FINAL);
 constant("CLASS_DIRECTIVE_AUTO",            "_AUTO"); --this directive allows the automatic creation of accessor/mutator methods
@@ -70,19 +54,20 @@ local CLASS_DIRECTIVE_FINAL_LENGTH  = CLASS_DIRECTIVE_FINAL_LENGTH;
 local CLASS_DIRECTIVE_AUTO          = CLASS_DIRECTIVE_AUTO;
 local CLASS_DIRECTIVE_AUTO_LENGTH   = CLASS_DIRECTIVE_AUTO_LENGTH;
 
-local met       = "met"; --the instance's metatable
-local stapub    = "stapub"
-local pri       = "pri"; --the instance's private table
-local pro       = "pro"; --the instance's protected table
-local pub       = "pub"; --the instance's public table
-local ins       = "ins"; --a table containing all the instances
+local met       = "met";    --the instance's metatable
+local stapub    = "stapub"  --the class's static public table
+local pri       = "pri";    --the instance's private table
+local pro       = "pro";    --the instance's protected table
+local pub       = "pub";    --the instance's public table
+local ins       = "ins";    --a table containing all the instances
 
-local tCAINames = { --primarily used for error messages
-    met = "metamethods"; --the instance's metatable
-    pri = "private"; --the instance's private table
-    pro = "protected"; --the instance's protected table
-    pub = "public"; --the instance's public table
-    ins = "instances"; --a table containing all the instances
+local tCAINames = {             --primarily used for error messages
+    met     = "metamethods",    --the instance's metatable
+    stapub  = "static public",  --the class's static public table
+    pri     = "private",        --the instance's private table
+    pro     = "protected",      --the instance's protected table
+    pub     = "public",         --the instance's public table
+    ins     = "instances",      --a table containing all the instances
 };
 
 local assert            = assert;
@@ -135,11 +120,11 @@ local tMutableStaticPublicTypes = {
     ["table"]       = true,
 };
 
-local function ssmutablestaticpublictype(sType)
+local function ismutablestaticpublictype(sType)
     return (tMutableStaticPublicTypes[sType] or false);
 end
 
---TODO make sure all these values are being updated
+--TODO make sure all these values are being updated or delete if not being used
 local class = {
     count = 0,
 	repo  = { --updated on kit.build()
@@ -151,9 +136,11 @@ local class = {
 
 local instance = {
     repo = {
+        --TODO do I need these?
         byclass = {}, --indexed by class object
         bykit   = {}, --indexed by kit
         byname  = {}, --index by class/kit name
+        byobject= {}, --has info about the instance such as class, kit, etc.
     },
 };
 
@@ -190,7 +177,7 @@ function class.build(tKit)
     local sName     = tKit.name;
 
     --this is the actual, hidden class table referenced by the returned class object
-    local tClass            = table.clone(tKit.staticpublic);   --create the static public members
+    local tClass            = table.clone(tKit.stapub);   --create the static public members
 
     local tClassMeta = { --the decoy (returned class object) meta table
         __call      = function(t, ...) --instantiate the class
@@ -211,11 +198,6 @@ function class.build(tKit)
                     }
                 );
 
-                --[[tParents[#tParents + 1] = {
-                    kit     = tParentKit,
-                    decoy   = nil,
-                    actual  = nil,
-                };]]
                 tParentKit = tParentKit.parent;
             end
 
@@ -253,7 +235,7 @@ function class.build(tKit)
                 local sClass        = x == nParents and tKit.name or tParents[x + 1].kit.name;
 
                 if not (tParentInfo.actual.constructorcalled) then
-                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}.'" % {class = sClass, parent = sParent});--TODO should i set a third arg for the errors?
+                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}'." % {class = sClass, parent = sParent});--TODO should i set a third arg for the errors?
                 end
 
                 rawset(tParentInfo.actual.pub, sParent, nil); --TODO change this index once other types of constructors are permitted
@@ -262,21 +244,32 @@ function class.build(tKit)
             return oInstance;
         end,
         __index     = function(t, k)
-            return tClass[k] or nil;
+
+            if (rawtype(tClass[k]) == "nil") then
+                error("Error in class object, '${class}'. Attempt to access non-existent public static member, '${index}'." % {class = sName, index = tostring(k)});
+            end
+
+            return tClass[k];
         end,
-        __newindex  = function(t, k, v) --TODO create a param option to silence this (globally and per class object)
+        __newindex  = function(t, k, v)
             local sType = rawtype(tClass[k]);
 
             if (sType ~= "nil") then
 
-                if (ssmutablestaticpublictype(sType)) then
-                    tClass[k] = v;
+                if (ismutablestaticpublictype(sType)) then
+
+                    if (sType == type(v)) then
+                        tClass[k] = v;
+                    else
+                        error("Error in class object, '${class}'. Attempt to change public static value type for '${index}', from ${typecurrent} to ${typenew} using value, '${value}'." % {class = sName, index = tostring(k), typecurrent = sType, typenew = type(v), value = tostring(v)});
+                    end
+
                 else
-                    error("Error in class object, '${class}'. Attempt to modify immutable public static member, '${index},' using value, '${value}.'" % {class = sName, index = tostring(k), value = tostring(v)});
+                    error("Error in class object, '${class}'. Attempt to modify immutable public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
                 end
 
             else
-                error("Error in class object, '${class}'. Attempt to modify non-existent public static member, '${index},' using value, '${value}.'" % {class = sName, index = tostring(k), value = tostring(v)});
+                error("Error in class object, '${class}'. Attempt to modify non-existent public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
             end
 
         end,
@@ -318,6 +311,32 @@ function class.build(tKit)
     class.repo.bykit[tKit]          = oClass;
     class.repo.byname[tKit.name]    = oClass;
 
+    --create the 'is' function (e.g., isCreature(vVal))
+    rawset(_G, "is" .. tKit.name,
+        function(vVal)
+            local sType         = type(vVal)
+            local sTargetType   = tKit.name;
+            local bIs           = sType == sTargetType;
+            local tRepo         = instance.repo.byobject[vVal] or nil;
+
+            if (not(bIs) and tRepo) then
+                local tActiveKit = tRepo.kit or nil;
+
+                if ((not bIs) and tActiveKit) then
+                    local tParent = tActiveKit.parent or nil;
+
+                    while ((not bIs) and tParent) do
+                        bIs     = tParent.name == sTargetType;
+                        tParent = tParent.parent or nil;
+                    end
+
+                end
+            end
+
+            return bIs;
+        end
+    );
+
     return oClass;
 end
 
@@ -346,7 +365,7 @@ function instance.build(tKit, tParentActual)
         pri = table.clone(tKit.pri), --create the private members
         pro = table.clone(tKit.pro), --etc.
         pub = table.clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
-        children            = {},    --TODO move to class level or to here? Is there any use for it here?
+        children            = {},    --TODO move to class level or to here? Is there any use for it here? IS THIS EVER USED AT ALL? Perhaps for class-level funtions?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
         metadata            = {                     --info about the instance
@@ -376,12 +395,20 @@ function instance.build(tKit, tParentActual)
     --TODO I need to update the children field of each parent (OR do I?)
     --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
     ---TODO move to kit.buildclass tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
-    --TODO make sure contrsuctors fire only once then are deleted
-    --TODO constructors  (also static initializers for altering static fields ONCE at runtime)
-    --TODO check for the presence of the parent constructor (should have been edeleted after call) Also, TODO delete constructor after call
+    --TODO  static initializers for altering static fields ONCE at runtime
 
     --store the class data so it can be used interally by classes to access other object cdat.
-    tKit.ins[oInstance] = tClassData;
+    rawset(tKit.ins, oInstance, tClassData);
+
+    --store it in the instance repo too
+    --instance.repo.byclass[]
+    --instance.repo.bykit[]
+    --instance.repo.byname[]
+    instance.repo.byobject[oInstance] = {
+        actual  = tInstance,
+        kit     = tKit,
+        class   = STUFF,--!TODO
+    };
 
     return oInstance, tInstance;
 end
@@ -499,7 +526,6 @@ function instance.setclassdatametatable(tInstance, tClassData)
                 end
 
                 --if none exists, throw an error
-                --if (rawtype(vRet) == "nil") then
                 if (zRet == "nil") then
                     error("Error in class, '${name}'. Attempt to access ${visibility} member, '${member}', a nil value." % {
                         name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
@@ -600,7 +626,8 @@ function instance.setmetatable(tInstance, tClassData)
 
     end
 
-    --leave these for last to ensure overright if they exist (and if they weren't filtered out already)
+    --[[leave these for last to ensure overwright if they exist
+        (if they weren't filtered out already)]]
     tMeta.__index     = function(t, k)
         return tClassData.pub[k] or nil;
     end;
@@ -612,17 +639,6 @@ function instance.setmetatable(tInstance, tClassData)
     tMeta.__type = tKit.name;
 
     tMeta.__is_luaex_class = true;
-
-    --[[tMetaDecoy = table.clone(tMeta, false);
-
-    local tMetaDecoy    = {--this secures the instance metatable from being modified
-        __newindex = function(t, k, v)
-            error("Error in class, '${class}'. Attempt to modify read-only instance metatable." % {class = tInstance.metadata.kit.name});
-        end,
-        __index = function(t, k)
-            return tMeta[k] or nil;
-        end,
-    };]]
 
     rawsetmetatable(oInstance, tMeta);
 end
@@ -753,6 +769,7 @@ end
 function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vImplements, bIsFinal)
 
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
+
     kit.validatename(sName);
     kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
     kit.validateinterfaces(vImplements);
@@ -765,11 +782,18 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             byname 		= {}, --updated on build
             byobject 	= {}, --updated when a class object is created
         },
-        finalmethodnames= {   --this keeps track of methods marked as final to prevent overriding --TODO allow final metamethods
+        finalmethodnames= {   --this keeps track of methods marked as final to prevent overriding
+            met = {},
             pro = {},
             pub = {},
         },
-        ins		        = {}, --TODO set a metatable so instances can't be altered
+        ins		        = rawsetmetatable({},
+            {
+                __newindex = function(t, k, v)
+                    error("Error in class, '${class}'. Attempt to modify read-only class data." % {class = sName});
+                end
+            }
+        ),
         isfinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
         name 			= sName,
         parent			= kit.mayextend(sName, cExtendor) and kit.repo.byobject[cExtendor] or nil, --note the parent kit
@@ -782,13 +806,13 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     };
 
     --note and rename final methods
-    kit.processdirectiveauto(tKit); --TODO all thse to be bet set as final too
+    kit.processdirectiveauto(tKit); --TODO allow these to be set set as final too
 
     --note and rename final methods
-    kit.processdirectivefinal(tKit);  --TODO allow final metamethods
+    kit.processdirectivefinal(tKit);
 
     --kit.processdirectivecombinatory(tKit);  --TODO this will be the directive which is both auto and final
-    --TODO add abstract classes and methods
+    --TODO add abstract classes and methods?
 
     --check for member shadowing
     kit.shadowcheck(tKit);
@@ -813,13 +837,13 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 end
 
 
---[[!TODO
+--[[
 @module class
 @func kit.mayextend
-@param table tKit The kit to build.
+@param table tKit The kit to check.
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Checks whether a class kit is allowed to be extended.
+@ret boolean True if the class can be extended, false otherwise.
 !]]
 function kit.mayextend(sName, cExtendor)
     local bRet = false;
@@ -923,7 +947,7 @@ function kit.processdirectiveauto(tKit)--TODO allow these to be set as final too
             tParentKit = tParentKit.parent;
         end
 
-        --store the auto settings for later creation in instantiation
+        --store the auto settings for later creation during instantiation
         tKit.auto[sName] = tItem;
     end
 
@@ -937,9 +961,8 @@ end
 @scope local
 @desc Iterates over all protected and public members to process them if they have a directive. !TODO add metamethods
 !]]
-local tFinalVisibility = {pro, pub}; --TODO allow final metamethods
+local tFinalVisibility = {met, pro, pub};
 function kit.processdirectivefinal(tKit)
-    ---local sFinalMarker  = CLASS_DIRECTIVE_FINAL.."$";
     local tFinal = {};
 
     for _, sCAI in pairs(tFinalVisibility) do
@@ -987,7 +1010,7 @@ end
 @scope local
 @desc Ensures there is no member shadowing happening in the class.
 !]]
-local tCheckIndices  = {pro, pub};
+local tCheckIndices  = {met, pro, pub};
 function kit.shadowcheck(tKit) --checks for public/protected shadowing
     local tParent   = tKit.parent;
 
@@ -1030,13 +1053,13 @@ function kit.shadowcheck(tKit) --checks for public/protected shadowing
 end
 
 
---[[!TODO
+--[[
 @module class
 @func kit.validateinterfaces
-@param interface|table|nil The interface (or numerically-indexed table of interface) this class implements (or nil, if none).
+@param interface|table|nil The interface (or numerically-indexed table of interfaces) this class implements (or nil, if none).
 @scope local
-@desc Builds a complete class object given the name of the kit. This is called by kit.build().
-@ret class A class object.
+@desc Checks to see of the input interfaces (if any) are valid.
+@ret True if they are (or none were provided), false otherwise
 !]]
 function kit.validateinterfaces(vImplements, tKit)--TODO complete this!!!
     local sImplementsType = type(vImplements);
@@ -1067,8 +1090,8 @@ end
 !]]
 function kit.validatename(sName)
     assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
-    assert(sName:isvariablecompliant(),					"Error creating class, '${class}.' Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
-    assert(type(kit.repo.byname[sName])	== "nil", 		"Error creating class, '${class}.' Class already exists."													% {class = sName});
+    assert(sName:isvariablecompliant(),					"Error creating class, '${class}'. Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
+    assert(type(kit.repo.byname[sName])	== "nil", 		"Error creating class, '${class}'. Class already exists."													% {class = sName});
 end
 
 
@@ -1085,11 +1108,11 @@ end
 @desc Validates all class input tables.
 !]]
 function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
-    assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}.' Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
-    assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}.' Static public values table expected.\r\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
-    assert(type(tPrivate) 				== "table", 	"Error creating class, '${class}.' Private values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
-    assert(type(tProtected) 			== "table", 	"Error creating class, '${class}.' Protected values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
-    assert(type(tPublic) 				== "table", 	"Error creating class, '${class}.' Static values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
+    assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}'. Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
+    assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}'. Static public values table expected.\r\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
+    assert(type(tPrivate) 				== "table", 	"Error creating class, '${class}'. Private values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
+    assert(type(tProtected) 			== "table", 	"Error creating class, '${class}'. Protected values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
+    assert(type(tPublic) 				== "table", 	"Error creating class, '${class}'. Static values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
 
     local bIsConstructor = false;
     local tTables = {
@@ -1104,14 +1127,14 @@ function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
     for sTable, tTable in pairs(tTables) do
 
         for k, v in pairs(tTable) do
-            assert(rawtype(k) == "string", "Error creating class, '${class}.' All table indices must be of type string. Got: (${type}) ${item} in table, ${table}" % {class = sName, type = type(k), item = tostring(v), table = sTable});
+            assert(rawtype(k) == "string", "Error creating class, '${class}'. All table indices must be of type string. Got: (${type}) ${item} in table, ${table}" % {class = sName, type = type(k), item = tostring(v), table = sTable});
             --TODO consider what visibility constructors must have (no need for private consttructors since static classes are not really needed in Lua?)
             --ensure there's a constructor
             --if ((sTable == "public" or sTable == "protected") and k == sName and rawtype(v) == "function") then
             if ((sTable == pub) and k == sName and rawtype(v) == "function") then
 
                 --make sure there's not already a constructor
-                assert(not bIsConstructor, "Error creating class, '${class}.' Redundant constructor detected in ${table} table." % {class = sName, table = sTable});
+                assert(not bIsConstructor, "Error creating class, '${class}'. Redundant constructor detected in ${table} table." % {class = sName, table = sTable});
 
                 --make sure it's in the public table
                 --assert(sTable == "public", "Error creating class, ${class}. Constructor must be declared in the 'public' table. Currently declared in the '${table}' table." % {class = sName, table = sTable});
@@ -1126,8 +1149,15 @@ function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
 --TODO import metamethods ONLY if they are legit metanames
     --validate the metamethods
     for sMetaItem, vMetaItem in pairs(tMetamethods) do
-        assert(tMetaNames[sMetaItem],               "Error creating class, '${class}.' Invalid metamethod, '${metaname}.'\nPermitted metamethods are:\n${metanames}"   % {class = sName, metaname = sMetaItem, metanames = getmetanamesasstring()});
-        assert(rawtype(vMetaItem) == "function",    "Error creating class, '${class}.' Invalid metamethod type for metamethod, '${metaname}.'\nExpected type function, got type ${type}."     % {class = sName, metaname = sMetaItem, type = type(vMetaItem)});
+        local sMetaname = sMetaItem:gsub("_FNL$", '');--TODO form string above forloop using constant
+        --print(sMetaItem, sMetaname)
+        assert(tMetaNames[sMetaname],
+                "Error creating class, '${class}'. Invalid metamethod, '${metaname}'.\nPermitted metamethods are:\n${metanames}" %
+                {class = sName, metaname = sMetaname, metanames = getmetanamesasstring()});
+
+        assert(rawtype(vMetaItem) == "function",
+                "Error creating class, '${class}'. Invalid metamethod type for metamethod, '${metaname}'.\nExpected type function, got type ${type}." %
+                {class = sName, metaname = sMetaname, type = type(sMetaItem)});
     end
 
 
@@ -1179,20 +1209,6 @@ return rawsetmetatable({}, {
 ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚══════╝
 NOTE This area may contain some useful functions but, as of yet, they have not been integrated
 
-Takes the input tables from a call the class modules and stores the fields
-& methods for later class construction TODO full description
-
---local tClassBuilder		= {};
-
-Keeps track of created class objects and their names.
-The table is indexed by class objects whose value
-is a table containing the name of the class and a
-boolean indicating if the class is extendable.
-Items are put into the table when a class is created
-and referenced when extending a class at the start of
-class creation.
-
-
 function kit.cloneitem = function(vItem)
 local vRet;
 
@@ -1203,7 +1219,7 @@ elseif (rawtype(vItem) == "table") then
 local tMeta = rawgetmetatable(vItem);
 
 if (tMeta and tMeta.__is_luaex_class) then
-vRet = vItem.clone();--TODO what is this?
+vRet = vItem.clone();
 
 else
 vRet = table.clone(vItem);
@@ -1238,36 +1254,5 @@ tRet = kit.get(tKit.parent);
 end
 
 return tRet;
-end
-
-function kit.prepclassdata(tKit)--TODO this currently not being used
-local tActual = {
-pri = rawsetmetatable({}, {
-__newindex
-}),
-pro = {},
-pub = {},
-ins = {},
-};
-local tDecoy = {};
-rawsetmetatable(tDecoy, {
-__index = function(t, k, v)
-
-if (rawtype(rawget(tActual, k)) == "nil") then
-error("Error in class, '${class}'. Attempt to access non-existent class data index, '${index}'." % {class = tKit.name, index = tostring(k)});
-end
-
-end,
-__newindex = function(t, k, v)
-
-if (rawtype(rawget(tActual, k)) == "nil") then
-error("Error in class, '${class}'. Attempt to modify read-only class data." % {class = tKit.name});
-end
-
-end,
-__metatable = true,
-});
-
-return tDecoy;
 end
 ]]

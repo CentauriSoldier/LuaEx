@@ -58,7 +58,7 @@ print(ERROR_MARKER);            --> "err:"
 - A fully-functional, [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
 - The class system also takes advantage of metatables and allows user to create, inherit and override these for class objects.
 - Auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.    
-- Strongly typed values (although allowing initial ******null*** values).
+- Strongly typed values (although allowing initial ***null*** values).
 - Optional final methods (preventing subclass overrides).
 - Optional final classes.
 - **More** features inbound...

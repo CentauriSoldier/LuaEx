@@ -174,7 +174,7 @@ local type = {
 		return tRet;
 	end,
 	raw = __type__,
-	set = function(tInput, sType)
+	set = function(tInput, sType)--TODO check that this is not a luex class
 
 		if (rawtype(tInput) == "table" and type(sType) == "string")then
 			--look for an existing meta table and get its type
@@ -187,7 +187,7 @@ local type = {
 				tMeta.__type = sType;
 				setmetatable(tInput, tMeta);
 				--record the new type
-				type[sType] = true;
+				type[sType] = true;--TODO create is function
 				return tInput;
 			end
 
@@ -197,7 +197,7 @@ local type = {
 	end,
 	setsub = function(tInput, sType)
 
-		if (rawtype(tInput) == "table" and type(sSubType) == "string")then
+		if (rawtype(tInput) == "table" and type(sSubType) == "string")then --TODO check that this is not a luex class
 			--look for an existing meta table and get its type
 			local tMeta 	= getmetatable(tInput);
 			local sMetaType = rawtype(tMeta);
@@ -206,7 +206,7 @@ local type = {
 			if (bIsTable or sMetaType == "nil") then
 				tMeta = bIsTable and tMeta or {};
 				tMeta.__subtype = sSubType;
-				setmetatable(tInput, tMeta);
+				setmetatable(tInput, tMeta);--TODO is function
 				return tInput;
 			end
 
@@ -289,21 +289,26 @@ subtype 	= type.sub;
 settype		= type.set;
 setsubtype	= type.setsub;
 
+--NOTE: doing a test in _G...local tIsTable = type;
+local tIsTable = _G;
+
+--NOTE This also gets done in the class system
+
 --setup the 'is' functions for all types
 for sType, _ in pairs(tLuaTypes) do
-	rawset(type, "is"..sType, function(vVal)
+	rawset(tIsTable, "is"..sType, function(vVal)
 		return __type__(vVal) == sType;
 	end);
 end
 
 for sType, _ in pairs(tLuaExTypes) do
-	rawset(type, "is"..sType, function(vVal)
+	rawset(tIsTable, "is"..sType, function(vVal)
 		return type(vVal) == sType;
 	end);
 end
 
 for sType, _ in pairs(tUserTypes) do
-	rawset(type, "is"..sType, function(vVal)
+	rawset(tIsTable, "is"..sType, function(vVal)
 		return type(vVal) == sType;
 	end);
 end

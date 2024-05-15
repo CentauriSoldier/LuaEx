@@ -73,6 +73,9 @@ local HP_MAX = 120; -- this is an example of a private static field
 
 Human = class("Human",
 {--metamethods
+    __tostring = function(left, right, cdat)
+        return "human"
+    end,
 },
 {--public static members
 },
@@ -90,27 +93,30 @@ Human = class("Human",
 },
 Creature, NO_INTERFACES, false);
 
-local Dan = Human("Dan", 45);
-print("Name: "..Dan.getName());                         --> "Name: Dan"
-print("HP: "..Dan.getHP());                             --> "HP: 45:"
-print("Type: "..type(Dan));                             --> "Type: Human"
-print("Is Dead? "..Dan.isDead());                       --> "Is Dead? false"
-print("Kill Dan ):!"); Dan.kill();                      --> "Kill Dan ):!"
-print("Is Dead? "..Dan.isDead());                       --> "Is Dead? true"
-print("Set Name: Dead Dan"); Dan.setName("Dead Dan");   --> "Set Name: Dead Dan"
-print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
+--local Dan = Human("Dan", 45);
+--print("Name: "..Dan.getName());                         --> "Name: Dan"
+--print("HP: "..Dan.getHP());                             --> "HP: 45:"
+--print("Type: "..type(Dan));                             --> "Type: Human"
+--print("Is Dead? "..Dan.isDead());                       --> "Is Dead? false"
+--print("Kill Dan ):!"); Dan.kill();                      --> "Kill Dan ):!"
+--print("Is Dead? "..Dan.isDead());                       --> "Is Dead? true"
+--print("Set Name: Dead Dan"); Dan.setName("Dead Dan");   --> "Set Name: Dead Dan"
+--print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 
-print(null < 1);    --> true
-print(null < "");   --> true
-print(null < nil);  --> false
-local k = null;
-print(k)            --> null
+--print(null < 1);    --> true
+--print(null < "");   --> true
+--print(null < nil);  --> false
+--local k = null;
+--print(k)            --> null
 
 Soldier = class("Soldier",
 {--metamethods
-    __add = function(left, right, cdat)
-
+    __tostring = function(left, right, cdat)
+        return "soldier"
     end,
+    --__unm = function(this, cdat)
+    --    print("soldier")
+    --end,
 },
 {--public static members
     RANK = enum("RANK",
@@ -140,8 +146,9 @@ Human, iCombator, false);
 
 
 
---Wheeler = Soldier("Wheeler",    50);
---Ellis   = Soldier("Ellis",      85);
+Wheeler = Soldier("Wheeler",    50);
+Ellis   = Human("Ellis",      85);
+--print(Wheeler)
 
 local tShared = {};
 
@@ -159,7 +166,7 @@ Items.add(false)
 Items.add(nil)
 Items.add(null)
 
-RemoveME = set().addset(Items).remove("bug");
+RemoveME = set().importset(Items).remove("bug");
 --print(Items.issubset(RemoveME))
 --Items.removeset(RemoveME);
 
@@ -176,131 +183,100 @@ Others.add("frog")
 Others.add(false)
 Others.add("bat")
 
-local oCpmp = Others.complement(Items);
+--print(Others.contains("frog"))
 
-for k in oCpmp() do
-    --print(k)
-end
 
 --print(Others.size())
 --for k in Others() do
     --print(k)
 --end
 
-local tPlates = stack();
-tPlates.push(1)
-tPlates.push(2)
-tPlates.push(3)
-tPlates.push(4)
-tPlates.push(5)
-tPlates.push(6)
-tPlates.push(7)
+local Plates = stack();
+Plates.push(1)
+Plates.push(2)
+Plates.push(3)
+Plates.push(4)
+Plates.push(5)
+Plates.push(6)
+Plates.push(7)
+Plates.push(8)
+--print(Plates)
+--print(Plates.reverse())
 
 local oLine = queue();
 oLine.enqueue(1);
 oLine.enqueue(2);
 oLine.enqueue(3);
 oLine.enqueue(4);
-oLine.enqueue(5);
+oLine.enqueue(queue({"cat", "mouse", "ant"}));
 oLine.enqueue(6);
---print(Plates.pop())
+--print(oLine)
+--print(oLine.reverse())
 --print(Plates.pop())
 --print(Plates.pop())
 --Plates.reverse();
 --Plates.clear()return
-local oInterset = Items.intersection(Others);
+--local oInterset = Items.intersection(Others);
 --local oClone = oInterset.clone();
 --print(Others.peek())
-for k in oInterset() do
+--for k in oInterset() do
     --print(k)
+--end
+
+A = set();
+B = set();
+
+for x = 1, 5 do
+    --A.add(x)
 end
 
-print(#true)
+for x = 3, 6 do
+    --B.add(x)
+end
 
+--print(A)
+---print(B)
+--print(A - B)
+--print(B - A)
+--print(A + B)
+--print(#true)
+--print(Items - Others)
 --print(fh())
 
---Kaleb.Attack();
+S = set().add("alex").add("casey").add("drew").add("hunter");
+T = set().add("casey").add("drew").add("jade");
 
---print(Soldier == Creature)
-
-
---Creature.Count = null;
---Creature.Count = "aasdasd";
---print(Creature.Count)
+S2 = set({"alex", "hunter", "drew", "casey"});
 
 
+V = set().add("drew").add("glen").add("jade");
+-- Example of eliminating if-then statement using a table
+local x = "98"
 
-
---Creature.Desc = null
---print("Boop: "..Kaleb.Boop())
---print(table.serialize(Kaleb))
---local Bob   = Soldier("Bob", 39);
---local j = Kaleb + Bob
---print(-Kaleb)
---local meta = setmetatable(Kaleb, {});
---print(table.serialize(meta))
---meta.__type = "donky";
---Kaleb.Boost();
---Creature.Desc = function()end
---Creature.Desc();
---Creature.iut = 9;
---Creature.Count = 9;
---print(Creature.Count);
---Creature.Desc = 5;
---print(bVal)
---print(Kaleb.IsDead())
---Kaleb = -Kaleb
---print(Kaleb.GetHP())
---print(Kaleb.IsDead())
---Kaleb.Test = 4;
---Creature.SayHello()
-
---Soldier.rty = 98
-
---print(Kaleb.SetHP(33).GetHP());
---Kaleb.SetHP(65);
---print(Kaleb.GetHP())
---Kaleb.Jump()
-
---Kaleb.Hits = "sdad";
---print(Kaleb.Hits)
-
-
-
---[[
-function writeToFile(text)
-    local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
-    if file then
-        file:write(text)  -- Write text to file
-        file:close()  -- Close the file
-        print("Text written to file successfully.")
-    else
-        print("Error: Unable to open file for writing.")
-    end
+-- Define a table mapping conditions to actions
+local conditionActions = {
+    [type(x) ~= "number"] = function() print("invalid input") end,
+    [type(x) == "number" and x == 0] =function() print("x is 0") end,
+    [type(x) == "number" and x  > 0] = function() print("x is positive") end,
+    [type(x) == "number" and x  < 0] = function() print("x is not positive") end,
+}
+local action = conditionActions[true]  -- Retrieve the action based on the condition
+if action then
+    --action()  -- Execute the action if it exists
 end
-
--- Example usage:
-local k = 4;
-local function test()
-    print("hello "..k)
+--local k = {}
+--settype(k, "Doggie")
+--print(isDoggie(kl))
+function checkme(vVal, sExpected)
+    return type(vVal) == sExpected;
 end
-
-
---https://leafo.net/guides/function-cloning-in-lua.html
-local function clone_function(fn)
-  local dumped = string.dump(fn)
-  local cloned = loadstring(dumped)
-  local i = 1
-  while true do
-    local name = debug.getupvalue(fn, i)
-    if not name then
-      break
-    end
-    debug.upvaluejoin(cloned, i, fn, i)
-    i = i + 1
-  end
-  return cloned
-end
-
---local fh = clone_function(test)
-]]
+--print(isCreature(Wheeler))
+--print(isSoldier(Wheeler))
+print(isCreature(Wheeler))
+--isSoldier(Wheeler)
+--print(serialize.table(type.getall()))
+--dox.processDir(sPathToMyLuaFiles, sPathToTheOutputDirectory);
+--print(S)
+--print(T)
+--print(V)
+--print(S - T);

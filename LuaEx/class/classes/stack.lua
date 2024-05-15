@@ -43,8 +43,26 @@ return class("stack",
 	 __len = function(this, cdat)
 		return cdat.pri.count;
 	end,
+
+
+    --[[!
+    @module stack
+    @func __tostring
+    @scope public
+    @desc Returns a string representing the items in the stack.
+    @ret string A string representing the items in the stack.
+    !]]
+    __tostring = function(this, cdat)--TODO clean up in stack, set and queue
+        local sRet = "";
+
+        for _, vItem in ipairs(cdat.pri.values) do
+            sRet = sRet..tostring(vItem)..", ";
+        end
+
+        return "{"..sRet:sub(1, #sRet - 2).."}";
+    end,
 },
-{bugs = 45,},--"JKAHSDUIYIQWUHEDIUY(@#*#)"},--static public TODO static public is not working
+{},--static public
 {--private
 	count  = 0,
 	values = {},
@@ -56,9 +74,25 @@ return class("stack",
     @func stack
     @scope public
     @desc Constructs a new stack object.
+    @param table|nil A numerically-indexed table of items to push onto the stack (optional).
     @ret stack A new stack object.
     !]]
-    stack = function(this, cdat) end,
+    stack = function(this, cdat, tItems)
+
+        if (type(tItems) == "table") then
+
+            for nIndex, vItem in ipairs(tItems) do
+
+                if (rawtype(vItem) ~= "nil") then
+                    table.insert(cdat.pri.values, 1, vItem);
+            		cdat.pri.count = cdat.pri.count + 1;
+        		end
+
+            end
+
+        end
+
+    end,
 
 
     --[[!
@@ -66,7 +100,7 @@ return class("stack",
     @func stack.clear
     @scope public
     @desc Removes all elements from the stack.
-    @ret stack The stack object after clearing.
+    @ret stack The stack object after clearing all items.
     !]]
     clear = function(this, cdat)
        cdat.pri.count  = 0;
@@ -159,8 +193,8 @@ return class("stack",
     @ret stack The stack object after reversing the elements.
     !]]
     reverse = function(this, cdat)
-        local values = cdat.pri.values
-        local count = cdat.pri.count
+        local values    = cdat.pri.values
+        local count     = cdat.pri.count
 
         for x = 1, math.floor(count / 2) do
             values[x], values[count - x + 1] = values[count - x + 1], values[x];
