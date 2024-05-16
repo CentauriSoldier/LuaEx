@@ -282,22 +282,24 @@ local isCreature = type.isCreature;
 local aPets = array({34, 5, 89});
 local aPets = array(6);
 
-aPets[1] = "dog";
-aPets[2] = "cat";
-aPets[3] = "bat";
-aPets[4] = "frog";
-aPets[5] = "horse";
-aPets[6] = "bird";
+aPets[1] = 23423434;
+aPets[2] = 2e54;
+aPets[3] = 1234;
+aPets[4] = 4534;
+aPets[5] = 66;
+aPets[6] = 323464;
 
+aPets.sort()
 --print(array)
 --print(aPets.length)
 --print(aPets[2]);
 for k, v in aPets() do
-    --print(k, v)
+    print(k, v)
 end
-aPets.clear()
-aPets[4] = "4"
-print(aPets[4], aPets[5], aPets.length)
+--aPets.clear()
+--print(aPets[4], aPets[5], aPets.length)
+--print(aPets.indexof("bat"))
+print(aPets.indexof("bat"))
 --aPets[4] = 67
 --print(aPets[4]);
 --print(aPets.length);

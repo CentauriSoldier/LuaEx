@@ -148,8 +148,8 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
  - Structs working but description not complete. <span style="color:red">TODO</span>.
 
 ##### Notes on Factories
-- All **enums**, **arrays**, **structs** and other such items are made by $${\color{orange}factories}$$. The **enum** <span style="color:orange">*factory*</span> is called by ***enum()***, **class** <span style="color:orange">*factory*</span> by ***class()***, etc.
-- While some objects are made by <span style="color:orange">*factories*</span>, some things make <span style="color:orange">*factories*</span> that make objects. One example of this is **structs**. These are made by *<span style="color:orange">factories*</span> that are made by a <span style="color:#00BFFF">*struct factory builder*</span> called with ***struct()*** that returns a <span style="color:orange">*struct factory*</span>.
+- All **enums**, **arrays**, **structs** and other such items are made by *factories*. The **enum** *factory* is called by ***enum()***, **class** *factory* by ***class()***, etc.
+- While some objects are made by *factories*, some things make *factories* that make objects. One example of this is **structs**. These are made by *factories* that are made by a *struct factory builder* called with ***struct()*** that returns a *struct factory*.
 
 
 ## 🅳🅴🆅🅴🅻🅾🅿🅼🅴🅽🆃 🅶🅾🅰🅻🆂 ⌨

@@ -5,15 +5,38 @@ local type          = type;
 
 --[[
 TODO
-Array.Sort
-Array.Resize
-Array.Copy
-Array.IndexOf
-LastIndexOf
-
 Clone(): Method that creates a shallow copy of the array.
 
+Array.Copy
+ourceArray: The array from which to copy elements.
+sourceIndex: The zero-based index in the source array from which copying begins.
+destinationArray: The array to which to copy elements.
+destinationIndex: The zero-based index in the destination array at which copying begins.
+length: The number of elements to copy.
 CopyTo(Array array, int index): Method that copies the elements of the array to another array, starting at a specified index.
+
+In C#, Array.Copy and Array.CopyTo are both used to copy elements from one array to another, but they have different usage patterns and behaviors:
+
+    Array.Copy:
+        Array.Copy is a static method of the Array class.
+        It allows you to copy a range of elements from one array to another.
+        You have full control over the starting index in both the source and destination arrays.
+        It does not require the destination array to be pre-allocated.
+        It can copy elements between arrays of different lengths.
+        It does not resize the destination array; it only copies elements up to the specified length or until the end of the source array, whichever comes first.
+        It does not return a new array; it modifies the destination array in place.
+
+    Array.CopyTo:
+        Array.CopyTo is an instance method of the Array class.
+        It copies the entire contents of one array to another array.
+        It is used when you want to copy all elements of the source array to the destination array.
+        The destination array must be pre-allocated with enough space to accommodate all elements of the source array.
+        It does not provide options for specifying starting indices or lengths; it copies all elements from the beginning of the source array.
+        It throws an ArgumentException if the destination array is not large enough to hold all elements of the source array.
+        It does not return a new array; it modifies the destination array in place.
+
+In summary, Array.Copy offers more flexibility for copying specific ranges of elements between arrays, while Array.CopyTo is simpler to use when you want to copy all elements of one array to another.
+
 ]]
 
 local tArrayActual = {}; --array factory actual table
@@ -29,9 +52,40 @@ return setmetatable(tArrayActual,
             clear = function()
 
                 for x = 1, tActual.length do
-                    tItems[x] = null;
+                    tItems[x]       = null;
                 end
 
+            end,
+            indexof = function(vItem)
+                local nIndex = -1;
+
+                for x = 1, tActual.length do
+
+                    if (tItems[x] == vItem) then
+                        nIndex = x;
+                        break;
+                    end
+
+                end
+
+                return nIndex;
+            end,
+            lastindexof = function(vItem)
+                local nIndex = -1;
+
+                for x = tActual.length, 1, -1 do
+
+                    if (tItems[x] == vItem) then
+                        nIndex = x;
+                        break;
+                    end
+
+                end
+
+                return nIndex;
+            end,
+            sort = function(bSorter)
+                table.sort(tItems, bSorter);
             end,
         };
 
@@ -48,7 +102,7 @@ return setmetatable(tArrayActual,
             tActual.length = vInput;
 
             for x = 1, vInput do
-                tItems[x] = null;
+                tItems[x]       = null;
             end
 
         --process table input
@@ -159,7 +213,7 @@ return setmetatable(tArrayActual,
                     error("Error assigning value to array. Item must be of type ${expectedtype}.\nInput is '${input}' of type ${type}." % {expectedtype = tostring(sArrayType), input = tostring(v), type = type(v)});
                 end
 
-                tItems[k] = v;
+                tItems[k]   = v;
             end,
             __tostring = function()
                 local sRet = "";
@@ -192,92 +246,3 @@ return setmetatable(tArrayActual,
 
     __type      = "arrayfactory",
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---[[
-
--- Array class definition
-return class("array",
-    { -- Metamethods
-
-    },
-    { -- Static public
-
-    },
-    { -- Private
-        data    = {},
-        length  = 0,  -- Represents the current number of elements in the array
-        type    = null;
-    },
-    { -- Protected
-
-    },
-    { -- Public
-        -- Constructor
-        array = function(this, cdat, sType)
-            --TODO allow for table input
-            --TODO check that this type is valid
-            assert(type(type) == "string", "Array type must be a string");
-            cdat.pri.type = sType;
-        end,
-
-        -- Add item to the array
-        --WARNING this should not allow changing the array size; it's possible this method should not exist
-        add = function(this, cdat, vItem)
-            local bRet = false;
-
-            if (rawtype(vItem) ~= "nil") then
-                -- Check if the item type matches the array type
-                if rawtype(vItem) == cdat.pri.type then
-                    table.insert(cdat.pri.data, vItem);
-                    cdat.pri.length = cdat.pri.length + 1;
-                    bRet = true;
-                else
-                    error("Attempt to add item of incorrect type to array");
-                end
-            end
-
-            return bRet;
-        end,
-
-        -- Get item from the array by index
-        get = function(this, cdat, nIndex)
-            assert(type(nIndex) == "number" and nIndex >= 1 and nIndex <= cdat.pri.length,
-                "Error in class, array. Invalid index or index out of bounds.");
-            return cdat.pri.data[nIndex];
-        end,
-
-        -- Set item in the array by index
-        set = function(this, cdat, nIndex, vItem)
-            assert(type(nIndex) == "number" and nIndex >= 1 and nIndex <= cdat.pri.length,
-                "Error in class, array. Invalid index or index out of bounds.");
-            -- Check if the item type matches the array type
-            if rawtype(vItem) == cdat.pub.type then
-                cdat.pri.data[nIndex] = vItem;
-            else
-                error("Attempt to set item of incorrect type in array");
-            end
-        end,
-
-        -- Get the current length of the array
-        length = function(this, cdat)
-            return cdat.pri.length;
-        end,
-    },
-    nil,    -- Extending class
-    nil,    -- Interface(s)
-    false   -- If the class is final
-);
-]]
