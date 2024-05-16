@@ -257,7 +257,7 @@ local function createfactory(t, sSubType, tProperties)--, bPrivate)
 		--__mode,
 		--__metatable	= nil,
 		__mul		= errmath,
-		__name		= sSubType.." struct factory",
+		__name		= sSubType.."structfactory",
 		__newindex 	= dummy,
 		__pairs		= erriterate,
 		__pow		= errmath,
@@ -275,7 +275,7 @@ local function createfactory(t, sSubType, tProperties)--, bPrivate)
 
 			return sRet;
 		end,
-		__type		= "struct factory",
+		__type		= "structfactory",--TODO check these types for correctness NOTE these also need is functions if they don't have them already!!
 		__unm		= errmath,
 	});
 
@@ -315,6 +315,9 @@ return setmetatable({
 	__index 	= dummy,--getfactory,
 	__len 	 	= factorycount,
 	__newindex 	= dummy,
-	__subtype	= "struct",
-	__type 		= "factory constructor",
+	__subtype	= "struct",--WTF these subtypes don't seem right
+    __tostring = function()
+        return "structfactorybuilder" --TODO do the abov emetatables need these too?
+    end,
+	__type 		= "structfactorybuilder",
 });

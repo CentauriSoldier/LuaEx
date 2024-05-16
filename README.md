@@ -7,7 +7,7 @@ Simply put, **LuaEx** is a collection of scripts that extend Lua's functionality
 Below are some of the features in **LuaEx** (*See documentation for full details*).
 
 ##### New Type System
-- Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new LuaEx types (such as **enum**, **class**, **struct**, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***subtype*** function to check that).
+- Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new **LuaEx** types (such as **enum**, **class**, **struct**, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***type.sub*** function to check that).
 - boolean to number/string coercion, number to boolean coercion, boolean math, boolean negation, etc.
 ```lua
 print(#1); --> true
@@ -25,7 +25,7 @@ print("This value is "..true); -->"This value is true"
 ```
 - The ***null*** (or ***NULL***) type now exists for the main purpose of retaining table keys while providing no real value. While setting a table key to nil will remove it, setting it to ***null*** will not.  
 The ***null*** value can be compared to other types and itself.  
-In addition, it allows for the an undeclared initial type in **classes** and **structs**.  
+In addition, it allows for undeclared initial types in **classes**, **arrays** and **structs**.  
 As shown above, The ***null*** value has an alias: ***NULL***.  
 ***WARNING***: <u>*never*</u> localize the ***null*** (or ***NULL***) value! Strange things happen...you've been warned. **☠ ☣ ☢ 💥**
 ```lua
@@ -39,7 +39,7 @@ print(k)            --> null
 
 ##### Constants
 While **Lua 5.4** offers constants natively, previous versions don't.  
-As **LueEx** is not built for **5.4**, constants are provided. They may be of any non-nill type (*though ***null*** [or ***NUL***] should never be set as a constant, as it already is*).
+As **LueEx** is not built for **5.4**, constants are provided. They may be of any non-nill type (*though ***null*** [or ***NULL***] should never be set as a constant, as it already is*).
 
 ```lua
 constant("MAX_CREATURES", 45);
@@ -145,6 +145,11 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 - QoL methods and properties like ***next***, ***previous***, etc.
 
 ##### Structs
+ - Structs working but description not complete. <span style="color:red">TODO</span>.
+
+##### Notes on Factories
+- All **enums**, **arrays**, **structs** and other such items are made by <span style="color:orange">*factories*</span>. The **enum** <span style="color:orange">*factory*</span> is called by ***enum()***, **class** <span style="color:orange">*factory*</span> by ***class()***, etc.
+- While some objects are made by <span style="color:orange">*factories*</span>, some things make <span style="color:orange">*factories*</span> that make objects. One example of this is **structs**. These are made by *<span style="color:orange">factories*</span> that are made by a <span style="color:#00BFFF">*struct factory builder*</span> called with ***struct()*** that returns a <span style="color:orange">*struct factory*</span>.
 
 
 ## 🅳🅴🆅🅴🅻🅾🅿🅼🅴🅽🆃 🅶🅾🅰🅻🆂 ⌨
@@ -191,6 +196,8 @@ To that end, if you're using **Lua 5.1** and come across a bug that appears spec
 - Bugfix: renamed the **\_\_LUAEX\_\_** table reference in the **enum** module that got missed.
 - Change: removed class system from **v0.8** as it had a fatal, uncorrectable flaw.
 - Change: rewrote the class system again from scratch, avoiding fatal flaw in previous system.
+- Change: renamed ***type.x*** to ***type.ex*** and ***typex*** to ***typeex*** to more clearly indicate the check refers to **LuaEx** types.
+- Change: set types for factories. (E.g., print(type(class)); --> classfactory)
 - Change: removed static protected members from the class system as using them is, almost always, an anti-pattern.
 - Change: class members are now strongly typed.
 - Change: ***temporarily*** disabled compulsory classes until they're refactored for new class system.
@@ -212,7 +219,7 @@ To that end, if you're using **Lua 5.1** and come across a bug that appears spec
 - Change: moved all type items to **types.lua**.
 - Change: renamed functions in various modules to conform with Lua's lowercase naming convention.
 - Change:
-- Change: improved the **string.totable** function.
+- Change: improved the ***string.totable*** function.
 - Change: the ***xtype*** function will now ignore user-defined types but return **LuaEx**'s type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as opposed to returning, *"table"*. *Use the **rawtype** function to ignore all **LuaEx** type mechanics*.
 - Change: renamed the ***string.delimitedtotable*** function to ***string.totable***.
 - Bugfix: corrected several minor bugs in enum library.
@@ -240,7 +247,7 @@ To that end, if you're using **Lua 5.1** and come across a bug that appears spec
 - Update: updated README with more information.
 
 **v0.50**
-- Bugfix: ***table.lock*** was altering the metatable of enums when it should not have been.
+- Bugfix: ***table.lock*** was altering the metatable of **enums** when it should not have been.
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible).
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling script to handle.
 - Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.

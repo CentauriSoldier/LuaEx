@@ -74,14 +74,19 @@ local tLuaTypes = {
 
 --'immutable' table of stock LuaEx types
 local tLuaExTypes = {
-	class 				= true,
-	clausum				= true,
-	constant			= true,
-	enum 				= true,
-	interface			= true,
-	null 				= true,
-	struct				= true,
-	factory_constructor = true,
+    array                   = true,
+    arrayfactory            = true,
+	class                   = true,
+    classfactory            = true,
+	clausum                 = true,
+	constant                = true,
+	enum 				    = true,
+    enumfactory 			= true,
+	interface               = true,
+	null 				    = true,
+	struct				    = true,
+    structfactory           = true,
+	structfactorybuilder    = true,
 };
 --TODO add class and truct types here somwhere (when instances are created)
 --user can add/remove the items in this table
@@ -100,6 +105,31 @@ local type = {
 	end,
 	mathchesboth = function(sLeftType, sRightType, sTypeInQuestion)
 		return (sLeftType == sObjType and sRightType == sTypeInQuestion);
+	end,
+    ex = function(vObject) --TODO rename this be 'ex' for clarity
+		local sType = __type__(vObject);
+
+		if (sType == "table") then
+			local tMeta = getmetatable(vObject);
+
+			if (__type__(tMeta) == "table") then
+
+				if (__type__(tMeta.__type) == "string") then
+
+					if (tLuaExTypes[tMeta.__type] 		or 									--luaex type
+						tMeta.__type:find("struct ") 	or tMeta.__type:find(" struct") or 	--custom struct
+						tMeta.__is_luaex_class			or 									--custom class
+						vObject["enum"]) then --custom enum
+						sType = tMeta.__type;
+					end
+
+				end
+
+			end
+
+		end
+
+		return sType;
 	end,
 	full = function(vObject)
 		local sType = __type__(vObject);
@@ -228,31 +258,6 @@ local type = {
 
 		return sType;
 	end,
-	x = function(vObject) --TODO rename this be 'ex' for clarity
-		local sType = __type__(vObject);
-
-		if (sType == "table") then
-			local tMeta = getmetatable(vObject);
-
-			if (__type__(tMeta) == "table") then
-
-				if (__type__(tMeta.__type) == "string") then
-
-					if (tLuaExTypes[tMeta.__type] 		or 									--luaex type
-						tMeta.__type:find("struct ") 	or tMeta.__type:find(" struct") or 	--custom struct
-						tMeta.__is_luaex_class			or 									--custom class
-						vObject["enum"]) then --custom enum
-						sType = tMeta.__type;
-					end
-
-				end
-
-			end
-
-		end
-
-		return sType;
-	end,
 };
 
 local function newindex(t, k, v)
@@ -283,7 +288,7 @@ end
 
 --aliases for ease-of use TODO these should be removed and localized as needed
 rawtype 	= type.raw;
-xtype 		= type.x;
+xtype 		= type.ex;
 fulltype	= type.full;
 subtype 	= type.sub;
 settype		= type.set;

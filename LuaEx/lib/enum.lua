@@ -500,5 +500,9 @@ return setmetatable(
 },
 {
 	__call = createenum,
+    __tostring = function()
+        return "enumfactory"
+    end,
+    __type = "enumfactory";
 }
 );

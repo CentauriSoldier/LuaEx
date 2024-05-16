@@ -1,5 +1,5 @@
 Variables are prefixed with the following lower-case symbols based on their type/application.
-
+a   |   array
 b	|	boolean
 c	|	class
 e	|	enum
@@ -20,4 +20,4 @@ Types ignored by this convention are types nil and null since prefixing such a v
 Exceptions:
 In for loops, sometimes 'x' is used to indicate active index while 'k' and 'v' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.
 
-In class methods, the first two arguments--the instance object and the class data table respectively) are written as 'this' and 'cdat' while the third argument in a child class constructor (the parent constructor) is written as 'super'. Additionly, In any method that accepts the input of another class instance, the variable is written as 'other.' This intetional and obvious deviation from convention makes these variables stand out clearly. 
+In class methods, the first two arguments--the instance object and the class data table respectively) are written as 'this' and 'cdat' while the third argument in a child class constructor (the parent constructor) is written as 'super'. Additionly, In any method that accepts the input of another class instance, the variable is written as 'other.' This intetional and obvious deviation from convention makes these variables stand out clearly.

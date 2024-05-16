@@ -1195,6 +1195,10 @@ return rawsetmetatable({}, {
 		return tClassActual[k] or nil;
 	end,
 	__newindex 	= function(t, k, v) end,--deadcall function to prevent adding external entries to the class module TODO put error here
+    __tostring = function()
+        return "classfactory"
+    end,
+    __type = "classfactory",
 
 });
 

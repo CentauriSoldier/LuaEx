@@ -78,6 +78,7 @@ clausum			=	require("LuaEx.lib.clausum");--TODO what is the purpose of this? Doe
 local null		= 	require("LuaEx.lib.null");
 					rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
 					rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
+array           =   require("LuaEx.lib.array");
 enum			= 	require("LuaEx.lib.enum");
 struct			= 	require("LuaEx.lib.struct");
 source			=	require("LuaEx.util.source");

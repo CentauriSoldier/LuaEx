@@ -276,7 +276,31 @@ end
 --print(isCreature(Wheeler))
 --print(isSoldier(Wheeler))
 local isCreature = type.isCreature;
-print(isCreature(Wheeler))
+--print(isCreature(Wheeler))
+
+--local aPets = array({12, 34, 65, 89});
+local aPets = array({34, 5, 89});
+local aPets = array(6);
+
+aPets[1] = "dog";
+aPets[2] = "cat";
+aPets[3] = "bat";
+aPets[4] = "frog";
+aPets[5] = "horse";
+aPets[6] = "bird";
+
+--print(array)
+--print(aPets.length)
+--print(aPets[2]);
+for k, v in aPets() do
+    --print(k, v)
+end
+aPets.clear()
+aPets[4] = "4"
+print(aPets[4], aPets[5], aPets.length)
+--aPets[4] = 67
+--print(aPets[4]);
+--print(aPets.length);
 --isSoldier(Wheeler)
 --print(serialize.table(type.getall()))
 --dox.processDir(sPathToMyLuaFiles, sPathToTheOutputDirectory);
