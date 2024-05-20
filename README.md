@@ -7,7 +7,7 @@ Simply put, **LuaEx** is a collection of scripts that extend Lua's functionality
 Below are some of the features in **LuaEx** (*See documentation for full details*).
 
 ##### New Type System
-- Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new **LuaEx** types (such as **enum**, **class**, **struct**, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***type.sub*** function to check that).
+- Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new **LuaEx** types (such as **array**, **enum**, **class**, **struct**, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***type.sub*** function to check that).
 - boolean to number/string coercion, number to boolean coercion, boolean math, boolean negation, etc.
 ```lua
 print(#1); --> true
@@ -145,11 +145,23 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 - QoL methods and properties like ***next***, ***previous***, etc.
 
 ##### Structs
- - Structs working but description not complete. <span style="color:red">TODO</span>.
+ - Structs working but description not complete. ***TODO***
+
+##### Arrays
+- The **array** object behaves like traditional arrays in as many ways as is possible in **Lua**.
+- Are type-safe, meaning only one type may be put into an **array**.
+- Have a fixed length.
+- Are numerically indexed
+- Have the option to initialize with a numerically-indexed table of values or a number.
+- Initializing with a number—e,g., aMyArray = **array**(*nLength*)—all values are set to **null** and the **array** type is set upon the first value assignment.
+- Strict bounds checking upon assignment/retrieval.
+- Returns **null** value for unassigned values in numerically-instantiated **array**.
+- Obligatory methods such as ***sort***, ***clear***, ***copy***, ***clone***, etc.
+
 
 ##### Notes on Factories
-- All **enums**, **arrays**, **structs** and other such items are made by *factories*. The **enum** *factory* is called by ***enum()***, **class** *factory* by ***class()***, etc.
-- While some objects are made by *factories*, some things make *factories* that make objects. One example of this is **structs**. These are made by *factories* that are made by a *struct factory builder* called with ***struct()*** that returns a *struct factory*.
+- All **arrays**, **enums**, **structs** and other such items are made by *factories*. The **array** *factory* is called by ***array()***, **enum** *factory* by ***enum()***, **class** *factory* by ***class()***, etc.
+- While some objects are made by *factories*, some things make *factories* (*that, in turn, make objects*). One example of this is **structs**. These are made by *factories* that are made by a *struct factory builder* called with ***struct()*** that returns a *struct factory*.
 
 
 ## 🅳🅴🆅🅴🅻🅾🅿🅼🅴🅽🆃 🅶🅾🅰🅻🆂 ⌨

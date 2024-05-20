@@ -97,6 +97,35 @@ local __type__ = type;
 type = nil;
 
 local type = {
+    check = {
+        custom = function(vInput, sType)
+            assert(type(vInput) == sType, "Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)});
+        end,
+        string = function(vInput, sPattern, sMessage)--TODO finish adding optional message and create other functions
+            local bConditionMet = false;
+            local sType = type(vInput);
+            local bGoodType = sType == "string";
+            local sError = "Error in parameter input.";
+
+            if bGoodType then
+
+                if sPattern then
+
+                    if vInput:match(sPattern) then
+                        bConditionMet = true;
+                    else
+                        sError = sError.."\nString does not match the required pattern (\""..sPattern.."\").";
+                    end
+                else
+                    bConditionMet = true; -- If no pattern is provided, any string is considered valid.
+                end
+            else
+                sError = sError.."\nExpected type is string. Type given: "..sType..'.';
+            end
+
+            assert(bConditionMet, sError);
+        end,
+    },
 	mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?
 		return (sLeftType == sObjType and sRightType ~= sTypeInQuestion);
 	end,

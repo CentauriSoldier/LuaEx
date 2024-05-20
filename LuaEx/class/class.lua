@@ -349,7 +349,7 @@ end
                     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝]]
 
 
---[[
+--[[!
 @module class
 @func instance.build
 @param table tKit The kit from which the instance is to be built.

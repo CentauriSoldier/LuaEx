@@ -31,6 +31,11 @@ function string.cap(sInput, bLowerRemaining)
 end
 
 
+function string.isempty(sInput)
+    return sInput:gsub("[%s]+", '') == "";
+end
+
+
 function string.capall(sInput, sDelimiter)
 	local sRet = "";
 	local tWords = nil;

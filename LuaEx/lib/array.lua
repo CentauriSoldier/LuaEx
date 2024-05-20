@@ -43,6 +43,14 @@ local tArrayActual = {}; --array factory actual table
 
 return setmetatable(tArrayActual,
 {
+    --[[!
+    @module array
+    @func array
+    @scope public
+    @desc Creates an array object.
+    @param vInput The input for creating the array, either a number or a numerically-indexed table of like items.
+    @ret array The created array object.
+    !]]
     __call = function(__IGNORE__, vInput)--create the array object
         local tItems        = {};   --the actual array data
         local sArrayType    = null; --the type the array stores
@@ -146,6 +154,14 @@ return setmetatable(tArrayActual,
         end
 
         local tArrayMeta = { --the returned object's metatable
+            --[[!
+            @module array
+            @func __call
+            @scope public
+            @desc Creates an iterator function to iterate over the elements of the array.
+            @param array The array object.
+            @ret function An iterator function that returns each index and element of the array respectively.
+            !]]
             __call = function(t)
                 local x     = 0;
                 local nMax  = tActual.length;
@@ -160,6 +176,16 @@ return setmetatable(tArrayActual,
                 end
 
             end,
+
+
+            --[[!
+            @module array
+            @func __index
+            @scope public
+            @desc Retrieves an element from the array by index or a method/property by name.
+            @param number|string vIndex The numeric array index or string name of method/property to retrieve.
+            @ret any The value at the specified index or the method/property.
+            !]]
             __index = function(t, k)
                 local vRet = nil;
 
@@ -182,6 +208,16 @@ return setmetatable(tArrayActual,
 
                 return vRet;
             end,
+
+
+            --[[!
+            @module array
+            @func __newindex
+            @scope public
+            @desc Assigns a value to the array at a specific index.
+            @param number nIndex The index to assign.
+            @param any vVal The non-nill/non-null value to assign.
+            !]]
             __newindex = function(t, k, v)
                 local sType = type(v);
 
@@ -215,6 +251,13 @@ return setmetatable(tArrayActual,
 
                 tItems[k]   = v;
             end,
+            --[[!
+                @module array
+                @func __tostring
+                @scope public
+                @desc Converts the array object to a string representation.
+                @ret string The string representation of the array.
+            !]]
             __tostring = function()
                 local sRet = "";
 
@@ -231,11 +274,26 @@ return setmetatable(tArrayActual,
         return setmetatable({}, tArrayMeta);
     end,
 
+
+    --[[!
+    @module array
+    @func __index
+    @scope public
+    @desc Retrieves a method or property from the array factory.
+    @param string sName The name of the method or property to retrieve.
+    @ret any The method or property.
+!   ]]
     __index = function(t, k)
         return rawget(tArray, k) or nil;
     end,
 
-    --deadcall function to prevent modifying the array factory
+
+    --[[!
+    @module arrayfactory
+    @func __newindex
+    @scope public
+    @desc A deadcall method to prevents modification of the array factory.
+    !]]
     __newindex = function(t, k, v)
 
     end,

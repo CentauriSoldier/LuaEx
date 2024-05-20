@@ -4,7 +4,7 @@ loadstring = loadstring;
 if (type(loadstring) ~= "function" and type(load) == "function") then
 	loadstring = load;
 end
-
+--TODO I think I need to do this with table.unpack
 --[[
 Defaulted is true, this protects
 enum and const values from being
@@ -113,7 +113,7 @@ interface	= require("LuaEx.class.interface");
 class 		= require("LuaEx.class.class");
 
 --import external libraries
---base64 		= require("LuaEx.ext_lib.base64");
+base64 		= require("LuaEx.ext_lib.base64");
 
 --import other modules
 serialize 	= require("LuaEx.util.serialize");
@@ -127,7 +127,8 @@ deserialize = require("LuaEx.util.deserialize");
 queue 	    = require("LuaEx.class.classes.queue");
 stack 	    = require("LuaEx.class.classes.stack");
 set 		= require("LuaEx.class.classes.set");
-
+dox         = require("LuaEx.class.classes.dox");
+doxlua      = require("LuaEx.class.classes.dox.doxlua");
 
 --🅰🅻🅸🅰🆂🅴🆂
 table.serialize 	= serialize.table;
