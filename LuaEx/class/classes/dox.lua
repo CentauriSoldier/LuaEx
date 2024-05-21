@@ -1,3 +1,4 @@
+--OMG use queues for output
 --[[TODO
     Use MD for text
     Allow internal anchor links
@@ -7,55 +8,51 @@
 local assert    = assert;
 local class     = class;
 local rawtype   = rawtype;
+local string    = string;
 local table     = table;
 local type      = type;
 
+local tRequiredGroupBlockTags;
+tRequiredGroupBlockTags = setmetatable(--these block tags must exist within each dox block tag group
+{
+    [1] = "mod",
+    [2] = "name",
+},
+{
+    __call = function(__IGNORE__)
+        local nIndex    = 0;
+        local nMax      = #tRequiredGroupBlockTags;
 
-local function extractblocksOLD(sInput, sOpen, sClose)
-    local tRet = {};
-    local nStart, nEnd = 1, 1;
+        return function()
+            nIndex = nIndex + 1;
 
-    --loop through the string
-    while (nStart and nEnd) do
-        --find the next occurrence of the open tag
-        nStart = str:find(sOpen, nEnd, true);
+            if (nIndex <= nMax) then
+                return nIndex, tRequiredGroupBlockTags[nIndex];
+            end
 
-        if not (nStart) then --break if not found
-            break;
         end
 
-        nEnd = str:find(sClose, nStart + #sOpen, true);
+    end,
+    __unm = function()
+        local tRet = {};
 
-        if not (nEnd) then--break if not found
-            break;
+        for nIndex, sName in tRequiredGroupBlockTags() do
+            tRet[nIndex] = false;
         end
 
-        --extract the substring between the open and close tags
-        local sExtracted = str:sub(nStart + #sOpen, nEnd - 1)
-        --add the sExtracted substring to the tRet table
-        table.insert(tRet, sExtracted);
-    end
+        return tRet;
+    end,
+});
 
-    return tRet;
-end
-
+--[[f!
+    @mod dox
+    @func escapePattern
+    @desc Escapes special characters in a string so it can be used in a Lua pattern match.
+    @param pattern A string containing the pattern to be escaped.
+    @ret Returns the escaped string with special characters prefixed by a `%`.
+!f]]
 local function escapePattern(pattern)
     return pattern:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
-end
-
-local function extractblocks(sInput, sOpen, sClose)
-    local tRet = {}
-
-    -- Escape patterns to handle special characters
-    local escapedOpen = escapePattern(sOpen)
-    local escapedClose = escapePattern(sClose)
-
-    -- Use escaped patterns to find matches
-    for sMatch in sInput:gmatch(escapedOpen .. "(.-)" .. escapedClose) do
-        table.insert(tRet, sMatch)
-    end
-
-    return tRet
 end
 
 
@@ -85,13 +82,17 @@ local doxblocktag = class("doxblocktag",
     },
     {--public
         doxblocktag = function(this, cdat, tNames, sDisplay, nItems, bRequired, bMultipleAllowed)
-            --TODO type checking/validating
+            type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.")
+            type.assert.number(nItems, true, true, false, true);
+
+
             cdat.pri.display         = sDisplay;
             cdat.pri.items           = nItems;
             cdat.pri.multipleallowed = type(bMultipleAllowed) == "boolean" and bMultipleAllowed or false;
             cdat.pri.required        = type(bMultipleAllowed) == "boolean" and bMultipleAllowed or false;
 
             for _, sName in pairs(tNames) do
+                type.assert.string(sName, "^[^%s]+$", "Block tag must be a non-blank string containing no space characters.");
                 cdat.pri.names[#cdat.pri.names + 1] = sName;
             end
 
@@ -99,11 +100,28 @@ local doxblocktag = class("doxblocktag",
         ismultipleallowed = function(this, cdat)
             return cdat.pri.multipleallowed;
         end,
+        isrequired = function(this, cdat)
+            return cdat.pri.required;
+        end,
         clone = function(this, cdat) --OMG TODO
             return this;
         end,
         getdisplay = function(this, cdat)
             return cdat.pri.display;
+        end,
+        hasrequired = function(this, cdat, sRequired)
+            local bRet = false;
+
+            for _, sTagName in pairs(cdat.pri.names) do
+
+                if (sTagName:lower() == sRequired:lower()) then
+                    bRet = true;
+                    break;
+                end
+
+            end
+
+            return bRet;
         end,
         names = function(this, cdat)
             local nIndex = 0;
@@ -151,10 +169,10 @@ local doxblocktaggroup = class("doxblocktaggroup",
     },
     {--public
         doxblocktaggroup = function(this, cdat, sName, sNamePlural, sOpen, sClose, ...)
-            type.check.string(sName,        "%S+");
-            type.check.string(sNamePlural,  "%S+");
-            type.check.string(sOpen,        "%S+");
-            type.check.string(sClose,       "%S+");
+            type.assert.string(sName,        "%S+", "Dox block tag group name must not be blank.");
+            type.assert.string(sNamePlural,  "%S+", "Dox block tag group plural name must not be blank.");
+            type.assert.string(sOpen,        "%S+", "Dox block tag group open symbol(s) must not be blank.");
+            type.assert.string(sClose,       "%S+", "Dox block tag group close symbol(s) must not be blank.");
 
 
             local pri = cdat.pri;
@@ -163,11 +181,33 @@ local doxblocktaggroup = class("doxblocktaggroup",
             pri.open           = sOpen;
             pri.close          = sClose;
 
-            --TODO auto-insret @mod/@module tags--these are required!Also, delete the user-input of these tags (if any exist)
+            --a table to track all required tags
+            local nRequiredTags         = #tRequiredGroupBlockTags;
+            local tRequiredTagsFound    = -tRequiredGroupBlockTags;
+
             local tBlockTags = pri.blocktags;
             for _, oBlockTag in pairs({...} or args) do
-                type.check.custom(oBlockTag, "doxblocktag");
+                --TODO QUESTION should i check that this tag is set to bRequired in the input?
+                for nIndex, sTag in tRequiredGroupBlockTags() do
+
+                    if (not (tRequiredTagsFound[nIndex]) and oBlockTag.hasrequired(sTag) ) then
+                        tRequiredTagsFound[nIndex] = true;
+                    end
+
+                end
+
+                type.assert.custom(oBlockTag, "doxblocktag");
                 tBlockTags[#tBlockTags + 1] = oBlockTag.clone();
+            end
+
+            --check that every required tag has been created in the group
+            for nIndex, bFound in pairs(tRequiredTagsFound) do
+
+                if (not bFound) then
+                    error(  "Error creating Block Tag Group, '${taggroup}'.\nA '${tag}' tag is required (though its Display may be any string)." %
+                            {taggroup = sName, tag = tRequiredGroupBlockTags[nIndex]});
+                end
+
             end
 
         end,
@@ -218,14 +258,25 @@ local doxmodule = class("doxmodule",
 
 },
 {--private
-
+    moduleblocktaggroup = null,
+    name = "",
 },
 {--protected
 
 },
 {--public
-    doxmodule = function(this, cdat)
+    doxmodule = function(this, cdat, sName, sBlock, oModuleBlockTagGroup)--sBlock
+        type.assert.string(sName, "%S+");
+        type.assert.custom(oModuleBlockTagGroup, "doxblocktaggroup");
 
+        local pri = cdat.pri;
+
+        pri.name = sName;
+        pri.moduleblocktaggroup = oModuleBlockTagGroup;
+    end,
+    importblock = function(this, cdat)
+        type.assert.string(sBlock, "%S+");
+        --sBlock
     end,
 },
 nil,    --extending class
@@ -252,21 +303,87 @@ return class("dox",
 },
 {--private
     blocktaggroups      = {}, --this contains groups of block tags group objects
-    groupindexbyname  = {}, --this contains groups of block tags group objects
-    modules             = {}, -- a list of module objects
-    moduleclose         = "",
-    moduleopen          = "",
+    moduleblocktaggroup = null,
+    modules             = {}, --a list of module objects indexed by module names
     name                = "",
     snippetclose        = "", --QUESTION How will this work now that we're using mutiple tag groups?
     snippetopen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
     --Start 	= "##### START DOX [SUBCLASS NAME] SNIPPETS -->>> ID: ",
     --End 	= "#####   <<<-- END DOX [SUBCLASS NAME] SNIPPETS ID: ",
     tagopen             = "",
-    toprocess           = {}, --this is a holding table for string which need to be parsed for blocks
-    importblocktag      = function(this, cdat)
+    --toprocess           = {}, --this is a holding table for strings which need to be parsed for blocks
+    extractblocks = function(this, cdat, sInput)
+        local tModuleBlocks = null;
+        local tBlocks       = {};
+        local fTrim         = string.trim;
+
+        local oModuleBlockTagGroup  = cdat.pri.moduleblocktaggroup;
+        local fBlockTagGroups       = cdat.pub.blocktaggroups;
+
+        -- Helper function to extract blocks from input based on open and close tags
+        local function extractfencedblocks(sBlockTagGroupName, sInput, sOpen, sClose)
+            local tRet           = {};
+            local sEscapedOpen   = escapePattern(sOpen);
+            local sEscapedClose  = escapePattern(sClose);
+
+            if not (tRet[sBlockTagGroupName]) then
+                tRet[sBlockTagGroupName] = {};
+            end
+
+            for sMatch in sInput:gmatch(sEscapedOpen .. "(.-)" .. sEscapedClose) do
+                table.insert(tRet[sBlockTagGroupName], fTrim(sMatch));
+            end
+
+                return tRet;
+            end
+
+            -- Extract module blocks
+            local sModuleOpen   = oModuleBlockTagGroup.getblockopen();
+            local sModuleClose  = oModuleBlockTagGroup.getblockclose();
+            tModuleBlocks       = extractfencedblocks(oModuleBlockTagGroup:getname(), sInput, sModuleOpen, sModuleClose);
+
+            -- Extract other blocks
+            for oBlockTagGroup in fBlockTagGroups() do
+                local sOpen         = oBlockTagGroup.getblockopen();
+                local sClose        = oBlockTagGroup.getblockclose();
+                local tGroupBlocks  = extractfencedblocks(oBlockTagGroup.getname(), sInput, sOpen, sClose);
+                table.insert(tBlocks, tGroupBlocks);
+            end
+
+        return tModuleBlocks, tBlocks;
+    end,
+    parseblock = function(this, cdat, sBlock, bIsModule)
 
     end,
-    extractmoduletext = function(this, cdat, sInput)
+    processstring = function(this, cdat, sInput)
+        local pri                   = cdat.pri;
+        local oModuleBlockTagGroup  = pri.moduleblocktaggroup;
+
+        --get all blocks from the string
+        local tModuleBlocks, tBlocks = pri.extractblocks(sInput);
+
+        --process each module block
+        for sName, sBlock in pairs(tModuleBlocks) do
+
+            --WTF LEFT OFF HERE ...need to get the name of the module
+            --create the module (if it doesn't exist)
+            if not (pri.modules[sName]) then
+                pri.modules[sName] = doxmodule(sName, sBlock, oModuleBlockTagGroup);
+            end
+
+            --create the "Orphaned" module for items that name a non-existent module
+
+            --local sOpen                 = oModuleBlockTagGroup:getopen();
+            --local sClose                = oModuleBlockTagGroup:getclose();
+        --    local oUnknownModule        = doxmodule("Orphaned");
+
+
+            --process all other types of blocks and import them into modules
+            for _, sBlock in pairs(tBlocks) do
+
+            end
+
+        end
 
     end,
 },
@@ -276,20 +393,22 @@ return class("dox",
 },
 {--public
     dox = function(this, cdat, sName, sTagOpen, oModuleBlockTagGroup, ...)--TODO take moduleinfo, struct, enum and constant block tags too
-        type.check.string(sName,    "%S+");
-        type.check.string(sTagOpen, "%S+");
-        type.check.custom(oModuleBlockTagGroup, "doxblocktaggroup");
+        type.assert.string(sName,    "%S+", "Dox subclass name must not be blank.");
+        type.assert.string(sTagOpen, "%S+", "Open tag symbol must not be blank.");
+        type.assert.custom(oModuleBlockTagGroup, "doxblocktaggroup");
 
-        local pri   = cdat.pri;
-        pri.name    = sName;
-        pri.tagopen = sTagOpen;
+        local pri               = cdat.pri;
+        pri.name                = sName;
+        pri.tagopen             = sTagOpen;
+        pri.moduleblocktaggroup = oModuleBlockTagGroup;
+
 
         --TODO put block tags in order of display (as input)!
         --TODO clone these properly
         local tBlockTagGroups = pri.blocktaggroups;
 
         for _, oBlockTagGroup in pairs({...} or args) do
-            type.check.custom(oBlockTagGroup, "doxblocktaggroup");
+            type.assert.custom(oBlockTagGroup, "doxblocktaggroup");
             tBlockTagGroups[#tBlockTagGroups + 1] = oBlockTagGroup.clone();
         end
 
@@ -332,28 +451,28 @@ return class("dox",
     importfile = function(this, cdat)
 
     end,
-    importstring = function(this, cdat, sBlockTagGroupName, sInput)
-        type.check.string(sInput);
-        type.check.string(sBlockTagGroupName);
-        local oBlockTagGroup = nil;
+    importstring = function(this, cdat, sInput)
+        type.assert.string(sInput);
+        --type.assert.string(sBlockTagGroupName);
+        --local oBlockTagGroup = nil;
 
-        for oBTG in this.blocktaggroups() do
+        --for oBTG in this.blocktaggroups() do
 
-            if (oBTG.getname() == sBlockTagGroupName) then--TODO should htese be case sensitive?
-                oBlockTagGroup = oBTG;
-                break;
-            end
+        --    if (oBTG.getname() == sBlockTagGroupName) then--TODO should htese be case sensitive?
+        --        oBlockTagGroup = oBTG;
+        --        break;
+        --    end
 
-        end
+        --end
 
-        assert( type(oBlockTagGroup) == "doxblocktaggroup",
-                "Error importing string. Block Tag Group name, '${name}', does not exist." % {name = sBlockTagGroupName});
+        --assert( type(oBlockTagGroup) == "doxblocktaggroup",
+        --        "Error importing string. Block Tag Group name, '${name}', does not exist." % {name = sBlockTagGroupName});
 
-        local pri = cdat.pri;
-        print(oBlockTagGroup.getblockopen(), oBlockTagGroup.getblockclose())
-        local tBlocks = extractblocks(sInput, oBlockTagGroup.getblockopen(), oBlockTagGroup.getblockclose());
+        --local pri = cdat.pri;
+        --print(oBlockTagGroup.getblockopen(), oBlockTagGroup.getblockclose())
+        --local tBlocks = extractblocks(sInput, oBlockTagGroup.getblockopen(), oBlockTagGroup.getblockclose());
 
-
+--[[
         function parseText(text)
     local result = {}
     local escaped = false
@@ -382,15 +501,18 @@ return class("dox",
     if currentItem ~= "" then
         table.insert(result, { currentItem:gsub("\\@", "@") })
     end
+]]
 
-    return result
-end
+    return cdat.pri.processstring(sInput);
+
+    --return result
+--end
 
 
 
 
 
-
+--[[
         for k, v in pairs(tBlocks) do
             local tTags = parseText(v);
 
@@ -406,7 +528,7 @@ end
         end
 
 
-
+]]
 
         --local tModuleInfo = extractblocks(pri);
         --local tFunctionBlocks = extractblocks(sInput, pri.blco);

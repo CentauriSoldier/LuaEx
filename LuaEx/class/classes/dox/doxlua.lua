@@ -29,6 +29,7 @@ return class("doxlua",
             fBlockTag({"github"},                         "GitHub",           1,  -bRequired,   -bMultipleAllowed),
             fBlockTag({"license"},                        "License",          1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"des", "desc", "description"},     "Description",      1,  -bRequired,   -bMultipleAllowed),
+            fBlockTag({"mod"},                            "Mod",              1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"name"},                           "Name",             1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"planned"},                        "Planned Features", 1,  -bRequired,   -bMultipleAllowed),
             fBlockTag({"todo"},                           "TODO",             1,  -bRequired,   -bMultipleAllowed),
@@ -42,7 +43,9 @@ return class("doxlua",
         local oFunctionBlockTagGroup = fBlockTagGroup("Function",    "Functions",    "--[[f!", "!f]]",
             fBlockTag({"des", "desc", "description"},    "Description",   1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"ex", "example", "examples"},     "Example",       1, -bRequired,   bMultipleAllowed),
-            fBlockTag({"fun", "func", "function"},       "Function",      1,  bRequired,   -bMultipleAllowed),
+            --fBlockTag({"fun", "func", "function"},       "Function",      1,  bRequired,   -bMultipleAllowed),
+            fBlockTag({"mod"},                            "Mod",              1,  bRequired,    -bMultipleAllowed),
+            fBlockTag({"name"},                          "Name",          2,  bRequired,   -bMultipleAllowed),
             fBlockTag({"parameter", "param"},            "Parameter",     2, -bRequired,   bMultipleAllowed),
             fBlockTag({"return", "ret",},                "Return",        2, -bRequired,   bMultipleAllowed),
             fBlockTag({"scope"},                         "Scope",         1,  bRequired,   -bMultipleAllowed),
@@ -63,5 +66,5 @@ return class("doxlua",
 },
 dox,    --extending class
 nil,    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
-false   --if the class is final
+true    --if the class is final
 );

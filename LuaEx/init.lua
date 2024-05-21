@@ -129,6 +129,7 @@ stack 	    = require("LuaEx.class.classes.stack");
 set 		= require("LuaEx.class.classes.set");
 dox         = require("LuaEx.class.classes.dox");
 doxlua      = require("LuaEx.class.classes.dox.doxlua");
+pot         = require("LuaEx.class.classes.component.pot");
 
 --🅰🅻🅸🅰🆂🅴🆂
 table.serialize 	= serialize.table;

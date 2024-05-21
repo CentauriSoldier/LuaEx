@@ -1,3 +1,5 @@
+local assert = assert; ---TODO localize all called functions
+
 --										🆃🆈🅿🅴 🅼🅴🆃🅰🆃🅰🅱🅻🅴🆂
 
 --<<  🅱🅾🅾🅻🅴🅰🅽  >>
@@ -97,9 +99,60 @@ local __type__ = type;
 type = nil;
 
 local type = {
-    check = {
-        custom = function(vInput, sType)
+    assert = {
+        custom = function(vInput, sType)--TODO custom message
             assert(type(vInput) == sType, "Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)});
+        end,
+        number = function (vInput, bErrorNegative, bErrorZero, bErrorPositive, bErrorFloat, bErrorInteger, nMin, nMax)
+            local sType  = rawtype(vInput);
+            local sError = "Error in parameter input.";
+            local bError = false;
+
+            if (sType == "number") then
+
+                --check number line position
+                if (bErrorNegative and vInput < 0) then
+                    sError = sError.."\nNumber must be positive.";
+                    bError = true;
+                elseif (bErrorPositive and vInput > 0) then
+                    sError = sError.."\nNumber must be negative.";
+                    bError = true;
+                elseif (bErrorZero and vInput == 0) then
+                    sError = sError.."\nNumber must not be zero.";
+                    bError = true;
+                end
+
+                --check integer value
+                local bIsInteger = vInput == math.floor(vInput);
+
+                if (bErrorInteger and bIsInteger) then
+                    sError = sError.."\nNumber must be a non-integer.";
+                    bError = true;
+                elseif (bErrorFloat and not bIsInteger) then
+                    sError = sError.."\nNumber must be an integer.";
+                    bError = true;
+                end
+
+                --check range
+                if (nMin and vInput < nMin) then
+                    sError = sError.."\nNumber must greater than or equal to "..nMin..".";
+                    bError = true;
+                end
+
+                if (nMax and vInput > nMax) then
+                    sError = sError.."\nNumber must less than or equal to "..nMax..".";
+                    bError = true;
+                end
+
+            else
+                error("Expected type is number. Type given: ${given}." % {given = sType});
+            end
+
+
+            if (bError) then
+                error(sError.."\nValue given: "..vInput);
+            end
+
         end,
         string = function(vInput, sPattern, sMessage)--TODO finish adding optional message and create other functions
             local bConditionMet = false;
@@ -123,7 +176,7 @@ local type = {
                 sError = sError.."\nExpected type is string. Type given: "..sType..'.';
             end
 
-            assert(bConditionMet, sError);
+            assert(bConditionMet, sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""));
         end,
     },
 	mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?
@@ -135,7 +188,7 @@ local type = {
 	mathchesboth = function(sLeftType, sRightType, sTypeInQuestion)
 		return (sLeftType == sObjType and sRightType == sTypeInQuestion);
 	end,
-    ex = function(vObject) --TODO rename this be 'ex' for clarity
+    ex = function(vObject)
 		local sType = __type__(vObject);
 
 		if (sType == "table") then

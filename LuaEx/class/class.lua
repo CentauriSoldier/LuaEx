@@ -155,7 +155,7 @@ local kit = {
 };
 
 
-
+--TODO forbid type names (string, boolean, etc)
                             --[[ ██████╗██╗      █████╗ ███████╗███████╗
                                 ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
                                 ██║     ██║     ███████║███████╗███████╗
@@ -164,14 +164,14 @@ local kit = {
                                 ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝]]
 
 
---[[!
+--[[f!
 @module class
 @func class.build
 @param table tKit The kit that is to be built.
 @scope local
 @desc Builds a complete class object given the the kit table. This is called by kit.build().
 @ret class A class object.
-!]]
+!f]]
 function class.build(tKit)
     local oClass    = {}; --this is the class object that gets returned
     local sName     = tKit.name;
@@ -349,7 +349,7 @@ end
                     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝]]
 
 
---[[!
+--[[f!
 @module class
 @func instance.build
 @param table tKit The kit from which the instance is to be built.
@@ -357,7 +357,7 @@ end
 @scope local
 @desc Builds an instance of an object given the name of the kit.
 @ret object|table oInstance|tInstance The instance object (decoy) and the instance table (actual).
-!]]
+!f]]
 function instance.build(tKit, tParentActual)
     local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
@@ -414,14 +414,14 @@ function instance.build(tKit, tParentActual)
 end
 
 
---[[
+--[[f!
 @module class
 @func instance.buildautomethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Iterates over instance members to create auto accessor/mutaor methods for those marked with the _AUTO directive.
-!]]
+!f]]
 function instance.buildautomethods(tInstance, tClassData)
     local tKit = tInstance.metadata.kit;
 
@@ -444,14 +444,14 @@ function instance.buildautomethods(tInstance, tClassData)
 end
 
 
---[[
+--[[f!
 @module class
 @func instance.prepclassdata
 @param table tInstance The (actual) instance table.
 @scope local
 @desc Creates and prepares the decoy and actual class data tables for use by the instance input.
 @ret table tClassData The decoy class data table.
-!]]
+!f]]
 function instance.prepclassdata(tInstance)
     local tKit = tInstance.metadata.kit;
     local tClassData        = {};   --decoy class data (this gets pushed through the wrapped methods)
@@ -489,14 +489,14 @@ function instance.prepclassdata(tInstance)
 end
 
 
---[[
+--[[f!
 @module class
 @func instance.setclassdatametatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Creates and sets the instance's class data metatable, helping prevent incidental, erroneous acces and alteration of the class data.
-!]]
+!f]]
 function instance.setclassdatametatable(tInstance, tClassData)
     local tClassDataIndices = {pri, pro, pub};
     local sName             = tInstance.metadata.kit.name;
@@ -583,14 +583,14 @@ function instance.setclassdatametatable(tInstance, tClassData)
 end
 
 
---[[
+--[[f!
 @module class
 @func instance.setmetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Creates and sets the instance's metatable.
-!]]
+!f]]
 function instance.setmetatable(tInstance, tClassData)
     local tMeta     = {}; --actual
     local tKit      = tInstance.metadata.kit;
@@ -644,14 +644,14 @@ function instance.setmetatable(tInstance, tClassData)
 end
 
 
---[[
+--[[f!
 @module class
 @func instance.wrapmetamethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Wraps all the instance metamethods so they have access to the instance object (decoy) and the class data.
-!]]
+!f]]
 function instance.wrapmetamethods(tInstance, tClassData)--TODO double check these
     local oInstance = tInstance.decoy;
 
@@ -692,14 +692,14 @@ function instance.wrapmetamethods(tInstance, tClassData)--TODO double check thes
 end
 
 
---[[
+--[[f!
 @module class
 @func instance.wrapmethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Wraps all the instance methods so they have access to the instance object (decoy) and the class data.
-!]]
+!f]]
 function instance.wrapmethods(tInstance, tClassData)
     local tKit              = tInstance.metadata.kit;
     local oInstance         = tInstance.decoy;
@@ -750,7 +750,7 @@ end
                                             ╚═╝  ╚═╝╚═╝   ╚═╝ ]]
 
 
---[[!
+--[[f!
 @module class
 @func kit.build
 @param string sName The name of the class kit. This must be a unique, variable-compliant name.
@@ -765,7 +765,7 @@ end
 @scope local
 @desc Imports a kit for later use in building class objects
 @ret class Class Returns the class returned from the kit.build() tail call.
-!]]
+!f]]
 function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vImplements, bIsFinal)
 
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
@@ -837,14 +837,14 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 end
 
 
---[[
+--[[f!
 @module class
 @func kit.mayextend
 @param table tKit The kit to check.
 @scope local
 @desc Checks whether a class kit is allowed to be extended.
 @ret boolean True if the class can be extended, false otherwise.
-!]]
+!f]]
 function kit.mayextend(sName, cExtendor)
     local bRet = false;
 
@@ -860,13 +860,13 @@ function kit.mayextend(sName, cExtendor)
 end
 
 
---[[
+--[[f!
 @module class
 @func kit.processdirectiveauto
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all private and protected members to process them if they have an auto directive.
-!]]
+!f]]
 local tAutoVisibility = {pri, pro};
 function kit.processdirectiveauto(tKit)--TODO allow these to be set as final too...firgure out how to do that
     local tAuto         = {};
@@ -954,13 +954,13 @@ function kit.processdirectiveauto(tKit)--TODO allow these to be set as final too
 end
 
 
---[[
+--[[f!
 @module class
 @func kit.processdirectivefinal
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all protected and public members to process them if they have a directive. !TODO add metamethods
-!]]
+!f]]
 local tFinalVisibility = {met, pro, pub};
 function kit.processdirectivefinal(tKit)
     local tFinal = {};
@@ -1003,13 +1003,13 @@ function kit.processdirectivefinal(tKit)
 end
 
 
---[[
+--[[f!
 @module class
 @func kit.shadowcheck
 @param table tKit The kit the check for member shadowing.
 @scope local
 @desc Ensures there is no member shadowing happening in the class.
-!]]
+!f]]
 local tCheckIndices  = {met, pro, pub};
 function kit.shadowcheck(tKit) --checks for public/protected shadowing
     local tParent   = tKit.parent;
@@ -1053,14 +1053,14 @@ function kit.shadowcheck(tKit) --checks for public/protected shadowing
 end
 
 
---[[
+--[[f!
 @module class
 @func kit.validateinterfaces
 @param interface|table|nil The interface (or numerically-indexed table of interfaces) this class implements (or nil, if none).
 @scope local
 @desc Checks to see of the input interfaces (if any) are valid.
 @ret True if they are (or none were provided), false otherwise
-!]]
+!f]]
 function kit.validateinterfaces(vImplements, tKit)--TODO complete this!!!
     local sImplementsType = type(vImplements);
 
@@ -1081,13 +1081,13 @@ function kit.validateinterfaces(vImplements, tKit)--TODO complete this!!!
 end
 
 
---[[
+--[[f!
 @module class
 @func kit.validatename
 @param string sName The name to be checked.
 @scope local
 @desc Ensure the class name is a variable-compliant string.
-!]]
+!f]]
 function kit.validatename(sName)
     assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
     assert(sName:isvariablecompliant(),					"Error creating class, '${class}'. Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
@@ -1095,7 +1095,7 @@ function kit.validatename(sName)
 end
 
 
---[[
+--[[f!
 @module class
 @func kit.validatetables
 @param string sName The class name.
@@ -1106,7 +1106,7 @@ end
 @param table tPublic The public input table.
 @scope local
 @desc Validates all class input tables.
-!]]
+!f]]
 function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
     assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}'. Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
     assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}'. Static public values table expected.\r\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
@@ -1173,7 +1173,7 @@ local tClassActual = {
 
 
 return rawsetmetatable({}, {
-    --[[
+    --[[f!
     @module class
     @func class
     @param string sClass The name of the class. Note: this must be a unique, variable-compliant string.
@@ -1188,7 +1188,7 @@ return rawsetmetatable({}, {
     @scope global
     @desc Builds a class.<br>Note: every method within the static public, private, protected and public tables must accept the instance object and class data table as their first and second arguments respectively.<br>Note: all metamethod within the metamethods table also accept the class instance and cdat table but may also accept a second item depending on if the metamethod is using binary operators such as +, %, etc.<br>Note: The class data table is indexed my pri (private members), pro (protected members), pub (public members) and ins (for all class instances of this class type) and each grants access to the items in that table.<br>Note: to prevent fatal conflicts within the code, all class members are strongly typed. No member's type may be changed with the exception of the null type. Types may be set to and from null; however, items which begin as null, once set to another type, cannot be changed from that type to another non-null type. Items that begins as a type and are then set to null, may be changed back to that original type only. In addition, no class member may be set to nil.<br>Class methods cannot be changed to other methods but may be overridden by methods of the same name within child classes. The one exception to this is methods which have the _FNL suffix added to their name. These methods are final and may not be overridden. Note: though the _FNL suffix appears within the method name in the class table, that suffix is removed during class creation. That is, a method such as, MyMethod_FNL will be called as MyMethod(), leaving off the _FNL suffix during calls to that method. _FNL (and other such suffixes that may be added in the future) can be thought of as a directive to the class building code which, after it renames the method to remove the suffix, marks it as final within the class code to prevent overrides.
     @ret class The class object.
-    !]]
+    !f]]
 	__call 		= kit.build,
 	__len 		= function() return kit.count end,
 	__index 	= function(t, k)

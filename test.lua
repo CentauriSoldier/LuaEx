@@ -89,4 +89,28 @@ for k in oLuaExDox.blocktaggroups() do
     end
 
 end
-oLuaExDox.importstring("Function", k);
+
+--TODO create tests for each thing and use them as examples
+local pFile = "C:\\Users\\CS\\Sync\\Projects\\GitHub\\LuaEx\\LuaEx\\class\\class.lua";
+
+local function readFile(filePath)
+    local file = io.open(filePath, "r") -- Open the file in read mode
+
+    if not file then
+        return nil, "Could not open file: " .. filePath -- Return nil and an error message if the file cannot be opened
+    end
+
+    local content = file:read("*all") -- Read the entire file content
+    file:close() -- Close the file
+    return content
+end
+
+--print(readFile(pFile))
+local tModules, tBlocks = oLuaExDox.importstring(readFile(pFile));
+
+--for k, v in pairs(tBlocks) do
+    ---print(k.." = "..serialize.table(v))
+--end
+local tpot = pot(1, 20, 1, 1, POT_CONTINUITY_REVOLVE);
+tpot.adjust(20)
+print(tpot.getPos())
