@@ -15,6 +15,6 @@ return class("MyClass",
 
 },
 nil,    --extending class
-nil,    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
-false   --if the class is final
+false,   --if the class is final
+nil    --interface(s) (either nil, or interface(s))
 );

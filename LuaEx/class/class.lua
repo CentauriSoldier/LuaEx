@@ -95,7 +95,7 @@ __name 	    = true,	    __newindex    = false,    __pairs     = true,
 __pow 		= true,     __shl 		  = true,	  __shr       = true,
 __sub 	    = true,	    __tostring	  = true,     __unm 	  = true};
 
-local function getmetanamesasstring()
+local function getMetaNamesAsString()
     local sRet              = "";
     local tSortedMetaNames  = {};
 
@@ -120,7 +120,7 @@ local tMutableStaticPublicTypes = {
     ["table"]       = true,
 };
 
-local function ismutablestaticpublictype(sType)
+local function isMutableStaticPublicType(sType)
     return (tMutableStaticPublicTypes[sType] or false);
 end
 
@@ -256,7 +256,7 @@ function class.build(tKit)
 
             if (sType ~= "nil") then
 
-                if (ismutablestaticpublictype(sType)) then
+                if (isMutableStaticPublicType(sType)) then
 
                     if (sType == type(v)) then
                         tClass[k] = v;
@@ -375,22 +375,22 @@ function instance.build(tKit, tParentActual)
     };
 
     --get the class data (decoy) table
-    local tClassData = instance.prepclassdata(tInstance);
+    local tClassData = instance.prepClassData(tInstance);
 
     --set the metatable for class data so there are no undue alterations or any erroneous access
-    instance.setclassdatametatable(tInstance, tClassData);
+    instance.setClassDataMetatable(tInstance, tClassData);
 
     --wrap the metamethods
-    instance.wrapmetamethods(tInstance, tClassData)
+    instance.wrapMetamethods(tInstance, tClassData)
 
     --wrap the private, protected and public methods
-    instance.wrapmethods(tInstance, tClassData)
+    instance.wrapMethods(tInstance, tClassData)
 
     ----create auto getter/setter methods
-    instance.buildautomethods(tInstance, tClassData);
+    instance.buildAutoMethods(tInstance, tClassData);
 
     --create and set the instance metatable
-    instance.setmetatable(tInstance, tClassData);
+    instance.setMetatable(tInstance, tClassData);
 
     --TODO I need to update the children field of each parent (OR do I?)
     --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
@@ -416,13 +416,13 @@ end
 
 --[[f!
 @module class
-@func instance.buildautomethods
+@func instance.buildAutoMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Iterates over instance members to create auto accessor/mutaor methods for those marked with the _AUTO directive.
 !f]]
-function instance.buildautomethods(tInstance, tClassData)
+function instance.buildAutoMethods(tInstance, tClassData)
     local tKit = tInstance.metadata.kit;
 
     for sName, tItem in pairs(tKit.auto) do
@@ -446,13 +446,13 @@ end
 
 --[[f!
 @module class
-@func instance.prepclassdata
+@func instance.prepClassData
 @param table tInstance The (actual) instance table.
 @scope local
 @desc Creates and prepares the decoy and actual class data tables for use by the instance input.
 @ret table tClassData The decoy class data table.
 !f]]
-function instance.prepclassdata(tInstance)
+function instance.prepClassData(tInstance)
     local tKit = tInstance.metadata.kit;
     local tClassData        = {};   --decoy class data (this gets pushed through the wrapped methods)
     local tClassDataActual  = {     --actual class data
@@ -491,13 +491,13 @@ end
 
 --[[f!
 @module class
-@func instance.setclassdatametatable
+@func instance.setClassDataMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Creates and sets the instance's class data metatable, helping prevent incidental, erroneous acces and alteration of the class data.
 !f]]
-function instance.setclassdatametatable(tInstance, tClassData)
+function instance.setClassDataMetatable(tInstance, tClassData)
     local tClassDataIndices = {pri, pro, pub};
     local sName             = tInstance.metadata.kit.name;
 
@@ -585,13 +585,13 @@ end
 
 --[[f!
 @module class
-@func instance.setmetatable
+@func instance.setMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Creates and sets the instance's metatable.
 !f]]
-function instance.setmetatable(tInstance, tClassData)
+function instance.setMetatable(tInstance, tClassData)
     local tMeta     = {}; --actual
     local tKit      = tInstance.metadata.kit;
     local oInstance = tInstance.decoy;
@@ -646,13 +646,13 @@ end
 
 --[[f!
 @module class
-@func instance.wrapmetamethods
+@func instance.wrapMetamethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Wraps all the instance metamethods so they have access to the instance object (decoy) and the class data.
 !f]]
-function instance.wrapmetamethods(tInstance, tClassData)--TODO double check these
+function instance.wrapMetamethods(tInstance, tClassData)--TODO double check these
     local oInstance = tInstance.decoy;
 
     for sMetamethod, fMetamethod in pairs(tInstance.met) do
@@ -694,13 +694,13 @@ end
 
 --[[f!
 @module class
-@func instance.wrapmethods
+@func instance.wrapMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Wraps all the instance methods so they have access to the instance object (decoy) and the class data.
 !f]]
-function instance.wrapmethods(tInstance, tClassData)
+function instance.wrapMethods(tInstance, tClassData)
     local tKit              = tInstance.metadata.kit;
     local oInstance         = tInstance.decoy;
     local tClassDataIndices = {pri, pro, pub};
@@ -760,19 +760,19 @@ end
 @param table tProtected A table containing all protected class members.
 @param table tPublic A table containing all public class members.
 @param class|nil cExtendor The parent class from which this class derives (if any). If there is no parent class, this argument should be nil.
-@param interface|table|nil The interface (or numerically-indexed table of interface) this class implements (or nil, if none).
 @param boolean bIsFinal A boolean value indicating whether this class is final.
+@param interface|nil The interface(s) this class implements (or nil, if none). This is a cararg table, so many or none may be entered.
 @scope local
 @desc Imports a kit for later use in building class objects
 @ret class Class Returns the class returned from the kit.build() tail call.
 !f]]
-function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vImplements, bIsFinal)
+function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, bIsFinal, ...)
 
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
 
-    kit.validatename(sName);
-    kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
-    kit.validateinterfaces(vImplements);
+    kit.validateName(sName);
+    kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
+    kit.validateInterfaces(sName, {...} or arg);
     --TODO check each member against the static members
     --import/create the elements which will comprise the class kit
     local tKit = {
@@ -794,9 +794,10 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
                 end
             }
         ),
+        interfaces      = {}, --TODO OMG have these checked on class build!
         isfinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
         name 			= sName,
-        parent			= kit.mayextend(sName, cExtendor) and kit.repo.byobject[cExtendor] or nil, --note the parent kit
+        parent			= kit.mayExtend(sName, cExtendor) and kit.repo.byobject[cExtendor] or nil, --note the parent kit
         --tables
         met 	        = table.clone(tMetamethods, 	true),--TODO this was recently changed to TRUE since (I think) user-defined metatables should be ignored from input
         stapub 	        = table.clone(tStaticPublic, 	true),
@@ -805,17 +806,22 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         pub      	    = table.clone(tPublic, 			true),
     };
 
-    --note and rename final methods
-    kit.processdirectiveauto(tKit); --TODO allow these to be set set as final too
+    --store the interfaces (if any)
+    for nIndex, iInterface in ipairs({...} or arg) do
+        tKit.interfaces[nIndex] = iInterface;
+    end
 
     --note and rename final methods
-    kit.processdirectivefinal(tKit);
+    kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
+
+    --note and rename final methods
+    kit.processDirectiveFinal(tKit);
 
     --kit.processdirectivecombinatory(tKit);  --TODO this will be the directive which is both auto and final
     --TODO add abstract classes and methods?
 
     --check for member shadowing
-    kit.shadowcheck(tKit);
+    kit.shadowCheck(tKit);
 
     --now that this class kit has been validated, imported & stored, build the class object
     local oClass = class.build(tKit);
@@ -839,13 +845,13 @@ end
 
 --[[f!
 @module class
-@func kit.mayextend
+@func kit.mayExtend
 @param table tKit The kit to check.
 @scope local
 @desc Checks whether a class kit is allowed to be extended.
 @ret boolean True if the class can be extended, false otherwise.
 !f]]
-function kit.mayextend(sName, cExtendor)
+function kit.mayExtend(sName, cExtendor)
     local bRet = false;
 
     --check that the extending class exists
@@ -862,13 +868,13 @@ end
 
 --[[f!
 @module class
-@func kit.processdirectiveauto
+@func kit.processDirectiveAuto
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all private and protected members to process them if they have an auto directive.
 !f]]
 local tAutoVisibility = {pri, pro};
-function kit.processdirectiveauto(tKit)--TODO allow these to be set as final too...firgure out how to do that
+function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too...firgure out how to do that
     local tAuto         = {};
 
     for _, sCAI in pairs(tAutoVisibility) do
@@ -956,13 +962,13 @@ end
 
 --[[f!
 @module class
-@func kit.processdirectivefinal
+@func kit.processDirectiveFinal
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all protected and public members to process them if they have a directive. !TODO add metamethods
 !f]]
 local tFinalVisibility = {met, pro, pub};
-function kit.processdirectivefinal(tKit)
+function kit.processDirectiveFinal(tKit)
     local tFinal = {};
 
     for _, sCAI in pairs(tFinalVisibility) do
@@ -1005,13 +1011,13 @@ end
 
 --[[f!
 @module class
-@func kit.shadowcheck
+@func kit.shadowCheck
 @param table tKit The kit the check for member shadowing.
 @scope local
 @desc Ensures there is no member shadowing happening in the class.
 !f]]
 local tCheckIndices  = {met, pro, pub};
-function kit.shadowcheck(tKit) --checks for public/protected shadowing
+function kit.shadowCheck(tKit) --checks for public/protected shadowing
     local tParent   = tKit.parent;
 
     while (tParent) do
@@ -1055,27 +1061,16 @@ end
 
 --[[f!
 @module class
-@func kit.validateinterfaces
-@param interface|table|nil The interface (or numerically-indexed table of interfaces) this class implements (or nil, if none).
+@func kit.validateInterfaces
+@param table The varargs table.
 @scope local
-@desc Checks to see of the input interfaces (if any) are valid.
-@ret True if they are (or none were provided), false otherwise
+@desc Checks to see if the args input are all valid interfaces.
 !f]]
-function kit.validateinterfaces(vImplements, tKit)--TODO complete this!!!
-    local sImplementsType = type(vImplements);
-
-    if (sImplementsType == "table") then
-
-        for _, iInterface in pairs(vImplements) do
-
-            if (type(iInterface) == "interface") then
-                iInterface(tKit);
-            end
-
-        end
-
-    elseif (sImplementsType == "interface") then
-        vImplements(tKit);
+function kit.validateInterfaces(sKit, tVarArgs)
+        
+    for _, vVarArg in ipairs(tVarArgs) do
+        assert(type(vVarArg) == "interface",   "Error creating class, '${class}'. Vararg input must be of type interface.\nGot type ${type}."
+                                            % {class = sKit, type = type(vVarArg)});
     end
 
 end
@@ -1083,21 +1078,21 @@ end
 
 --[[f!
 @module class
-@func kit.validatename
+@func kit.validateName
 @param string sName The name to be checked.
 @scope local
 @desc Ensure the class name is a variable-compliant string.
 !f]]
-function kit.validatename(sName)
-    assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\r\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
-    assert(sName:isvariablecompliant(),					"Error creating class, '${class}'. Name must be a variable-compliant string.\r\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
+function kit.validateName(sName)
+    assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
+    assert(sName:isvariablecompliant(),					"Error creating class, '${class}'. Name must be a variable-compliant string.\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
     assert(type(kit.repo.byname[sName])	== "nil", 		"Error creating class, '${class}'. Class already exists."													% {class = sName});
 end
 
 
 --[[f!
 @module class
-@func kit.validatetables
+@func kit.validateTables
 @param string sName The class name.
 @param table tMetamethods The metamethods input table.
 @param table tStaticPublic The static public input table.
@@ -1107,12 +1102,12 @@ end
 @scope local
 @desc Validates all class input tables.
 !f]]
-function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
-    assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}'. Metamethods values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
-    assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}'. Static public values table expected.\r\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
-    assert(type(tPrivate) 				== "table", 	"Error creating class, '${class}'. Private values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
-    assert(type(tProtected) 			== "table", 	"Error creating class, '${class}'. Protected values table expected.\r\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
-    assert(type(tPublic) 				== "table", 	"Error creating class, '${class}'. Static values table expected.\r\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
+function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
+    assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}'. Metamethods values table expected.\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
+    assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}'. Static public values table expected.\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
+    assert(type(tPrivate) 				== "table", 	"Error creating class, '${class}'. Private values table expected.\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPrivate), 			item = tostring(tPrivate)});
+    assert(type(tProtected) 			== "table", 	"Error creating class, '${class}'. Protected values table expected.\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
+    assert(type(tPublic) 				== "table", 	"Error creating class, '${class}'. Static values table expected.\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
 
     local bIsConstructor = false;
     local tTables = {
@@ -1153,7 +1148,7 @@ function kit.validatetables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
         --print(sMetaItem, sMetaname)
         assert(tMetaNames[sMetaname],
                 "Error creating class, '${class}'. Invalid metamethod, '${metaname}'.\nPermitted metamethods are:\n${metanames}" %
-                {class = sName, metaname = sMetaname, metanames = getmetanamesasstring()});
+                {class = sName, metaname = sMetaname, metanames = getMetaNamesAsString()});
 
         assert(rawtype(vMetaItem) == "function",
                 "Error creating class, '${class}'. Invalid metamethod type for metamethod, '${metaname}'.\nExpected type function, got type ${type}." %

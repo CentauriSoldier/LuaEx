@@ -7,7 +7,7 @@ local sOtherError   = "Error in set class, method, ${method}. Attempt to operate
 
 --[[!
     @module set
-    @func additem
+    @func addItem
     @scope static private
     @desc Adds an item to the set.
     @param set oSet The set upon which to operate.
@@ -15,7 +15,7 @@ local sOtherError   = "Error in set class, method, ${method}. Attempt to operate
     @param any vItem The item to add to the set.
     @ret boolean True if the item was added successfully, false otherwise.
 !]]
-additem = function(cdat, vItem)
+addItem = function(cdat, vItem)
     local bRet = false;
 
     if (rawtype(vItem) ~= "nil") then
@@ -36,7 +36,7 @@ end
 
 --[[!
     @module set
-    @func removeitem
+    @func removeItem
     @scope static private
     @desc Removes an item from the set.
     @param set oSet The set upon which to operate.
@@ -44,7 +44,7 @@ end
     @param any vItem The item to remove from the set.
     @ret boolean True if the item was removed successfully, false otherwise.
 !]]
-removeitem = function(cdat, vItem)
+removeItem = function(cdat, vItem)
     local bRet = false;
 
     if (cdat.pri.set[vItem] ~= nil) then
@@ -91,12 +91,12 @@ return class("set",
 
         --add this set's items to the new set
 		for nIndex, vItem in pairs(leftcdat.pri.indexed) do
-			additem(newcdat, vItem);
+			addItem(newcdat, vItem);
 		end
 
         --add the other set items to the new set
         for nIndex, vItem in pairs(rightcdat.pri.indexed) do
-			additem(newcdat, vItem);
+			addItem(newcdat, vItem);
 		end
 
 		return oRet;
@@ -189,7 +189,7 @@ return class("set",
        for nIndex, vItem in pairs(leftcdat.pri.indexed) do
 
            if not (rightcdat.pri.set[vItem]) then
-               additem(newcdat, vItem);
+               addItem(newcdat, vItem);
            end
 
        end
@@ -235,7 +235,7 @@ return class("set",
         if (type(tItems) == "table") then
 
             for _, vItem in pairs(tItems) do
-                additem(cdat, vItem);
+                addItem(cdat, vItem);
             end
 
         end
@@ -253,7 +253,7 @@ return class("set",
     @ret set The set object after adding the item.
     !]]
 	add = function(this, cdat, vItem)
-		additem(cdat, vItem);
+		addItem(cdat, vItem);
         return this;
 	end,
 
@@ -307,18 +307,18 @@ return class("set",
 
     --[[!
     @module set
-    @func set.importset
+    @func set.importSet
     @scope public
     @desc Adds all items from another set to this set.
     @param set oOther The other set containing items to add.
     @ret set This set object after adding the items found in the other set.
     !]]
-	importset = function(this, cdat, other)
+	importSet = function(this, cdat, other)
         assert(type(other) == "set", sOtherError % {method = "addset"}..type(other)..'.');
         local othercdat = cdat.ins[other];
 
         for nIndex, vItem in ipairs(othercdat.pri.indexed) do
-            additem(cdat, vItem);
+            addItem(cdat, vItem);
 		end
 
         return this;
@@ -342,7 +342,7 @@ return class("set",
 		for nIndex, vItem in pairs(cdat.pri.indexed) do
 
             if (rawtype(othercdat.pri.set[vItem]) ~= "nil") then
-				additem(newcdat, vItem);
+				addItem(newcdat, vItem);
 			end
 
 		end
@@ -353,26 +353,26 @@ return class("set",
 
     --[[!
     @module set
-    @func set.isempty
+    @func set.isEmpty
     @scope public
     @desc Checks if the set is empty.
     @ret boolean Returns true if the set is empty, false otherwise.
     !]]
-	isempty = function(this, cdat)
+	isEmpty = function(this, cdat)
 		return cdat.pri.size < 1;
 	end,
 
 
     --[[!
     @module set
-    @func set.issubset
+    @func set.isSubset
     @scope public
     @desc Checks if the input set a subset of this set.
     @param set other The other set to detemine subsetness.
     @ret boolean Returns true if the other set is a subset of this set, false otherwise.
     !]]
-	issubset = function(this, cdat, other)--TODO use cdat
-        assert(type(other) == "set", sOtherError % {method = "issubset"}..type(other)..'.');
+	isSubset = function(this, cdat, other)--TODO use cdat
+        assert(type(other) == "set", sOtherError % {method = "isSubset"}..type(other)..'.');
         local bRet = true;
         local othercdat = cdat.ins[other];
 
@@ -398,20 +398,20 @@ return class("set",
     @ret set Returns the set object after removing the item.
     !]]
 	remove = function(this, cdat, vItem)
-		removeitem(cdat, vItem);
+		removeItem(cdat, vItem);
         return this;
 	end,
 
 
     --[[!
     @module set
-    @func set.purgeset
+    @func set.purgeSet
     @scope public
     @desc Removes all items from this set that are present in another set.
     @param set other The other set containing items to remove.
     @ret set This set object after removing items found in the other set.
     !]]
-	purgeset = function(this, cdat, other)
+	purgeSet = function(this, cdat, other)
         assert(type(other) == "set", sOtherError % {method = "removeset"}..type(other)..'.');
         local othercdat = cdat.ins[other];
         local indexedCopy = {table.unpack(cdat.pri.indexed)}
@@ -419,7 +419,7 @@ return class("set",
 		for nIndex, vItem in pairs(indexedCopy) do
 
             if (othercdat.pri.set[vItem]) then
-				removeitem(cdat, vItem);
+				removeItem(cdat, vItem);
 			end
 
 		end
@@ -450,4 +450,4 @@ return class("set",
 	size = function(this, cdat)
 		return cdat.pri.size;
 	end,
-}, nil, nil, false);
+}, nil, false);

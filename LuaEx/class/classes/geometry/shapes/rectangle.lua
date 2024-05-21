@@ -10,6 +10,12 @@
 @version 1.1
 @versionhistory
 <ul>
+</li>
+    <li>
+        <b>1.1</b>
+        <br>
+        <p>Change: updated to work with new LuaEx class system.</p>
+    </li>
 	<li>
 		<b>1.0</b>
 		<br>

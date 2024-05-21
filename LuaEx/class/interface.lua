@@ -85,7 +85,6 @@ local function interface(sName, tMetamethods, tStaticPublic, tPrivate, tProtecte
 	--are referenced by calls to the oInterface
 	local tInterface = {
 		metamethods 	= {},
-		--staticprotected = {},
 		staticpublic 	= {},
 		private			= {},
 		protected 		= {},
@@ -102,7 +101,6 @@ local function interface(sName, tMetamethods, tStaticPublic, tPrivate, tProtecte
 		parent 			= bExtend and iExtendor or nil,
 		name 			= sName,
 		metamethods 	= {},
-		--staticprotected = {},
 		staticpublic 	= {},
 		private			= {},
 		protected		= {},
@@ -111,7 +109,6 @@ local function interface(sName, tMetamethods, tStaticPublic, tPrivate, tProtecte
 
 	local tVisibilties = {
 		metamethods 	= tMetamethods,
-		--staticprotected = tStaticProtected,
 		staticpublic 	= tStaticPublic,
 		private			= tPrivate,
 		protected		= tProtected,
@@ -159,7 +156,6 @@ local function interface(sName, tMetamethods, tStaticPublic, tPrivate, tProtecte
 	--import all the parents' items
 	for _, tParent in ipairs(tParents) do
 		importinterfaceitems(tParent, "metamethods");
-		--importinterfaceitems(tParent, "staticprotected");
 		importinterfaceitems(tParent, "staticpublic");
 		importinterfaceitems(tParent, "private");
 		importinterfaceitems(tParent, "protected");
@@ -168,7 +164,6 @@ local function interface(sName, tMetamethods, tStaticPublic, tPrivate, tProtecte
 
 	--import all the interface items
 	importinterfaceitems(tInterfaceBuilder[sName], "metamethods");
-    --importinterfaceitems(tInterfaceBuilder[sName], "staticprotected");
 	importinterfaceitems(tInterfaceBuilder[sName], "staticpublic");
 	importinterfaceitems(tInterfaceBuilder[sName], "private");
 	importinterfaceitems(tInterfaceBuilder[sName], "protected");
@@ -180,14 +175,12 @@ local function interface(sName, tMetamethods, tStaticPublic, tPrivate, tProtecte
 			assert(type(tClass) 				== "table", 	callerror(tostring(tClass.name), tClass, "main table"));
 			assert(type(tClass.name) 			== "string", 	callerror(tostring(tClass.name), tClass, "name"));
 			assert(type(tClass.metamethods) 	== "table", 	callerror(tostring(tClass.name), tClass, "metamethods table"));
-			--assert(type(tClass.staticprotected) == "table", 	callerror(tostring(tClass.name), tClass, "staticprotected table"));
 			assert(type(tClass.staticpublic) 	== "table", 	callerror(tostring(tClass.name), tClass, "staticpublic table"));
 			assert(type(tClass.private) 		== "table", 	callerror(tostring(tClass.name), tClass, "private table"));
 			assert(type(tClass.protected) 		== "table", 	callerror(tostring(tClass.name), tClass, "protected table"));
 			assert(type(tClass.public) 			== "table", 	callerror(tostring(tClass.name), tClass, "public table"));
 
 			validatevisibilitytable(tClass.name, sName, tClass, tInterface, "metamethods");
-			--validatevisibilitytable(tClass.name, sName, tClass, tInterface, "staticprotected");
 			validatevisibilitytable(tClass.name, sName, tClass, tInterface, "staticpublic");
 			validatevisibilitytable(tClass.name, sName, tClass, tInterface, "private");
 			validatevisibilitytable(tClass.name, sName, tClass, tInterface, "protected");

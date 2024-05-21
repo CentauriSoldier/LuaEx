@@ -214,4 +214,4 @@ return class("queue",
 		return cdat.pri.count;
 	end,
 },
-nil, nil, false);
+nil, false);

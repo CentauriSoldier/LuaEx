@@ -55,7 +55,7 @@ print(ERROR_MARKER);            --> "err:"
 
 
 ##### Class System
-- A fully-functional, [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
+- A fully-functional, (*pseudo*) [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
 - The class system also takes advantage of metatables and allows user to create, inherit and override these for class objects.
 - Auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.    
 - Strongly typed values (although allowing initial ***null*** values).
@@ -176,7 +176,10 @@ Keeping this module small is essential to making it useful. You shouldn't have t
 Retaining simplicity of the code is also a primary goal of this module. The code should be intuitive and I strive toward that end. The purpose being that both you and I should be able to read the code and understand it.
 
 #### Conventional Consistency
-This project is made to be consistent both with Lua's naming & coding conventions as well as internally.
+This project is made to be consistent both with Lua's naming & coding conventions as well as internally.  
+While my own convention uses (dromedary) [*camelCase*](https://en.wikipedia.org/wiki/Camel_case), I defer to **Lua's** convention where appropriate.  
+What that means is, everything that's hooked directly into **Lua** or creates new base types (*e.g., **table.clone***, ***rawtype***, **enums**, **arrays**, **structs**), respects the *alllowercase* convention used by **Lua**; however, for any items which do not (*e.g., custom classes, dox*), the convention is *camelCase*.  
+This helps maintain expectations of the user while accessing **Lua** items while still allowing me to adhere to my own convention for things outside of **Lua's** core.
 
 #### Principle of Least Astonishment
 In developing **LuaEx**, I strive to take full advantage of the flexibility of the Lua language while still adhering to the [Principle of Least Astonishment](https://en.wikipedia.org/wiki/Principle_of_least_astonishment).

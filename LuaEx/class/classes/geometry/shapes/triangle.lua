@@ -10,15 +10,20 @@
 @version 1.1
 @versionhistory
 <ul>
+    <li>
+        <b>1.2</b>
+        <br>
+        <p>Change: updated to work with new LuaEx class system.</p>
+    </li>
+    <li>
+    <b>1.1</b>
+    <br>
+    <p>Add serialize and deserialize methods.</p>
+    </li>
 	<li>
 		<b>1.0</b>
 		<br>
 		<p>Created the module.</p>
-	</li>
-	<li>
-		<b>1.1</b>
-		<br>
-		<p>Add serialize and deserialize methods.</p>
 	</li>
 </ul>
 @website https://github.com/CentauriSoldier

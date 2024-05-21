@@ -178,7 +178,7 @@ local function udpateStatus(pri)
 end
 
 
-return class("pot",
+return class("potentiometer",
 {--metamethods
 
 },
@@ -200,7 +200,7 @@ return class("pot",
 
 },
 {--public
-    pot = function(this, cdat, nMin, nMax, nPos, nRate, nContinuity)
+    potentiometer = function(this, cdat, nMin, nMax, nPos, nRate, nContinuity)
         local pri = cdat.pri;
 
         pri.alternator			= 1;
@@ -444,6 +444,6 @@ return class("pot",
 	end,
 },
 nil,    --extending class
-nil,    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
-false   --if the class is final
+false,   --if the class is final
+nil   --interface(s) (either nil, or interface(s))
 );

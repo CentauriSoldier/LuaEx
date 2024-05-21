@@ -13,27 +13,21 @@
 	<li>
 		<b>1.2</b>
 		<br>
-		<p>Updated to work with new LuaEx class system.</p>
+		<p>Change: updated to work with new LuaEx class system.</p>
 	</li>
 	<li>
 		<b>1.1</b>
 		<br>
-		<p>Add serialize and deserialize methods.</p>
+		<p>Feature: added serialize and deserialize methods.</p>
 	</li>
 	<li>
 		<b>1.0</b>
 		<br>
-		<p>Created the module.</p>
+		<p>Change: created the module.</p>
 	</li>
 </ul>
 @website https://github.com/CentauriSoldier
 *]]
-
-local nSpro	= class.args.staticprotected;
-local nPri 	= class.args.private;
-local nPro 	= class.args.protected;
-local nPub 	= class.args.public;
-local nIns	= class.args.instances;
 
 constant("QUADRANT_I", 		"I");
 constant("QUADRANT_II", 	"II");
@@ -53,8 +47,7 @@ local type 			= type;
 local rawtype		= rawtype;
 local math			= math;
 
-local point = class(
-"point",
+return class("point",
 {--metamethods
 	--[[
 	@desc Adds two points together.
@@ -62,10 +55,10 @@ local point = class(
 	@mod point
 	@ret oPoint point A new point with the values of the two points added together. If an incorrect paramters is passed, a new point with the values of the correct paramter (the point) is returned.
 	]]
-	__add = function(args, this, other)
+	__add = function(this, other, cdat)
 
 		if (type(this) == "point" and type(other) == "point") then
-			local pri = args[nPri];
+			local pri = cdat.pri;
 			local otherpri = args[nIns][other][nPri];
 
 			return point(pri.x + otherpri.x,
@@ -74,11 +67,11 @@ local point = class(
 
 	end,
 
-	__eq = function(args, this, other)
+	__eq = function(this, other, cdat)
 		local bRet = false;
 
 		if (type(this) == "point" and type(other) == "point") then
-			local pri = args[nPri];
+			local pri = cdat.pri;
 			local otherpri = args[nIns][other][nPri];
 			bRet = pri.x == otherpri.x and pri.y == otherpri.y;
 	 	end
@@ -86,11 +79,11 @@ local point = class(
 		return bRet;
 	end,
 
-	__le = function(args, this, other)
+	__le = function(this, other, cdat)
 		local bRet = false;
 
 		if (type(this) == "point" and type(other) == "point") then
-			local pri = args[nPri];
+			local pri = cdat.pri;
 			local otherpri = args[nIns][other][nPri];
 			bRet = pri.x <= otherpri.x and pri.y <= otherpri.y;
 	 	end
@@ -98,11 +91,11 @@ local point = class(
 		return bRet;
 	end,
 
-	__lt = function(args, this, other)
+	__lt = function(this, other, cdat)
 		local bRet = false;
 
 		if (type(this) == "point" and type(other) == "point") then
-			local pri = args[nPri];
+			local pri = cdat.pri;
 			local otherpri = args[nIns][other][nPri];
 			bRet = pri.x < otherpri.x and pri.y < otherpri.y;
 	 	end
@@ -123,10 +116,10 @@ local point = class(
 		return this;
 	end,]]
 
-	__sub = function(args, this, other)
+	__sub = function(this, other, cdat)
 
 		if (type(this) == "point" and type(other) == "point") then
-			local pri = args[nPri];
+			local pri = cdat.pri;
 			local otherpri = args[nIns][other][nPri];
 
 			return point(pri.x - otherpri.x,
@@ -135,20 +128,24 @@ local point = class(
 
 	end,
 
-	__tostring = function(args, this)
-		local pri = args[nPri];
+	__tostring = function(this, cdat)
+		local pri = cdat.pri;
 		return "x: "..pri.x.." y: "..pri.y;
 	end,
-},
-{--static protected
 
+    __unm = function(this, cdat)
+        cdat.pri.x = -cdat.pri.x;
+        cdat.pri.y = -cdat.pri.y;
+
+        return this;
+    end,
 },
 {--static public
 
 },
 {--private
-	x,
-	y,
+	x = 0,
+	y = 0,
 },
 {--protected
 
@@ -162,13 +159,13 @@ local point = class(
 	@param nY number The y value. If nil, it defaults to 0.
 	]]
 
-	point = function(this, args, nX, nY)
-		local pri = args[nPri];
-		pri.x = rawtype(nX) == "number" and nX or 0;
-		pri.y = rawtype(nY) == "number" and nY or 0;
+	point = function(this, cdat, nX, nY)
+		local pri = cdat.pri;
+		pri.x = rawtype(nX) == "number" and nX or pri.x;
+		pri.y = rawtype(nY) == "number" and nY or pri.y;
 	end,
 
-	deserialize = function(this, sData)
+	deserialize = function(this, cdat, sData)
 		local tData = deserialize.table(sData);
 
 		this.x = tData.x;
@@ -177,24 +174,24 @@ local point = class(
 		return this;
 	end,
 
-	clone = function(this, args)
-		local pri = args[nPri];
+	clone = function(this, cdat)
+		local pri = cdat.pri;
 		return point(pri.x, pri.y);
 	end,
 
-	getX = function(this, args)
-		local pri = args[nPri];
+	getX = function(this, cdat)
+		local pri = cdat.pri;
 		return pri.x;
 	end,
 
-	getY = function(this, args)
-		local pri = args[nPri];
+	getY = function(this, cdat)
+		local pri = cdat.pri;
 		return pri.y;
 	end,
 
 	--return O, X, Y, -X, -Y, I, II, III or IV
-	getQuadrant = function(this, args)
-		local pri = args[nPri];
+	getQuadrant = function(this, cdat)
+		local pri = cdat.pri;
 		local sRet 		= "ERROR";
 		local bYIsNeg 	= pri.y < 0;
 		local bYIs0 	= pri.y == 0;
@@ -254,8 +251,8 @@ local point = class(
 		@param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
 		@ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
 	!]]
-	serialize = function(this, args, bDefer)
-		local pri = args[nPri];
+	serialize = function(this, cdat, bDefer)
+		local pri = cdat.pri;
 
 		local tData = {
 			x = pri.x,
@@ -270,14 +267,14 @@ local point = class(
 	end,
 
 
-	setX = function(this, args, nX)
-		local pri = args[nPri];
+	setX = function(this, cdat, nX)
+		local pri = cdat.pri;
 		pri.x = type(nX) == "number" and nX or pri.x;
 		return this;
 	end,
 
-	setY = function(this, args, nY)
-		local pri = args[nPri];
+	setY = function(this, cdat, nY)
+		local pri = cdat.pri;
 		pri.y = type(nY) == "number" and nY or pri.y;
 		return this;
 	end,
@@ -303,9 +300,7 @@ local point = class(
 		return nRet;
 	end,]]
 },
-nil,    --extending class
-nil,    --interface(s) (either nil, an interface or a table of interfaces)
-false  --if the class is final
+nil,        --extending class
+false,      --if the class is final
+iClonable   --interface(s) (either nil, or interface(s))
 );
-
-return point;

@@ -81,7 +81,7 @@ poewiF)(*WE)(RUIWIJEFSIOJDf)
 39048r39084750237eq9whdlashfd9isdyf98uw43roij23r0f7sudoifiol34jtr
 w4890r79823u4rhjfwefus07ur23ohr9asd8yfsoij
 ]=]
-local oLuaExDox = doxlua();
+local oLuaExDox = doxLua();
 for k in oLuaExDox.blocktaggroups() do
 
     for f in k.blocktags() do
@@ -111,6 +111,13 @@ local tModules, tBlocks = oLuaExDox.importstring(readFile(pFile));
 --for k, v in pairs(tBlocks) do
     ---print(k.." = "..serialize.table(v))
 --end
-local tpot = pot(1, 20, 1, 1, POT_CONTINUITY_REVOLVE);
+local tpot = potentiometer(1, 20, 1, 1, POT_CONTINUITY_REVOLVE);
 tpot.adjust(20)
-print(tpot.getPos())
+--print(tpot.getPos())
+
+
+local P1 = point(4, 3);
+local P2 = point(-9, -35);
+local oLine1 = line(P1, P2);
+local oCircle = circle();
+print(oCircle.getRadius())

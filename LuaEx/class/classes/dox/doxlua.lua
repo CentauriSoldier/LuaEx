@@ -1,4 +1,4 @@
-return class("doxlua",
+return class("doxLua",
 {--metamethods
 
 },
@@ -12,7 +12,7 @@ return class("doxlua",
 
 },
 {--public
-    doxlua = function(this, cdat, super)
+    doxLua = function(this, cdat, super)
         local fBlockTag       = cdat.pro.blocktag;
         local fBlockTagGroup  = cdat.pro.blocktaggroup;
         local bRequired         = true;
@@ -65,6 +65,6 @@ return class("doxlua",
     end,
 },
 dox,    --extending class
-nil,    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
-true    --if the class is final
+true,    --if the class is final
+nil    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
 );

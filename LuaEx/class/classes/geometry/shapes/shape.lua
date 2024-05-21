@@ -27,31 +27,16 @@
 
 --localization
 local class	= class;
-local nSpro	= class.args.staticprotected;
-local nPri 	= class.args.private;
-local nPro 	= class.args.protected;
-local nPub 	= class.args.public;
-local nIns	= class.args.instances;
 
-
---local spro = args[nSpro];
---local pri = args[nPri];
---local pro = args[nPro];
---local pub = args[nPub];
---local ins = args[nIns];
-
-local shape = class(
-"shape",
+return class("shape",
 {--metamethods
-},
-{--static protected
 },
 {--static public
 },
 {--private
 },
 {--protected
-	area,
+	area = 0,
 },
 {--public
 	containsPoint = function()
@@ -66,13 +51,10 @@ local shape = class(
 	getPos = function()
 		error("The 'getPos' function has not been implemented in the child class.");
 	end,
-	shape = function(this, args)
-		args[nPro].area = 0;
-	end
+	shape = function(this, cdat)
+	end,
 },
 nil,
-ishape,
-false
+false,
+iShape
 );
-
-return shape;

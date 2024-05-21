@@ -139,7 +139,7 @@ local doxblocktag = class("doxblocktag",
 
         end
     },
-    nil, nil, true
+    nil, true
 );
 
 
@@ -186,7 +186,7 @@ local doxblocktaggroup = class("doxblocktaggroup",
             local tRequiredTagsFound    = -tRequiredGroupBlockTags;
 
             local tBlockTags = pri.blocktags;
-            for _, oBlockTag in pairs({...} or args) do
+            for _, oBlockTag in pairs({...} or arg) do
                 --TODO QUESTION should i check that this tag is set to bRequired in the input?
                 for nIndex, sTag in tRequiredGroupBlockTags() do
 
@@ -239,7 +239,7 @@ local doxblocktaggroup = class("doxblocktaggroup",
             return cdat.pri.name;
         end,
     },
-    nil, nil, true
+    nil, true
 );
 
 
@@ -280,8 +280,8 @@ local doxmodule = class("doxmodule",
     end,
 },
 nil,    --extending class
-nil,    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
-false   --if the class is final
+false,   --if the class is final
+nil    --interface(s) (either nil, or interface(s))
 );
 
 
@@ -407,7 +407,7 @@ return class("dox",
         --TODO clone these properly
         local tBlockTagGroups = pri.blocktaggroups;
 
-        for _, oBlockTagGroup in pairs({...} or args) do
+        for _, oBlockTagGroup in pairs({...} or arg) do
             type.assert.custom(oBlockTagGroup, "doxblocktaggroup");
             tBlockTagGroups[#tBlockTagGroups + 1] = oBlockTagGroup.clone();
         end
@@ -536,6 +536,6 @@ return class("dox",
     end,
 },
 nil,    --extending class
-nil,    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
-false   --if the class is final
+false,   --if the class is final
+nil    --interface(s) (either nil, or interface(s))
 );

@@ -1,6 +1,5 @@
-return interface("iserializable",
+return interface("iSerializable",
 {},--metamethods
-{},--static protected
 {},--static public
 {},--private
 {},--protected

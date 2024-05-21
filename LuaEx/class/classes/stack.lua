@@ -227,5 +227,5 @@ return class("stack",
     	return cdat.pri.count;
     end,
 
-}, nil, nil, false);
---}, nil, iClonable, false); --TODO add interface reference when interfaces are reimplemented in the class system (do for set and queue too)
+}, nil, false);
+--}, nil, false, iClonable); --TODO add interface reference when interfaces are reimplemented in the class system (do for set and queue too)

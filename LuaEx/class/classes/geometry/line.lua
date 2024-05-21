@@ -39,11 +39,6 @@ local serialize		= serialize;
 local type 			= type;
 local MATH_ARL		= MATH_ARL;
 local MATH_UNDEF	= MATH_UNDEF;
-local nSpro			= class.args.staticprotected;
-local nPri 			= class.args.private;
-local nPro 			= class.args.protected;
-local nPub 			= class.args.public;
-local nIns			= class.args.instances;
 
 --a location for storing temporary points so they don't need to be created every calcualtion
 local tTempPoints = {};
@@ -109,16 +104,15 @@ local function update(pri)
 end
 
 --local spro = args[nSpro];
---local pri = args[nPri];
+--local pri = cdat.pri;
 --local pro = args[nPro];
 --local pub = args[nPub];
 --local ins = args[nIns];
 
-return class(
-"line",
+return class("line",
 {--metamethods
-	__tostring = function(args, this)
-		local pri = args[nPri];
+	__tostring = function(this, cdat)
+		local pri = cdat.pri;
 		local sRet 	= "";
 
 		sRet = sRet.."start: "		..tostring(pri.start).."\r\n";
@@ -140,50 +134,47 @@ return class(
 	end,
 
 
-	__len = function(args, this)
-		return args[nPri].length;
+	__len = function(this, cdat)
+		return cdat.pri.length;
 	end,
 
 
-	__eq = function(args, this, other)
-		local tMe 		= args[nPri];
-		local tOther 	= args[nIns][other][nPri];
+	__eq = function(this, other, cdat)
+		local tMe 		= cdat.pri;
+		local tOther 	= cdat.ins[other].pri;
 		--TODO optimize this by reducing redundant calls
 		return tMe.start.x 	== tOther.start.getX() 	and tMe.start.getY() 	== tOther.start.getY() and
 			   tMe.stop.x 	== tOther.stop.getX() 	and tMe.stop.getY() 	== tOther.stop.getY();
 	end,
 },
-{--static protected
-
-},
 {--static public
 
 },
 {--private
-	midpoint,
-	start,
-	stop,
-	a,
-	b,
-	c,
-	deltaX,
-	deltaY,
-	length,
-	slope,
-	slopeIsUndefined,
-	theta,
-	yIntercept,
-	yInterceptIsUndefined,
-	xIntercept,
-	xInterceptIsUndefined,
+	midpoint               = null,
+	start                  = null,
+	stop                   = null,
+	a                      = 0,
+	b                      = 0,
+	c                      = 0,
+	deltaX                 = 0,
+	deltaY                 = 0,
+	length                 = 0,
+	slope                  = 0,
+	slopeIsUndefined       = true,
+	theta                  = 0,
+	yIntercept             = 0,
+	yInterceptIsUndefined  = true,
+	xIntercept             = 0,
+	xInterceptIsUndefined  = true,
 },
 {--protected
 
 },
 {--public
 
-	line = function(this, args, oStartPoint, oEndPoint, bSkipUpdate)
-		local pri = args[nPri];
+	line = function(this, cdat, oStartPoint, oEndPoint, bSkipUpdate)
+		local pri = cdat.pri;
 
 		pri.start 		= type(oStartPoint) == "point" 	and point(oStartPoint.getX(), 	oStartPoint.getY())	or point();
 		pri.stop 		= type(oEndPoint)	== "point" 	and point(oEndPoint.getX(), 	oEndPoint.getY()) 	or point();
@@ -214,7 +205,7 @@ return class(
 
 	end,
 
-	deserialize = function(this, args, sData)
+	deserialize = function(this, cdat, sData)
 		local tData = deserialize.table(sData);
 
 		this.start 	= this.start.deserialize(tData.start);
@@ -224,7 +215,7 @@ return class(
 	end,
 
 
-	getASCII = function(this, args)
+	getASCII = function(this, cdat)
 		--TODO shrink the line to proportions of 10s
 		local sRet = "";
 
@@ -250,32 +241,32 @@ return class(
 		return nAngle < 90 and nAngle or 180 - nAngle;
 	end,]]
 
-	getDeltaX = function(this, args)
-		return args[nPri].deltaX;
+	getDeltaX = function(this, cdat)
+		return cdat.pri.deltaX;
 	end,
 
-	getDeltaY = function(this, args)
-		return args[nPri].deltaY;
+	getDeltaY = function(this, cdat)
+		return cdat.pri.deltaY;
 	end,
 
-	getEnd = function(this, args)
-		return args[nPri].stop;
+	getEnd = function(this, cdat)
+		return cdat.pri.stop;
 	end,
 
-	getLength = function(this, args)
-		return args[nPri].length;
+	getLength = function(this, cdat)
+		return cdat.pri.length;
 	end,
 
-	getMidPoint = function(this, args)
-		return args[nPri].midpoint;
+	getMidPoint = function(this, cdat)
+		return cdat.pri.midpoint;
 	end,
 
-	getPointAtDistance = function(this, args, nDistance)
+	getPointAtDistance = function(this, cdat, nDistance)
 		--https://stackoverflow.com/questions/1250419/finding-points-on-a-line-with-a-given-distance
 	end,
 
-	getPointOfIntersection = function(this, args, other)
-		local tMe 		= args[nPri];
+	getPointOfIntersection = function(this, cdat, other)
+		local tMe 		= cdat.pri;
 		local tOther 	= args[nIns][other][nPri];
 		local oRet		= MATH_UNDEF;
 --TODO optimize function calls
@@ -300,35 +291,35 @@ return class(
 	end,
 
 	--get the polar radius
-	getR = function(this, args)
-		return args[nPri].length;
+	getR = function(this, cdat)
+		return cdat.pri.length;
 	end,
 
-	getSlope = function(this, args)
-		return args[nPri].slope;
+	getSlope = function(this, cdat)
+		return cdat.pri.slope;
 	end,
 
 
-	getStart = function(this, args)
-		return args[nPri].start;
+	getStart = function(this, cdat)
+		return cdat.pri.start;
 	end,
 
 	--get the polar angles from the x-axis
-	getTheta = function(this, args)
-		return args[nPri].theta;
+	getTheta = function(this, cdat)
+		return cdat.pri.theta;
 	end,
 
 
-	getXIntercept = function(this, args)
-		return args[nPri].xIntercept;
+	getXIntercept = function(this, cdat)
+		return cdat.pri.xIntercept;
 	end,
 
-	getYIntercept = function(this, args)
-		return args[nPri].yIntercept;
+	getYIntercept = function(this, cdat)
+		return cdat.pri.yIntercept;
 	end,
 
-	intersects = function(this, args, other)
-		local tMe 		= args[nPri];
+	intersects = function(this, cdat, other)
+		local tMe 		= cdat.pri;
 		local tOther 	= args[nIns][other][nPri];
 
 		local A1 = tMe.stop.getY() - tMe.start.getY();
@@ -340,12 +331,12 @@ return class(
 		return (A1 * B2 - A2 * B1) ~= 0;
 	end,
 
-	isDistinctFrom = function(this, args, other)
+	isDistinctFrom = function(this, cdat, other)
 
 	end,
 
-	isParrallelTo = function(this, args, other)
-		local tMe 						= args[nPri];
+	isParrallelTo = function(this, cdat, other)
+		local tMe 						= cdat.pri;
 		local tOther 					= args[nIns][other][nPri];
 		local bBothSlopesAreDefined 	= (not tMe.slopeIsUndefined) and (not tOther.slopeIsUndefined);
 		local bBothSlopesAreUndefined 	= tMe.slopeIsUndefined and tOther.slopeIsUndefined;
@@ -353,8 +344,8 @@ return class(
 		return bBothSlopesAreUndefined or (bBothSlopesAreDefined and (tMe.slope == tOther.slope));
 	end,
 
-	coincidesWith = function(this, args, other)
-		local tMe 							= args[nPri];
+	coincidesWith = function(this, cdat, other)
+		local tMe 							= cdat.pri;
 		local tOther 						= args[nIns][other][nPri];
 		local bBothSlopesAreDefined 		= (not tMe.slopeIsUndefined) and (not tOther.slopeIsUndefined);
 		local bBothSlopesAreUndefined 		= tMe.slopeIsUndefined and tOther.slopeIsUndefined;
@@ -378,8 +369,8 @@ return class(
 		@param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
 		@ret sData StringOrTable The data, returned as a serialized table (string) or a table is the defer option is set to true.
 	!]]
-	serialize = function(this, args, bDefer)
-		local pri = args[nPri];
+	serialize = function(this, cdat, bDefer)
+		local pri = cdat.pri;
 		--[[local tData = {
 			start 	= pri.start:seralize(),
 			stop 	= pri.stop:serialize(),
@@ -393,8 +384,8 @@ return class(
 		return serialize.table(pri);
 	end,
 
-	setEnd = function(this, args, oPoint, bSkipUpdate)
-		local pri = args[nPri];
+	setEnd = function(this, cdat, oPoint, bSkipUpdate)
+		local pri = cdat.pri;
 		pri.stop.setX(oPoint.getX());
 		pri.stop.setY(oPoint.getY());
 
@@ -415,19 +406,19 @@ return class(
 
 	end,
 
-	slopeIsDefined = function(this, args)
-		return not args[nPri].slopeIsUndefined;
+	slopeIsDefined = function(this, cdat)
+		return not cdat.pri.slopeIsUndefined;
 	end,
 
-	xInterceptIsDefined = function(this, args)
-		return not args[nPri].xInterceptIsUndefined;
+	xInterceptIsDefined = function(this, cdat)
+		return not cdat.pri.xInterceptIsUndefined;
 	end,
 
-	yInterceptIsDefined = function(this, args)
-		return not args[nPri].yInterceptIsUndefined;
+	yInterceptIsDefined = function(this, cdat)
+		return not cdat.pri.yInterceptIsUndefined;
 	end,
 },
-nil,    --extending class
-nil,    --interface(s) (either nil, an interface or a table of interfaces)
-false  	--if the class is final
+nil,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
 );

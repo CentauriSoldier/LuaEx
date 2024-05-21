@@ -119,17 +119,33 @@ base64 		= require("LuaEx.ext_lib.base64");
 serialize 	= require("LuaEx.util.serialize");
 deserialize = require("LuaEx.util.deserialize");
 
---import interfaces
---icloneable 		= require("LuaEx.class.interfaces.iclonable");
---iserializable 	= require("LuaEx.class.interfaces.iserializable");
+--🅸🅼🅿🅾🆁🆃 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂
+iCloneable 		= require("LuaEx.class.interfaces.iClonable");
+iSerializable 	= require("LuaEx.class.interfaces.iSerializable");
+iShape 	        = require("LuaEx.class.interfaces.iShape");
 
---import classes
-queue 	    = require("LuaEx.class.classes.queue");
-stack 	    = require("LuaEx.class.classes.stack");
-set 		= require("LuaEx.class.classes.set");
-dox         = require("LuaEx.class.classes.dox");
-doxlua      = require("LuaEx.class.classes.dox.doxlua");
-pot         = require("LuaEx.class.classes.component.pot");
+--🅸🅼🅿🅾🆁🆃 🅲🅻🅰🆂🆂🅴🆂
+
+--dependency class
+queue           = require("LuaEx.class.classes.queue");
+stack 	        = require("LuaEx.class.classes.stack");
+set 		    = require("LuaEx.class.classes.set");
+
+--dox and included language classes
+dox             = require("LuaEx.class.classes.dox");
+doxLua          = require("LuaEx.class.classes.dox.doxLua");
+
+--component classes
+potentiometer   = require("LuaEx.class.classes.component.potentiometer");
+
+--geometry classes
+point           = require("LuaEx.class.classes.geometry.point");
+line            = require("LuaEx.class.classes.geometry.line");
+--shapes
+shape           = require("LuaEx.class.classes.geometry.shapes.shape");
+circle          = require("LuaEx.class.classes.geometry.shapes.circle");
+
+--dependant classes
 
 --🅰🅻🅸🅰🆂🅴🆂
 table.serialize 	= serialize.table;
