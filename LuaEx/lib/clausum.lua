@@ -2,7 +2,7 @@
 
 
 --clausum: locked, enclosure, locked place, inclosure
-local function clausum(sType)
+local function clausum(sType) --TODO maybe rename to hypertable
         --setup the table which will hold the values
         local actual   = {};
         --setup the decoy

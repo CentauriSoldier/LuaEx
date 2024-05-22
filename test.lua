@@ -1,25 +1,25 @@
 function getsourcepath()
-	--determine the call location
-	local sPath = debug.getinfo(1, "S").source;
-	--remove the calling filename
-	local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
-	--make a pattern to account for case
-	local sFilename = "";
-	for x = 1, #sFilenameRAW do
-		local sChar = sFilenameRAW:sub(x, x);
+    --determine the call location
+    local sPath = debug.getinfo(1, "S").source;
+    --remove the calling filename
+    local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
+    --make a pattern to account for case
+    local sFilename = "";
+    for x = 1, #sFilenameRAW do
+        local sChar = sFilenameRAW:sub(x, x);
 
-		if (sChar:find("[%a]")) then
-			sFilename = sFilename.."["..sChar:upper()..sChar:lower().."]";
-		else
-			sFilename = sFilename..sChar;
-		end
+        if (sChar:find("[%a]")) then
+            sFilename = sFilename.."["..sChar:upper()..sChar:lower().."]";
+        else
+            sFilename = sFilename..sChar;
+        end
 
-	end
-	sPath = sPath:gsub("@", ""):gsub(sFilename, "");
-	--remove the "/" at the end
-	sPath = sPath:sub(1, sPath:len() - 1);
+    end
+    sPath = sPath:gsub("@", ""):gsub(sFilename, "");
+    --remove the "/" at the end
+    sPath = sPath:sub(1, sPath:len() - 1);
 
-	return sPath;
+    return sPath;
 end
 
 --determine the call location
@@ -91,7 +91,7 @@ for k in oLuaExDox.blocktaggroups() do
 end
 
 --TODO create tests for each thing and use them as examples
-local pFile = "C:\\Users\\CS\\Sync\\Projects\\GitHub\\LuaEx\\LuaEx\\class\\class.lua";
+local pFile = sPath.."\\LuaEx\\class\\class.lua";
 
 local function readFile(filePath)
     local file = io.open(filePath, "r") -- Open the file in read mode
@@ -116,8 +116,16 @@ tpot.adjust(20)
 --print(tpot.getPos())
 
 
-local P1 = point(4, 3);
-local P2 = point(-9, -35);
+local P1 = point(-6, -6);
+local P2 = point(12, 12);
+local P3 = point(12, -12);
 local oLine1 = line(P1, P2);
 local oCircle = circle();
-print(oCircle.getRadius())
+--print(math.huge / math.huge == math.huge * math.huge)
+--print(8 / 0 == math.huge)
+--print(math.nan == math.inf)
+--print(type(math.nan), type(math.inf))
+--print(oCircle.getArea())
+--print(math.allrealnumbers == math.allrealnumbers)
+print(math.isabstract(math.huge / 0))
+--local oPolygon = polygon(array({[1] = P1, [2] = P2, [3] = P3}));

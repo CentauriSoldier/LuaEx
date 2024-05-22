@@ -2,8 +2,8 @@
 @authors Centauri Soldier
 @copyright Public Domain
 @description
-	<h2>circle</h2>
-	<p></p>
+    <h2>circle</h2>
+    <p></p>
 @license <p>The Unlicense<br>
 <br>
 @moduleid circle
@@ -20,27 +20,27 @@
         <br>
         <p>Add serialize and deserialize methods.</p>
     </li>
-	<li>
-		<b>1.0</b>
-		<br>
-		<p>Created the module.</p>
-	</li>
+    <li>
+        <b>1.0</b>
+        <br>
+        <p>Created the module.</p>
+    </li>
 </ul>
 @website https://github.com/CentauriSoldier
 *]]
 
 --localization
-local class 		= class;
-local deserialize	= deserialize;
-local math 			= math;
-local point			= point;
-local serialize		= serialize;
-local type 			= type;
-local shape 		= shape;
+local class         = class;
+local deserialize   = deserialize;
+local math          = math;
+local point         = point;
+local serialize     = serialize;
+local type          = type;
+local shape         = shape;
 
 local function update(pri)
-	pri.area 			= math.pi * pri.radius ^ 2;
-	pri.circumference 	= math.pi * pri.radius * 2;
+    pri.area              = math.pi * pri.radius ^ 2;
+    pri.circumference     = math.pi * pri.radius * 2;
 end
 
 --the unit circle
@@ -56,10 +56,10 @@ return class("circle",
 
 },
 {--private
-    area 			= _nStartArea,
+    area            = _nStartArea,
     center          = null,
     centroid        = null, --alias of center
-    circumference 	= _nStartCircumference,
+    circumference   = _nStartCircumference,
     radius          = _nStartRadius,
 },
 {--protected
@@ -75,11 +75,11 @@ return class("circle",
         super();
         local pri = cdat.pri;
 
-        pri.center 			= type(pCenter)     == "point" 						and pCenter.clone() or point();
-        pri.centroid		= pri.center; 	-- alias of center
-        pri.radius 			= (rawtype(nRadius) == "number" and nRadius >= 0) 	and nRadius or pri.radius;
-        pri.area   			= 0;
-        pri.circumference 	= 0;
+        pri.center          = type(pCenter)     == "point"                      and pCenter.clone() or point();
+        pri.centroid        = pri.center;     -- alias of center
+        pri.radius          = (rawtype(nRadius) == "number" and nRadius >= 0)   and nRadius or pri.radius;
+        pri.area            = 0;
+        pri.circumference   = 0;
         update(pri);
     end,
 
@@ -108,8 +108,8 @@ return class("circle",
     deserialize = function(this, cdat, sData)
         local tData = deserialize.table(sData);
 
-        this.center 	= tData.center;
-        this.radius 	= this.radius:deserialize(tData.radius);
+        this.center = tData.center;
+        this.radius = this.radius:deserialize(tData.radius);
 
         return this;
     end,

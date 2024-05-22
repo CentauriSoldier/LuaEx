@@ -153,7 +153,7 @@ local kit = {
 		byobject 	= {}, --index by class object | updated when a class object is created
 	},
 };
-
+--TODO go through and set error levels on every error (test each one)
 
 --TODO forbid type names (string, boolean, etc)
                             --[[ ██████╗██╗      █████╗ ███████╗███████╗
@@ -528,7 +528,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                 --if none exists, throw an error
                 if (zRet == "nil") then
                     error("Error in class, '${name}'. Attempt to access ${visibility} member, '${member}', a nil value." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 return vRet;
@@ -552,7 +552,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                 --if (rawtype(vVal) == "nil") then
                 if (zVal == "nil") then
                     error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 local sTypeCurrent  = type(tTarget[k]);
@@ -560,17 +560,17 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 if (sTypeNew == "nil") then
                     error("Error in class, '${name}'. Cannot set ${visibility} member, '${member}', to nil." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 if (sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
                     error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)});
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
                     error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
-                        name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew});
+                        name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 3);
                 end
 
                 rawset(tTarget, k, v);
@@ -1067,7 +1067,7 @@ end
 @desc Checks to see if the args input are all valid interfaces.
 !f]]
 function kit.validateInterfaces(sKit, tVarArgs)
-        
+
     for _, vVarArg in ipairs(tVarArgs) do
         assert(type(vVarArg) == "interface",   "Error creating class, '${class}'. Vararg input must be of type interface.\nGot type ${type}."
                                             % {class = sKit, type = type(vVarArg)});

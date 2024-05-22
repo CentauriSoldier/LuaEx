@@ -1,9 +1,232 @@
-local math = math;
+local math      = math;
+local rawtype   = rawtype;
+
 --local constant = _G.__LUAEX__.constant;
-constant("MATH_ARL", 	"all real numbers");
-constant("MATH_INF", 	"infinite");
-constant("MATH_NAN", 	"not a number");
-constant("MATH_UNDEF", 	"undefined");
+--constant("MATH_ARL", 	"all real numbers");
+--constant("MATH_UNDEF", 	"undefined");
+--TODO complete these
+local nanDivision = math.huge / math.huge;
+
+
+
+math.allrealnumbers = setmetatable(
+{
+    deserialize = function()
+        return math.huge + 42;
+    end,
+    serialize = function()
+        return "inf";
+    end,
+},
+{--TODO other metamethods
+    __add = function(left, right)
+
+        if (type(right) ~= "number") then
+            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
+        end
+
+        return math.huge + 42 + right;
+    end,
+    __div = function(left, right)
+        local vRet = "undefined";
+
+        if (type(right) ~= "number") then
+            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
+        end
+
+        if (right == math.nan) then
+            vRet = math.nan;
+        elseif (right == math.undefined) then
+            vRet = math.undefined;
+        elseif (right == math.inf) then
+            vRet = 1;
+        else
+            vRet = (math.huge + 42) / right;
+        end
+
+        return vRet;
+    end,
+    __eq = function(left, right)
+        return type(left) == type(right) and right == math.huge + 42;
+    end,
+    __le = function(left, right)
+        return type(left) == type(right) and right <= math.huge + 42;
+    end,
+    __lt = function(left, right)
+        return type(left) == type(right) and right < math.huge + 42;
+    end,
+    __sub = function(left, right)--TODO apply thius logic to all metatables for each math.x item
+        if (type(right) ~= "number") then
+            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
+        end
+
+        local vRet = math.huge + 42;
+
+        if (right == math.nan) then
+            vRet = math.nan;
+        elseif (right == math.undefined) then
+            vRet = math.undefined;
+        elseif (right == math.inf) then
+            vRet = 0;
+        end
+
+        return vRet;
+    end,
+    __tostring = function()
+        return "inf";
+    end,
+    __type = "number",
+    __unm = function(this)
+        return -(math.huge + 42);
+    end
+});
+
+
+
+
+math.inf = setmetatable(
+{
+    deserialize = function()
+        return math.huge;
+    end,
+    serialize = function()
+        return "inf";
+    end,
+},
+{--TODO other metamethods
+    __add = function(left, right)
+
+        if (type(right) ~= "number") then
+            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
+        end
+
+        return math.huge + right;
+    end,
+    __div = function(left, right)
+        local vRet = "undefined";
+
+        if (type(right) ~= "number") then
+            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
+        end
+
+        if (right == math.nan) then
+            vRet = math.nan;
+        elseif (right == math.undefined) then
+            vRet = math.undefined;
+        elseif (right == math.inf) then
+            vRet = 1;
+        else
+            vRet = math.huge / right;
+        end
+
+        return vRet;
+    end,
+    __eq = function(left, right)
+        return type(left) == type(right) and right == math.huge;
+    end,
+    __le = function(left, right)
+        return type(left) == type(right) and right <= math.huge;
+    end,
+    __lt = function(left, right)
+        return type(left) == type(right) and right < math.huge;
+    end,
+    __sub = function(left, right)--TODO apply thius logic to all metatables for each math.x item
+        if (type(right) ~= "number") then
+            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
+        end
+
+        local vRet = math.huge;
+
+        if (right == math.nan) then
+            vRet = math.nan;
+        elseif (right == math.undefined) then
+            vRet = math.undefined;
+        elseif (right == math.inf) then
+            vRet = 0;
+        end
+
+        return vRet;
+    end,
+    __tostring = function()
+        return "inf";
+    end,
+    __type = "number",
+    __unm = function(this)
+        return -math.huge;
+    end
+});
+
+
+
+math.nan = setmetatable(
+{
+
+    deserialize = function()
+        return nanDivision;
+    end,
+    serialize = function()
+        return "nan";
+    end,
+},
+{
+    __add = function(left, right)
+        return nanDivision;
+    end,
+    __div = function(lef, right)
+        return nanDivision;
+    end,
+    __eq = function(left, right)
+        return type(left) == type(right) and left == nanDivision and right == nanDivision;
+    end,
+    __le = function(left, right)
+        return false;
+    end,
+    __lt = function(left, right)
+        return false;
+    end,
+    __mul = function(lef, right)
+        return nanDivision;
+    end,
+    __sub = function(left, right)
+        return nanDivision;
+    end,
+    __tostring = function()
+        return "nan";
+    end,
+    __type = "number",
+    __unm = function(this)
+        return nanDivision;
+    end
+});
+
+
+math.undefined = setmetatable(
+{
+    deserialize = function()
+        return math.huge / 0;
+    end,
+    serialize = function()
+        return "undefined";
+    end,
+},
+{
+
+    __tostring = function()
+        return "undefined";
+    end,
+    __type = "number",
+});
+
+
+function math.isabstract(vInput)
+    return  type(vInput) == "number"        and
+            (vInput == math.allrealnumbers  or
+            vInput  == math.inf             or
+            vInput  == math.nan             or
+            vInput  == math.undefined       or
+            vInput  == 1 / 0);
+end
+
 
 --the Eucclidian algorithm for finding the gcf
 --[[local function eucclidiangcf(nDividend, nDivisor)

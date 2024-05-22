@@ -104,7 +104,7 @@ return setmetatable(tArrayActual,
         if (sInputType == "number") then
 
             if (math.floor(vInput) ~= vInput or vInput < 1) then --don't alow zero or non-integer input
-                error("Error creating array. Input number must be a whole positive, integer.");
+                error("Error creating array. Input number must be a whole positive, integer.", 2);
             end
 
             tActual.length = vInput;
@@ -119,7 +119,7 @@ return setmetatable(tArrayActual,
 
             --don't alow zero input
             if (#vInput < 1) then
-                error("Error creating array. No valid item entries in input table.");
+                error("Error creating array. No valid item entries in input table.", 2);
             end
 
             --process the input table items
@@ -132,7 +132,7 @@ return setmetatable(tArrayActual,
 
                     --throw an error on null value
                     if (vItem == null) then
-                        error("Error creating array. Array item type cannot be null.");
+                        error("Error creating array. Array item type cannot be null.", 2);
                     end
 
                     sArrayType = sItemType;
@@ -140,7 +140,7 @@ return setmetatable(tArrayActual,
 
                 --enforce 'like items only' policy
                 if (sItemType ~= sArrayType) then
-                    error("Error creating array.\nArray items must all be of the same type (${type}). Type input is ${typeinput}." % {type = sArrayType, typeinput = sItemType});
+                    error("Error creating array.\nArray items must all be of the same type (${type}). Type input is ${typeinput}." % {type = sArrayType, typeinput = sItemType}, 2);
                 end
 
                 tItems[nArrayIndex] = vItem;
@@ -150,7 +150,7 @@ return setmetatable(tArrayActual,
 
 
         else --bad input
-            error("Error creating array. Input must be a number or a numerically-indexed table containing like items.");
+            error("Error creating array. Input must be a number or a numerically-indexed table containing like items.", 2);
         end
 
         local tArrayMeta = { --the returned object's metatable
@@ -194,13 +194,13 @@ return setmetatable(tArrayActual,
                 if (sType == "number") then
 
                     if not (k > 0 and k <= tActual.length) then
-                        error("Error retrieving value from array. Index is out of bounds.\nMax value: ${maxval}. Value given: ${givenval}" % {maxval = tActual.length, givenval = k});
+                        error("Error retrieving value from array. Index is out of bounds.\nMax value: ${maxval}. Value given: ${givenval}" % {maxval = tActual.length, givenval = k}, 2);
                     end
 
                     vRet = rawget(tItems, k) or nil;
 
                 elseif (sType == "string") then
-                    vRet = tActual[k] or error("Error accessing array method or property, '${method}'. No such method or property exists." % {method = k});
+                    vRet = tActual[k] or error("Error accessing array method or property, '${method}'. No such method or property exists." % {method = k}, 2);
 
                 else --TODO error here
 
@@ -218,27 +218,27 @@ return setmetatable(tArrayActual,
             @param number nIndex The index to assign.
             @param any vVal The non-nill/non-null value to assign.
             !]]
-            __newindex = function(t, k, v)
+            __newindex = function(t, k, v)--TODO make sure k values are contigous
                 local sType = type(v);
 
                 if (sType == "nil") then
-                    error("Error assigning value to array. Item cannot be nil.");
+                    error("Error assigning value to array. Item cannot be nil.", 2);
                 end
 
                 if (sType == "null") then
-                    error("Error assigning value to array. Item cannot be null.");
+                    error("Error assigning value to array. Item cannot be null.", 2);
                 end
 
                 if (type(k) ~= "number") then
-                    error("Error assigning value to array. Index must be a positve, whole integer.\nInput is '${input}' of type ${type}." % {input = tostring(k), type = type(k)});
+                    error("Error assigning value to array. Index must be a positve, whole integer.\nInput is '${input}' of type ${type}." % {input = tostring(k), type = type(k)}, 2);
                 end
 
                 if (math.floor(k) ~= k) then
-                    error("Error assigning value to array. Index must be a positve, whole integer.\nInput is '${input}' of type ${type}." % {input = tostring(k), type = type(k)});
+                    error("Error assigning value to array. Index must be a positve, whole integer.\nInput is '${input}' of type ${type}." % {input = tostring(k), type = type(k)}, 2);
                 end
 
                 if not (k > 0 and k <= tActual.length) then
-                    error("Error assigning value to array. Index is out of bounds.\nMax value: ${maxval}. Value given: ${givenval}" % {maxval = tActual.length, givenval = k});
+                    error("Error assigning value to array. Index is out of bounds.\nMax value: ${maxval}. Value given: ${givenval}" % {maxval = tActual.length, givenval = k}, 2);
                 end
 
                 if (sArrayType == null) then
@@ -246,7 +246,7 @@ return setmetatable(tArrayActual,
                 end
 
                 if (sType ~= sArrayType) then
-                    error("Error assigning value to array. Item must be of type ${expectedtype}.\nInput is '${input}' of type ${type}." % {expectedtype = tostring(sArrayType), input = tostring(v), type = type(v)});
+                    error("Error assigning value to array. Item must be of type ${expectedtype}.\nInput is '${input}' of type ${type}." % {expectedtype = tostring(sArrayType), input = tostring(v), type = type(v)}, 2);
                 end
 
                 tItems[k]   = v;
