@@ -121,11 +121,46 @@ local P2 = point(12, 12);
 local P3 = point(12, -12);
 local oLine1 = line(P1, P2);
 local oCircle = circle();
+
 --print(math.huge / math.huge == math.huge * math.huge)
 --print(8 / 0 == math.huge)
 --print(math.nan == math.inf)
 --print(type(math.nan), type(math.inf))
 --print(oCircle.getArea())
 --print(math.allrealnumbers == math.allrealnumbers)
-print(math.isabstract(math.huge / 0))
+--print(math.isabstract(math.huge / 0))
 --local oPolygon = polygon(array({[1] = P1, [2] = P2, [3] = P3}));
+local tDataTest = {
+    a = "Bloog!",
+    --b = function() print("A function has arrived!") end,
+    x = 45,
+    y = 31,
+    z = 42,
+};
+
+--local sDataTest = class.serialize("MyClassOfPower", tDataTest);
+--print(sDataTest);
+--local k = class.deserialize(sDataTest);
+--print(type(k))
+
+local a = {
+    [1] = point(1, 5),
+};
+--a[a] = a -- self-reference with a table as key and value
+local str = class.serialize(point(1, 5));
+print(str) -- full serialization
+local oRevived = class.deserialize(str);
+print(oRevived)
+--print(serpent.line(a)) -- single line, no self-ref section
+--print(serpent.block(a)) -- multi-line indented, no self-ref section
+
+--local fun, err = loadstring(str)
+--if err then error(err) end
+--local t = fun();
+--print(t["y"])
+--if err then error(err) end
+--local copy = fun()
+
+-- or using serpent.load:
+--local ok, copy = serpent.load(serpent.dump(a))
+--print(ok and copy[3] == a[3])

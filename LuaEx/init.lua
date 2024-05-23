@@ -165,6 +165,7 @@ table		= require("LuaEx.hook.tablehook");
 
 --import external libraries
 base64 		= require("LuaEx.ext_lib.base64");
+serpent     = require("LuaEx.ext_lib.serpent.serpent");
 
 --import other modules
 serialize 	= require("LuaEx.util.serialize");
@@ -181,7 +182,7 @@ if (tClassLoadValues[_nClassSystem]) then
     class 		= require("LuaEx.class.class");
 
     --🅸🅼🅿🅾🆁🆃 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂
-    iCloneable 		= require("LuaEx.class.interfaces.iClonable");
+    iCloneable 		= require("LuaEx.class.interfaces.iCloneable");
     iSerializable 	= require("LuaEx.class.interfaces.iSerializable");
     iShape 	        = require("LuaEx.class.interfaces.iShape");
 

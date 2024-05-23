@@ -3,61 +3,61 @@ local rawtype = rawtype;
 
 --TODO Move these to util
 local tEscapeChars = {
-	[1] 	= "\\",
-	[2] 	= "\a",
-	[3] 	= "\b",
-	[4] 	= "\f",
-	[5] 	= "\n",
-	[6] 	= "\r",
-	[7] 	= "\t",
-	[8] 	= "\v",
-	[9] 	= "\"",
-	[10] 	= "\'",
+    [1] 	= "\\",
+    [2] 	= "\a",
+    [3] 	= "\b",
+    [4] 	= "\f",
+    [5] 	= "\n",
+    [6] 	= "\r",
+    [7] 	= "\t",
+    [8] 	= "\v",
+    [9] 	= "\"",
+    [10] 	= "\'",
 };
 local nEscapeChars = #tEscapeChars;
 
 local tEscapeCharsConverted = {
-	[1] 	= "\\\\",
-	[2] 	= "\\a",
-	[3] 	= "\\b",
-	[4] 	= "\\f",
-	[5] 	= "\\n",
-	[6] 	= "\\r",
-	[7] 	= "\\t",
-	[8] 	= "\\v",
-	[9] 	= "\\\"",
-	[10] 	= "\\'",
+    [1] 	= "\\\\",
+    [2] 	= "\\a",
+    [3] 	= "\\b",
+    [4] 	= "\\f",
+    [5] 	= "\\n",
+    [6] 	= "\\r",
+    [7] 	= "\\t",
+    [8] 	= "\\v",
+    [9] 	= "\\\"",
+    [10] 	= "\\'",
 };
 
 local tMagicChars = {
-	[1] 	= "%%%%",
-	[2] 	= "%%%(",
-	[3] 	= "%%%)",
-	[4] 	= "%%%.",
-	[5] 	= "%%%+",
-	[6] 	= "%%%-",
-	[7] 	= "%%%*",
-	[8] 	= "%%%?",
-	[9] 	= "%%%[",
-	[10] 	= "%%%]",
-	[11] 	= "%%%^",
-	[12] 	= "%%%$",
+    [1] 	= "%%%%",
+    [2] 	= "%%%(",
+    [3] 	= "%%%)",
+    [4] 	= "%%%.",
+    [5] 	= "%%%+",
+    [6] 	= "%%%-",
+    [7] 	= "%%%*",
+    [8] 	= "%%%?",
+    [9] 	= "%%%[",
+    [10] 	= "%%%]",
+    [11] 	= "%%%^",
+    [12] 	= "%%%$",
 };
 local nMagicChars = #tMagicChars;
 
 local tMagicCharsConverted = {
-	[1] 	= "%%%%%%%%",
-	[2] 	= "%%%%%%%(",
-	[3] 	= "%%%%%%%)",
-	[4] 	= "%%%%%%%.",
-	[5] 	= "%%%%%%%+",
-	[6] 	= "%%%%%%%-",
-	[7] 	= "%%%%%%%*",
-	[8] 	= "%%%%%%%?",
-	[9] 	= "%%%%%%%[",
-	[10] 	= "%%%%%%%]",
-	[11] 	= "%%%%%%%^",
-	[12] 	= "%%%%%%%$",
+    [1] 	= "%%%%%%%%",
+    [2] 	= "%%%%%%%(",
+    [3] 	= "%%%%%%%)",
+    [4] 	= "%%%%%%%.",
+    [5] 	= "%%%%%%%+",
+    [6] 	= "%%%%%%%-",
+    [7] 	= "%%%%%%%*",
+    [8] 	= "%%%%%%%?",
+    [9] 	= "%%%%%%%[",
+    [10] 	= "%%%%%%%]",
+    [11] 	= "%%%%%%%^",
+    [12] 	= "%%%%%%%$",
 };
 
 
@@ -67,37 +67,37 @@ end
 
 --[[DEPRECATED - booleans now have a __tostring metamethod
 function serialize.boolean(bFlag)
-	return (rawtype(bFlag) == "boolean") and tostring(bFlag) or "false";
+    return (rawtype(bFlag) == "boolean") and tostring(bFlag) or "false";
 end
 ]]
 
 --[[DEPRECATED - numbers now have a __tostring metamethod
 function serialize.number(nNumber)
-	return (rawtype(nNumber) == "number") and nNumber or 0;
+    return (rawtype(nNumber) == "number") and nNumber or 0;
 end
 ]]
 
---TODO make this do all resitricted charas too
+--TODO make this do all resitricted chars too
 function serialize.string(sString)
-	local sRet = "";
+    local sRet = "";
 
-	if (rawtype(sString) == "string") then
-		sRet = sString;
+    if (rawtype(sString) == "string") then
+        sRet = sString;
 
-		--look for escape characters
-		for x = 1, nEscapeChars do
-			sRet = sRet:gsub(tEscapeChars[x], tEscapeCharsConverted[x]);
-		end
+        --look for escape characters
+        for x = 1, nEscapeChars do
+            sRet = sRet:gsub(tEscapeChars[x], tEscapeCharsConverted[x]);
+        end
 
-		--look for magic characters
-		for x = 1, nMagicChars do
-			sRet = sRet:gsub(tMagicChars[x], tMagicCharsConverted[x]);
-		end
+        --look for magic characters
+        for x = 1, nMagicChars do
+            sRet = sRet:gsub(tMagicChars[x], tMagicCharsConverted[x]);
+        end
 
-		sRet = "\""..sRet.."\"";
-	end
+        sRet = "\""..sRet.."\"";
+    end
 
-	return sRet;
+    return sRet;
 end
 
 local str = serialize.string;
@@ -107,23 +107,25 @@ function serialize.tableGPT(tbl, indent)
   local sTab = string.rep(" ", indent or 0)
 
   for key, value in pairs(tbl) do
-    local serialized_key = ""
-    local serialized_value = ""
+    local serialized_key    = ""
+    local serialized_value  = ""
+    local sRawTypeKey       = rawtype(key);
+    local sRawTypeValue     = rawtype(value);
 
     -- Check if key has a Serialize function
     if key.Serialize then
-      serialized_key = key:Serialize()
+      serialized_key = key.Serialize()
     elseif key.serialize then
-      serialized_key = key:serialize()
+      serialized_key = key.serialize()
     else
       serialized_key = tostring(key)
     end
 
     -- Check if value has a Serialize function
     if value.Serialize then
-      serialized_value = value:Serialize()
+      serialized_value = value.Serialize()
     elseif value.serialize then
-      serialized_value = value:serialize()
+      serialized_value = value.serialize()
     elseif type(value) == "table" then
       serialized_value = serialize.table(value, (indent or 0) + 2) -- Recursively serialize nested tables
     elseif type(value) == "string" then
@@ -151,62 +153,62 @@ end
 
 --TODO serialize metatable (if possible)???
 function serialize.table(tTable, nTabCount)
-	nTabCount = (rawtype(nTabCount) == "number" and nTabCount > 0) and nTabCount or 0;
-	local sTab = "\t";
+    nTabCount = (rawtype(nTabCount) == "number" and nTabCount > 0) and nTabCount or 0;
+    local sTab = "\t";
 
-	for x = 1, nTabCount do
-		sTab = sTab.."\t";
-	end
+    for x = 1, nTabCount do
+        sTab = sTab.."\t";
+    end
 
-	local sRet = "{";
+    local sRet = "{";
 
-	if (rawtype(tTable) == "table") then
+    if (rawtype(tTable) == "table") then
 
-		for vIndex, vItem in pairs(tTable) do
-			local sType = rawtype(vItem);
-			local sIndex = tostring(vIndex);
+        for vIndex, vItem in pairs(tTable) do
+            local sType = rawtype(vItem);
+            local sIndex = tostring(vIndex);
 
-			--create the index
-			if (rawtype(vIndex) == "number") then
-				sIndex = "\r\n"..sTab.."["..sIndex.."]";
-			else
-				sIndex = "\r\n"..sTab.."[\""..sIndex.."\"]";
-			end
+            --create the index
+            if (rawtype(vIndex) == "number") then
+                sIndex = "\r\n"..sTab.."["..sIndex.."]";
+            else
+                sIndex = "\r\n"..sTab.."[\""..sIndex.."\"]";
+            end
 
-			--process the item
-			if (sType == "string") then
-				sRet = sRet..sIndex.." = "..str(vItem)..",";
+            --process the item
+            if (sType == "string") then
+                sRet = sRet..sIndex.." = "..str(vItem)..",";
 
-			elseif (sType == "number") then
-				sRet = sRet..sIndex.." = "..vItem..",";
+            elseif (sType == "number") then
+                sRet = sRet..sIndex.." = "..vItem..",";
 
-			elseif (sType == "boolean") then
-				sRet = sRet..sIndex.." = "..tostring(vItem)..",";
+            elseif (sType == "boolean") then
+                sRet = sRet..sIndex.." = "..tostring(vItem)..",";
 
-			elseif (sType == "table") then
+            elseif (sType == "table") then
 
-				--if this has a (S)serializtion function or method, call it TODO does this need to a class in order to use the ":" operator?
-				local mt = getmetatable(vItem)
-				if mt and rawtype(mt.__tostring) == "function" then
-					sRet = sRet..sIndex.." = "..tostring(vItem)..",";
-				elseif (rawtype(vItem.serialize) == "function") then
-					sRet = sRet..sIndex.." = "..vItem:serialize()..",";
-				elseif (rawtype(vItem.Serialize) == "function") then
-					sRet = sRet..sIndex.." = "..vItem:Serialize()..",";
-				else
-					sRet = sRet..sIndex.." = "..serialize.table(vItem, nTabCount + 1)..",";
-				end
+                --if this has a (S)serializtion function or method, call it TODO does this need to a class in order to use the ":" operator?
+                local mt = getmetatable(vItem)
+                if mt and rawtype(mt.__tostring) == "function" then
+                    sRet = sRet..sIndex.." = "..tostring(vItem)..",";
+                elseif (rawtype(vItem.serialize) == "function") then
+                    sRet = sRet..sIndex.." = "..vItem.serialize()..",";
+                elseif (rawtype(vItem.Serialize) == "function") then
+                    sRet = sRet..sIndex.." = "..vItem.Serialize()..",";
+                else
+                    sRet = sRet..sIndex.." = "..serialize.table(vItem, nTabCount + 1)..",";
+                end
 
-			else
+            else
 
 
-			end
+            end
 
-		end
+        end
 
-	end
+    end
 
-	return sRet.."\r\n"..sTab:sub(1, -2).."}";
+    return sRet.."\r\n"..sTab:sub(1, -2).."}";
 end
 
 return serialize;

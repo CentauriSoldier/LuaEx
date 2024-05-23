@@ -2,26 +2,29 @@
 @author Centauri Soldier
 @copyright See LuaEx License
 @description
-	<h2>class</h2>
-	<h3>Bringing Object Oriented Programming to Lua</h3>
-	<p>The class module aims to bring a simple-to-use, fully function OOP class system to Lua.</p>
+    <h2>class</h2>
+    <h3>Bringing (pseudo) Object Oriented Programming to Lua</h3>
+    <p>The class module aims to bring a simple-to-use, fully functional, pseudo OOP class system to Lua.
+    <br>Among other things, It includes encapsulation, inheritence & polymorphism, final classes & methods, auto-setter/getter directives and interfaces.
+    </p>
     @license <p>Same as LuaEx license.</p>
 @moduleid class
 @version 0.7
 @versionhistory
 <ul>
-	<li>
+    <li>
         <b>0.7</b>
         <br>
         <p>Bugfix: public static members could not be set or retrieved.</p>
         <p>Bugfix: __shr method not providing 'other' parameter to client.</p>
+        <p>Feature: completed the interface system.</p>
         <p>Feature: added _FNL directive allowing for final methods and metamethods.</p>
         <p>Feature: added _AUTO directive allowing automatically created mutator and accessor methods for members.</p>
         <p>Feature: rewrote <em>(and improved)</em> set, stack and queue classes for new class system.</p>
         <p>Feature: global <strong><em>is</em></strong> functions are now created for classes upon class creation (e.g., isCreature(vInput)).</p>
         <b>0.6</b>
         <br>
-        <p>Change: rewrote class system again from the ground up, avoiding the logic error in the second class system.</p>
+        <p>Change: rewrote class system again from the ground up, avoiding the logic error in the previous class system.</p>
         <b>0.5</b>
         <br>
         <p>Change: removed new class system as it had a fatal, uncorrectable flaw.</p>
@@ -35,14 +38,16 @@
         <b>0.2</b>
         <br>
         <p>Feature: added several features to the existing class system.</p>
-		<b>0.1</b>
-		<br>
-		<p>Imported <a href="https://github.com/Imagine-Programming/" target="_blank">Bas Groothedde's</a> class module.</p>
-	</li>
+        <b>0.1</b>
+        <br>
+        <p>Imported <a href="https://github.com/Imagine-Programming/" target="_blank">Bas Groothedde's</a> class module.</p>
+    </li>
 </ul>
 @website https://github.com/CentauriSoldier/Dox
 *]]
 
+
+--LOCALIZATION
 constant("CLASS_DIRECTIVE_FINAL",           "_FNL"); --this directive causes a method to be final
 constant("CLASS_DIRECTIVE_FINAL_LENGTH",    #CLASS_DIRECTIVE_FINAL);
 constant("CLASS_DIRECTIVE_AUTO",            "_AUTO"); --this directive allows the automatic creation of accessor/mutator methods
@@ -82,7 +87,8 @@ local string            = string;
 local table             = table;
 local type              = type;
 
---WARNING changing these values can break the entire system; modify at your own risk
+--WARNING   changing these values can break the entire system; modify at your own risk
+--NOTE      when modifying/adding/removing items in this table, be sure to update them in instance.wrapMetamethods()
 local tMetaNames = { --the value indicates whether the index is allowed
 __add 		= true,     __band        = true,     __bnot      = true,
 __bor 		= true,     __bxor        = true,	  __call      = true,
@@ -93,7 +99,7 @@ __len       = true,	    __lt	      = true,	  __metatable = false,
 __mod 		= true,     __mode 		  = false,    __mul 	  = true,
 __name 	    = true,	    __newindex    = false,    __pairs     = true,
 __pow 		= true,     __shl 		  = true,	  __shr       = true,
-__sub 	    = true,	    __tostring	  = true,     __unm 	  = true};
+__sub 	    = true,	    __tostring	  = true,     __unm 	  = true, __serialize = true};
 
 local function getMetaNamesAsString()
     local sRet              = "";
@@ -127,10 +133,10 @@ end
 --TODO make sure all these values are being updated or delete if not being used
 local class = {
     count = 0,
-	repo  = { --updated on kit.build()
+    repo  = { --updated on kit.build()
         bykit     = {}, --indexed by kit
-		byname    = {}, --index by class/kit name
-	},
+        byname    = {}, --index by class/kit name
+    },
 };
 
 
@@ -146,15 +152,16 @@ local instance = {
 
 
 local kit = {
-	--trackers, repo & other properties
-	count  = 0, --keep track of the total number of class kits
-	repo   = { --stores all class kits for later use
-		byname 		= {}, --indexed by class/kit name | updated on kit.build()
-		byobject 	= {}, --index by class object | updated when a class object is created
-	},
+    --trackers, repo & other properties
+    count  = 0, --keep track of the total number of class kits
+    repo   = { --stores all class kits for later use
+        byname 		= {}, --indexed by class/kit name | updated on kit.build()
+        byobject 	= {}, --index by class object | updated when a class object is created
+    },
 };
 --TODO go through and set error levels on every error (test each one)
-
+--TODO abstract classes?
+--TODO abstract methods (no static public allowed obviously, throw error in such case)
 --TODO forbid type names (string, boolean, etc)
                             --[[ ██████╗██╗      █████╗ ███████╗███████╗
                                 ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -482,7 +489,8 @@ function instance.prepClassData(tInstance)
         __newindex = function(t, k, v) --disallows modifications to or deletetions from the tClassData table. TODO make the messsage depending on if event is a change, addition or deletion (for more clarity)
                 error("Error in class, '${class}'. Attempt to modify read-only class data." % {class = tKit.name});
         end,
-        __metatable = true,
+        --__metatable = true,
+        __type = "classdata",
     });
 
     return tClassData;
@@ -575,7 +583,8 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 rawset(tTarget, k, v);
             end,
-            __metatable = true,
+            --__metatable = true,--TODO WARNING is it better to have this type available (and for what) or have the metatable protcted (same with the parent table)?
+            __type = tCAINames[sCAI].."classdata",
         });
 
     end
@@ -674,7 +683,7 @@ function instance.wrapMetamethods(tInstance, tClassData)--TODO double check thes
                 return fMetamethod(a, tClassData);
             end);
 
-        elseif (sMetamethod == "__call" or sMetamethod == "__name") then
+        elseif (sMetamethod == "__call" or sMetamethod == "__name" or sMetamethod == "__serialize") then
             rawset(tInstance.met, sMetamethod, function(...)
                 return fMetamethod(oInstance, tClassData, ...)
             end);
@@ -767,12 +776,12 @@ end
 @ret class Class Returns the class returned from the kit.build() tail call.
 !f]]
 function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, bIsFinal, ...)
-
+    local tInterfaces = {...} or arg;
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
 
     kit.validateName(sName);
     kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
-    kit.validateInterfaces(sName, {...} or arg);
+    kit.validateInterfaces(sName, tInterfaces);
     --TODO check each member against the static members
     --import/create the elements which will comprise the class kit
     local tKit = {
@@ -794,7 +803,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
                 end
             }
         ),
-        interfaces      = {}, --TODO OMG have these checked on class build!
+        interfaces      = {},
         isfinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
         name 			= sName,
         parent			= kit.mayExtend(sName, cExtendor) and kit.repo.byobject[cExtendor] or nil, --note the parent kit
@@ -806,10 +815,6 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         pub      	    = table.clone(tPublic, 			true),
     };
 
-    --store the interfaces (if any)
-    for nIndex, iInterface in ipairs({...} or arg) do
-        tKit.interfaces[nIndex] = iInterface;
-    end
 
     --note and rename final methods
     kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
@@ -822,6 +827,9 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 
     --check for member shadowing
     kit.shadowCheck(tKit);
+
+    --enforce (any) implemented interfaces
+    kit.processInterfaces(tKit, tInterfaces);
 
     --now that this class kit has been validated, imported & stored, build the class object
     local oClass = class.build(tKit);
@@ -1011,6 +1019,27 @@ end
 
 --[[f!
 @module class
+@func kit.processInterfaces
+@param table tKit The kit for which the interfaces should be processed.
+@param table tInterfaces The table of interfaces to enforece.
+Note: must be at least an entry table.
+@scope local
+@desc Stores and enforces each interface.
+!f]]
+function kit.processInterfaces(tKit, tInterfaces)
+
+    for nIndex, iInterface in ipairs(tInterfaces) do
+        --store the interface
+        tKit.interfaces[nIndex] = iInterface;
+        --enforce the interface
+        iInterface(tKit);
+    end
+
+end
+
+
+--[[f!
+@module class
 @func kit.shadowCheck
 @param table tKit The kit the check for member shadowing.
 @scope local
@@ -1072,6 +1101,8 @@ function kit.validateInterfaces(sKit, tVarArgs)
         assert(type(vVarArg) == "interface",   "Error creating class, '${class}'. Vararg input must be of type interface.\nGot type ${type}."
                                             % {class = sKit, type = type(vVarArg)});
     end
+
+
 
 end
 
@@ -1160,10 +1191,89 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
 end
 
 
+--[[
+███████╗███████╗██████╗ ██╗ █████╗ ██╗     ██╗███████╗ █████╗ ████████╗██╗ ██████╗ ███╗   ██╗
+██╔════╝██╔════╝██╔══██╗██║██╔══██╗██║     ██║╚══███╔╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║
+███████╗█████╗  ██████╔╝██║███████║██║     ██║  ███╔╝ ███████║   ██║   ██║██║   ██║██╔██╗ ██║
+╚════██║██╔══╝  ██╔══██╗██║██╔══██║██║     ██║ ███╔╝  ██╔══██║   ██║   ██║██║   ██║██║╚██╗██║
+███████║███████╗██║  ██║██║██║  ██║███████╗██║███████╗██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║
+╚══════╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+--]]
+
+--INIT
+-- Serialization prefix constant
+_sSerializePrefix       = "LUAEX129f9ff3c29b40b5b3620d97c3c2b627";
+_sSerializePrefixLength = #_sSerializePrefix;
+_sSerializeSuffix       = "354b7462b8ea4bd3beb037bf84aac3e2LUAEX";
+_sSerializeSuffixLength = #_sSerializeSuffix;
+
+                            --[[
+                            ██████╗ ███████╗████████╗██╗   ██╗██████╗ ███╗   ██╗
+                            ██╔══██╗██╔════╝╚══██╔══╝██║   ██║██╔══██╗████╗  ██║
+                            ██████╔╝█████╗     ██║   ██║   ██║██████╔╝██╔██╗ ██║
+                            ██╔══██╗██╔══╝     ██║   ██║   ██║██╔══██╗██║╚██╗██║
+                            ██║  ██║███████╗   ██║   ╚██████╔╝██║  ██║██║ ╚████║
+                            ╚═╝  ╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝
+                            --]]
+
+
 local tClassActual = {
     isderived = function()
         print("This is still in development.")
     end,
+    -- Deserialization function TODO MOVE THESE UP and refernce them here for better oprganization
+    deserialize = function(sRawData)
+        --TODO type checks
+        -- Extract the class name from the serialized data
+        local sClass = sRawData:match(_sSerializePrefix .. "(.-)" .. _sSerializeSuffix)
+
+        if sClass then--TODO THROW if not valid
+            local sData = sRawData:sub(_sSerializePrefixLength + #sClass + _sSerializeSuffixLength + 1)
+            local oClass = class.repo.byname[sClass] or nil; --TODO THROW if not a class
+            local vError, fLoadData = serpent.load(sData); --TODO THROW if not a function
+            return oClass.deserialize(fLoadData);
+
+
+
+
+
+            -- Remove the serialization header and extract the serialized table data
+            --
+            -- Deserialize the table data recursively
+            --return deserializeItem(serializedTable)
+            --else
+            -- Invalid or missing class name
+            --return nil
+
+        end
+
+    end,
+    serialize = function(oInstance)
+
+        if not (instance.repo.byobject[oInstance]) then
+            error("Error serializing class instance.\nInput, of type ${type}, is not a class instance." % {type = type(oInstance)});
+        end
+
+        local tInstanceInfo     = instance.repo.byobject[oInstance];
+        local sClass            = tInstanceInfo.kit.name;
+        local sHeader           = _sSerializePrefix..sClass.._sSerializeSuffix; -- Serialization header
+        local tInstance         = tInstanceInfo.actual;
+        local tInstanceMeta     = getmetatable(oInstance);
+        local fSerialize        = tInstanceMeta.__serialize or nil;
+
+        if not (fSerialize) then --TODO just check for iSerializable first, then check for __serialize and deserialize if the interface isn't present
+            error("Error serializing class instance.\nInstance has no '__serialize' metamethod." % {type = type(oInstance)});
+        end
+
+        local tInstanceData = fSerialize();
+        --TODO use type.asserts (make new ones as needed) and add error level values
+        if not (type(tInstanceData) == "table") then
+            error("Error serializing class instance.\nThe '__serialize' metamethod must return a table value. Get type ${datatype}." % {type = type(oInstance), datatype = type(tInstanceData)});
+        end
+
+        return _sSerializePrefix..sClass.._sSerializeSuffix..serpent.dump(tInstanceData);
+    end
+
 };
 
 
@@ -1184,12 +1294,12 @@ return rawsetmetatable({}, {
     @desc Builds a class.<br>Note: every method within the static public, private, protected and public tables must accept the instance object and class data table as their first and second arguments respectively.<br>Note: all metamethod within the metamethods table also accept the class instance and cdat table but may also accept a second item depending on if the metamethod is using binary operators such as +, %, etc.<br>Note: The class data table is indexed my pri (private members), pro (protected members), pub (public members) and ins (for all class instances of this class type) and each grants access to the items in that table.<br>Note: to prevent fatal conflicts within the code, all class members are strongly typed. No member's type may be changed with the exception of the null type. Types may be set to and from null; however, items which begin as null, once set to another type, cannot be changed from that type to another non-null type. Items that begins as a type and are then set to null, may be changed back to that original type only. In addition, no class member may be set to nil.<br>Class methods cannot be changed to other methods but may be overridden by methods of the same name within child classes. The one exception to this is methods which have the _FNL suffix added to their name. These methods are final and may not be overridden. Note: though the _FNL suffix appears within the method name in the class table, that suffix is removed during class creation. That is, a method such as, MyMethod_FNL will be called as MyMethod(), leaving off the _FNL suffix during calls to that method. _FNL (and other such suffixes that may be added in the future) can be thought of as a directive to the class building code which, after it renames the method to remove the suffix, marks it as final within the class code to prevent overrides.
     @ret class The class object.
     !f]]
-	__call 		= kit.build,
-	__len 		= function() return kit.count end,
-	__index 	= function(t, k)
-		return tClassActual[k] or nil;
-	end,
-	__newindex 	= function(t, k, v) end,--deadcall function to prevent adding external entries to the class module TODO put error here
+    __call 		= kit.build,
+    __len 		= function() return kit.count end,
+    __index 	= function(t, k)
+        return tClassActual[k] or nil;
+    end,
+    __newindex 	= function(t, k, v) end,--deadcall function to prevent adding external entries to the class module TODO put error here
     __tostring = function()
         return "classfactory"
     end,

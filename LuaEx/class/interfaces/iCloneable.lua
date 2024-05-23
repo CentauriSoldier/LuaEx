@@ -1,4 +1,4 @@
-return interface("iClonable",
+return interface("iCloneable",
 {},--metamethods
 {},--static public
 {},--private

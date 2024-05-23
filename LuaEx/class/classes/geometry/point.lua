@@ -115,7 +115,17 @@ return class("point",
 
         return this;
     end,]]
+    __serialize = function(this, cdat)
+        local pri = cdat.pri;
 
+        local tData = {
+            x = pri.x,
+            y = pri.y,
+            t = type(cdat),
+        };
+
+        return tData;
+    end,
     __sub = function(this, other, cdat)
 
         if (type(this) == "point" and type(other) == "point") then
@@ -141,6 +151,11 @@ return class("point",
     end,
 },
 {--static public
+    deserialize = function(tData)
+        print(tData.x, tData.y)--LEFT OFF HERE data is bad, find out why
+        print(type(tData.x), type(tData.y))
+        return point(5, 8);
+    end,
 
 },
 {--private
@@ -165,14 +180,14 @@ return class("point",
         pri.y = rawtype(nY) == "number" and nY or pri.y;
     end,
 
-    deserialize = function(this, cdat, sData)
+    --[[deserialize = function(this, cdat, sData)
         local tData = deserialize.table(sData);
 
         this.x = tData.x;
         this.y = tData.y;
 
         return this;
-    end,
+    end,]]
 
     clone = function(this, cdat)
         local pri = cdat.pri;
@@ -256,7 +271,7 @@ return class("point",
         @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
         @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
     !]]
-    serialize = function(this, cdat, bDefer)
+    --[[serialize = function(this, cdat, bDefer)
         local pri = cdat.pri;
 
         local tData = {
@@ -269,7 +284,7 @@ return class("point",
         end
 
         return tData;
-    end,
+    end,]]
 
     set = function(this, cdat, nX, nY)
         local pri = cdat.pri;
@@ -312,6 +327,6 @@ return class("point",
     end,]]
 },
 nil,        --extending class
-false,      --if the class is final
-iClonable   --interface(s) (either nil, or interface(s))
+false      --if the class is final
+--iCloneable, iSerializable   --interface(s) (either nil, or interface(s)) TODO readd these when serialization is complete
 );

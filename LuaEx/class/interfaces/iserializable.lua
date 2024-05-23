@@ -1,10 +1,12 @@
 return interface("iSerializable",
-{},--metamethods
-{},--static public
-{},--private
-{},--protected
-{--public
-    "serialize",
-    "deserialize"
-}
+{   --METAMETHODS
+    "__serialize"
+},
+{   ----STATIC PUBLIC METHODS
+    "deserialize",
+},
+{}, --PRIVATE METHODS
+{}, --PROTECTED METHODS
+{}, --PUBLIC METHODS
+nil
 );

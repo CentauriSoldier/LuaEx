@@ -1,5 +1,4 @@
-local imyinterface = interface(
-"imyinterface",
+return interface("imyinterface",
 {--metamethods
 
 },
@@ -17,5 +16,3 @@ local imyinterface = interface(
 },
 nil    --extending interface
 );
-
-return imyinterface;

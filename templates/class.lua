@@ -5,13 +5,13 @@ return class("MyClass",
 {--static public
 
 },
-{--private
+{--PRIVATE METHODS
 
 },
-{--protected
+{--PROTECTED METHODS
 
 },
-{--public
+{--PUBLIC METHODS
 
 },
 nil,    --extending class

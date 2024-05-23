@@ -182,7 +182,7 @@ return class("polygon",
         oAnchorTopLeft.set(nPoint1X, nPoint1Y);
         oAnchorTopRight.set(nPoint1X, nPoint1Y);
         oAnchorBottomRight.set(nPoint1X, nPoint1Y);
-        oAnchorBottomLeft.set(nPoint1X, nPoint1Y)
+        oAnchorBottomLeft.set(nPoint1X, nPoint1Y);
 
         for x = 1, nVertices do
             --process data for the centroid
