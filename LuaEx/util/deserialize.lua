@@ -18,5 +18,4 @@ function deserialize.table(sTable)
 	return loadstring("return "..sTable)();
 end
 
-
-return deserialize;
+return deserialize

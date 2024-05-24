@@ -146,11 +146,15 @@ local tDataTest = {
 local a = {
     [1] = point(1, 5),
 };
+
 --a[a] = a -- self-reference with a table as key and value
-local str = class.serialize(point(1, 5));
-print(str) -- full serialization
-local oRevived = class.deserialize(str);
-print(oRevived)
+--local str = class.serialize(point(1, 5));
+--print(str) -- full serialization
+--local oRevived = class.deserialize(str);
+--print(oRevived)
+
+
+
 --print(serpent.line(a)) -- single line, no self-ref section
 --print(serpent.block(a)) -- multi-line indented, no self-ref section
 
@@ -158,9 +162,48 @@ print(oRevived)
 --if err then error(err) end
 --local t = fun();
 --print(t["y"])
---if err then error(err) end
+--if err then error(err) endzzzzzzzzzzz
 --local copy = fun()
 
 -- or using serpent.load:
 --local ok, copy = serpent.load(serpent.dump(a))
 --print(ok and copy[3] == a[3])
+
+local k = 99;
+local tTest;
+
+function buildit()
+tTest = {
+    [1] = 45,
+    [2] = {
+        ["cat"] = "animal",
+        boot    = "footwear",
+    },
+    [3] = "Hello",
+    power = "power",
+    string = "stringtest",
+    [4] = {
+        anothertable = {
+            morepower = "yay!",
+            y = 77,
+            z = "\0"
+        },
+        x = 44,
+    },
+    [k] = 3234,
+};
+
+tTest[tTest] = tTest;
+end
+
+--buildit();
+--print(tTest.string:gsub("string", "boolean"))
+--print(type('\0'), serialize(tTest))
+
+local aPets = array({"bug", "frog", "cat", "mouse", "chicken", "duck"})
+print(aPets)
+
+local sPets = serialize(aPets)
+print(sPets)
+local aNewPets = deserialize(sPets);
+print(aNewPets)

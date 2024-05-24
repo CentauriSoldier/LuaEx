@@ -6,30 +6,30 @@ local assert = assert; ---TODO localize all called functions
 local tBooleanMeta = getmetatable(true) or true;
 
 debug.setmetatable(tBooleanMeta, {
-	__add = function(bLeft, bRight)
-		return bLeft or bRight;
-	end,
-	__concat = function(vLeft, vRight)
+    __add = function(bLeft, bRight)
+        return bLeft or bRight;
+    end,
+    __concat = function(vLeft, vRight)
 
-		if (type(vLeft) == "boolean") then
-			return tostring(vLeft)..vRight;
-		else
-			return vLeft..tostring(vRight);
-		end
+        if (type(vLeft) == "boolean") then
+            return tostring(vLeft)..vRight;
+        else
+            return vLeft..tostring(vRight);
+        end
 
-	end,
-	__len = function(bVal)
-		return bVal and 1 or 0;
-	end,
-	__mul = function(bLeft, bRight)
-		return bLeft and bRight;
-	end,
-	__tostring = function(bVal)
-		return (bVal and "true" or "false");
-	end,
-	__unm = function(bVal)
-		return not bVal;
-	end,
+    end,
+    __len = function(bVal)
+        return bVal and 1 or 0;
+    end,
+    __mul = function(bLeft, bRight)
+        return bLeft and bRight;
+    end,
+    __tostring = function(bVal)
+        return (bVal and "true" or "false");
+    end,
+    __unm = function(bVal)
+        return not bVal;
+    end,
 });
 
 
@@ -38,20 +38,20 @@ local tNumberMeta = getmetatable(0) or 0;
 local sBlank = "";
 
 debug.setmetatable(tNumberMeta, {
-	__len = function(nVal)
-		local bRet = nil;
+    __len = function(nVal)
+        local bRet = nil;
 
-		if (nVal == 0) then
-			bRet = false;
-		elseif (nVal == 1) then
-			bRet = true;
-		end
+        if (nVal == 0) then
+            bRet = false;
+        elseif (nVal == 1) then
+            bRet = true;
+        end
 
-		return bRet;
-	end,
-	__tostring = function(nVal)
-		return sBlank..(nVal)..sBlank;
-	end,
+        return bRet;
+    end,
+    __tostring = function(nVal)
+        return sBlank..(nVal)..sBlank;
+    end,
 });
 
 
@@ -64,31 +64,31 @@ tStringMeta.__mod = function(s, tab) return (s:gsub('($%b{})', function(w) retur
 
 --										🆃🆈🅿🅴
 local tLuaTypes = {
-	["boolean"]		= true,
-	["function"]	= true,
-	["nil"] 		= true,
-	["number"] 		= true,
-	["string"] 		= true,
-	["table"] 		= true,
-	["thread"] 		= true,
-	["userdata"] 	= true,
+    ["boolean"]		= true,
+    ["function"]	= true,
+    ["nil"] 		= true,
+    ["number"] 		= true,
+    ["string"] 		= true,
+    ["table"] 		= true,
+    ["thread"] 		= true,
+    ["userdata"] 	= true,
 };
 
 --'immutable' table of stock LuaEx types
 local tLuaExTypes = {
     array                   = true,
     arrayfactory            = true,
-	class                   = true,
+    class                   = true,
     classfactory            = true,
-	clausum                 = true,
-	constant                = true,
-	enum 				    = true,
+    clausum                 = true,
+    constant                = true,
+    enum 				    = true,
     enumfactory 			= true,
-	interface               = true,
-	null 				    = true,
-	struct				    = true,
+    interface               = true,
+    null 				    = true,
+    struct				    = true,
     structfactory           = true,
-	structfactorybuilder    = true,
+    structfactorybuilder    = true,
 };
 --TODO add class and truct types here somwhere (when instances are created)
 --user can add/remove the items in this table
@@ -179,192 +179,192 @@ local type = {
             assert(bConditionMet, sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""));
         end,
     },
-	mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?
-		return (sLeftType == sObjType and sRightType ~= sTypeInQuestion);
-	end,
-	mathchesonlyright = function(sLeftType, sRightType, sTypeInQuestion)
-		return (sLeftType ~= sObjType and sRightType == sTypeInQuestion);
-	end,
-	mathchesboth = function(sLeftType, sRightType, sTypeInQuestion)
-		return (sLeftType == sObjType and sRightType == sTypeInQuestion);
-	end,
+    mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?
+        return (sLeftType == sObjType and sRightType ~= sTypeInQuestion);
+    end,
+    mathchesonlyright = function(sLeftType, sRightType, sTypeInQuestion)
+        return (sLeftType ~= sObjType and sRightType == sTypeInQuestion);
+    end,
+    mathchesboth = function(sLeftType, sRightType, sTypeInQuestion)
+        return (sLeftType == sObjType and sRightType == sTypeInQuestion);
+    end,
     ex = function(vObject)
-		local sType = __type__(vObject);
+        local sType = __type__(vObject);
 
-		if (sType == "table") then
-			local tMeta = getmetatable(vObject);
+        if (sType == "table") then
+            local tMeta = getmetatable(vObject);
 
-			if (__type__(tMeta) == "table") then
+            if (__type__(tMeta) == "table") then
 
-				if (__type__(tMeta.__type) == "string") then
+                if (__type__(tMeta.__type) == "string") then
 
-					if (tLuaExTypes[tMeta.__type] 		or 									--luaex type
-						tMeta.__type:find("struct ") 	or tMeta.__type:find(" struct") or 	--custom struct
-						tMeta.__is_luaex_class			or 									--custom class
-						vObject["enum"]) then --custom enum
-						sType = tMeta.__type;
-					end
+                    if (tLuaExTypes[tMeta.__type] 		or 									--luaex type
+                        tMeta.__type:find("struct ") 	or tMeta.__type:find(" struct") or 	--custom struct
+                        tMeta.__is_luaex_class			or 									--custom class
+                        vObject["enum"]) then --custom enum
+                        sType = tMeta.__type;
+                    end
 
-				end
+                end
 
-			end
+            end
 
-		end
+        end
 
-		return sType;
-	end,
-	full = function(vObject)
-		local sType = __type__(vObject);
-		local sSpace = "";
+        return sType;
+    end,
+    full = function(vObject)
+        local sType = __type__(vObject);
+        local sSpace = "";
 
-		if (sType == "table") then
-			local tMeta = getmetatable(vObject);
+        if (sType == "table") then
+            local tMeta = getmetatable(vObject);
 
-			if (__type__(tMeta) == "table") then
+            if (__type__(tMeta) == "table") then
 
-				if (__type__(tMeta.__type) == "string") then
-					sType = tMeta.__type;
-					sSpace = " ";
-				end
+                if (__type__(tMeta.__type) == "string") then
+                    sType = tMeta.__type;
+                    sSpace = " ";
+                end
 
-				if (__type__(tMeta.__subtype) == "string") then
-					sType = (sType ~= "table" and sType or "")..sSpace..tMeta.__subtype;
-				end
+                if (__type__(tMeta.__subtype) == "string") then
+                    sType = (sType ~= "table" and sType or "")..sSpace..tMeta.__subtype;
+                end
 
-			end
+            end
 
-		end
+        end
 
-		return sType;
-	end,
-	getall = function()
-		local tRet 	= {};
+        return sType;
+    end,
+    getall = function()
+        local tRet 	= {};
 
-		for sType, _ in pairs(tLuaTypes) do
-			tRet[#tRet + 1] = sType;
-		end
+        for sType, _ in pairs(tLuaTypes) do
+            tRet[#tRet + 1] = sType;
+        end
 
-		for sType, _ in pairs(tLuaExTypes) do
-			tRet[#tRet + 1] = sType;
-		end
+        for sType, _ in pairs(tLuaExTypes) do
+            tRet[#tRet + 1] = sType;
+        end
 
-		for sType, _ in pairs(tUserTypes) do
-			tRet[#tRet + 1] = sType;
-		end
+        for sType, _ in pairs(tUserTypes) do
+            tRet[#tRet + 1] = sType;
+        end
 
-		table.sort(tRet);
-		return tRet;
-	end,
-	getlua = function()
-		local tRet 	= {};
+        table.sort(tRet);
+        return tRet;
+    end,
+    getlua = function()
+        local tRet 	= {};
 
-		for sType, _ in pairs(tLuaTypes) do
-			tRet[#tRet + 1] = sType;
-		end
+        for sType, _ in pairs(tLuaTypes) do
+            tRet[#tRet + 1] = sType;
+        end
 
-		table.sort(tRet);
-		return tRet;
-	end,
-	getluaex = function()
-		local tRet 	= {};
+        table.sort(tRet);
+        return tRet;
+    end,
+    getluaex = function()
+        local tRet 	= {};
 
-		for sType, _ in pairs(tLuaExTypes) do
-			tRet[#tRet + 1] = sType;
-		end
+        for sType, _ in pairs(tLuaExTypes) do
+            tRet[#tRet + 1] = sType;
+        end
 
-		table.sort(tRet);
-		return tRet;
-	end,
-	getuser = function()
-		local tRet 	= {};
+        table.sort(tRet);
+        return tRet;
+    end,
+    getuser = function()
+        local tRet 	= {};
 
-		for sType, _ in pairs(tUserTypes) do
-			tRet[#tRet + 1] = sType;
-		end
+        for sType, _ in pairs(tUserTypes) do
+            tRet[#tRet + 1] = sType;
+        end
 
-		table.sort(tRet);
-		return tRet;
-	end,
-	raw = __type__,
-	set = function(tInput, sType)--TODO check that this is not a luex class
+        table.sort(tRet);
+        return tRet;
+    end,
+    raw = __type__,
+    set = function(tInput, sType)--TODO check that this is not a luex class
 
-		if (rawtype(tInput) == "table" and type(sType) == "string")then
-			--look for an existing meta table and get its type
-			local tMeta 	= getmetatable(tInput);
-			local sMetaType = rawtype(tMeta);
-			local bIsTable 	= sMetaType == "table";
+        if (rawtype(tInput) == "table" and type(sType) == "string")then
+            --look for an existing meta table and get its type
+            local tMeta 	= getmetatable(tInput);
+            local sMetaType = rawtype(tMeta);
+            local bIsTable 	= sMetaType == "table";
 
-			if (bIsTable or sMetaType == "nil") then
-				tMeta = bIsTable and tMeta or {};
-				tMeta.__type = sType;
-				setmetatable(tInput, tMeta);
-				--record the new type
-				type[sType] = true;--TODO create is function
-				return tInput;
-			end
+            if (bIsTable or sMetaType == "nil") then
+                tMeta = bIsTable and tMeta or {};
+                tMeta.__type = sType;
+                setmetatable(tInput, tMeta);
+                --record the new type
+                type[sType] = true;--TODO create is function
+                return tInput;
+            end
 
-			return tInput;
-		end
+            return tInput;
+        end
 
-	end,
-	setsub = function(tInput, sType)
+    end,
+    setsub = function(tInput, sType)
 
-		if (rawtype(tInput) == "table" and type(sSubType) == "string")then --TODO check that this is not a luex class
-			--look for an existing meta table and get its type
-			local tMeta 	= getmetatable(tInput);
-			local sMetaType = rawtype(tMeta);
-			local bIsTable = sMetaType == "table";
+        if (rawtype(tInput) == "table" and type(sSubType) == "string")then --TODO check that this is not a luex class
+            --look for an existing meta table and get its type
+            local tMeta 	= getmetatable(tInput);
+            local sMetaType = rawtype(tMeta);
+            local bIsTable = sMetaType == "table";
 
-			if (bIsTable or sMetaType == "nil") then
-				tMeta = bIsTable and tMeta or {};
-				tMeta.__subtype = sSubType;
-				setmetatable(tInput, tMeta);--TODO is function
-				return tInput;
-			end
+            if (bIsTable or sMetaType == "nil") then
+                tMeta = bIsTable and tMeta or {};
+                tMeta.__subtype = sSubType;
+                setmetatable(tInput, tMeta);--TODO is function
+                return tInput;
+            end
 
-			return tInput;
-		end
+            return tInput;
+        end
 
-	end,
-	sub = function(vObject)
-		local sType = "nil";
+    end,
+    sub = function(vObject)
+        local sType = "nil";
 
-		if (__type__(vObject) == "table") then
-			local tMeta = getmetatable(vObject);
+        if (__type__(vObject) == "table") then
+            local tMeta = getmetatable(vObject);
 
-			if (__type__(tMeta) == "table" and __type__(tMeta.__subtype) == "string") then
-				sType = tMeta.__subtype;
-			end
+            if (__type__(tMeta) == "table" and __type__(tMeta.__subtype) == "string") then
+                sType = tMeta.__subtype;
+            end
 
-		end
+        end
 
-		return sType;
-	end,
+        return sType;
+    end,
 };
 
 local function newindex(t, k, v)
 
-	if (__type__(k) == "string") then
+    if (__type__(k) == "string") then
 
-		--add the new type
-		if (v) then
-			tUserTypes[k] = true;
+        --add the new type
+        if (v) then
+            tUserTypes[k] = true;
 
-			rawset(type, "is"..k, function(vVal)
-				return type(vVal) == k;
-			end);
+            rawset(type, "is"..k, function(vVal)
+                return type(vVal) == k;
+            end);
 
-		--remove the type
-		else
+        --remove the type
+        else
 
-			if (tUserTypes[k]) then
-				tUserTypes[k] = nil;
-				rawset(type, "is"..k, nil);
-			end
+            if (tUserTypes[k]) then
+                tUserTypes[k] = nil;
+                rawset(type, "is"..k, nil);
+            end
 
-		end
+        end
 
-	end
+    end
 
 end
 
@@ -378,43 +378,43 @@ setsubtype	= type.setsub;
 
 --setup the 'is' functions for all types
 for sType, _ in pairs(tLuaTypes) do
-	rawset(type, "is"..sType, function(vVal)
-		return __type__(vVal) == sType;
-	end);
+    rawset(type, "is"..sType, function(vVal)
+        return __type__(vVal) == sType;
+    end);
 end
 
 for sType, _ in pairs(tLuaExTypes) do
-	rawset(type, "is"..sType, function(vVal)
-		return type(vVal) == sType;
-	end);
+    rawset(type, "is"..sType, function(vVal)
+        return type(vVal) == sType;
+    end);
 end
 
 --TODO consider removing this...is there really a need for it and would it follow POLA?
 for sType, _ in pairs(tUserTypes) do
-	rawset(type, "is"..sType, function(vVal)
-		return type(vVal) == sType;
-	end);
+    rawset(type, "is"..sType, function(vVal)
+        return type(vVal) == sType;
+    end);
 end
 
 --rework the type system
 setmetatable(type,
 {
-	__call = function(t, vObject)
-		local sType = __type__(vObject);
+    __call = function(t, vObject)
+        local sType = __type__(vObject);
 
-		local tMeta = getmetatable(vObject);
+        local tMeta = getmetatable(vObject);
 
-		if (__type__(tMeta) == "table" and __type__(tMeta.__type) == "string") then
-			sType = tMeta.__type;
-		end
+        if (__type__(tMeta) == "table" and __type__(tMeta.__type) == "string") then
+            sType = tMeta.__type;
+        end
 
-		return sType;
-	end,
-	__type = "function",
-	--[[__index = function()
-		error("Attempt to index a function value.", 2);
-	end,]]
-	__newindex = newindex,
+        return sType;
+    end,
+    __type = "function",
+    --[[__index = function()
+        error("Attempt to index a function value.", 2);
+    end,]]
+    __newindex = newindex,
 });
 
 return type;

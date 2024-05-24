@@ -167,9 +167,12 @@ table		= require("LuaEx.hook.tablehook");
 base64 		= require("LuaEx.ext_lib.base64");
 serpent     = require("LuaEx.ext_lib.serpent.serpent");
 
---import other modules
-serialize 	= require("LuaEx.util.serialize");
-deserialize = require("LuaEx.util.deserialize");
+--import serialization
+local tSerialization = require("LuaEx.util.serialization");
+serialize   = tSerialization[1];
+deserialize = tSerialization[2];
+
+--deserialize = require("LuaEx.util.deserialize");
 
 --prep for loading the class system (if instructed by the user)
 interface, class, iCloneable, iSerializable, iShape = nil;
@@ -224,8 +227,8 @@ if (tClassLoadValues[_nClassSystem]) then
 end
 
 --🅰🅻🅸🅰🆂🅴🆂
-table.serialize 	= serialize.table;
-string.serialize 	= serialize.string;
+--table.serialize 	= serialize.table;
+--string.serialize 	= serialize.string;
 
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?

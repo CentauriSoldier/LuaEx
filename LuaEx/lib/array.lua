@@ -176,8 +176,17 @@ return setmetatable(tArrayActual,
                 end
 
             end,
+            __deserialize = function(sData)
+                local fData = loadstring(sData);
 
+                if (type(fData) ~= "function") then
+                    --TODO THROW ERROR
+                end
 
+                local tData = fData();
+                --TODO LEFT OFF HERE
+                return array(unpack(tData.items));
+            end,
             --[[!
             @module array
             @func __index
@@ -250,6 +259,19 @@ return setmetatable(tArrayActual,
                 end
 
                 tItems[k]   = v;
+            end,
+            __serialize = function()
+                local tRet = {
+                    length  = tActual.length,
+                    type    = sArrayType,
+                    items   = {},
+                };
+
+                for nIndex, vItem in ipairs(tItems) do
+                    tRet.items[nIndex] = serialize(vItem);
+                end
+
+                return "do return "..serialize(tRet).." end";
             end,
             --[[!
                 @module array
