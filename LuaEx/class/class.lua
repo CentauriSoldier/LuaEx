@@ -344,6 +344,9 @@ function class.build(tKit)
         end
     );
 
+    --register this class with the serializer
+    serializerRegisterType(sName, oClass);
+
     return oClass;
 end
 

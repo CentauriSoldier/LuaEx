@@ -1,6 +1,8 @@
 local tLuaEx = rawget(_G, "luaex");
 local rawtype 	= rawtype;
 
+
+
 function protect(sReference)
 	local sReferenceType 	= rawtype(sReference);
 	local sInputType		= rawtype(_G[sReference]);

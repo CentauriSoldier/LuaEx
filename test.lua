@@ -182,6 +182,7 @@ tTest = {
     [3] = "Hello",
     power = "power",
     string = "stringtest",
+    [96] = false,
     [4] = {
         anothertable = {
             morepower = "yay!",
@@ -190,20 +191,38 @@ tTest = {
         },
         x = 44,
     },
+    wert = null,
     [k] = 3234,
 };
 
-tTest[tTest] = tTest;
+--tTest[tTest] = tTest; --TODO test self-referential tables
 end
-
---buildit();
+--[[
+-- Example usage
+local code = "return 42"
+local result, err = safeLoad(code)
+if result then
+    print("Result:", result)
+else
+    print("Error:", err)
+end
+]]
+buildit();
 --print(tTest.string:gsub("string", "boolean"))
 --print(type('\0'), serialize(tTest))
 
 local aPets = array({"bug", "frog", "cat", "mouse", "chicken", "duck"})
-print(aPets)
+--print(aPets)
 
-local sPets = serialize(aPets)
-print(sPets)
+local tPets = {
+    [1] = aPets,
+};
+
+local sBoog = serialize(tPets);
+print(sBoog);
+--local sPets = serialize(aPets)
+--print(sPets)
 local aNewPets = deserialize(sPets);
-print(aNewPets)
+--print(aNewPets)
+
+--print(serialize(tTest))

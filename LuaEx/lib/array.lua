@@ -39,7 +39,12 @@ In summary, Array.Copy offers more flexibility for copying specific ranges of el
 
 ]]
 
-local tArrayActual = {}; --array factory actual table
+local tArrayActual = {
+    deserialize = function(tData)
+        --TODO assert data? Or should I depend on the serializer
+        return array(tData.items);
+    end,
+}; --array factory actual table
 
 return setmetatable(tArrayActual,
 {
@@ -176,17 +181,6 @@ return setmetatable(tArrayActual,
                 end
 
             end,
-            __deserialize = function(sData)
-                local fData = loadstring(sData);
-
-                if (type(fData) ~= "function") then
-                    --TODO THROW ERROR
-                end
-
-                local tData = fData();
-                --TODO LEFT OFF HERE
-                return array(unpack(tData.items));
-            end,
             --[[!
             @module array
             @func __index
@@ -260,6 +254,8 @@ return setmetatable(tArrayActual,
 
                 tItems[k]   = v;
             end,
+
+            --TODO documentation
             __serialize = function()
                 local tRet = {
                     length  = tActual.length,
@@ -268,10 +264,10 @@ return setmetatable(tArrayActual,
                 };
 
                 for nIndex, vItem in ipairs(tItems) do
-                    tRet.items[nIndex] = serialize(vItem);
+                    tRet.items[nIndex] = vItem;
                 end
 
-                return "do return "..serialize(tRet).." end";
+                return tRet;
             end,
             --[[!
                 @module array
@@ -306,7 +302,7 @@ return setmetatable(tArrayActual,
     @ret any The method or property.
 !   ]]
     __index = function(t, k)
-        return rawget(tArray, k) or nil;
+        return rawget(tArrayActual, k) or nil;
     end,
 
 

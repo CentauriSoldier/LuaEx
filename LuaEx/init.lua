@@ -168,9 +168,10 @@ base64 		= require("LuaEx.ext_lib.base64");
 serpent     = require("LuaEx.ext_lib.serpent.serpent");
 
 --import serialization
-local tSerialization = require("LuaEx.util.serialization");
-serialize   = tSerialization[1];
-deserialize = tSerialization[2];
+local tSerialization    = require("LuaEx.util.serialization");
+serializerRegisterType  = tSerialization[1];
+serialize               = tSerialization[2];
+deserialize             = tSerialization[3];
 
 --deserialize = require("LuaEx.util.deserialize");
 
@@ -226,7 +227,9 @@ if (tClassLoadValues[_nClassSystem]) then
 
 end
 
+
 --🅰🅻🅸🅰🆂🅴🆂
+unpack = unpack or table.unpack;
 --table.serialize 	= serialize.table;
 --string.serialize 	= serialize.string;
 
