@@ -250,6 +250,10 @@ function class.build(tKit)
 
             return oInstance;
         end,
+        __eq = function(left, right)--TODO COMPLETE
+            print(type(left), type(right))
+            return "asdasd"
+        end,
         __index     = function(t, k)
 
             if (rawtype(tClass[k]) == "nil") then
@@ -258,30 +262,6 @@ function class.build(tKit)
 
             return tClass[k];
         end,
-        __newindex  = function(t, k, v)
-            local sType = rawtype(tClass[k]);
-
-            if (sType ~= "nil") then
-
-                if (isMutableStaticPublicType(sType)) then
-
-                    if (sType == type(v)) then
-                        tClass[k] = v;
-                    else
-                        error("Error in class object, '${class}'. Attempt to change public static value type for '${index}', from ${typecurrent} to ${typenew} using value, '${value}'." % {class = sName, index = tostring(k), typecurrent = sType, typenew = type(v), value = tostring(v)});
-                    end
-
-                else
-                    error("Error in class object, '${class}'. Attempt to modify immutable public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
-                end
-
-            else
-                error("Error in class object, '${class}'. Attempt to modify non-existent public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
-            end
-
-        end,
-        __type = "class",
-        __name = sName,
         __lt = function(less, greater) --TODO complete this to check for instances too
             local bRet = false;
 
@@ -306,10 +286,36 @@ function class.build(tKit)
 
             return bRet;
         end,
-        __eq = function(left, right)--TODO COMPLETE
-            print(type(left), type(right))
-            return "asdasd"
-        end
+        __name = sName,
+        __newindex  = function(t, k, v)
+            local sType = rawtype(tClass[k]);
+
+            if (sType ~= "nil") then
+
+                if (isMutableStaticPublicType(sType)) then
+
+                    if (sType == type(v)) then
+                        tClass[k] = v;
+                    else
+                        error("Error in class object, '${class}'. Attempt to change public static value type for '${index}', from ${typecurrent} to ${typenew} using value, '${value}'." % {class = sName, index = tostring(k), typecurrent = sType, typenew = type(v), value = tostring(v)});
+                    end
+
+                else
+                    error("Error in class object, '${class}'. Attempt to modify immutable public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
+                end
+
+            else
+                error("Error in class object, '${class}'. Attempt to modify non-existent public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
+            end
+
+        end,
+        __serialize = function()
+            return sName;
+        end,
+        __tostring = function()
+            return sName;
+        end,
+        __type = "class",
     };
 
     rawsetmetatable(oClass, tClassMeta);
@@ -345,7 +351,7 @@ function class.build(tKit)
     );
 
     --register this class with the serializer
-    serializerRegisterType(sName, oClass);
+    serializer.registerType(sName, oClass);
 
     return oClass;
 end
@@ -1224,6 +1230,7 @@ local tClassActual = {
     isderived = function()
         print("This is still in development.")
     end,
+    --[[--DEPRECATED
     -- Deserialization function TODO MOVE THESE UP and refernce them here for better oprganization
     deserialize = function(sRawData)
         --TODO type checks
@@ -1250,7 +1257,8 @@ local tClassActual = {
 
         end
 
-    end,
+    end,]]
+    --[[--DEPRECATED
     serialize = function(oInstance)
 
         if not (instance.repo.byobject[oInstance]) then
@@ -1275,7 +1283,7 @@ local tClassActual = {
         end
 
         return _sSerializePrefix..sClass.._sSerializeSuffix..serpent.dump(tInstanceData);
-    end
+    end]]
 
 };
 
@@ -1303,6 +1311,9 @@ return rawsetmetatable({}, {
         return tClassActual[k] or nil;
     end,
     __newindex 	= function(t, k, v) end,--deadcall function to prevent adding external entries to the class module TODO put error here
+    __serialize = function()
+        return "class";
+    end,
     __tostring = function()
         return "classfactory"
     end,

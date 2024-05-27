@@ -214,15 +214,68 @@ buildit();
 local aPets = array({"bug", "frog", "cat", "mouse", "chicken", "duck"})
 --print(aPets)
 
-local tPets = {
-    [1] = aPets,
+local p = function() print("234234") end
+
+local tBullet = {
+    speed = 30,
+    direction = null,
+    damage = 41,
 };
 
-local sBoog = serialize(tPets);
-print(sBoog);
---local sPets = serialize(aPets)
---print(sPets)
-local aNewPets = deserialize(sPets);
---print(aNewPets)
+local rxBullet = struct("bullet", tBullet, false);
+local rBullet = rxBullet({speed = 10, direction = "north"})
+local rBullet2 = rxBullet({speed = 12, direction = "west"})
+--for x = 1, 1000000 do
+--    rfBullet({speed = 10, direction = "north"})
+--end
+for k, v in pairs(rBullet) do
+    print(k, v)
+end
+--rBullet2.direction = "north"
+--print(1, rBullet.speed, rBullet.direction)
+--print(2, rBullet2.speed, rBullet2.direction)
+--rBullet2.direction = "11";
+--print(1, rBullet.speed, rBullet.direction)
+--print(2, rBullet2.speed, rBullet2.direction, rBullet2.damage)
+--rBullet2[{}] = 5
+--rBullet.speed = 14
+--print(rBullet2.direction)
 
---print(serialize(tTest))
+local tPets = {
+    [1] = aPets,
+    [2] = function() print("hello "..base64.enc("hello ")) end,
+    [3] = class,
+    [4] = array,
+    [5] = struct,
+    [6] = point,
+    --[7] = rBullet(),
+};
+
+local sPets = serialize(tPets);
+--print(sPets);
+
+--local tNewPets = deserialize(sPets);
+--print(tNewPets[1])
+
+
+
+local upvaluert = 10
+
+local function myFunction(x)
+    --local as = tPets[1];
+    local ty = array({"bug", "frog", "cat", "mouse", "chicken", "ducky"})
+    --local k = aPets;
+    --k[4] = "monkey"
+    --print("upvaluert + x")
+    print(ty)
+end
+
+local serialized = serialize(tPets)
+--local serialized = serialize(myFunction)
+--print(tostring(serialized))  -- Output: binary representation of the function
+
+local deserialized = deserialize(serialized)
+local tLo = deserialized[4]({"moo", "mew", "ruff"});
+--print(type(tLo))  -- Output: 15
+--print(deserialized[5])  -- Output: 15
+--print(deserialized[6])

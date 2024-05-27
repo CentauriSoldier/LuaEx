@@ -316,6 +316,10 @@ return setmetatable(tArrayActual,
 
     end,
 
+    __serialize = function()
+        return "array";
+    end,
+
     __tostring = function()
         return "arrayfactory"
     end,

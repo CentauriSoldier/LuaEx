@@ -196,7 +196,6 @@ function string.isvariablecompliant(sInput, bSkipKeywordCheck)
 	return bRet;
 end
 
-
 --https://snippets.bentasker.co.uk
 function string.trim(s)
   return s:match'^()%s*$' and '' or s:match'^%s*(.*%S)';
@@ -234,5 +233,6 @@ function string.uuid()
 
 	return sRet
 end
+
 
 return string;

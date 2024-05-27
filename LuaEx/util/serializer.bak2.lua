@@ -1,12 +1,16 @@
 --TODO serialize metatable (if possible)???
 
 --LOCALIZATION TODO more localization
-local rawtype       = rawtype;
-local setmetatable  = setmetatable;
-local string        = string;
-local table         = table;
-local tonumber      = tonumber;
-
+local assert            = assert;
+local error             = error;
+local rawtype           = rawtype;
+local rawgetmetatable   = rawgetmetatable;
+local setmetatable      = setmetatable;
+local string            = string;
+local table             = table;
+local type              = type;
+local tonumber          = tonumber;
+local tostring          = tostring;
 
 --DECLARATIONS
 local serializer, serializerPrimitives, deserializer, tTypePrefixes;
@@ -46,15 +50,23 @@ end
 
 
 local function packSerialData(sType, sData)
-    return _sTypePrefixStart..sType.._sTypePrefixEnd.._sDataStart..sData.._sDataEnd;
+    --return _sTypePrefixStart..sType.._sTypePrefixEnd.._sDataStart..sData.._sDataEnd;
+    return sType..".deserialize(serializer.unpackData(\""..base64.enc(sData).."\"))";
 end
 
 
-local function serializerRegisterType(sType, oType)
-    assert(rawtype(sType) == "string" and sType:isvariablecompliant(), "Error registering type with serializer.\nType name must be a variable-compliant string.");
-    assert(rawtype(oType) == "table", "Error registering type with serializer.\nObject must be of type table and have a __call metamethod capable of creating the (equivilant) object instance."); --TODO better messages, more  details
-    --TODO assert item doesn't already exist
-    --TODO allow setting of serialize/deserialize functions
+local function registerType(sType, oType)
+    local sErrorPrefix = "Error registering object type with serializer.\n";
+
+    assert(rawtype(oType) == "table", sErrorPrefix.."Object must be of rawtype table.");
+
+    local tMeta = rawgetmetatable(oType);
+
+    assert(type(tMeta)                      == "table", sErrorPrefix.."Object does not have an accessible metatable.");
+    assert(type(sType)                      == "string" and sType:isvariablecompliant(true), sErrorPrefix.."Object must have a __type metatable index whose value is a unique, variable-compliant string.");
+    assert(not serializer[sType],           sErrorPrefix.."Object already exists.");
+    assert(type(tMeta.__call)               == "function", sErrorPrefix.."Object must have a __call metamethod capable of creating the (equivilant) object instance.")
+
     tTypePrefixes[sType] = oType;
 end
 
@@ -86,8 +98,8 @@ local function runTypeDeserialize(sType, dataString)--TODO proper variable namin
     return oObject.deserialize(vData);
 end
 
-
-local function unpackSerialData(sInput)
+-- LEFT OFF HERE I need to replace the serial object sections in a strings (not just at the start).
+local function unpackSerialDataOLD(sInput)
     local sType, sData;
 
     -- Check if the string starts with the type prefix
@@ -108,21 +120,30 @@ local function unpackSerialData(sInput)
                     -- Extract the data string
                     sData = sInput:sub(dataStartPos + _sDataStartLength, dataEndPos - 1);
                 else
-                    print("Error: Data end prefix not found.")
+                    error("Error: Data end prefix not found.")
                 end
             else
-                print("Error: Data start prefix not found.")
+                error("Error: Data start prefix not found.")
             end
         else
-            print("Error: Type end prefix not found.")
+            error("Error: Type end prefix not found.")
         end
     else
-        print("Error: String does not start with type prefix.")
+        error("Error: String does not start with type prefix.")
     end
     return sType, sData;
 end
 
+local function unpackSerialData(sEncodedData)
+    local sData = base64.dec(sEncodedData);
+    local fItem, sError = load("return "..sData);
 
+    if not (fItem) then
+        error("Error in serializer while unpacking data. Data is malformed.");
+    end
+
+    return fItem();
+end
 
 
 --INCOMPLETE
@@ -220,7 +241,7 @@ local function serialize(vInput, tSavedTables, tTabCount)
     --first, check if this is a primitive type
     if (serializerPrimitives[sType]) then
         sRet = serializerPrimitives[sType](vInput);
-        
+
     ---check if the non-primitive type is registered
     elseif (serializer[sType]) then
         local fSerialize = serializer[sType];
@@ -242,7 +263,7 @@ local function serialize(vInput, tSavedTables, tTabCount)
             local vData = tMeta.__serialize(vInput, tSavedTables, tTabCount);
 
             if (type(vData) ~= "string") then
-                vData = serialize(vData, tSavedTables, tTabCount);
+                vData = serialize(vData, tSavedTables, tTabCount);--TODO should the table info be passed here? test this on mmbrdded tables
             end
 
             sRet = packSerialData(sType, vData);
@@ -264,22 +285,41 @@ end
 local function deserialize(sRawData, tSavedTables, tTabCount)
     local vRet;
     --TODO assert raw data
-    local sType, sData = unpackSerialData(sRawData);
+    --local sType, sData = unpackSerialData(sRawData);
 
-    if (sType and sData) then
-        vRet = runTypeDeserialize(sType, sData);
-    else
-        vRet = load(sRawData);
+    --if (sType and sData) then
+    --    vRet = runTypeDeserialize(sType, sData);
+    --else
+    --    vRet = load(sRawData);
+--    end
+
+    --return vRet;
+    local fItem, sError = load("return "..sRawData);
+
+    if not (fItem) then
+        error("Error deserializing data. Data is malformed.");
     end
 
-    return vRet;
+    return fItem();
 end
 
-return {
-        [1] = serializerRegisterType,
-        [2] = serialize,
-        [3] = deserialize,
+
+local tSerializerActual = {
+    deserialize     = deserialize,
+    registerType    = registerType,
+    serialize       = serialize,
+    unpackData      = unpackSerialData,
 };
+
+return setmetatable({}, {
+    __index = function(t, k)
+        return tSerializerActual[k] or nil;
+    end,
+    __newindex = function(t, k, v)
+        error("Error: attempting to modify read-only serializer at index ${index} with ${value} ${(type)}." % {index = tostring(k), value = tostring(v), type = type(v)});
+    end,
+});
+
 --[[ARCHIVE
 ["tableold"] = function(tTable, nTabCount)
     nTabCount = (rawtype(nTabCount) == "number" and nTabCount > 0) and nTabCount or 0;

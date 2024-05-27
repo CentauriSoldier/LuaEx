@@ -162,18 +162,17 @@ require("LuaEx.constants");
 math 		= require("LuaEx.hook.mathhook");
 string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");
+base64 		= require("LuaEx.lib.base64");
 
 --import external libraries
-base64 		= require("LuaEx.ext_lib.base64");
-serpent     = require("LuaEx.ext_lib.serpent.serpent");
+
 
 --import serialization
-local tSerialization    = require("LuaEx.util.serialization");
-serializerRegisterType  = tSerialization[1];
-serialize               = tSerialization[2];
-deserialize             = tSerialization[3];
+serializer          = require("LuaEx.util.serializer");
 
---deserialize = require("LuaEx.util.deserialize");
+--aliases
+serialize           = serializer.serialize;
+deserialize         = serializer.deserialize;
 
 --prep for loading the class system (if instructed by the user)
 interface, class, iCloneable, iSerializable, iShape = nil;
