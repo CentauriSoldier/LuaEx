@@ -226,17 +226,19 @@ local tBullet = {
     __readsOnly = 44,
 };
 
---local xBullet = structfactory("bulletfactory", tBullet, false);
+local xBullet = structfactory("bullet", tBullet, false);
 --print(xBullet.__name)
---local oBullet1 = xBullet({speed = 10, direction = "north"})
+local oBullet1 = xBullet({speed = 10, direction = "north"})
 --print(oBullet1.direction);
 --local oBullet2 = load(();
 --local oBullet2 = rBullet({speed = 12, direction = "west"})
-
+print(oBullet1)
 --for x = 1, 1000000 do
 --    rfBullet({speed = 10, direction = "north"})
 --end
 
+--local sBullet = serialize(oBullet1);
+--local oNewBullet = deserialize(sBullet);
 
 
 
@@ -273,11 +275,11 @@ function loadfromfile()
     --print(serialize(k) == readFile(filePath), '\n', serialize(k), '\n\n', readFile(filePath))
     local bulletfactory = deserialize(readFile(filePath));
     --print(readFile(filePath))
-    print((bulletfactory))
+    --print((bulletfactory))
 end
 
-savetofile()
-loadfromfile()
+--savetofile()
+--loadfromfile()
 
 --print(subtype(ert()))
 

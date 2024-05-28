@@ -63,19 +63,21 @@ local function erriterateinstance()
 end
 
 local function validateName(sName)
-    local bIsValidString = rawtype(sName) == "string" and sName:gsub("[%s]", "") ~= "";
+    local bIsValidString    = rawtype(sName) == "string" and sName:gsub("[%s]", "") ~= "";
+    local sFactoryName      = sName.."factory";
     --TODO also check for class and enum names FIX tthese all need regsitered with the luaex table
 
     if not (bIsValidString) then
         error("Error creating struct factory. Argument 1 (name) must be a non-blank string.\nType given: "..type(sName)..'.', 3);
     end
 
-    local bNameExists = rawtype(factory.repo.byName[sName]) ~= "nil";
+    local bNameExists = rawtype(factory.repo.byName[sFactoryName]) ~= "nil";
 
     if (bNameExists) then
         error("Error creating struct factory. Factory of type '"..sName.."' already exists; Cannot overwrite.", 3);
     end
 
+    return sFactoryName;
 end
 
 local function processPropertiesTable(sName, tProperties, tConstraint, bReadOnly)
@@ -138,37 +140,38 @@ end
 
 
 function factory.build(__IGNORE__, sName, tProperties, bReadOnlyCheck)
-    validateName(sName);
+    local sFactory      = validateName(sName);
     local bReadOnly     = rawtype(bReadOnlyCheck) == "boolean" and bReadOnlyCheck or false;
-	local tConstraints  = processPropertiesTable(sName, tProperties, bReadOnly);
+	local tConstraints  = processPropertiesTable(sFactory, tProperties, bReadOnly);
 
     local tFactoryData = {
         actual      = {
             __readOnly  = bReadOnly,
-            __name      = sName,
+            __name      = sFactory,
             deserialize = function()--FINISH
 
             end,
         },
         constraints = tConstraints,
         decoy       = {}, --this is the returned factory object
-        name        = sName, --TODO is this ever used"? Maybe for checks involving only the object type?
+        name        = sFactory, --TODO is this ever used"? Maybe for checks involving only the object type?
+        outputname  = sName,
         readOnly    = bReadOnly,
     };
 
     --store the factory in the repo
-    factory.repo.byName[sName]                = tFactoryData;
+    factory.repo.byName[sFactory]             = tFactoryData;
     factory.repo.byObject[tFactoryData.decoy] = tFactoryData;
 
     --set the metatable
-    factory.setMetatable(sName);
+    factory.setMetatable(sFactory);
 
     return tFactoryData.decoy;
 end
 
 
-function factory.setMetatable(sName)
-    local tFactory = factory.repo.byName[sName]
+function factory.setMetatable(sFactory)
+    local tFactory = factory.repo.byName[sFactory]
 
     local tMeta = {
         __add 		= errmath,
@@ -177,7 +180,7 @@ function factory.setMetatable(sName)
         __bnot 		= errbit,
         __bxor 		= errbit,
         __call 		= function (this, ...)
-            return struct.build(sName, ...);
+            return struct.build(tFactory.outputname, ...);
         end,
         __close 	= false,
         __concat	= errmath,
@@ -207,7 +210,7 @@ function factory.setMetatable(sName)
         __mul		= errmath,
         __name		= "struct",
         __newindex 	= function(t, k, v)
-            error("Attempt to modify struct factory, '"..sName.."'");
+            error("Attempt to modify struct factory, '"..sFactory.."'");
         end,
         __pairs		= erriterate,
         __pow		= errmath,
@@ -216,7 +219,8 @@ function factory.setMetatable(sName)
         __serialize = function()
             local tRet = {
                 constraints = {},
-                name        = sName,
+                name        = sFactory,
+                outputname  = tFactory.outputname,
                 readOnly    = tFactory.actual.__readOnly,
             };
 
@@ -248,9 +252,9 @@ end
 ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝   ]]
 
 
-function struct.build(sName, tInputArgs)
+function struct.build(sFactory, tInputArgs)
     local tArgs		    = type(tInputArgs) == "table" and tInputArgs or nil;
-    local tFactory      = factory.repo.byName[sName];
+    local tFactory      = factory.repo.byName[sFactory];
     local tConstraints  = tFactory.constraints;
     local tStructActual = {};
     local tStructInfo   = {};
@@ -297,7 +301,7 @@ function struct.build(sName, tInputArgs)
     tStructInfo.__factory  = tFactory.decoy;
 
     --set the reserved methods
-    tStructActual.clone = function() --TODO FINISH
+    tStructInfo.clone = function() --TODO FINISH
 
     end
 
@@ -410,6 +414,10 @@ function struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy)
                 values   = {},
             };
 
+            for sKey, tValue in pairs(tStructActual) do
+                print(tValue, type(tValue.value))
+                tData.values[sKey] = tValue.value;
+            end
 
             return tData;
         end,
@@ -439,8 +447,7 @@ end
 ██║  ██║███████╗   ██║   ╚██████╔╝██║  ██║██║ ╚████║
 ╚═╝  ╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝]]
 
-
-local tStructFactoryDecoy = {
+tStructFactoryActual = {
     deserialize = function(tData)
         local  sName = tData.name;
         return factory.repo.byName[sName]       and
@@ -451,12 +458,14 @@ local tStructFactoryDecoy = {
     end,
 };
 
+local tStructFactoryDecoy = {};
 
-return setmetatable(tStructFactoryDecoy,
+
+setmetatable(tStructFactoryDecoy,
 {
 	__call 		= factory.build,
 	__index 	= function(t, k, v)
-        return tStructFactoryDecoy[k] or nil;
+        return tStructFactoryActual[k] or nil;
     end,
 	__len 	 	= factorycount,
 	__newindex 	= dummy,--THROW ERROR HERE
@@ -468,3 +477,54 @@ return setmetatable(tStructFactoryDecoy,
     end,
 	__type 		= "structfactorybuilder",
 });
+
+
+
+local tStructActual = {
+    deserialize = function(tData)
+        local sName             = tData.name;
+        local xFactory          = factory.repo.byName[sName] or nil;
+        --local bFactoryExists    = factory.repo.byName[sName] ~= nil;
+        local tConstraints      = {};
+
+        if not (xFactory) then
+
+            for sKey, tVals in pairs(tData.values) do
+                tConstraints[sKey] = {
+                    defaultvalue  = tVals.value,--FIX if this is a table or object, it will shared...this is bad; clone it
+                    type 	      = tVals.type,
+                };
+            end
+
+            factory.build(__IGNORE__, sName.."factory",
+                tData.tConstraints,
+                tData.isReadOnly);
+        end
+
+        local  xFactory = factory.repo.byName[sName].decoy;
+
+    end,
+};
+local tStructDecoy  = {};
+
+setmetatable(tStructDecoy,
+{
+	__call 		= function(t, ...)
+        local xStruct = factory.build(...);
+        print(xStruct)
+        return xStruct();
+    end,
+	__index 	= function(t, k, v)
+        return tStructFactoryActual[k] or nil;
+    end,
+	__newindex 	= dummy,--THROW ERROR HERE
+    __serialize = function()
+        return "struct";
+    end,
+    __tostring = function()
+        return "structfactory";
+    end,
+	__type 		= "structfactory",
+});
+
+return {struct = tStructDecoy, structfactory = tStructFactoryDecoy};

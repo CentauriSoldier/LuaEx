@@ -133,7 +133,9 @@ local null		= 	require("LuaEx.lib.null");
                     rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
 array           =   require("LuaEx.lib.array");
 enum			= 	require("LuaEx.lib.enum");
-structfactory   = 	require("LuaEx.lib.structfactory");
+local tStruct   = 	require("LuaEx.lib.struct");
+struct          =   tStruct.struct;
+structfactory   =   tStruct.structfactory;
 source			=	require("LuaEx.util.source");
 infusedhelp		= 	require("LuaEx.lib.infusedhelp");
 --run the 'directives'
