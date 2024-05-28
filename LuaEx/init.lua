@@ -79,6 +79,7 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 
 --create the 'protected' table used by LuaEx
 local tLuaEx = {
+        __metaguard  = {"class", "classfactory", "enum", "enumfactory", "struct", "structfactory"}, --these metatables are protected from modification and general access
         __KEYWORDS__	= setmetatable({}, {--TODO uncap these...
             __index 	= tKeyWords,
             __newindex 	= function(t, k)
@@ -132,7 +133,7 @@ local null		= 	require("LuaEx.lib.null");
                     rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
 array           =   require("LuaEx.lib.array");
 enum			= 	require("LuaEx.lib.enum");
-struct			= 	require("LuaEx.lib.struct");
+structfactory   = 	require("LuaEx.lib.structfactory");
 source			=	require("LuaEx.util.source");
 infusedhelp		= 	require("LuaEx.lib.infusedhelp");
 --run the 'directives'

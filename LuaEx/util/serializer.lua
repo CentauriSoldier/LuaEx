@@ -80,9 +80,9 @@ local function registerType(sType, oType, bDoNotPack)
 
     assert(rawtype(oType) == "table", sErrorPrefix.."Object must be of rawtype table.");
 
-    local tMeta = rawgetmetatable(oType);
+    local tMeta = getmetatable(oType);
 
-    assert(type(tMeta)                      == "table", sErrorPrefix.."Object does not have an accessible metatable.");
+    assert(type(tMeta)                      == "table", sErrorPrefix.."Object of type '"..sType.."' does not have an accessible metatable.");
     assert(type(sType)                      == "string" and sType:isvariablecompliant(true), sErrorPrefix.."Object must have a __type metatable index whose value is a unique, variable-compliant string.");
     assert(not tPackables[sType] and not tNonPackables[sType], sErrorPrefix.."Object already exists.");
     assert(type(tMeta.__call)               == "function", sErrorPrefix.."Object must have a __call metamethod capable of creating the (equivilant) object instance.")
@@ -119,8 +119,13 @@ tPackables = {--the serialize FUNCTIONS table
     end,
     ["clausum"]                 = unimplemented,
     ["enum"]                    = unimplemented,
-    ["struct"]                  = unimplemented,
-    ["structfactory"]           = unimplemented,
+    ["struct"]                  = function(aItem)
+        return getmetatable(aItem).__serialize();
+    end,
+    ["structfactory"]           = function(aItem)
+        return getmetatable(aItem).__serialize();
+    end,
+
 };
 
 --INCOMPLETE
@@ -198,7 +203,7 @@ tNonPackables = {--the serializerDoNotPack FUNCTIONS table
         -- Escape Lua pattern magic characters without doubling them
         return "\""..sInput:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%1").."\"";
     end,
-    ["structfactorybuilder"]    = function(aItem)
+    ["structfactorybuilder"] = function(aItem)
         return getmetatable(aItem).__serialize();
     end,
     ["table"]                   = function(tInput, tSavedTables, tTabCount)

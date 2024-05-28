@@ -36,7 +36,10 @@ local function writeToFile(content)
     local documentsPath = os.getenv("USERPROFILE") .. "\\Sync\\Projects\\GitHub\\LuaEx\\"
 
     -- Full path to the target file
-    local filePath = documentsPath .. "modules.lua"
+    --local filePath = documentsPath .. "modules.lua"
+
+    --TODO only for struct testing
+    local filePath = documentsPath .. "struct.lua"
 
     -- Open the file in write mode
     local file = io.open(filePath, "w")
@@ -220,17 +223,65 @@ local tBullet = {
     speed = 30,
     direction = null,
     damage = 41,
+    __readsOnly = 44,
 };
 
-local rxBullet = struct("bullet", tBullet, false);
-local rBullet = rxBullet({speed = 10, direction = "north"})
-local rBullet2 = rxBullet({speed = 12, direction = "west"})
+--local xBullet = structfactory("bulletfactory", tBullet, false);
+--print(xBullet.__name)
+--local oBullet1 = xBullet({speed = 10, direction = "north"})
+--print(oBullet1.direction);
+--local oBullet2 = load(();
+--local oBullet2 = rBullet({speed = 12, direction = "west"})
+
 --for x = 1, 1000000 do
 --    rfBullet({speed = 10, direction = "north"})
 --end
-for k, v in pairs(rBullet) do
-    print(k, v)
+
+
+
+
+
+function readFile(path)
+    local file = io.open(path, "r") -- Open the file in read mode
+    if not file then
+        return nil, "Failed to open file" -- Return nil and an error message if file opening fails
+    end
+
+    local content = file:read("*a") -- Read the entire content of the file
+    file:close() -- Close the file
+
+    return content -- Return the content of the file
 end
+
+local documentsPath = os.getenv("USERPROFILE") .. "\\Sync\\Projects\\GitHub\\LuaEx\\"
+local filePath = documentsPath .. "struct.lua"
+
+function savetofile()
+    local tBullet = {
+        speed = 30,
+        direction = null,
+        damage = 41,
+    };
+
+    local bulletfactory = structfactory("bulletfactory", tBullet, false);
+
+    writeToFile(serialize(bulletfactory));
+end
+
+function loadfromfile()
+    --local k = serializer.unpackData("ewogICAgWyJuYW1lIl0gPSAiYnVsbGV0ZmFjdG9yeSIsCiAgICBbImNvbnN0cmFpbnRzIl0gPSB7CiAgICBbInNwZWVkIl0gPSAzMCwKICAgIFsiZGlyZWN0aW9uIl0gPSBudWxsLAogICAgWyJkYW1hZ2UiXSA9IDQxLAp9LAogICAgWyJyZWFkT25seSJdID0gZmFsc2UsCn0=")
+    --print(serialize(k) == readFile(filePath), '\n', serialize(k), '\n\n', readFile(filePath))
+    local bulletfactory = deserialize(readFile(filePath));
+    --print(readFile(filePath))
+    print((bulletfactory))
+end
+
+savetofile()
+loadfromfile()
+
+--print(subtype(ert()))
+
+
 --rBullet2.direction = "north"
 --print(1, rBullet.speed, rBullet.direction)
 --print(2, rBullet2.speed, rBullet2.direction)
@@ -248,7 +299,8 @@ local tPets = {
     [4] = array,
     [5] = struct,
     [6] = point,
-    --[7] = rBullet(),
+    [7] = rBullet,
+    --[8] = oBullet,
 };
 
 local sPets = serialize(tPets);
@@ -256,8 +308,6 @@ local sPets = serialize(tPets);
 
 --local tNewPets = deserialize(sPets);
 --print(tNewPets[1])
-
-
 
 local upvaluert = 10
 
@@ -269,13 +319,14 @@ local function myFunction(x)
     --print("upvaluert + x")
     print(ty)
 end
-
+--[[
 local serialized = serialize(tPets)
 --local serialized = serialize(myFunction)
---print(tostring(serialized))  -- Output: binary representation of the function
-
+print(tostring(serialized))  -- Output: binary representation of the function
 local deserialized = deserialize(serialized)
-local tLo = deserialized[4]({"moo", "mew", "ruff"});
+print(type(deserialized[5]))
+--local tLo = deserialized[4]({"moo", "mew", "ruff"});
 --print(type(tLo))  -- Output: 15
---print(deserialized[5])  -- Output: 15
---print(deserialized[6])
+--print(deserialized)  -- Output: 15
+print(deserialized[7])
+]]

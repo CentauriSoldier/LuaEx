@@ -23,6 +23,7 @@ function sealmetatable(tInput)
 end
 
 rawgetmetatable = getmetatable;
+--FIX this needs to address structs and enums too
 
 function getmetatable(tInput)
     local vRet  = nil;
@@ -31,11 +32,16 @@ function getmetatable(tInput)
     if (tMeta) then
         vRet = tMeta;
 
-        if (rawtype(tMeta["__is_luaex_class"]) ~= "nil") then
-            vRet = {
-                __is_luaex_class = tMeta.__is_luaex_class,
-                __type = tMeta.__type,
-            };
+        for _, sName in pairs(tLuaEx.__metaguard) do
+
+            if (rawtype(tMeta["__metaguard"] == "boolean") and tMeta["__metaguard"]) then
+                vRet = {
+                    __type      = tMeta.__type      or nil,
+                    __subtype   = tMeta.__subtype   or nil,
+                    __name      = tMeta.__name      or nil,
+                };
+            end
+
         end
 
     end
@@ -47,12 +53,24 @@ rawsetmetatable = setmetatable;
 
 function setmetatable(tInput, tMeta)
     local vRet          = nil;
-    local tCurrentMeta  = rawgetmetatable(tInput);
+    local tInputMeta  = rawgetmetatable(tInput);
 
-    if (tCurrentMeta) then
+    if (tInputMeta) then
 
-        if (rawtype(tCurrentMeta["__is_luaex_class"]) ~= "nil" and tCurrentMeta.__is_luaex_class) then
-            error("Error in class, '${class}.' Attempt to modify class metatable." % {class = tCurrentMeta.__name or "UNKNOWN"});
+        for _, sName in pairs(tLuaEx.__metaguard) do
+            local bMetaGuard =  rawtype(tInputMeta["__metaguard"]) == "boolean" and
+                                tInputMeta["__metaguard"]          or false;
+
+            if (bMetaGuard) then
+                local bNameMatch =  rawtype(tInputMeta["__type"])   == "boolean" and
+                                    (tInputMeta["__type"] == sName) or false;
+
+                if (bNameMatch) then
+                    error("Error in object, '${object}.' Attempt to modify object metatable." % {object = tInputMeta.__type});
+                end
+
+            end
+
         end
 
     end
