@@ -4,8 +4,8 @@ NEW LUAEX FUNCTIONS
 
 
 --[[
-function writeToFile(text)
-    local file = io.open("C:\\Users\\CS\\output.txt", "w")  -- Open file for writing
+function writeToFile(path, text)
+    local file = io.open(path, "w")  -- Open file for writing
     if file then
         file:write(text)  -- Write text to file
         file:close()  -- Close the file
@@ -50,31 +50,31 @@ getmetatable("").__bor = string.delimitedtotable;
 determines if a string, delimted by .'s is useable as table indices
 ]]
 function string.istableindex(sVal)
-	local bRet 			= false;
-	local dstt			= string.delimitedtotable;
-	local iscompliant 	= string.isvariablecompliant;
+    local bRet 			= false;
+    local dstt			= string.delimitedtotable;
+    local iscompliant 	= string.isvariablecompliant;
 
-	if (rawtype(sVal) == "string") then
-		local tIndices 	= dstt(sVal, ".");
+    if (rawtype(sVal) == "string") then
+        local tIndices 	= dstt(sVal, ".");
 
-		if (rawtype(tIndices) == "table") then
-			bRet = true;
+        if (rawtype(tIndices) == "table") then
+            bRet = true;
 
-			for _, sIndex in pairs(tIndices) do
+            for _, sIndex in pairs(tIndices) do
 
-				if not (iscompliant(sIndex)) then
+                if not (iscompliant(sIndex)) then
 
-					bRet = false;
-					break;
-				end
+                    bRet = false;
+                    break;
+                end
 
-			end
+            end
 
-		end
+        end
 
-	end
+    end
 
-	return bRet;
+    return bRet;
 end
 
 --[[
@@ -82,44 +82,44 @@ creates a table using a period-delimited string where each item is a sub-table i
 e.g., mytable.subtable1.subtable2 would be {subtable = {subtable2 = {}}}
 ]]
 function table.fromindexedstring(sPaths, bForceTableReturn)
-	local tRet 			= bForceTableReturn and {} or nil;
-	local dstt			= string.delimitedtotable;
-	local iscompliant 	= string.isvariablecompliant;
-	local tIndices 		= dstt(sPaths, ".");
+    local tRet 			= bForceTableReturn and {} or nil;
+    local dstt			= string.delimitedtotable;
+    local iscompliant 	= string.isvariablecompliant;
+    local tIndices 		= dstt(sPaths, ".");
 
 
-	if (rawtype(tIndices) == "table") then
-		tRet = {};
-		local tLast = tRet;
+    if (rawtype(tIndices) == "table") then
+        tRet = {};
+        local tLast = tRet;
 
-		for _, sIndex in pairs(tIndices) do
+        for _, sIndex in pairs(tIndices) do
 
-			if (iscompliant(sIndex)) then
-				tLast[sIndex] 	= {};
-				tLast 			= tLast[sIndex];
-			end
+            if (iscompliant(sIndex)) then
+                tLast[sIndex] 	= {};
+                tLast 			= tLast[sIndex];
+            end
 
-		end
+        end
 
-	end
+    end
 
-	return tRet;
+    return tRet;
 end
 
 
 
 function string.tomoney(sInput)
-	return sInput:isnumeric(sInput) and string.format("%.2f", sInput) or "0";
+    return sInput:isnumeric(sInput) and string.format("%.2f", sInput) or "0";
 end
 
 function string.todate(sInput)
-	local sRet = sInput;
+    local sRet = sInput;
 
-	if (type(sRet) == "string" and #sRet == 8) then
-		sRet = sRet:sub(1, 2).."/"..sRet:sub(3, 4).."/"..sRet:sub(5);
-	end
+    if (type(sRet) == "string" and #sRet == 8) then
+        sRet = sRet:sub(1, 2).."/"..sRet:sub(3, 4).."/"..sRet:sub(5);
+    end
 
-	return sRet;
+    return sRet;
 end
 
 
@@ -194,8 +194,8 @@ add documentation for ini.lua
 
 for AMS TODO allow, ...
 function p(v1, v2)
-	local bOneArg 	= v2 == nil;
-	local sTitle 	= bOneArg and type(v1) 		or tostring(v1);
-	local sMessage 	= bOneArg and tostring(v1) 	or tostring(v2);
-	Dialog.Message(sTitle, sMessage);
+    local bOneArg 	= v2 == nil;
+    local sTitle 	= bOneArg and type(v1) 		or tostring(v1);
+    local sMessage 	= bOneArg and tostring(v1) 	or tostring(v2);
+    Dialog.Message(sTitle, sMessage);
 end

@@ -22,7 +22,7 @@ local deserialize				= deserialize;
 local line 						= line;
 local math 						= math;
 local pairs 					= pairs;
-local point 					= point;
+local Point 					= Point;
 local rawtype 					= rawtype;
 local serialize					= serialize;
 local table 					= table;
@@ -70,15 +70,15 @@ local function importVertices(tFields, tVertices, nMax)
 
 		--make sure the input indices are sequential integers
 		if (nVertex ~= tFields.verticesCount) then
-			error("Cannot create polygon; vertices must be of type point; vertex ${vertexID} is out of bounds. It should be ${vertexCount}" % {vertexID = nVertex, vertexCount = tFields.verticesCount});
+			error("Cannot create polygon; vertices must be of type Point; vertex ${vertexID} is out of bounds. It should be ${vertexCount}" % {vertexID = nVertex, vertexCount = tFields.verticesCount});
 		end
 
-		--make sure each vertex is a point
-		if (type(oPoint) ~= "point") then
-			error("Cannot create polygon; vertices must be of type point; vertex ${vertexID} is of type ${vertexType}" % {vertexID = nVertex, vertexType = type(oPoint)});
+		--make sure each vertex is a Point
+		if (type(oPoint) ~= "Point") then
+			error("Cannot create polygon; vertices must be of type Point; vertex ${vertexID} is of type ${vertexType}" % {vertexID = nVertex, vertexType = type(oPoint)});
 		end
 
-		tFields.vertices[tFields.verticesCount] = point(oPoint.x, oPoint.y);
+		tFields.vertices[tFields.verticesCount] = Point(oPoint.x, oPoint.y);
 	end
 
 	if (tFields.verticesCount < 3) then
@@ -123,7 +123,7 @@ local function updateAnchors(tFields)
 	local oAnchorBottomRight 	= tFields.anchors[SHAPE_ANCHOR_BOTTOM_RIGHT];
 	local oAnchorBottomLeft 	= tFields.anchors[SHAPE_ANCHOR_BOTTOM_LEFT];
 
-	--prep the 'corner' anchor points
+	--prep the 'corner' anchor Points
 	local oPoint1 = tVertices[1];
 
 	--top left
@@ -145,7 +145,7 @@ local function updateAnchors(tFields)
 		nSumX = nSumX + oPoint.x;
 		nSumY = nSumY + oPoint.y;
 
-		--update the 'corner' anchor points
+		--update the 'corner' anchor Points
 
 		--top left
 		oAnchorTopLeft.x 		= oPoint.x < oAnchorTopLeft.x 		and oPoint.x or oAnchorTopLeft.x;
@@ -275,11 +275,11 @@ end
 --[[!
 	@mod polygon
 	@func polygon
-	@desc Used for creating various polygons and handling point
+	@desc Used for creating various polygons and handling Point
 	detection and detector properties. The child class is responsible
 	for creating vertices (upon construction) and storing them
 	in the protected property of 'vertices' (a numerically-indexed
-	table whose values are points). The child class is also
+	table whose values are Points). The child class is also
 	responsible for updating the polygon whenever changes are
 	made to size or position. This is done by calling super:update().
 	It is expected, when creating the vertices, that a child class will
@@ -294,7 +294,7 @@ end
 	isConcave				(boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
 	isRegular				(boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
 	tweener					(table)
-	vertices 				(numerically-indexed table of points)
+	vertices 				(numerically-indexed table of Points)
 	verticesCount			(number) NO CHILD CLASS SHOULD MODIFY THIS VALUE
 	importVertices 			(function)
 	updateArea				(function)
@@ -327,13 +327,13 @@ local polygon = class "polygon" : extends(shape) {
 			pot 		= pot(0, 1, 0, 1, POT_CONTINUITY_NONE),
 		};
 
-		--setup the anchor points
+		--setup the anchor Points
 		tFields.anchors	=  {
-			[SHAPE_ANCHOR_TOP_LEFT] 	= point(),
-			[SHAPE_ANCHOR_TOP_RIGHT]	= point(),
-			[SHAPE_ANCHOR_BOTTOM_RIGHT]	= point(),
-			[SHAPE_ANCHOR_BOTTOM_LEFT]	= point(),
-			[SHAPE_ANCHOR_CENTROID]		= point(),
+			[SHAPE_ANCHOR_TOP_LEFT] 	= Point(),
+			[SHAPE_ANCHOR_TOP_RIGHT]	= Point(),
+			[SHAPE_ANCHOR_BOTTOM_RIGHT]	= Point(),
+			[SHAPE_ANCHOR_BOTTOM_LEFT]	= Point(),
+			[SHAPE_ANCHOR_CENTROID]		= Point(),
 		}
 
 		--setup the protected methods
@@ -374,7 +374,7 @@ local polygon = class "polygon" : extends(shape) {
 		for k, v in pairs(tProtectedRepo[this]) do
 			local sVType = type(v);
 
-			if sVType == "number" 		or sVType == "point" 	or
+			if sVType == "number" 		or sVType == "Point" 	or
 			   sVType == "line"			or sVType == "shape" 	or
 			   sVType == "polygon"		or sVType == "circle" 	or
 			   sVType == "hexagon"		or sVType == "triangle" or
@@ -449,7 +449,7 @@ local polygon = class "polygon" : extends(shape) {
 		return tProtectedRepo[this].sumOfInteriorAngles;
 	end,
 
---TODO should these return a copy of the point?
+--TODO should these return a copy of the Point?
 	getPos = function(this)
 		local tFields = tProtectedRepo[this];
 		local oRet;
@@ -502,7 +502,7 @@ local polygon = class "polygon" : extends(shape) {
 	getArea = function(this)
 		return tProtectedRepo[this].area;
 	end,
-	--TODO should these return a copy of the point?
+	--TODO should these return a copy of the Point?
 	getCentroid = function(this)
 		return tProtectedRepo[this].anchors[SHAPE_ANCHOR_CENTROID];
 	end,
@@ -517,10 +517,10 @@ local polygon = class "polygon" : extends(shape) {
 
 	getVertex = function(this, nIndex)--TODO check input value
 		local oVertex = tProtectedRepo[this].vertices[nIndex];
-		return point(oVertex.x, oVertex.y);
+		return Point(oVertex.x, oVertex.y);
 	end,
 
-	--scales the shape out from the centroid (or perhaps I can allow any anchor point?)
+	--scales the shape out from the centroid (or perhaps I can allow any anchor Point?)
 	scale = function(this, nScale)
 
 	end,
@@ -588,7 +588,7 @@ local polygon = class "polygon" : extends(shape) {
 		local tFields = tProtectedRepo[this];
 
 		if (#tPoints ~= nVerticesCount) then
-			error("Cannot set vertices for shape. Expected #{expected} points; given #{count} points." % {expected  = nVerticesCount, count = #tPoints});
+			error("Cannot set vertices for shape. Expected #{expected} Points; given #{count} Points." % {expected  = nVerticesCount, count = #tPoints});
 		end
 
 		--TODO this function has been updated and, as such, these input arguments are wrong
@@ -618,7 +618,7 @@ local polygon = class "polygon" : extends(shape) {
 	translateTo = function(this, oPoint)
 		local tFields = tProtectedRepo[this];
 
-		--get the anchor point and find the change in x and y
+		--get the anchor Point and find the change in x and y
 		local oAnchor = tFields.anchors[tFields.anchorIndex];
 		local nDeltaX = oPoint.x - oAnchor.x;
 		local nDeltaY = oPoint.y - oAnchor.y;

@@ -2,7 +2,7 @@ local rawtype 		= rawtype;
 local pairs 		= pairs;
 local setmetatable 	= setmetatable;
 local type 			= type;
-
+--TODO documentation
 
 --[[
 ██╗      ██████╗  ██████╗ █████╗ ██╗
@@ -20,7 +20,7 @@ local factory = {
     },
 };
 local struct = {
-    restrictedKeys = {__readOnly = true, serialize = true},
+    restrictedKeys = {__readOnly = true, __name, clone = true},
     repo = {
         byName = {},
     },
@@ -31,68 +31,66 @@ local struct = {
 local function dummy() end --INCOMPLETE TODO change this to use an actrual table for newindex, and index
 
 local function errbit()
-	error("Attempt to perform bitwise operation on struct factory constructor.", 3);
+    error("Attempt to perform bitwise operation on struct factory constructor.", 3);
 end
 
 local function errmath()
-	error("Attempt to perform mathmatical operation on struct factory constructor.", 3);
+    error("Attempt to perform mathmatical operation on struct factory constructor.", 3);
 end
 
 local function errlen()
-	error("Attempt to get length of struct factory constructor.", 3);
+    error("Attempt to get length of struct factory constructor.", 3);
 end
 
 local function erriterate()
-	error("Attempt to iterate over struct factory constructor.", 3);
+    error("Attempt to iterate over struct factory constructor.", 3);
 end
 
 local function errbitinstance()
-	error("Attempt to perform bitwise operation on struct factory.", 3);
+    error("Attempt to perform bitwise operation on struct factory.", 3);
 end
 
 local function errmathinstance()
-	error("Attempt to perform mathmatical operation on struct factory.", 3);
+    error("Attempt to perform mathmatical operation on struct factory.", 3);
 end
 
 local function errleninstance()
-	error("Attempt to get length of struct factory.", 3);
+    error("Attempt to get length of struct factory.", 3);
 end
 
 local function erriterateinstance()
-	error("Attempt to improperly iterate over struct factory using ipairs.\nOnly pairs is supported.", 3);
+    error("Attempt to improperly iterate over struct factory using ipairs.\nOnly pairs is supported.", 3);
 end
 
 local function validateName(sName)
-    local bIsValidString    = rawtype(sName) == "string" and sName:gsub("[%s]", "") ~= "";
-    local sFactoryName      = sName.."factory";
+    local bIsValidString = rawtype(sName) == "string" and sName:gsub("[%s]", "") ~= "";
     --TODO also check for class and enum names FIX tthese all need regsitered with the luaex table
 
     if not (bIsValidString) then
         error("Error creating struct factory. Argument 1 (name) must be a non-blank string.\nType given: "..type(sName)..'.', 3);
     end
 
-    local bNameExists = rawtype(factory.repo.byName[sFactoryName]) ~= "nil";
+    local bNameExists = rawtype(factory.repo.byName[sName]) ~= "nil";
 
     if (bNameExists) then
         error("Error creating struct factory. Factory of type '"..sName.."' already exists; Cannot overwrite.", 3);
     end
 
-    return sFactoryName;
 end
 
 local function processPropertiesTable(sName, tProperties, tConstraint, bReadOnly)
     local tRet = {};
 
-	if (type(tProperties) ~= "table") then
+    if (type(tProperties) ~= "table") then
         error("Error creating read-only struct factory, '"..sName.."'.\nArgument 2 (Properies Input Table) must be of type table and have at least one key.", 3);
     end
 
     local bHasAtLeastOneKey = false;
 
-	for vKey, vValue in pairs(tProperties) do
+    for vKey, vValue in pairs(tProperties) do
 
         --ensure all keys are valid strings
-		if (rawtype(vKey) ~= "string") then
+        if (rawtype(vKey) ~= "string") then
             error("Error creating struct factory, '"..sName.."' at key "..tostring(vKey)..".\nKey type expected: string. Type given: "..type(vKey), 3);
         end
 
@@ -100,7 +98,7 @@ local function processPropertiesTable(sName, tProperties, tConstraint, bReadOnly
 
         --make sure this is not a restricted keys
         if (struct.restrictedKeys[vKey]) then
-            error("Error creating struct factory, '"..sName.."' with key "..tostring(vKey)..".\nKey is restricted.", 3);
+            error("Error creating struct factory, '"..sName.."' with key, '"..tostring(vKey).."'.\nKey is restricted.", 3);
         end
 
         --check for null values if this is read-only
@@ -108,16 +106,16 @@ local function processPropertiesTable(sName, tProperties, tConstraint, bReadOnly
             error("Error creating read-only struct factory, '"..sName.."'.\nValue at key '"..vKey.."' is null.", 3);
         end
 
-		tRet[vKey] = {
-			type 			= sValType,
-			defaultvalue 	= vValue, --FIX if this is a table or object, it will shared...this is bad; clone it
-		};
+        tRet[vKey] = {
+            type 			= sValType,
+            defaultvalue 	= vValue, --FIX if this is a table or object, it will shared...this is bad; clone it
+        };
 
         --log the string key if it exists
         bHasAtLeastOneKey = true;
-	end
+    end
 
-	if not (bHasAtLeastOneKey) then
+    if not (bHasAtLeastOneKey) then
         error("Error creating read-only struct factory, '"..sName.."'.\nArgument 2 (Properies Input Table) must be of type table and have at least one key.", 3);
     end
 
@@ -140,38 +138,37 @@ end
 
 
 function factory.build(__IGNORE__, sName, tProperties, bReadOnlyCheck)
-    local sFactory      = validateName(sName);
+    validateName(sName);
     local bReadOnly     = rawtype(bReadOnlyCheck) == "boolean" and bReadOnlyCheck or false;
-	local tConstraints  = processPropertiesTable(sFactory, tProperties, bReadOnly);
+    local tConstraints  = processPropertiesTable(sName, tProperties, bReadOnly);
 
     local tFactoryData = {
         actual      = {
             __readOnly  = bReadOnly,
-            __name      = sFactory,
+            __name      = sName,
             deserialize = function()--FINISH
 
             end,
         },
         constraints = tConstraints,
         decoy       = {}, --this is the returned factory object
-        name        = sFactory, --TODO is this ever used"? Maybe for checks involving only the object type?
-        outputname  = sName,
+        name        = sName, --TODO is this ever used"? Maybe for checks involving only the object type?
         readOnly    = bReadOnly,
     };
 
     --store the factory in the repo
-    factory.repo.byName[sFactory]             = tFactoryData;
+    factory.repo.byName[sName]                = tFactoryData;
     factory.repo.byObject[tFactoryData.decoy] = tFactoryData;
 
     --set the metatable
-    factory.setMetatable(sFactory);
+    factory.setMetatable(sName);
 
     return tFactoryData.decoy;
 end
 
 
-function factory.setMetatable(sFactory)
-    local tFactory = factory.repo.byName[sFactory]
+function factory.setMetatable(sName)
+    local tFactory = factory.repo.byName[sName]
 
     local tMeta = {
         __add 		= errmath,
@@ -180,7 +177,7 @@ function factory.setMetatable(sFactory)
         __bnot 		= errbit,
         __bxor 		= errbit,
         __call 		= function (this, ...)
-            return struct.build(tFactory.outputname, ...);
+            return struct.build(sName, ...);
         end,
         __close 	= false,
         __concat	= errmath,
@@ -210,7 +207,7 @@ function factory.setMetatable(sFactory)
         __mul		= errmath,
         __name		= "struct",
         __newindex 	= function(t, k, v)
-            error("Attempt to modify struct factory, '"..sFactory.."'");
+            error("Attempt to modify struct factory, '"..sName.."'");
         end,
         __pairs		= erriterate,
         __pow		= errmath,
@@ -219,8 +216,7 @@ function factory.setMetatable(sFactory)
         __serialize = function()
             local tRet = {
                 constraints = {},
-                name        = sFactory,
-                outputname  = tFactory.outputname,
+                name        = sName,
                 readOnly    = tFactory.actual.__readOnly,
             };
 
@@ -252,9 +248,9 @@ end
 ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝   ]]
 
 
-function struct.build(sFactory, tInputArgs)
+function struct.build(sName, tInputArgs)
     local tArgs		    = type(tInputArgs) == "table" and tInputArgs or nil;
-    local tFactory      = factory.repo.byName[sFactory];
+    local tFactory      = factory.repo.byName[sName];
     local tConstraints  = tFactory.constraints;
     local tStructActual = {};
     local tStructInfo   = {};
@@ -298,11 +294,18 @@ function struct.build(sFactory, tInputArgs)
 
     --set the reserved properties
     tStructInfo.__readOnly = tFactory.actual.__readOnly;
-    tStructInfo.__factory  = tFactory.decoy;
+    --tStructInfo.__factory  = tFactory.decoy;
+    tStructInfo.__name     = sName;
 
     --set the reserved methods
-    tStructInfo.clone = function() --TODO FINISH
+    tStructInfo.clone = function()
+        local tArgs = {};
 
+        for sKey, tValue in pairs(tStructActual) do
+            tArgs[sKey] = tValue.value; --TODO FIX CLONE ALL CLONEABLE ITEMS such as tables
+        end
+
+        return struct.build(sName, tArgs);
     end
 
     --set this struct's metatable
@@ -415,7 +418,6 @@ function struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy)
             };
 
             for sKey, tValue in pairs(tStructActual) do
-                print(tValue, type(tValue.value))
                 tData.values[sKey] = tValue.value;
             end
 
@@ -426,7 +428,7 @@ function struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy)
         __sub		= errbitinstance,
         __subtype	= sName,
         __tostring	= function()
-            return sName..'\nread-only: '..tStructInfo.__readOnly..'\n'..serialize(tStructActual);
+            return "'"..sName.."'\nread-only: "..tStructInfo.__readOnly..'\n'..serialize(tStructActual);
         end,
         __type		= "struct",
         __unm		= errmathinstance,
@@ -447,7 +449,47 @@ end
 ██║  ██║███████╗   ██║   ╚██████╔╝██║  ██║██║ ╚████║
 ╚═╝  ╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝]]
 
-tStructFactoryActual = {
+
+local tStructActual = {
+    deserialize = function(tData)
+        local sName             = tData.factory;
+        local tFactory          = factory.repo.byName[sName] or nil;
+
+        if not (tFactory) then
+            error("Error deserializing struct, '"..sName.."'.\nNo such struct factory exists.", 3);
+        end
+
+        return struct.build(sName, tData.values);
+    end,
+};
+local tStructDecoy = {};
+
+setmetatable(tStructDecoy,
+{
+    __call 		= function(t, ...)
+        local xStruct = factory.build(...);
+        print(xStruct)
+        return xStruct();
+    end,
+    __index 	= function(t, k, v)
+        return tStructActual[k] or nil;
+    end,
+    __newindex 	= dummy,--THROW ERROR HERE
+    __serialize = function()
+        return "struct";
+    end,
+    __tostring = function()
+        return "structfactory";
+    end,
+    __type 		= "structfactory",
+});
+
+
+
+
+
+
+local tStructFactoryActual = {
     deserialize = function(tData)
         local  sName = tData.name;
         return factory.repo.byName[sName]       and
@@ -458,73 +500,23 @@ tStructFactoryActual = {
     end,
 };
 
-local tStructFactoryDecoy = {};
-
+tStructFactoryDecoy = {};
 
 setmetatable(tStructFactoryDecoy,
 {
-	__call 		= factory.build,
-	__index 	= function(t, k, v)
+    __call 		= factory.build,
+    __index 	= function(t, k, v)
         return tStructFactoryActual[k] or nil;
     end,
-	__len 	 	= factorycount,
-	__newindex 	= dummy,--THROW ERROR HERE
+    __len 	 	= factorycount,
+    __newindex 	= dummy,--THROW ERROR HERE
     __serialize = function()
         return "structfactory";
     end,
     __tostring = function()
         return "structfactorybuilder";
     end,
-	__type 		= "structfactorybuilder",
-});
-
-
-
-local tStructActual = {
-    deserialize = function(tData)
-        local sName             = tData.name;
-        local xFactory          = factory.repo.byName[sName] or nil;
-        --local bFactoryExists    = factory.repo.byName[sName] ~= nil;
-        local tConstraints      = {};
-
-        if not (xFactory) then
-
-            for sKey, tVals in pairs(tData.values) do
-                tConstraints[sKey] = {
-                    defaultvalue  = tVals.value,--FIX if this is a table or object, it will shared...this is bad; clone it
-                    type 	      = tVals.type,
-                };
-            end
-
-            factory.build(__IGNORE__, sName.."factory",
-                tData.tConstraints,
-                tData.isReadOnly);
-        end
-
-        local  xFactory = factory.repo.byName[sName].decoy;
-
-    end,
-};
-local tStructDecoy  = {};
-
-setmetatable(tStructDecoy,
-{
-	__call 		= function(t, ...)
-        local xStruct = factory.build(...);
-        print(xStruct)
-        return xStruct();
-    end,
-	__index 	= function(t, k, v)
-        return tStructFactoryActual[k] or nil;
-    end,
-	__newindex 	= dummy,--THROW ERROR HERE
-    __serialize = function()
-        return "struct";
-    end,
-    __tostring = function()
-        return "structfactory";
-    end,
-	__type 		= "structfactory",
+    __type 		= "structfactorybuilder",
 });
 
 return {struct = tStructDecoy, structfactory = tStructFactoryDecoy};

@@ -2,7 +2,7 @@
 @authors Centauri Soldier
 @copyright Public Domain
 @description
-    <h2>rectangle</h2>
+    <h2>Shape</h2>
     <p></p>
 @license <p>The Unlicense<br>
 <br>
@@ -33,16 +33,18 @@ local class = class;
 local type  = type;
 local rawtype  = rawtype;
 
-return class("shape",
+return class("Shape",
 {--metamethods
 },
 {
 },
 {--private
 },
-{--protected    
+{--protected
 },
 {--public
+    Shape = function(this, cdat)
+    end,
     containsPoint = function()
         error("The 'containsPoint' method has not been implemented in the child class.");
     end,
@@ -54,8 +56,6 @@ return class("shape",
     end,
     getPos = function()
         error("The 'getPos' method has not been implemented in the child class.");
-    end,
-    shape = function(this, cdat)
     end,
 },
 nil,

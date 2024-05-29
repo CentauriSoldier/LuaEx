@@ -228,6 +228,22 @@ function math.isabstract(vInput)
 end
 
 
+-- Function to convert a number from base x to base b
+function math.convertbase(number, fromBase, toBase)
+    -- Convert number to base 10
+    local base10Number = tonumber(number, fromBase)
+
+    -- Convert base 10 number to desired base
+    local result = ""
+    repeat
+        local remainder = base10Number % toBase
+        result = string.format("%X", remainder) .. result
+        base10Number = math.floor(base10Number / toBase)
+    until base10Number == 0
+
+    return result
+end
+
 --the Eucclidian algorithm for finding the gcf
 --[[local function eucclidiangcf(nDividend, nDivisor)
 	local nRet = 0;

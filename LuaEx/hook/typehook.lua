@@ -89,6 +89,7 @@ local tLuaExTypes = {
     struct				    = true,
     structfactory           = true,
     structfactorybuilder    = true,
+    trait                   = true,--TODO MAKE THIS INTERFACE FOR STRUCTS WHEN THEY'RE READY TO USE THEM
 };
 --TODO add class and truct types here somwhere (when instances are created)
 --user can add/remove the items in this table

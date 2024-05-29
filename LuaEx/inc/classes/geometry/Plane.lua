@@ -14,4 +14,4 @@ local plane = class "plane" {
 };]]
 
 
-return plane;
+return Plane;

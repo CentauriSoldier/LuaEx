@@ -47,7 +47,7 @@ local type          = type;
 local rawtype       = rawtype;
 local math          = math;
 
-return class("point",
+return class("Point",
 {--metamethods
     --[[
     @desc Adds two points together.
@@ -174,7 +174,7 @@ return class("point",
     @param nY number The y value. If nil, it defaults to 0.
     ]]
 
-    point = function(this, cdat, nX, nY)
+    Point = function(this, cdat, nX, nY)
         local pri = cdat.pri;
         pri.x = rawtype(nX) == "number" and nX or pri.x;
         pri.y = rawtype(nY) == "number" and nY or pri.y;

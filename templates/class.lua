@@ -1,21 +1,21 @@
 return class("MyClass",
-{--metamethods
+{--METAMETHODS
 
 },
-{--static public
+{--STATIC PUBLIC
 
 },
-{--PRIVATE METHODS
+{--PRIVATE
 
 },
-{--PROTECTED METHODS
+{--PROTECTED
 
 },
-{--PUBLIC METHODS
+{--PUBLIC
 
 },
-nil,    --extending class
-false,   --if the class is final
+nil,   --extending class
+false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
 

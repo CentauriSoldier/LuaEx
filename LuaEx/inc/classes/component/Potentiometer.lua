@@ -2,7 +2,7 @@
 @authors Centauri Soldier
 @copyright Public Domain
 @description
-	<h2>pot</h2>
+	<h2>Potentiometer</h2>
 	<p>A logical potentiometer object. The client can set minimum and maximum values for the object, as well as rate of increase/decrease.
 	Note: 'increase' and 'decrease' are logical terms referring to motion along a line based on the current direction. E.g., If a pot is
 	alternating and descening, 'increase' would cause the positional value to be absolutely reduced, while 'decrease' would have the opposite
@@ -178,7 +178,7 @@ local function udpateStatus(pri)
 end
 
 
-return class("potentiometer",
+return class("Potentiometer",
 {--metamethods
 
 },
@@ -200,7 +200,7 @@ return class("potentiometer",
 
 },
 {--public
-    potentiometer = function(this, cdat, nMin, nMax, nPos, nRate, nContinuity)
+    Potentiometer = function(this, cdat, nMin, nMax, nPos, nRate, nContinuity)
         local pri = cdat.pri;
 
         pri.alternator			= 1;

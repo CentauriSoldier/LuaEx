@@ -1,5 +1,5 @@
 --[[
-Certainly! Here's a succinct bullet-point summary of the differences between regular, irregular, complex, simple, concave, and convex polygons:
+Certainly! Here's a succinct bullet-point summary of the differences between regular, irregular, complex, simple, concave, and convex Polygons:
 
     Regular Polygon:
         All sides are of equal length.
@@ -14,7 +14,7 @@ Certainly! Here's a succinct bullet-point summary of the differences between reg
     Complex Polygon:
         Contains intersecting edges within its interior.
         May have holes or self-intersections.
-        Examples: Polygon with holes, star-shaped polygon.
+        Examples: Polygon with holes, star-shaped Polygon.
 
     Simple Polygon:
         No intersecting edges within its interior.
@@ -24,12 +24,12 @@ Certainly! Here's a succinct bullet-point summary of the differences between reg
     Concave Polygon:
         Contains at least one interior angle greater than 180 degrees.
         Has at least one "cave" or indentation.
-        Examples: Crescent, irregular concave polygon.
+        Examples: Crescent, irregular concave Polygon.
 
     Convex Polygon:
         No interior angle is greater than 180 degrees.
         No edges intersect within the interior.
-        Examples: Regular polygons, convex quadrilateral.
+        Examples: Regular Polygons, convex quadrilateral.
 ]]
 
 local tProtectedRepo            = {};
@@ -53,10 +53,10 @@ local SHAPE_ANCHOR_CENTROID     = SHAPE_ANCHOR_CENTROID;
 local SHAPE_ANCHOR_DEFAULT      = SHAPE_ANCHOR_DEFAULT;
 local class                     = class;
 local deserialize               = deserialize;
-local line                      = line;
+local Line                      = Line;
 local math                      = math;
 local pairs                     = pairs;
-local point                     = point;
+local Point                     = Point;
 local rawtype                   = rawtype;
 local serialize                 = serialize;
 local table                     = table;
@@ -98,7 +98,7 @@ updateAngles
 
 
 
-return class("polygon",
+return class("Polygon",
 {--metamethods
     __tostring = function(this)
         local sRet = "";
@@ -106,9 +106,9 @@ return class("polygon",
         for k, v in pairs(tProtectedRepo[this]) do
             local sVType = type(v);
 
-            if sVType == "number"       or sVType == "point"     or
-               sVType == "line"         or sVType == "shape"     or
-               sVType == "polygon"      or sVType == "circle"     or
+            if sVType == "number"       or sVType == "Point"     or
+               sVType == "Line"         or sVType == "shape"     or
+               sVType == "Polygon"      or sVType == "circle"     or
                sVType == "hexagon"      or sVType == "triangle" or
                sVType == "rectangle"    then
                 sRet = sRet..tostring(k)..": "..tostring(v).."\r\n";
@@ -123,29 +123,29 @@ return class("polygon",
 },
 {--private
     anchors = {
-        [SHAPE_ANCHOR_TOP_LEFT]         = point(),
-        [SHAPE_ANCHOR_TOP_RIGHT]        = point(),
-        [SHAPE_ANCHOR_BOTTOM_RIGHT]     = point(),
-        [SHAPE_ANCHOR_BOTTOM_LEFT]      = point(),
-        [SHAPE_ANCHOR_CENTROID]         = point(),
+        [SHAPE_ANCHOR_TOP_LEFT]         = Point(),
+        [SHAPE_ANCHOR_TOP_RIGHT]        = Point(),
+        [SHAPE_ANCHOR_BOTTOM_RIGHT]     = Point(),
+        [SHAPE_ANCHOR_BOTTOM_LEFT]      = Point(),
+        [SHAPE_ANCHOR_CENTROID]         = Point(),
     },
     anchorIndex = SHAPE_ANCHOR_DEFAULT;--this can be be set to a vertex ID or one of the shape anchor constants
     area        = 0,
-    edges       = null, --an array of lines
+    edges       = null, --an array of Lines
     isConcave   = false,
     isRegular   = false,
     perimeter   = 0,
     tweener     = {
         inProgress  = false,
-        line        = line(nil, nil, true),
-        pot         = potentiometer(0, 1, 0, 1, POT_CONTINUITY_NONE),
+        line        = Line(nil, nil, true),
+        pot         = Potentiometer(0, 1, 0, 1, POT_CONTINUITY_NONE),
     },
-    vertices    = null, --an array of points
-    --TODO create points for calualtions which need them. That way, I don't have to create a new point every calulation
+    vertices    = null, --an array of Points
+    --TODO create Points for calualtions which need them. That way, I don't have to create a new Point every calulation
 },
 --TODO make the constructor protected (once the class system allows it)
 {--protected
-    updateArea = function(this, cdat, pri)--this algorithm doesn't work on complex polygons, find one which does and check before returning the area
+    updateArea = function(this, cdat, pri)--this algorithm doesn't work on complex Polygons, find one which does and check before returning the area
         local pri               = cdat.pri;
         local nSum              = 0;
         local aVertices         = pri.vertices;
@@ -173,7 +173,7 @@ return class("polygon",
         local oAnchorBottomRight    = pri.anchors[SHAPE_ANCHOR_BOTTOM_RIGHT];
         local oAnchorBottomLeft     = pri.anchors[SHAPE_ANCHOR_BOTTOM_LEFT];
 
-        --prep the 'corner' anchor points
+        --prep the 'corner' anchor Points
         local tPoint1   = aVertices[1];
         local nPoint1X  = tPoint1.getX();
         local nPoint1Y  = tPoint1.getY();
@@ -193,7 +193,7 @@ return class("polygon",
             nSumX = nSumX + nPointX;
             nSumY = nSumY + nPointY;
 
-            --update the 'corner' anchor points
+            --update the 'corner' anchor Points
             local nAnchorTopLeftX,      nAnchorTopLeftY     = oAnchorTopLeft.get();
             local nAnchorTopRightX,     nAnchorTopRightY    = oAnchorTopRight.get();
             local nAnchorBottomRightX,  nAnchorBottomRightY = oAnchorBottomRight.get();
@@ -230,14 +230,14 @@ return class("polygon",
         for nLine = 1, pri.edges.length do --use the number of vertices since it's the same as the number of edges
             local bIsFirstLine     = nLine == 1;
 
-            --determine the lines between which the angle will be
+            --determine the Lines between which the angle will be
             local oLine1 = tEdges[nLine];
             local oLine2 = bIsFirstLine and tEdges[nEdges] or tEdges[nLine - 1];
-            --[[create a ghost triangle by creating a third, ghost line between
-            the start of the first line and the end of the second line]]
-            local oLine3 = line(oLine1:getEnd(), oLine2:getStart()); --ghost line
+            --[[create a ghost triangle by creating a third, ghost Line between
+            the start of the first Line and the end of the second Line]]
+            local oLine3 = Line(oLine1:getEnd(), oLine2:getStart()); --ghost Line
 
-            --get the length of each line
+            --get the length of each Line
             local nLength1 = oLine1:getLength();
             local nLength2 = oLine2:getLength();
             local nLength3 = oLine3:getLength();
@@ -266,12 +266,12 @@ return class("polygon",
                 bRegularityFailed = not (nRegularityAngleMark == nTheta and nRegularityEdgeMark == nLength1);
             end
 
-            --if this is the last line and all angles/edges are repectively equal
+            --if this is the last Line and all angles/edges are repectively equal
             if (not bRegularityFailed and nLine == nEdges) then
                 pri.isRegular = true;
             end
 
-            --get the exterior angle: this allows for negative interior angles so all ext angles == 360 even on concave polygons
+            --get the exterior angle: this allows for negative interior angles so all ext angles == 360 even on concave Polygons
             pri.exteriorAngles[nLine] = 180 - pri.interiorAngles[nLine];
         end
 
@@ -323,28 +323,28 @@ return class("polygon",
 },
 {--public
     --[[!
-        @mod polygon
-        @func polygon
-        @desc Used for creating various polygons and handling point
+        @mod Polygon
+        @func Polygon
+        @desc Used for creating various Polygons and handling Point
         detection and detector properties. The child class is responsible
         for creating vertices (upon construction) and storing them
         in the protected property of 'vertices' (a numerically-indexed
-        table whose values are points). The child class is also
-        responsible for updating the polygon whenever changes are
+        table whose values are Points). The child class is also
+        responsible for updating the Polygon whenever changes are
         made to size or position. This is done by calling super:update().
         It is expected, when creating the vertices, that a child class will
         insert them into the table starting with the first vertex and continuing
-        around the polygon clockwise.
+        around the Polygon clockwise.
 
         Protected fields and methods:
         anchorIndex
         area                     (number)
-        edges                    (numerically-indexed table of lines)
+        edges                    (numerically-indexed table of Lines)
         perimeter                (number)
         isConcave                (boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
         isRegular                (boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
         tweener                    (table)
-        vertices                 (numerically-indexed table of points)
+        vertices                 (numerically-indexed table of Points)
         verticesCount            (number) NO CHILD CLASS SHOULD MODIFY THIS VALUE TODO move to pri
         imporaVertices             (function)
         updateArea                (function)
@@ -352,7 +352,7 @@ return class("polygon",
         updateDetector             (function)
         updatePerimeterAndEdges (function)
     ]]
-    polygon = function(this, cdat, super, aVertices)
+    Polygon = function(this, cdat, super, aVertices)
         local pri = cdat.pri;
         local pro = cdat.pro;
 
@@ -366,9 +366,9 @@ return class("polygon",
         --create the edges array
         pri.edges = array(aVertices.length - 1);
 
-        --check the input array data and add the point values
+        --check the input array data and add the Point values
         for nIndex, oPoint in aVertices() do
-            type.assert.custom(oPoint, "point", "Error creating polygon.\nVertices must be of type point.\nGot type ${type} at index ${index}." %
+            type.assert.custom(oPoint, "Point", "Error creating Polygon.\nVertices must be of type Point.\nGot type ${type} at index ${index}." %
             {type = type(oPoint), index = nIndex});
             pri.vertices[nIndex] = oPoint.clone();
 
@@ -377,14 +377,14 @@ return class("polygon",
             local bMakeLine     = nIndex > 1;
             local bOnLastIndex  = nIndex == aVertices.length;
 
-            --create the line from this point to the last
+            --create the Line from this Point to the last
             if (bMakeLine) then
                 local nLastIndex = nIndex - 1;
-                --determine which point to use as start and end
+                --determine which Point to use as start and end
                 oStartPoint = bOnLastIndex and aVertices[aVertices.length]  or aVertices[nLastIndex];
                 oEndPoint   = bOnLastIndex and aVertices[1]                 or aVertices[nIndex];
-                --build the points and the line
-                pri.edges[nLastIndex] = line(oStartPoint.clone(), oEndPoint.clone(), true); --TODO think about if this should be updated or not here
+                --build the Points and the Line
+                pri.edges[nLastIndex] = Line(oStartPoint.clone(), oEndPoint.clone(), true); --TODO think about if this should be updated or not here
             end
 
         end
@@ -406,7 +406,7 @@ return class("polygon",
         pro.updatePerimeterAndEdges     = updatePerimeterAndEdges;
         pro.updateAngles                = updateAngles;
 ]]
-        --update the polygon (if not skipped)
+        --update the Polygon (if not skipped)
         if (not bSkipUpdate) then
             pro.updatePerimeterAndEdges();
             pro.updateDetector();
@@ -475,7 +475,7 @@ return class("polygon",
         return tProtectedRepo[this].sumOfInteriorAngles;
     end,
 
---TODO should these return a copy of the point?
+--TODO should these return a copy of the Point?
     getPos = function(this)
         local tFields = tProtectedRepo[this];
         local oRet;
@@ -528,7 +528,7 @@ return class("polygon",
     getArea = function(this)
         return tProtectedRepo[this].area;
     end,
-    --TODO should these return a copy of the point?
+    --TODO should these return a copy of the Point?
     getCentroid = function(this)
         return tProtectedRepo[this].anchors[SHAPE_ANCHOR_CENTROID];
     end,
@@ -543,10 +543,10 @@ return class("polygon",
 
     getVertex = function(this, nIndex)--TODO check input value
         local oVertex = tProtectedRepo[this].vertices[nIndex];
-        return point(oVertex.x, oVertex.y);
+        return Point(oVertex.x, oVertex.y);
     end,
 
-    --scales the shape out from the centroid (or perhaps I can allow any anchor point?)
+    --scales the shape out from the centroid (or perhaps I can allow any anchor Point?)
     scale = function(this, nScale)
 
     end,
@@ -614,7 +614,7 @@ return class("polygon",
         local tFields = tProtectedRepo[this];
 
         if (#tPoints ~= nVerticesCount) then
-            error("Cannot set vertices for shape. Expected #{expected} points; given #{count} points." % {expected  = nVerticesCount, count = #tPoints});
+            error("Cannot set vertices for shape. Expected #{expected} Points; given #{count} Points." % {expected  = nVerticesCount, count = #tPoints});
         end
 
         --TODO this function has been updated and, as such, these input arguments are wrong
@@ -644,7 +644,7 @@ return class("polygon",
     translateTo = function(this, oPoint)
         local tFields = tProtectedRepo[this];
 
-        --get the anchor point and find the change in x and y
+        --get the anchor Point and find the change in x and y
         local oAnchor = tFields.anchors[tFields.anchorIndex];
         local nDeltaX = oPoint.x - oAnchor.x;
         local nDeltaY = oPoint.y - oAnchor.y;
@@ -687,7 +687,7 @@ return class("polygon",
                 tTweener.inProgress = false;
             else
 
-    --WAITING TO FINISH line:getPointAtDistance method
+    --WAITING TO FINISH Line:getPointAtDistance method
                 --update all vertices
 
 

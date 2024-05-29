@@ -63,7 +63,7 @@ end
 ██╔══██╗██║     ██║   ██║██║     ██╔═██╗    ██║   ██╔══██║██║   ██║
 ██████╔╝███████╗╚██████╔╝╚██████╗██║  ██╗   ██║   ██║  ██║╚██████╔╝
 ╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ]]
-local doxblocktag = class("doxblocktag",
+local DoxBlockTag = class("DoxBlockTag",
     {--metamethods
 
     },
@@ -73,7 +73,7 @@ local doxblocktag = class("doxblocktag",
     {--private
         display             = "",
         items_AUTO          = 0,
-        multipleallowed     = false,
+        multipleAllowed     = false,
         names               = {},
         required            = false,
     },
@@ -81,14 +81,14 @@ local doxblocktag = class("doxblocktag",
 
     },
     {--public
-        doxblocktag = function(this, cdat, tNames, sDisplay, nItems, bRequired, bMultipleAllowed)
+        DoxBlockTag = function(this, cdat, tNames, sDisplay, nItems, bRequired, bMultipleAllowed)
             type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.")
             type.assert.number(nItems, true, true, false, true);
 
 
             cdat.pri.display         = sDisplay;
             cdat.pri.items           = nItems;
-            cdat.pri.multipleallowed = type(bMultipleAllowed) == "boolean" and bMultipleAllowed or false;
+            cdat.pri.multipleAllowed = type(bMultipleAllowed) == "boolean" and bMultipleAllowed or false;
             cdat.pri.required        = type(bMultipleAllowed) == "boolean" and bMultipleAllowed or false;
 
             for _, sName in pairs(tNames) do
@@ -97,19 +97,19 @@ local doxblocktag = class("doxblocktag",
             end
 
         end,
-        ismultipleallowed = function(this, cdat)
-            return cdat.pri.multipleallowed;
+        isMultipleAllowed = function(this, cdat)
+            return cdat.pri.multipleAllowed;
         end,
-        isrequired = function(this, cdat)
+        isRequired = function(this, cdat)
             return cdat.pri.required;
         end,
         clone = function(this, cdat) --OMG TODO
             return this;
         end,
-        getdisplay = function(this, cdat)
+        getDisplay = function(this, cdat)
             return cdat.pri.display;
         end,
-        hasrequired = function(this, cdat, sRequired)
+        hasRequired = function(this, cdat, sRequired)
             local bRet = false;
 
             for _, sTagName in pairs(cdat.pri.names) do
@@ -150,7 +150,7 @@ local doxblocktag = class("doxblocktag",
 ██╔══██╗██║     ██║   ██║██║     ██╔═██╗    ██║   ██╔══██║██║   ██║██║   ██║██╔══██╗██║   ██║██║   ██║██╔═══╝
 ██████╔╝███████╗╚██████╔╝╚██████╗██║  ██╗   ██║   ██║  ██║╚██████╔╝╚██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║
 ╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝     ]]
-local doxblocktaggroup = class("doxblocktaggroup",
+local DoxBlockTagGroup = class("DoxBlockTagGroup",
     {--metamethods
 
     },
@@ -158,17 +158,17 @@ local doxblocktaggroup = class("doxblocktaggroup",
 
     },
     {--private
-        blocktags = {},
+        blockTags = {},
         close       = "",
         name        = "",
-        nameplural  = "",
+        namePlural  = "",
         open        = "",
     },
     {--protected
 
     },
     {--public
-        doxblocktaggroup = function(this, cdat, sName, sNamePlural, sOpen, sClose, ...)
+        DoxBlockTagGroup = function(this, cdat, sName, sNamePlural, sOpen, sClose, ...)
             type.assert.string(sName,        "%S+", "Dox block tag group name must not be blank.");
             type.assert.string(sNamePlural,  "%S+", "Dox block tag group plural name must not be blank.");
             type.assert.string(sOpen,        "%S+", "Dox block tag group open symbol(s) must not be blank.");
@@ -177,7 +177,7 @@ local doxblocktaggroup = class("doxblocktaggroup",
 
             local pri = cdat.pri;
             pri.name           = sName;
-            pri.nameplural     = sNamePlural
+            pri.namePlural     = sNamePlural
             pri.open           = sOpen;
             pri.close          = sClose;
 
@@ -185,18 +185,18 @@ local doxblocktaggroup = class("doxblocktaggroup",
             local nRequiredTags         = #tRequiredGroupBlockTags;
             local tRequiredTagsFound    = -tRequiredGroupBlockTags;
 
-            local tBlockTags = pri.blocktags;
+            local tBlockTags = pri.blockTags;
             for _, oBlockTag in pairs({...} or arg) do
                 --TODO QUESTION should i check that this tag is set to bRequired in the input?
                 for nIndex, sTag in tRequiredGroupBlockTags() do
 
-                    if (not (tRequiredTagsFound[nIndex]) and oBlockTag.hasrequired(sTag) ) then
+                    if (not (tRequiredTagsFound[nIndex]) and oBlockTag.hasRequired(sTag) ) then
                         tRequiredTagsFound[nIndex] = true;
                     end
 
                 end
 
-                type.assert.custom(oBlockTag, "doxblocktag");
+                type.assert.custom(oBlockTag, "DoxBlockTag");
                 tBlockTags[#tBlockTags + 1] = oBlockTag.clone();
             end
 
@@ -211,8 +211,8 @@ local doxblocktaggroup = class("doxblocktaggroup",
             end
 
         end,
-        blocktags = function(this, cdat)
-            local tBlockTags    = cdat.pri.blocktags;
+        blockTags = function(this, cdat)
+            local tBlockTags    = cdat.pri.blockTags;
             local nIndex        = 0;
             local nMax          = #tBlockTags;
 
@@ -229,13 +229,13 @@ local doxblocktaggroup = class("doxblocktaggroup",
         clone = function(this, cdat) --OMG TODO
             return this;
         end,
-        getblockclose = function(this, cdat)
+        getBlockClose = function(this, cdat)
             return cdat.pri.close;
         end,
-        getblockopen = function(this, cdat)
+        getBlockOpen = function(this, cdat)
             return cdat.pri.open;
         end,
-        getname = function(this, cdat)
+        getName = function(this, cdat)
             return cdat.pri.name;
         end,
     },
@@ -250,7 +250,7 @@ local doxblocktaggroup = class("doxblocktaggroup",
 ██║╚██╔╝██║██║   ██║██║  ██║██║   ██║██║     ██╔══╝
 ██║ ╚═╝ ██║╚██████╔╝██████╔╝╚██████╔╝███████╗███████╗
 ╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚══════╝╚══════╝]]
-local doxmodule = class("doxmodule",
+local DoxModule = class("DoxModule",
 {--metamethods
 
 },
@@ -258,23 +258,23 @@ local doxmodule = class("doxmodule",
 
 },
 {--private
-    moduleblocktaggroup = null,
+    moduleBlockTagGroup = null,
     name = "",
 },
 {--protected
 
 },
 {--public
-    doxmodule = function(this, cdat, sName, sBlock, oModuleBlockTagGroup)--sBlock
+    DoxModule = function(this, cdat, sName, sBlock, oModuleBlockTagGroup)--sBlock
         type.assert.string(sName, "%S+");
-        type.assert.custom(oModuleBlockTagGroup, "doxblocktaggroup");
+        type.assert.custom(oModuleBlockTagGroup, "DoxBlockTagGroup");
 
         local pri = cdat.pri;
 
         pri.name = sName;
-        pri.moduleblocktaggroup = oModuleBlockTagGroup;
+        pri.moduleBlockTagGroup = oModuleBlockTagGroup;
     end,
-    importblock = function(this, cdat)
+    importBlock = function(this, cdat)
         type.assert.string(sBlock, "%S+");
         --sBlock
     end,
@@ -292,7 +292,7 @@ nil    --interface(s) (either nil, or interface(s))
 ██║  ██║██║   ██║ ██╔██╗
 ██████╔╝╚██████╔╝██╔╝ ██╗
 ╚═════╝  ╚═════╝ ╚═╝  ╚═╝]]
-return class("dox",
+return class("Dox",
 {--metamethods
     __tostring = function()
         --TODO this should display the open/close stuff +
@@ -302,26 +302,26 @@ return class("dox",
     MIME = enum("MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
 },
 {--private
-    blocktaggroups      = {}, --this contains groups of block tags group objects
-    moduleblocktaggroup = null,
+    blockTagGroups      = {}, --this contains groups of block tags group objects
+    moduleBlockTagGroup = null,
     modules             = {}, --a list of module objects indexed by module names
     name                = "",
-    snippetclose        = "", --QUESTION How will this work now that we're using mutiple tag groups?
-    snippetopen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
+    snippetClose        = "", --QUESTION How will this work now that we're using mutiple tag groups?
+    snippetOpen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
     --Start 	= "##### START DOX [SUBCLASS NAME] SNIPPETS -->>> ID: ",
     --End 	= "#####   <<<-- END DOX [SUBCLASS NAME] SNIPPETS ID: ",
-    tagopen             = "",
+    tagOpen             = "",
     --toprocess           = {}, --this is a holding table for strings which need to be parsed for blocks
-    extractblocks = function(this, cdat, sInput)
+    extractBlocks = function(this, cdat, sInput)
         local tModuleBlocks = null;
         local tBlocks       = {};
         local fTrim         = string.trim;
 
-        local oModuleBlockTagGroup  = cdat.pri.moduleblocktaggroup;
-        local fBlockTagGroups       = cdat.pub.blocktaggroups;
+        local oModuleBlockTagGroup  = cdat.pri.moduleBlockTagGroup;
+        local fBlockTagGroups       = cdat.pub.blockTagGroups;
 
         -- Helper function to extract blocks from input based on open and close tags
-        local function extractfencedblocks(sBlockTagGroupName, sInput, sOpen, sClose)
+        local function extractFenceBlocks(sBlockTagGroupName, sInput, sOpen, sClose)
             local tRet           = {};
             local sEscapedOpen   = escapePattern(sOpen);
             local sEscapedClose  = escapePattern(sClose);
@@ -338,37 +338,37 @@ return class("dox",
             end
 
             -- Extract module blocks
-            local sModuleOpen   = oModuleBlockTagGroup.getblockopen();
-            local sModuleClose  = oModuleBlockTagGroup.getblockclose();
-            tModuleBlocks       = extractfencedblocks(oModuleBlockTagGroup:getname(), sInput, sModuleOpen, sModuleClose);
+            local sModuleOpen   = oModuleBlockTagGroup.getBlockOpen();
+            local sModuleClose  = oModuleBlockTagGroup.getBlockClose();
+            tModuleBlocks       = extractFenceBlocks(oModuleBlockTagGroup:getName(), sInput, sModuleOpen, sModuleClose);
 
             -- Extract other blocks
             for oBlockTagGroup in fBlockTagGroups() do
-                local sOpen         = oBlockTagGroup.getblockopen();
-                local sClose        = oBlockTagGroup.getblockclose();
-                local tGroupBlocks  = extractfencedblocks(oBlockTagGroup.getname(), sInput, sOpen, sClose);
+                local sOpen         = oBlockTagGroup.getBlockOpen();
+                local sClose        = oBlockTagGroup.getBlockClose();
+                local tGroupBlocks  = extractFenceBlocks(oBlockTagGroup.getName(), sInput, sOpen, sClose);
                 table.insert(tBlocks, tGroupBlocks);
             end
 
         return tModuleBlocks, tBlocks;
     end,
-    parseblock = function(this, cdat, sBlock, bIsModule)
+    parseBlock = function(this, cdat, sBlock, bIsModule)
 
     end,
-    processstring = function(this, cdat, sInput)
+    processString = function(this, cdat, sInput)
         local pri                   = cdat.pri;
-        local oModuleBlockTagGroup  = pri.moduleblocktaggroup;
-
+        local oModuleBlockTagGroup  = pri.moduleBlockTagGroup;
         --get all blocks from the string
-        local tModuleBlocks, tBlocks = pri.extractblocks(sInput);
+        local tModuleBlocks, tBlocks = pri.extractBlocks(sInput);
 
+        --TODO process \@ symbols?
         --process each module block
         for sName, sBlock in pairs(tModuleBlocks) do
 
             --WTF LEFT OFF HERE ...need to get the name of the module
             --create the module (if it doesn't exist)
             if not (pri.modules[sName]) then
-                pri.modules[sName] = doxmodule(sName, sBlock, oModuleBlockTagGroup);
+                pri.modules[sName] = DoxModule(sName, sBlock, oModuleBlockTagGroup);
             end
 
             --create the "Orphaned" module for items that name a non-existent module
@@ -385,36 +385,37 @@ return class("dox",
 
         end
 
+        return tModuleBlocks, tBlocks;
     end,
 },
 {--protected
-    blocktag        = doxblocktag,
-    blocktaggroup   = doxblocktaggroup,
+    blockTag        = DoxBlockTag,
+    blockTagGroup   = DoxBlockTagGroup,
 },
 {--public
-    dox = function(this, cdat, sName, sTagOpen, oModuleBlockTagGroup, ...)--TODO take moduleinfo, struct, enum and constant block tags too
+    Dox = function(this, cdat, sName, sTagOpen, oModuleBlockTagGroup, ...)--TODO take moduleinfo, struct, enum and constant block tags too
         type.assert.string(sName,    "%S+", "Dox subclass name must not be blank.");
         type.assert.string(sTagOpen, "%S+", "Open tag symbol must not be blank.");
-        type.assert.custom(oModuleBlockTagGroup, "doxblocktaggroup");
+        type.assert.custom(oModuleBlockTagGroup, "DoxBlockTagGroup");
 
         local pri               = cdat.pri;
         pri.name                = sName;
-        pri.tagopen             = sTagOpen;
-        pri.moduleblocktaggroup = oModuleBlockTagGroup;
+        pri.tagOpen             = sTagOpen;
+        pri.moduleBlockTagGroup = oModuleBlockTagGroup;
 
 
         --TODO put block tags in order of display (as input)!
         --TODO clone these properly
-        local tBlockTagGroups = pri.blocktaggroups;
+        local tBlockTagGroups = pri.blockTagGroups;
 
         for _, oBlockTagGroup in pairs({...} or arg) do
-            type.assert.custom(oBlockTagGroup, "doxblocktaggroup");
+            type.assert.custom(oBlockTagGroup, "DoxBlockTagGroup");
             tBlockTagGroups[#tBlockTagGroups + 1] = oBlockTagGroup.clone();
         end
 
     end,
-    blocktaggroups = function(this, cdat)
-        local tBlockTagGroups = cdat.pri.blocktaggroups;
+    blockTagGroups = function(this, cdat)
+        local tBlockTagGroups = cdat.pri.blockTagGroups;
         local nIndex            = 0;
         local nMax              = #tBlockTagGroups;
 
@@ -433,30 +434,30 @@ return class("dox",
     export = function(this, cdat, pDir, eMimeType, bPulsar)
 
     end,
-    getmoduleclose = function(this, cdat)
-        return cdat.pri.moduleclose;
+    getModuleClose = function(this, cdat)
+        return cdat.pri.moduleClose;
     end,
-    getmoduleopen = function(this, cdat)
-        return cdat.pri.moduleopen;
+    getModuleOpen = function(this, cdat)
+        return cdat.pri.moduleOpen;
     end,
-    getname = function(this, cdat)
+    getName = function(this, cdat)
         return cdat.pri.name;
     end,
-    gettagopen = function(this, cdat)
-        return cdat.pri.tagopen;
+    getTagOpen = function(this, cdat)
+        return cdat.pri.tagOpen;
     end,
-    importdirectory = function(this, cdat, bRecurse)
+    importDirectory = function(this, cdat, bRecurse)
 
     end,
-    importfile = function(this, cdat)
+    importFile = function(this, cdat)
 
     end,
-    importstring = function(this, cdat, sInput)
+    importString = function(this, cdat, sInput)
         type.assert.string(sInput);
         --type.assert.string(sBlockTagGroupName);
         --local oBlockTagGroup = nil;
 
-        --for oBTG in this.blocktaggroups() do
+        --for oBTG in this.BlockTagGroups() do
 
         --    if (oBTG.getname() == sBlockTagGroupName) then--TODO should htese be case sensitive?
         --        oBlockTagGroup = oBTG;
@@ -465,12 +466,12 @@ return class("dox",
 
         --end
 
-        --assert( type(oBlockTagGroup) == "doxblocktaggroup",
+        --assert( type(oBlockTagGroup) == "DoxBlockTagGroup",
         --        "Error importing string. Block Tag Group name, '${name}', does not exist." % {name = sBlockTagGroupName});
 
         --local pri = cdat.pri;
         --print(oBlockTagGroup.getblockopen(), oBlockTagGroup.getblockclose())
-        --local tBlocks = extractblocks(sInput, oBlockTagGroup.getblockopen(), oBlockTagGroup.getblockclose());
+        --local tBlocks = extractBlocks(sInput, oBlockTagGroup.getblockopen(), oBlockTagGroup.getblockclose());
 
 --[[
         function parseText(text)
@@ -503,7 +504,7 @@ return class("dox",
     end
 ]]
 
-    return cdat.pri.processstring(sInput);
+    return cdat.pri.processString(sInput);
 
     --return result
 --end
@@ -530,8 +531,8 @@ return class("dox",
 
 ]]
 
-        --local tModuleInfo = extractblocks(pri);
-        --local tFunctionBlocks = extractblocks(sInput, pri.blco);
+        --local tModuleInfo = extractBlocks(pri);
+        --local tFunctionBlocks = extractBlocks(sInput, pri.blco);
 
     end,
 },

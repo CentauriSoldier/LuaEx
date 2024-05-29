@@ -2,7 +2,7 @@
 @authors Centauri Soldier
 @copyright Public Domain
 @description
-	<h2>protean</h2>
+	<h2>Protean</h2>
 	<p>An object designed to hold a base value (or use an external one) as well
 	as adjuster values which operate on the base value to produce a final result.
 	Designed to be a simple-to-use modifier system.</p>
@@ -87,7 +87,7 @@
 @website https://github.com/CentauriSoldier
 *]]
 local tProteans = {};
-local protean;
+local Protean;
 
 local class 	= class;
 local constant 	= constant;
@@ -337,7 +337,7 @@ local function setValue(this, sType, vValue)
 end
 
 
-protean = class "protean" {
+Protean = class "Protean" {
 	--[[!
 		@desc The constructor for the protean class.
 		@func protean

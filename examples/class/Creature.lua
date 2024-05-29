@@ -24,7 +24,7 @@ return class("Creature",
         --cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
         --cdat.pro.HPMax  = nHPMax;
     end,
-    isdead = function(this, cdat)
+    isDead = function(this, cdat)
         return cdat.pro.HP <= 0;
     end,
 },

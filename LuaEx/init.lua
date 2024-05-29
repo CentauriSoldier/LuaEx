@@ -72,9 +72,9 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
                     "false", 	"for", 		"function", "if", 		"in", 		"local",
                     "nil", 		"not", 		"or", 		"repeat", 	"return", 	"then",
                     "true", 	"until", 	"while",
-                    --LuaEx keywords
+                    --LuaEx keywords/types
                     "constant", 	"enum", 	"struct",	"null",	"class",	"interface",
-                    "array",
+                    "array", "classfactory", "structfactory", "structfactorybuilder"
 };
 
 --create the 'protected' table used by LuaEx
@@ -127,7 +127,7 @@ type 			=  	require("LuaEx.hook.typehook");
                     require("LuaEx.hook.metahook");
                     require("LuaEx.lib.stdlib");
 constant 		= 	require("LuaEx.lib.constant");
-clausum			=	require("LuaEx.lib.clausum");--TODO what is the purpose of this? Does it have any practical use?
+--clausum			=	require("LuaEx.lib.clausum");--TODO what is the purpose of this? Does it have any practical use?
 local null		= 	require("LuaEx.lib.null");
                     rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
                     rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
@@ -171,11 +171,15 @@ base64 		= require("LuaEx.lib.base64");
 
 
 --import serialization
-serializer          = require("LuaEx.util.serializer");
+serializer  = require("LuaEx.util.serializer");
+
+--import cloner
+cloner      = require("LuaEx.util.cloner");
+clone       = cloner.clone;
 
 --aliases
-serialize           = serializer.serialize;
-deserialize         = serializer.deserialize;
+serialize   = serializer.serialize;
+deserialize = serializer.deserialize;
 
 --prep for loading the class system (if instructed by the user)
 interface, class, iCloneable, iSerializable, iShape = nil;
@@ -184,38 +188,38 @@ dox, doxLua, potentiometer, point, line, shape, circle = nil;
 
 --import the class system
 if (tClassLoadValues[_nClassSystem]) then
-    interface	= require("LuaEx.class.interface");
-    class 		= require("LuaEx.class.class");
+    interface	= require("LuaEx.lib.interface");
+    class 		= require("LuaEx.lib.class");
 
     --🅸🅼🅿🅾🆁🆃 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂
-    iCloneable 		= require("LuaEx.class.interfaces.iCloneable");
-    iSerializable 	= require("LuaEx.class.interfaces.iSerializable");
-    iShape 	        = require("LuaEx.class.interfaces.iShape");
+    iCloneable 		= require("LuaEx.inc.interfaces.iCloneable");
+    iSerializable 	= require("LuaEx.inc..interfaces.iSerializable");
+    iShape 	        = require("LuaEx.inc..interfaces.iShape");
 
     --🅸🅼🅿🅾🆁🆃 🅲🅻🅰🆂🆂🅴🆂
 
     if (tClassLoadValues[_nBasicClasses]) then
         --dependency class
-        queue           = require("LuaEx.class.classes.queue");
-        stack 	        = require("LuaEx.class.classes.stack");
-        set 		    = require("LuaEx.class.classes.set");
+        Queue           = require("LuaEx.inc.classes.Queue");
+        Stack 	        = require("LuaEx.inc.classes.Stack");
+        Set 		    = require("LuaEx.inc.classes.Set");
 
         --dox and included language classes
-        dox             = require("LuaEx.class.classes.dox");
-        doxLua          = require("LuaEx.class.classes.dox.doxLua");
+        Dox             = require("LuaEx.inc.classes.Dox");
+        DoxLua          = require("LuaEx.inc.classes.Dox.DoxLua");
 
         if (tClassLoadValues[_nComponentClasses]) then
             --component classes
-            potentiometer   = require("LuaEx.class.classes.component.potentiometer");
+            Potentiometer   = require("LuaEx.inc.classes.component.Potentiometer");
 
             if (tClassLoadValues[_nGeometryClasses]) then
                 --geometry classes
-                point           = require("LuaEx.class.classes.geometry.point");
-                line            = require("LuaEx.class.classes.geometry.line");
+                Point           = require("LuaEx.inc.classes.geometry.Point");
+                Line            = require("LuaEx.inc.classes.geometry.Line");
                 --shapes
-                shape           = require("LuaEx.class.classes.geometry.shapes.shape");
-                circle          = require("LuaEx.class.classes.geometry.shapes.circle");
-                polygon         = require("LuaEx.class.classes.geometry.shapes.polygon");
+                Shape           = require("LuaEx.inc.classes.geometry.shapes.Shape");
+                Circle          = require("LuaEx.inc.classes.geometry.shapes.Circle");
+                Polygon         = require("LuaEx.inc.classes.geometry.shapes.Polygon");
 
 
                 --tClassLoadValues[_nGeometryClasses]
@@ -231,7 +235,7 @@ end
 
 
 --🅰🅻🅸🅰🆂🅴🆂
-unpack = unpack or table.unpack;
+unpack = unpack or table.unpack;--TODO move this to table hook
 --table.serialize 	= serialize.table;
 --string.serialize 	= serialize.string;
 

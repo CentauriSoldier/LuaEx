@@ -33,14 +33,14 @@
 local class         = class;
 local deserialize   = deserialize;
 local math          = math;
-local point         = point;
+local Point         = Point;
 local rawtype       = rawtype;
 local serialize     = serialize;
 local type          = type;
 local MATH_ARL      = MATH_ARL;
 local MATH_UNDEF    = MATH_UNDEF;
 
---a location for storing temporary points so they don't need to be created every calcualtion
+--a location for storing temporary Points so they don't need to be created every calcualtion
 local tTempPoints = {};
 
 local function update(pri)
@@ -72,7 +72,7 @@ local function update(pri)
         pri.yIntercept  = nStartY - pri.slope * nStartX;
     end
 
-    --translate end point to the origin (using the object's temp point) in order to find theta
+    --translate end Point to the origin (using the object's temp Point) in order to find theta
     local oEnd = tTempPoints[pri];
 --TODO optimize this...no need for oEnd Calls
     oEnd.setX(nStopX - nStartX);
@@ -109,7 +109,7 @@ end
 --local pub = args[nPub];
 --local ins = args[nIns];
 
-return class("line",
+return class("Line",
 {--metamethods
     __tostring = function(this, cdat)
         local pri   = cdat.pri;
@@ -173,12 +173,12 @@ return class("line",
 },
 {--public
 
-    line = function(this, cdat, oStartPoint, oEndPoint, bSkipUpdate)
+    Line = function(this, cdat, oStartPoint, oEndPoint, bSkipUpdate)
         local pri = cdat.pri;
 
-        pri.start         = type(oStartPoint) == "point"      and point(oStartPoint.getX(),     oStartPoint.getY())     or point();
-        pri.stop          = type(oEndPoint)    == "point"     and point(oEndPoint.getX(),     oEndPoint.getY())         or point();
-        pri.midpoint      = point();
+        pri.start         = type(oStartPoint) == "Point"      and Point(oStartPoint.getX(),     oStartPoint.getY())     or Point();
+        pri.stop          = type(oEndPoint)    == "Point"     and Point(oEndPoint.getX(),     oEndPoint.getY())         or Point();
+        pri.midpoint      = Point();
 
         --default the fields (in case no update is performed)
         pri.a                           = 0;
@@ -196,8 +196,8 @@ return class("line",
         pri.xInterceptIsUndefined       = true;
         --pri. = 0;
 
-        --create this line's temp point (used during updates)
-        tTempPoints[pri] = point(0, 0);
+        --create this line's temp Point (used during updates)
+        tTempPoints[pri] = Point(0, 0);
 
         if not (bSkipUpdate) then
             update(pri);
@@ -284,7 +284,7 @@ return class("line",
             local x = (B2 * C1 - B1 * C2) / nDeterminate;
             local y = (A1 * C2 - A2 * C1) / nDeterminate;
 
-            oRet = point(x, y);
+            oRet = Point(x, y);
         end
 
         return oRet;

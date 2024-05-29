@@ -48,7 +48,7 @@ local _nStartArea           = math.pi;
 local _nStartCircumference  = 2 * _nStartArea;
 local _nStartRadius         = 1;
 
-return class("circle",
+return class("Circle",
 {--metamethods
 
 },
@@ -71,7 +71,7 @@ return class("circle",
     @mod circle
     @ret oCircle circle A circle object. Public properties are center and radius.
     ]]
-    circle = function(this, cdat, super, pCenter, nRadius)
+    Circle = function(this, cdat, super, pCenter, nRadius)
         super();
         local pri = cdat.pri;
 

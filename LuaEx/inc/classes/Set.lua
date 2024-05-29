@@ -68,7 +68,7 @@ removeItem = function(cdat, vItem)
 end
 
 
-return class("set",
+return class("Set",
 {--metamethods
 
 
@@ -230,7 +230,7 @@ return class("set",
     @param table|nil A table of items to add to the set (optional).
     @desc Constructs a new set object.
     !]]
-	set = function(cdat, cdat, tItems)
+	Set = function(cdat, cdat, tItems)
 
         if (type(tItems) == "table") then
 

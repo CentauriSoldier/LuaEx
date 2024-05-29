@@ -7,7 +7,7 @@ local serialize		= serialize;
 local table			= table;
 local type 			= type;
 
-return class("stack",
+return class("Stack",
 {--metamethods
 
     --[[!
@@ -77,7 +77,7 @@ return class("stack",
     @param table|nil A numerically-indexed table of items to push onto the stack (optional).
     @ret stack A new stack object.
     !]]
-    stack = function(this, cdat, tItems)
+    Stack = function(this, cdat, tItems)
 
         if (type(tItems) == "table") then
 

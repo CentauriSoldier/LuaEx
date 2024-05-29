@@ -1,4 +1,4 @@
-return class("doxLua",
+return class("DoxLua",
 {--metamethods
 
 },
@@ -12,9 +12,9 @@ return class("doxLua",
 
 },
 {--public
-    doxLua = function(this, cdat, super)
-        local fBlockTag       = cdat.pro.blocktag;
-        local fBlockTagGroup  = cdat.pro.blocktaggroup;
+    DoxLua = function(this, cdat, super)
+        local fBlockTag       = cdat.pro.blockTag;
+        local fBlockTagGroup  = cdat.pro.blockTagGroup;
         local bRequired         = true;
         local bMultipleAllowed  = true;
 
@@ -44,7 +44,7 @@ return class("doxLua",
             fBlockTag({"des", "desc", "description"},    "Description",   1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"ex", "example", "examples"},     "Example",       1, -bRequired,   bMultipleAllowed),
             --fBlockTag({"fun", "func", "function"},       "Function",      1,  bRequired,   -bMultipleAllowed),
-            fBlockTag({"mod"},                            "Mod",              1,  bRequired,    -bMultipleAllowed),
+            fBlockTag({"mod"},                           "Mod",           1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"name"},                          "Name",          2,  bRequired,   -bMultipleAllowed),
             fBlockTag({"parameter", "param"},            "Parameter",     2, -bRequired,   bMultipleAllowed),
             fBlockTag({"return", "ret",},                "Return",        2, -bRequired,   bMultipleAllowed),
@@ -61,10 +61,10 @@ return class("doxLua",
 
 
 
-        super("doxlua", "@", oModuleBlockTagGroup, oFunctionBlockTagGroup);
+        super("DoxLua", "@", oModuleBlockTagGroup, oFunctionBlockTagGroup);
     end,
 },
-dox,    --extending class
+Dox,    --extending class
 true,    --if the class is final
 nil    --interface(s) (either nil, an interface or a numerically-indexed table of interfaces)
 );

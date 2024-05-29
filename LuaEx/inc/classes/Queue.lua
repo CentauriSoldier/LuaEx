@@ -7,7 +7,7 @@ local serialize		= serialize;
 local table			= table;
 local type 			= type;
 
-return class("queue",
+return class("Queue",
 {--metamethods
 
 
@@ -76,7 +76,7 @@ return class("queue",
     @param table|nil A numerically-indexed table of items to add to enqueue (optional).
     @ret queue A new queue object.
     !]]
-	queue = function(this, cdat, tItems)
+	Queue = function(this, cdat, tItems)
 
         if (type(tItems) == "table") then
 
