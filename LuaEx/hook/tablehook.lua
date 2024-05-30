@@ -8,8 +8,8 @@ local table 		= table;
 --stores references to locked tables and their clones
 local tLockedTableClones = {};
 
-
-function table.clone(tInput, bIgnoreMetaTable)
+--DEPRECATED
+function cloneOLD(tInput, bIgnoreMetaTable)
 	local tRet = {};
 
 	--clone each item in the table
@@ -18,7 +18,7 @@ function table.clone(tInput, bIgnoreMetaTable)
 		for vIndex, vItem in pairs(tInput) do
 
 			if (rawtype(vItem) == "table") then
-				rawset(tRet, vIndex, table.clone(vItem));
+				rawset(tRet, vIndex, clone(vItem));
 			else
 				rawset(tRet, vIndex, vItem);
 			end
@@ -73,7 +73,7 @@ function table.lock(tInput)
 		local bIsEnum = type(tInput) == "enum";
 
 		--clone the original table before purging it
-		local tData = table.clone(tInput);
+		local tData = clone(tInput);
 
 		--store a reference to the clone (used for table.unlock)
 		tLockedTableClones[tInput] = tData;
@@ -93,7 +93,7 @@ function table.lock(tInput)
 
 		--clone the meta table or create a new one if not present
 		if (not bIsEnum) then--do not modify enum subtable TODO do this for classes as well--also, allow a table of strings (types to be ignored) be input by the user
-			local tNewMeta = bMetaIsTable and table.clone(tMeta) or {};
+			local tNewMeta = bMetaIsTable and clone(tMeta) or {};
 
 			--remove the old meta table if present
 			if (bMetaIsTable) then

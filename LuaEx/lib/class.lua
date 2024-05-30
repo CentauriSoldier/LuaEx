@@ -184,7 +184,7 @@ function class.build(tKit)
     local sName     = tKit.name;
 
     --this is the actual, hidden class table referenced by the returned class object
-    local tClass            = table.clone(tKit.stapub);   --create the static public members
+    local tClass            = clone(tKit.stapub);   --create the static public members
 
     local tClassMeta = { --the decoy (returned class object) meta table
         __call      = function(t, ...) --instantiate the class
@@ -377,10 +377,10 @@ end
 function instance.build(tKit, tParentActual)
     local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
-        met = table.clone(tKit.met), --create the metamethods
-        pri = table.clone(tKit.pri), --create the private members
-        pro = table.clone(tKit.pro), --etc.
-        pub = table.clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
+        met = clone(tKit.met), --create the metamethods
+        pri = clone(tKit.pri), --create the private members
+        pro = clone(tKit.pro), --etc.
+        pub = clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
         children            = {},    --TODO move to class level or to here? Is there any use for it here? IS THIS EVER USED AT ALL? Perhaps for class-level funtions?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
@@ -817,11 +817,11 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         name 			= sName,
         parent			= kit.mayExtend(sName, cExtendor) and kit.repo.byobject[cExtendor] or nil, --note the parent kit
         --tables
-        met 	        = table.clone(tMetamethods, 	true),--TODO this was recently changed to TRUE since (I think) user-defined metatables should be ignored from input
-        stapub 	        = table.clone(tStaticPublic, 	true),
-        pri			    = table.clone(tPrivate, 		true),
-        pro 		    = table.clone(tProtected, 		true),
-        pub      	    = table.clone(tPublic, 			true),
+        met 	        = clone(tMetamethods, 	true),--TODO this was recently changed to TRUE since (I think) user-defined metatables should be ignored from input
+        stapub 	        = clone(tStaticPublic, 	true),
+        pri			    = clone(tPrivate, 		true),
+        pro 		    = clone(tProtected, 		true),
+        pub      	    = clone(tPublic, 			true),
     };
 
 
@@ -1336,7 +1336,7 @@ function kit.cloneitem = function(vItem)
 local vRet;
 
 if (type(vItem) == "table") then
-vRet = table.clone(vItem);
+vRet = clone(vItem);
 
 elseif (rawtype(vItem) == "table") then
 local tMeta = rawgetmetatable(vItem);
@@ -1345,7 +1345,7 @@ if (tMeta and tMeta.__is_luaex_class) then
 vRet = vItem.clone();
 
 else
-vRet = table.clone(vItem);
+vRet = clone(vItem);
 
 end
 

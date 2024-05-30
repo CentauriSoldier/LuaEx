@@ -217,7 +217,7 @@ local ini = oldclass("ini", {
         return tINIs[this].autosave;
     end,
     getall = function(this)
-        return table.clone(tINIs[this].ini, true);
+        return clone(tINIs[this].ini, true);
     end,
     getvalue = function(this, sSection, sValue)
         local vRet 	= "";

@@ -116,4 +116,7 @@ end
 aMethods[1]();
 aMethods[2]();
 aMethods[3]();
+
 --TODO clone and copy examples
+local aCloned = clone(aNoPet);
+print(aCloned)

@@ -51,11 +51,6 @@ local function buildLineTable(nIndex, sLine)
 end
 
 
-
-
-
-
-
 local function importString(sInput)
     local tRawData          = sInput:totable("\n", true);
     local tSections         = {};
@@ -123,9 +118,10 @@ return class("Ini",
         local pri = cdat.pri;
 
         local tData = {
-            sectionOrder = pri.sectionOrder,
-            sections     = pri.sections,
-            top          = pri.top,
+            --string = tostring(this),
+            --sectionOrder = pri.sectionOrder,
+            --sections     = pri.sections,
+            --top          = pri.top,
             endingLine   = pri.endingLine,
         };
     end,
@@ -147,7 +143,7 @@ return class("Ini",
 
         end
 
-        if (bExcludeEndLine) then
+        if (pri.endingLine) then
             sRet = sRet:gsub("\n*$", "");
         end
 
@@ -156,8 +152,8 @@ return class("Ini",
 
 },
 {--STATIC PUBLIC
-    deserialize = function(sData)
-
+    deserialize = function(tData)
+        local oIni = Ini(tData);
     end,
 },
 {--PRIVATE

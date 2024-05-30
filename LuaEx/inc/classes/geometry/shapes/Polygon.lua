@@ -538,7 +538,7 @@ return class("Polygon",
     end,
     --TODO return a copy (yes, because edges cannot be properly modified by the client; they must use the vertices)
     getEdges = function(this)
-        return table.clone(tProtectedRepo[this].edges, false) or nil;
+        return clone(tProtectedRepo[this].edges, false) or nil;
     end,
 
     getVertex = function(this, nIndex)--TODO check input value

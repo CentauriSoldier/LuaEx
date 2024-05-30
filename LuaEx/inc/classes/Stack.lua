@@ -115,7 +115,7 @@ return class("Stack",
         local oRet  = Stack();
         local ncdat = cdat.ins[oRet];
 
-        ncdat.values    = table.clone(cdat.values);
+        ncdat.values    = clone(cdat.values);
         ncdat.count     = #ncdat.values;
 
         return oRet;

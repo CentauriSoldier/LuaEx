@@ -3,7 +3,6 @@
 Adds several table functions to the Lua library.
 
 #### Functions
-- **table.clone(*table*, *boolean* or *nil*)** Performs a deep copy of a table and returns that copy. This will also copy the metatable unless the second argument is set to true (*table*).
 - **table.lock(*table*)** Makes a table read-only recursively. That is, it prevents any of a table's key or values from being mutated (or any added to the table) while still allowing them to be accessed. Can be unlocked later. Note: while the original metatable is mostly preserved, ***__index*** and ***__newindex*** are necessarily replaced while the table is locked (but are restored once the table is unlocked). The exception to this rule is enums: their ***__index*** metamethod remains when locked (*table*).
 - **table.purge(*table*, *boolean* or *nil*)** Sets every item in a table to nil recursively. This will also purge and delete the metatable unless the second argument is set to true (*table*).
 - **table.settype(*table*, *string*)** Sets the table to a custom type instead of type ***"table"***. Calls to ***type*** will now return the input string. To check the type, ignoring the custom type feature, use the ***rawtype*** function instead (*table*).
@@ -31,7 +30,7 @@ table.setsubtype(tAnimals, "Happy");
 print("The "..type(tAnimals).." is of subtype "..subtype(tAnimals));
 
 --clone a table
-tClone = table.clone(tAnimals);
+tClone = clone(tAnimals);
 
 --print some stuff from the clone
 print(tClone.WhatACloneSays);

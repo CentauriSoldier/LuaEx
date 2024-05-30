@@ -186,11 +186,15 @@ enable_2mf =  true]]
 
 
 local oSettings = Ini(str);
-print(oSettings)
+--print(oSettings)
+--local sSettings = serialize(oSettings);
+local aNoPet = array({"Aligator", "T-Rex", "Rino", "Leech", "Dragon"});
+local aCloned = clone(aNoPet);
+print(aCloned)
 
+--writeToFile("\\Sync\\Projects\\GitHub\\LuaEx\\test.ini", tostring(oSettings));
 --local tTop, tSections, tSectionOrder = import(str);
 --print(export(tTop, tSections, tSectionOrder));
-writeToFile("\\Sync\\Projects\\GitHub\\LuaEx\\test.ini", tostring(oSettings));
 --print(sRawData, "\n\n\n", sSections, "\n\n\n", sMap);
 --local parsedIni = generateIniStructure(tRawData, tSections, tMap)
 --local serializedIni = serialize(parsedIni)

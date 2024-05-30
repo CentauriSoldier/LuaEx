@@ -41,7 +41,7 @@ In summary, Array.Copy offers more flexibility for copying specific ranges of el
 
 local tArrayActual = {
     deserialize = function(tData)
-        --TODO assert data? Or should I depend on the serializer
+        --QUESTION assert data? Or should I depend on the serializer
         return array(tData.items);
     end,
 }; --array factory actual table
@@ -68,6 +68,20 @@ return setmetatable(tArrayActual,
                     tItems[x]       = null;
                 end
 
+            end,
+            clone = function(aInput)
+                local tData = {};
+
+                for k, v in ipairs(tItems) do
+
+                    if (type(v) ~= sArrayType) then
+                        error("Error cloning array. Cannot clone array with null values.")
+                    end
+
+                    tData[k] = clone(v);
+                end
+
+                return array(tData);
             end,
             indexof = function(vItem)
                 local nIndex = -1;

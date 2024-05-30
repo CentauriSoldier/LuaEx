@@ -117,7 +117,7 @@ tPackables = {--the serialize FUNCTIONS table
     ["array"]                   = function(aItem)
         return getmetatable(aItem).__serialize();
     end,
-    ["clausum"]                 = unimplemented,
+    --["clausum"]                 = unimplemented,
     ["enum"]                    = unimplemented,
     ["struct"]                  = function(aItem)
         return getmetatable(aItem).__serialize();
@@ -249,7 +249,7 @@ local function serialize(vInput, tSavedTables, tTabCount)
     elseif (tPackables[sType]) then
         local fSerialize = tPackables[sType];
         local vData = fSerialize(vInput, tSavedTables, tTabCount);
-
+        print(sType)
         if (type(vData) ~= "string") then
             vData = serialize(vData, tSavedTables, tTabCount);
         end

@@ -15,7 +15,7 @@ function protect(sReference)--TODO what is the purpose of this? Does it violate 
     --process the table (if needed)
     if (sInputType == "table") then--TODO check if the table is locked
         --clone the table
-        vProtected = table.clone(vInput);
+        vProtected = clone(vInput);
         --purge it
         table.purge(vInput);
         --forward the old reference to the new table

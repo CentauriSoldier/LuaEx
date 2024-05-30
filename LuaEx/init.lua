@@ -137,6 +137,9 @@ sPath = sPath:sub(1, sPath:len() - 1);
 package.path = package.path..";"..sPath.."\\..\\?.lua";
 
 
+cloner, clone = nil; --delcared here so all lower modules can use it
+--QUESTION do i need serializer here too? I think not but double check
+
 --🅸🅼🅿🅾🆁🆃 🅿🆁🅴🆁🅴🆀🆄🅸🆂🅸🆃🅴 🅼🅾🅳🆄🅻🅴🆂
 type 			=  	require("LuaEx.hook.typehook");
                     require("LuaEx.hook.metahook");
