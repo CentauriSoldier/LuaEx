@@ -569,7 +569,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                 --if (rawtype(vVal) == "nil") then
                 if (zVal == "nil") then
                     error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
                 local sTypeCurrent  = type(tTarget[k]);
@@ -577,17 +577,17 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 if (sTypeNew == "nil") then
                     error("Error in class, '${name}'. Cannot set ${visibility} member, '${member}', to nil." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
                 if (sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
                     error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
+                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
                 if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
                     error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
-                        name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 3);
+                        name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 2);
                 end
 
                 rawset(tTarget, k, v);
@@ -808,7 +808,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         ins		        = rawsetmetatable({},
             {
                 __newindex = function(t, k, v)
-                    error("Error in class, '${class}'. Attempt to modify read-only class data." % {class = sName});
+                    error("Error in class, '${class}'. Attempt to modify read-only class data." % {class = sName}, 2);
                 end
             }
         ),

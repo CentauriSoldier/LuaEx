@@ -44,50 +44,49 @@ end
 
 ]]
 
+local oA = Set();
+oA.add(34);
+oA.add(44);
+oA.add(54);
+oA.add("cat");
+oA.add("moose");
+oA.add("frog");
+oA.add("bug");
+oA.add({});
+oA.add(true);
+oA.add(false);
+oA.add(nil);
+oA.add(null);
 
-local oItems = Set();
-oItems.add(34)
-oItems.add(44)
-oItems.add(54)
-oItems.add("cat")
-oItems.add("moose")
-oItems.add("frog")
-oItems.add("bug")
-oItems.add({})
-oItems.add(true)
-oItems.add(false)
-oItems.add(nil)
-oItems.add(null)
+--RemoveME = set().importset(oA).remove("bug");
+--print(oA.issubset(RemoveME))
+--oA.removeset(RemoveME);
 
---RemoveME = set().importset(oItems).remove("bug");
---print(oItems.issubset(RemoveME))
---oItems.removeset(RemoveME);
+--print(oA.contains("ASdasd"));
 
---print(oItems.contains("ASdasd"));
+local oB = Set();
+--oB.add(tShared)
+oB.add(34);
+oB.add(44);
+oB.add(700);
+oB.add({});
+oB.add("bunny");
+oB.add("frog");
+oB.add(false);
+oB.add("bat");
 
-local oOthers = Set();
---oOthers.add(tShared)
-oOthers.add(34)
-oOthers.add(44)
-oOthers.add(700)
-oOthers.add({})
-oOthers.add("bunny")
-oOthers.add("frog")
-oOthers.add(false)
-oOthers.add("bat")
-
---print(oOthers.contains("frog"))
+--print(oB.contains("frog"))
 
 
-print(oOthers.size())
+print(oB.size())
 
-for vItem in oOthers() do
+for vItem in oB() do
     print(vItem)
 end
 
 
-A = Set();
-B = Set();
+A = oA;
+B = oB;
 
 for x = 1, 5 do
     --A.add(x)
@@ -97,13 +96,13 @@ for x = 3, 6 do
     --B.add(x)
 end
 
---print(A)
----print(B)
---print(A - B)
---print(B - A)
---print(A + B)
+print("A -> "..tostring(A))
+print("B -> "..tostring(B))
+print("A-B -> "..tostring(A - B))
+print("B-A -> "..tostring(B - A))
+print("A+B -> "..tostring(A + B))
 --print(#true)
---print(Items - Others)
+--print(oA - oB)
 --print(fh())
 
 S = Set().add("alex").add("casey").add("drew").add("hunter");

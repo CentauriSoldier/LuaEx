@@ -2,7 +2,16 @@
 local _nClassSystem         = 1;
 local _nBasicClasses        = 2;
 local _nComponentClasses    = 3;
-local _nGeometryClasses     = 4;
+local _nGeometryClasses     = 5;
+local _nUtilClasses         = 4;
+
+local _tClassRequirements   = {
+    [_nClassSystem]       = {},
+    [_nBasicClasses]      = {_nClassSystem},
+    [_nComponentClasses]  = {_nClassSystem, _nBasicClasses},
+    [_nGeometryClasses]   = {_nClassSystem, _nBasicClasses, _nComponentClasses},
+    [_nUtilClasses]       = {_nClassSystem, _nBasicClasses, _nComponentClasses},
+};
 ---------🇩‌🇴‌ 🇳‌🇴‌🇹‌ 🇲‌🇴‌🇩‌🇮‌🇫‌🇾‌ 🇹‌🇭‌🇮‌🇸‌ 🇧‌🇱‌🇴‌🇨‌🇰---------
 
 
@@ -15,15 +24,17 @@ local _nGeometryClasses     = 4;
 
 --[[🅲🅻🅰🆂🆂 🅻🅾🅰🅳 🆅🅰🅻🆄🅴🆂
 🅽🅾🆃🅴: setting a Class Load Value
-        to true will cause all items
-        listed above it to be loaded
-        as well.                  ]]
+        to true will cause its required
+        _tClassRequirements to be loaded
+        as well.]]
 local tClassLoadValues = {
     [_nClassSystem]         = true,  --should LuaEx load the class system?
     [_nBasicClasses]        = true,  --load basic classes (set, queue, stack, dox, etc.)?
     [_nComponentClasses]    = true,  --component class (potentiometer, protean, etc.)?
     [_nGeometryClasses]     = true,  --geometry classes (shape, circle, polygon, etc.)?
+    [_nUtilClasses]         = true,  --other things like Ini, etc.
 };
+
 
 --🅴🅽🅳 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂---------------------------------------------------
 
@@ -43,14 +54,18 @@ end
 
 
 --enforce the class loading system to prevent errors
-for x = #tClassLoadValues, 1, -1 do
+--for x = #tClassLoadValues, 1, -1 do
+for x = 1, #tClassLoadValues do
 
     if tClassLoadValues[x] then
 
-        for x2 = 1, x - 1 do
-            tClassLoadValues[x2] = true;
+        for _, nRequirementIndex in ipairs(_tClassRequirements[x]) do
+            tClassLoadValues[nRequirementIndex] = true;
+        --for x2 = 1, x - 1 do
+        --    tClassLoadValues[x2] = true;
+        --end
+        --break;
         end
-        break;
 
     end
 
@@ -182,9 +197,10 @@ serialize   = serializer.serialize;
 deserialize = serializer.deserialize;
 
 --prep for loading the class system (if instructed by the user)
-interface, class, iCloneable, iSerializable, iShape = nil;
-queue, stack, set = nil;
-dox, doxLua, potentiometer, point, line, shape, circle = nil;
+
+--class, interface, iCloneable, iSerializable, iShape = nil;
+--Queue, Stack, Ssset = nil;
+--dox, doxLua, potentiometer, point, line, shape, circle = nil;
 
 --import the class system
 if (tClassLoadValues[_nClassSystem]) then
@@ -200,30 +216,33 @@ if (tClassLoadValues[_nClassSystem]) then
 
     if (tClassLoadValues[_nBasicClasses]) then
         --dependency class
-        Queue           = require("LuaEx.inc.classes.Queue");
-        Stack 	        = require("LuaEx.inc.classes.Stack");
-        Set 		    = require("LuaEx.inc.classes.Set");
-
-        --dox and included language classes
-        Dox             = require("LuaEx.inc.classes.Dox");
-        DoxLua          = require("LuaEx.inc.classes.Dox.DoxLua");
+        Queue      = require("LuaEx.inc.classes.Queue");
+        Stack      = require("LuaEx.inc.classes.Stack");
+        Set        = require("LuaEx.inc.classes.Set");
+        --OrderedSet = require("LuaEx.inc.classes.OrderedSet");
 
         if (tClassLoadValues[_nComponentClasses]) then
             --component classes
-            Potentiometer   = require("LuaEx.inc.classes.component.Potentiometer");
+            Potentiometer = require("LuaEx.inc.classes.component.Potentiometer");
+
 
             if (tClassLoadValues[_nGeometryClasses]) then
                 --geometry classes
-                Point           = require("LuaEx.inc.classes.geometry.Point");
-                Line            = require("LuaEx.inc.classes.geometry.Line");
+                Point   = require("LuaEx.inc.classes.geometry.Point");
+                Line    = require("LuaEx.inc.classes.geometry.Line");
                 --shapes
-                Shape           = require("LuaEx.inc.classes.geometry.shapes.Shape");
-                Circle          = require("LuaEx.inc.classes.geometry.shapes.Circle");
-                Polygon         = require("LuaEx.inc.classes.geometry.shapes.Polygon");
+                Shape   = require("LuaEx.inc.classes.geometry.shapes.Shape");
+                Circle  = require("LuaEx.inc.classes.geometry.shapes.Circle");
+                Polygon = require("LuaEx.inc.classes.geometry.shapes.Polygon");
+            end
 
+            if (tClassLoadValues[_nUtilClasses]) then
+                --dox and included language classes
+                Dox    = require("LuaEx.inc.classes.util.Dox");
+                DoxLua = require("LuaEx.inc.classes.util.Dox.DoxLua");
 
-                --tClassLoadValues[_nGeometryClasses]
-                --dependant classes
+                --ini
+                Ini    = require("LuaEx.inc.classes.util.Ini"); --TODO need to finish OrderedSet first
 
             end
 

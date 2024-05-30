@@ -124,44 +124,74 @@ for k, v in pairs(tBlocks) do
     --print(k.." = "..serialize(v));
 end
 
-print(0x1010)
+--print(Ini)
 
 
 
---print(clone(34))
+--[[
+local oOS = OrderedSet();
+oOS.add("0");
+oOS.add(1);
+oOS.add(2);
+oOS.add(3);
+oOS.add(4);
+oOS.add("5");
+oOS.add("Six");
+oOS.add(7);
+oOS.add("8");
+oOS.add("Nine");
+]]
 
---[[local tpot = potentiometer(1, 20, 1, 1, POT_CONTINUITY_REVOLVE);
-tpot.adjust(20)
---print(tpot.getPos())
-
-
-local P1 = point(-6, -6);
-local P2 = point(12, 12);
-local P3 = point(12, -12);
-local oLine1 = line(P1, P2);
-local oCircle = circle();
---print(oLine1)
 --print(math.huge / math.huge == math.huge * math.huge)
 --print(8 / 0 == math.huge)
 --print(math.nan == math.inf)
 --print(type(math.nan), type(math.inf))
---print(oCircle.getArea())
---print(math.allrealnumbers == math.allrealnumbers)
---print(math.isabstract(math.huge / 0))
---local oPolygon = polygon(array({[1] = P1, [2] = P2, [3] = P3}));
-local tDataTest = {
-    a = "Bloog!",
-    --b = function() print("A function has arrived!") end,
-    x = 45,
-    y = 31,
-    z = 42,
-};
+-- Example usage
+local str = [[
 
---local sDataTest = class.serialize("MyClassOfPower", tDataTest);
---print(sDataTest);
---local k = class.deserialize(sDataTest);
---print(type(k))
+# config.ini file
+# Application settings
 
-local a = {
-    [1] = point(1, 5),
-};]]
+# http settings
+
+
+
+[http]
+port=8033
+username=httpuser
+
+# https settings
+[https]
+port=8077
+username=httpsuser
+
+# ftp settings
+# ftp settings
+;asdasdasd
+[FTP]
+port=8043
+username=ftpuser
+
+[database]
+driverclass   = com.mysql.jdbc.Driver
+dbName        = mydatabase
+port          = 3306
+username      = root
+password      = secure # not recommended to store secure information
+
+# feature settings
+[settings]
+enable_ssl = true
+enable_2mf =  true]]
+
+
+local oSettings = Ini(str);
+print(oSettings)
+
+--local tTop, tSections, tSectionOrder = import(str);
+--print(export(tTop, tSections, tSectionOrder));
+writeToFile("\\Sync\\Projects\\GitHub\\LuaEx\\test.ini", tostring(oSettings));
+--print(sRawData, "\n\n\n", sSections, "\n\n\n", sMap);
+--local parsedIni = generateIniStructure(tRawData, tSections, tMap)
+--local serializedIni = serialize(parsedIni)
+--print(serializedIni)

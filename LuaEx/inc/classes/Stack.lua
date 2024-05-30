@@ -11,11 +11,11 @@ return class("Stack",
 {--metamethods
 
     --[[!
-    @module stack
+    @module Stack
     @func __call
     @scope public
-    @desc Creates an iterator function to iterate over the elements of the stack.
-    @ret function An iterator function that returns each element of the stack.
+    @desc Creates an iterator function to iterate over the elements of the Stack.
+    @ret function An iterator function that returns each element of the Stack.
     !]]
     __call = function(this, cdat)
         local nIndex = 0
@@ -34,25 +34,25 @@ return class("Stack",
 
 
     --[[!
-    @module stack
+    @module Stack
     @func __len
     @scope public
-    @desc Returns the number of elements currently in the stack.
-    @ret number The number of elements in the stack.
+    @desc Returns the number of elements currently in the Stack.
+    @ret number The number of elements in the Stack.
     !]]
-	 __len = function(this, cdat)
-		return cdat.pri.count;
-	end,
+     __len = function(this, cdat)
+        return cdat.pri.count;
+    end,
 
 
     --[[!
-    @module stack
+    @module Stack
     @func __tostring
     @scope public
-    @desc Returns a string representing the items in the stack.
-    @ret string A string representing the items in the stack.
+    @desc Returns a string representing the items in the Stack.
+    @ret string A string representing the items in the Stack.
     !]]
-    __tostring = function(this, cdat)--TODO clean up in stack, set and queue
+    __tostring = function(this, cdat)--TODO clean up in Stack, set and queue
         local sRet = "";
 
         for _, vItem in ipairs(cdat.pri.values) do
@@ -64,18 +64,18 @@ return class("Stack",
 },
 {},--static public
 {--private
-	count  = 0,
-	values = {},
+    count  = 0,
+    values = {},
 },
 {},--protected
 {--public
     --[[!
-    @mod stack
-    @func stack
+    @mod Stack
+    @func Stack
     @scope public
-    @desc Constructs a new stack object.
-    @param table|nil A numerically-indexed table of items to push onto the stack (optional).
-    @ret stack A new stack object.
+    @desc Constructs a new Stack object.
+    @param table|nil A numerically-indexed table of items to push onto the Stack (optional).
+    @ret Stack A new Stack object.
     !]]
     Stack = function(this, cdat, tItems)
 
@@ -85,8 +85,8 @@ return class("Stack",
 
                 if (rawtype(vItem) ~= "nil") then
                     table.insert(cdat.pri.values, 1, vItem);
-            		cdat.pri.count = cdat.pri.count + 1;
-        		end
+                    cdat.pri.count = cdat.pri.count + 1;
+                end
 
             end
 
@@ -96,11 +96,11 @@ return class("Stack",
 
 
     --[[!
-    @mod stack
-    @func stack.clear
+    @mod Stack
+    @func Stack.clear
     @scope public
-    @desc Removes all elements from the stack.
-    @ret stack The stack object after clearing all items.
+    @desc Removes all elements from the Stack.
+    @ret Stack The Stack object after clearing all items.
     !]]
     clear = function(this, cdat)
        cdat.pri.count  = 0;
@@ -112,7 +112,7 @@ return class("Stack",
 
     --[[
     clone = function(this, cdat)
-        local oRet  = stack();
+        local oRet  = Stack();
         local ncdat = cdat.ins[oRet];
 
         ncdat.values    = table.clone(cdat.values);
@@ -124,24 +124,24 @@ return class("Stack",
 
 
     --[[!
-    @mod stack
-    @func stack.deserialize
+    @mod Stack
+    @func Stack.deserialize
     @scope public
-    @desc Deserializes the stack object from a string.
+    @desc Deserializes the Stack object from a string.
     !]]
     --TODO complete serialization
     deserialize = function(this, cdat)
-        error("ERROR: stack.deserialize mmethod still in development.");
+        error("ERROR: Stack.deserialize method still in development.");
     end,
 
 
     --[[!
-    @module stack
-    @func stack.peek
+    @module Stack
+    @func Stack.peek
     @scope public
     @param table cdat The class data table.
-    @desc Retrieves the next-in-line element from the stack without removing it.
-    @ret any The next-in-line element in the stack, or nil if the stack is empty.
+    @desc Retrieves the next-in-line element from the Stack without removing it.
+    @ret any The next-in-line element in the Stack, or nil if the Stack is empty.
     !]]
     peek = function(this, cdat)
         return cdat.pri.values[1] or nil;
@@ -149,48 +149,48 @@ return class("Stack",
 
 
     --[[!
-    @mod stack
-    @func stack.pop
+    @mod Stack
+    @func Stack.pop
     @scope public
-    @desc Removes and returns the top element of the stack.
-    @ret any The removed element from the stack.
+    @desc Removes and returns the top element of the Stack.
+    @ret any The removed element from the Stack.
     !]]
     pop = function(this, cdat)
 
-    	if (rawtype(cdat.pri.values[1]) ~= "nil") then
-    		vRet = table.remove(cdat.pri.values, 1);
-    		cdat.pri.count = cdat.pri.count - 1;
-    	end
+        if (rawtype(cdat.pri.values[1]) ~= "nil") then
+            vRet = table.remove(cdat.pri.values, 1);
+            cdat.pri.count = cdat.pri.count - 1;
+        end
 
-    	return vRet;
+        return vRet;
     end,
 
 
     --[[!
-    @mod stack
-    @func stack.push
+    @mod Stack
+    @func Stack.push
     @scope public
-    @desc Adds a new element to the top of the stack.
-    @param any vValue The value to be added to the stack.
-    @ret stack The stack object after pushing the value.
+    @desc Adds a new element to the top of the Stack.
+    @param any vValue The value to be added to the Stack.
+    @ret Stack The Stack object after pushing the value.
     !]]
     push = function(this, cdat, vValue)
 
-    	if (rawtype(vValue) ~= "nil") then
-    		table.insert(cdat.pri.values, 1, vValue);
-    		cdat.pri.count = cdat.pri.count + 1;
-    	end
+        if (rawtype(vValue) ~= "nil") then
+            table.insert(cdat.pri.values, 1, vValue);
+            cdat.pri.count = cdat.pri.count + 1;
+        end
 
         return this;
     end,
 
 
     --[[!
-    @mod stack
-    @func stack.reverse
+    @mod Stack
+    @func Stack.reverse
     @scope public
-    @desc Reverses the order of elements in the stack.
-    @ret stack The stack object after reversing the elements.
+    @desc Reverses the order of elements in the Stack.
+    @ret Stack The Stack object after reversing the elements.
     !]]
     reverse = function(this, cdat)
         local values    = cdat.pri.values
@@ -205,26 +205,26 @@ return class("Stack",
 
 
     --[[!
-    @mod stack
-    @func stack.serialize
+    @mod Stack
+    @func Stack.serialize
     @scope public
-    @desc Serializes the stack object to a string.
-    @ret string A string representing the stack object which can be stored and later deserialized.
+    @desc Serializes the Stack object to a string.
+    @ret string A string representing the Stack object which can be stored and later deserialized.
     !]]
     serialize = function(this, cdat) --TODO complete this
-        return "ERROR: stack.serialize mmethod still in development.";
+        return "ERROR: Stack.serialize method still in development.";
     end,
 
 
     --[[!
-    @mod stack
-    @func stack.size
+    @mod Stack
+    @func Stack.size
     @scope public
-    @desc Returns the number of elements in the stack.
-    @ret number The number of elements in the stack.
+    @desc Returns the number of elements in the Stack.
+    @ret number The number of elements in the Stack.
     !]]
     size = function(this, cdat)
-    	return cdat.pri.count;
+        return cdat.pri.count;
     end,
 
 }, nil, false);
