@@ -2,27 +2,73 @@
 
 
 ## 🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓ 🔬
-Simply put, **LuaEx** is a collection of scripts that extend Lua's functionality.
+Simply put, **LuaEx** is a lightweight overhaul of Lua that extends its functionality.
 
 Below are some of the features in **LuaEx** (*See documentation for full details*).
 
 ##### New Type System
 - Allows for type checking against old, new and user-created types. For example, if the user created a **Creature** class, instantiated an object and checked the type of that object, ***type*** would return **"Creature"**. In addition to new **LuaEx** types (such as **array**, **enum**, **class**, **struct**, etc.), users can create their own types by setting a string value in the table's metatable under the key, *__type*. Subtypes are also available using the *__subtype* key (use ***type.sub*** function to check that).
 - boolean to number/string coercion, number to boolean coercion, boolean math, boolean negation, etc.
+
+###### Boolean
+<details>
+<summary>View Code</summary>
+
 ```lua
-print(#1); --> true
-print(#0); --> false
-print(#true); --> 1
-print(#false); --> 0   
-print(-true); --> false
-print(-false); --> true
-print(-#0); --> true
-print(-#1); --> false
-print(false + false); -->false
-print(true + false); -->true
-print("This value is "..true); -->"This value is true"
+-- Logical OR
+print(true + false);  -- true (logical OR)
+print(false + false);  -- false (logical OR)
+
+-- Concatenation
+print("This value is " .. true);  -- "This value is true"
+print(false .. " value");  -- "false value"
+
+-- Length
+print(#true);  -- 1
+print(#false);  -- 0
+
+-- Logical AND
+print(true * false);  -- false (logical AND)
+print(true * true);  -- true (logical AND)
+
+-- String Coercion
+print(tostring(true));  -- "true"
+print(tostring(false));  -- "false"
+
+-- Negation
+print(-true);  -- false (negation)
+print(-false);  -- true (negation)
+
+-- Logical XOR (custom operator)
+print(true ~ false);  -- true (logical XOR)
+print(true ~ true);  -- false (logical XOR)
+
+-- Logical NAND
+print(not (true and true));  -- false (logical NAND)
+print(not (true and false));  -- true (logical NAND)
+
+-- Logical NOR
+print(not (true or false));  -- false (logical NOR)
+print(not (false or false));  -- true (logical NOR)
+
+-- Logical XNOR (equivalence)
+print(true == true);  -- true (logical XNOR/equivalence)
+print(false == true);  -- false (logical XNOR/equivalence)
+
+-- Implication
+print((not false) or true);  -- true (implication)
+print((not true) or false);  -- false (implication)
+
+
 --etc.
 ```
+</details>  
+
+###### Number
+<details>
+<summary>View Code</summary>
+</details>
+
 - The ***null*** (or ***NULL***) type now exists for the main purpose of retaining table keys while providing no real value. While setting a table key to nil will remove it, setting it to ***null*** will not.  
 The ***null*** value can be compared to other types and itself.  
 In addition, it allows for undeclared initial types in **classes**, **arrays** and **structs**.  
@@ -161,7 +207,7 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 
 ##### Notes on Factories
 - All **arrays**, **enums**, **structs** and other such items are made by *factories*. The **array** *factory* is called by ***array()***, **enum** *factory* by ***enum()***, **class** *factory* by ***class()***, etc.
-- While some objects are made by *factories*, some things make *factories* (*that, in turn, make objects*). One example of this is **structs**. These are made by *factories* that are made by a *struct factory builder* called with ***struct()*** that returns a *struct factory*.
+- While some objects are made by *factories*, some things make *factories* (*that, in turn, make objects*). One example of this is **structs**. These are made by *factories* that are made by a *struct factory builder* called with ***structfactory()*** that returns a *struct factory*.
 
 
 ## 🅳🅴🆅🅴🅻🅾🅿🅼🅴🅽🆃 🅶🅾🅰🅻🆂 ⌨
@@ -177,9 +223,46 @@ Retaining simplicity of the code is also a primary goal of this module. The code
 
 #### Conventional Consistency
 This project is made to be consistent both with Lua's naming & coding conventions as well as internally.  
-While my own convention uses (dromedary) [*camelCase*](https://en.wikipedia.org/wiki/Camel_case), I defer to **Lua's** convention where appropriate.  
-What that means is, everything that's hooked directly into **Lua** or creates new base types (*e.g., **table.clone***, ***rawtype***, **enums**, **arrays**, **structs**), respects the *alllowercase* convention used by **Lua**; however, for any items which do not (*e.g., custom classes, dox*), the convention is *camelCase*.  
+While my own convention uses (dromedary) [*camelCase*](https://en.wikipedia.org/wiki/Camel_case) and *PascalCase*, I defer to **Lua's** convention where appropriate.  
+What that means is, everything that's hooked directly into **Lua** or creates new base types (*e.g.*, ***table.clone***, ***rawtype***, **enums**, **arrays**, **structs**), respects the *alllowercase* convention used by **Lua**; however, for any items which do not the convention is *camelCase* (e.g., functions) and *PascalCase* (e.g., classes).
 This helps maintain expectations of the user while accessing **Lua** items while still allowing me to adhere to my own convention for things outside of **Lua's** core.
+
+#### Naming Conventions
+<details>
+<summary>View Conventions</summary>  
+
+Variables are prefixed with the following lower-case symbols based on their type/application.  
+
+*a* |   **array**  
+*b*	|	**boolean**  
+*c*	|	**class**  
+*e*	|	**enum**  
+*f*	| 	**function**  
+*h*	|	**file\window\etc. handle** *(number)*  
+*n*	|	**number**  
+*p*	|	**file\dir path** *(string)*  
+*r*	|	**struct**  
+*o*	|	**class\other** *(object)*  
+*s*	|	**string**  
+*t*	|	**table**  
+*u*	| 	**userdata**  
+*v*	|	**variable/unknown type**  
+*z*	|	**type** *(string)* (e.g., "string", "table", etc.)  
+
+Types ignored by this convention are types **nil** and **null** since prefixing such a variable type would, generally, serve no real purpose.
+
+###### Exceptions:
+In **for loops**, sometimes '*x*' is used to indicate active index while 'k' and 'v' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.
+
+In class methods, the first two arguments--the instance object and the class data table respectively) are written as '*this*' and '*cdat*' while the third argument in a child class constructor—the parent constructor method—is written as '*super*'.  
+Additionally, In any method that accepts the input of another class instance, the variable is written as '*other*' (or as '*left*' and '*right*' in metamethods). This intentional and obvious deviation from convention makes these variables stand out clearly.  
+
+Class name are *PascalCase*.  
+E.g,  
+```lua
+MyNewClass = class(...);
+```
+</details>
 
 #### Principle of Least Astonishment
 In developing **LuaEx**, I strive to take full advantage of the flexibility of the Lua language while still adhering to the [Principle of Least Astonishment](https://en.wikipedia.org/wiki/Principle_of_least_astonishment).
@@ -193,7 +276,8 @@ For their benefit and my own, I take user feedback seriously and address and app
 
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
 **LuaEx** is designed for **Lua 5.3**; however, I will make every possible effort to make it backward compatible with the latest version of **Lua 5.1**.  
-To that end, if you're using **Lua 5.1** and come across a bug that appears specific to that version, please submit a issue and I'll address it.
+To that end, if you're using **Lua 5.1** and come across a bug that appears specific to that version, please submit a issue and I'll address it.  
+Please keep in mind, if there is ever an intractable conflict between **Lua 5.1** and **Lua 5.3**, **Lua 5.3** will always take precedence.
 
 ## 🆁🅴🆂🅾🆄🆁🅲🅴🆂 ⚒
 - Logo: https://cooltext.com/
@@ -207,6 +291,22 @@ To that end, if you're using **Lua 5.1** and come across a bug that appears spec
 <summary>View Changelog</summary>
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
+**v0.82**
+- Bugfix:  corrected various, minor bugs.
+- Feature: created new **Ini.lua** module.
+- Feature: created new **base64.lua** module.
+- Feature: created **cloner.lua** module. Updated various, existing items to make them clonable.
+- Feature: created new **serializer.lua** module that handles serialization and deserialization.
+- Feature: added serval examples in the **examples** directory for demonstrating usage.
+- Change:  removed old **ini.lua** module.
+- Change:  removed old **base64.lua** module.
+- Change:  modified **cloner** to with custom, user-created objects.
+- Change:  removed old **serialize.lua** and **deserialize.lua** modules.
+- Change:  modified the serializer to work with custom, user-created objects.
+- Change:  modified the cloner to work with custom, user-created objects.
+- Change:  moved several items in the directory structure
+- Change:  modified **init.lua** to provide some user options for class loading.
+- Change:  changed all class names to CamelCase to provide clear distinction between class variables and other variables.
 **v0.81**
 - Bugfix: renamed the **\_\_LUAEX\_\_** table reference in the **enum** module that got missed.
 - Change: removed class system from **v0.8** as it had a fatal, uncorrectable flaw.
@@ -230,10 +330,9 @@ To that end, if you're using **Lua 5.1** and come across a bug that appears spec
 
 **v0.70**
 - Change: enum items now use functions (.) instead of methods (:) and automatically input themselves as arguments.
-- Change: enum items' ***next*** and ***previous*** functions can now wrap around to the start and end respectively.
+- Change: enum items' ***next*** and ***previous*** functions *may* now wrap around to the start and end respectively.
 - Change: moved all type items to **types.lua**.
 - Change: renamed functions in various modules to conform with Lua's lowercase naming convention.
-- Change:
 - Change: improved the ***string.totable*** function.
 - Change: the ***xtype*** function will now ignore user-defined types but return **LuaEx**'s type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as opposed to returning, *"table"*. *Use the **rawtype** function to ignore all **LuaEx** type mechanics*.
 - Change: renamed the ***string.delimitedtotable*** function to ***string.totable***.
@@ -366,15 +465,24 @@ Below is the complete list of modules in **LuaEx**.
 ## 🅲🅻🅰🆂🆂🅴🆂 & 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂 ♾️
 LuaEx does ship with a few, basic classes and interfaces.
 
-*More classes, interfaces, structs, etc. are available at my [LuaExAlt](https://github.com/CentauriSoldier/LuaEx_Class_Modules) repository*.
-
 ### Classes
-- ##### queue
-- ##### set
-- ##### stack
+- ##### Queue *(in progress-90%)*
+- ##### Set *(in progress-90%)*
+- ##### Stack      *(in progress-90%)*
+- ##### Ini        *(in progress-70%)*
+- ##### Point      *(in progress-90%)*
+- ##### Line       *(in progress-90%)*
+- ##### Shape
+- ##### Circle     *(in progress-70%)*
+- ##### Polygon    *(in progress-50%)*
+- ##### Rectangle  *(in progress-40%)*
+- ##### Triangle   *(in progress-50%)*
+- ##### *More to Come...*
 ### Interfaces
-- ##### iclonable
-- ##### iserializable
+- ##### iClonable
+- ##### iSerializable
+- ##### iShape
+- ##### *More to Come...*
 
 ## 🅲🆁🅴🅳🅸🆃🆂 ⚛
 - Huge thanks to [Bas Groothedde](https://github.com/imagine-programming) at Imagine Programming for creating the original **class** module.

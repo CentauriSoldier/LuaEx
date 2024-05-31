@@ -88,8 +88,8 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
                     "nil", 		"not", 		"or", 		"repeat", 	"return", 	"then",
                     "true", 	"until", 	"while",
                     --LuaEx keywords/types
-                    "constant", 	"enum", 	"struct",	"null",	"class",	"interface",
-                    "array", "classfactory", "structfactory", "structfactorybuilder"
+                    "constant", 	"enum", "enumfactory",	"struct",	"null",	"class",	"interface",
+                    "array", "arrayfactory", "classfactory", "structfactory", "structfactorybuilder"
 };
 
 --create the 'protected' table used by LuaEx
@@ -195,6 +195,13 @@ serializer  = require("LuaEx.util.serializer");
 cloner      = require("LuaEx.util.cloner");
 clone       = cloner.clone;
 
+--🆁🅴🅶🅸🆂🆃🅴🆁 🅻🆄🅰🅴🆇 🅵🅰🅲🆃🅾🆁🅸🅴🆂 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
+cloner.registerFactory(array);
+cloner.registerFactory(enum);
+cloner.registerFactory(struct);
+cloner.registerFactory(structfactory);
+--cloner.registerFactory();
+
 --aliases
 serialize   = serializer.serialize;
 deserialize = serializer.deserialize;
@@ -209,6 +216,8 @@ deserialize = serializer.deserialize;
 if (tClassLoadValues[_nClassSystem]) then
     interface	= require("LuaEx.lib.interface");
     class 		= require("LuaEx.lib.class");
+    --🆁🅴🅶🅸🆂🆃🅴🆁 🆃🅷🅴 🅲🅻🅰🆂🆂 🅵🅰🅲🆃🅾🆁🆈 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
+    cloner.registerFactory(class);
 
     --🅸🅼🅿🅾🆁🆃 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂
     iCloneable 		= require("LuaEx.inc.interfaces.iCloneable");

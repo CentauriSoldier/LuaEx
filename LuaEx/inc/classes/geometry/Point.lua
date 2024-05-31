@@ -2,11 +2,11 @@
 @authors Centauri Soldier
 @copyright Public Domain
 @description
-    <h2>point</h2>
-    <p>This is a basic point class.</p>
+    <h2>Point</h2>
+    <p>This is a basic Point class.</p>
 @license <p>The Unlicense<br>
 <br>
-@moduleid point
+@moduleid Point
 @version 1.2
 @versionhistory
 <ul>
@@ -50,27 +50,32 @@ local math          = math;
 return class("Point",
 {--metamethods
     --[[
-    @desc Adds two points together.
+    @desc Adds two Points together.
     @func __add
-    @mod point
-    @ret oPoint point A new point with the values of the two points added together. If an incorrect paramters is passed, a new point with the values of the correct paramter (the point) is returned.
+    @mod Point
+    @ret oPoint Point A new Point with the values of the two Points added together. If an incorrect paramters is passed, a new Point with the values of the correct paramter (the Point) is returned.
     ]]
     __add = function(this, other, cdat)
 
-        if (type(this) == "point" and type(other) == "point") then
+        if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = args[nIns][other][nPri];
 
-            return point(pri.x + otherpri.x,
+            return Point(pri.x + otherpri.x,
                          pri.y + otherpri.y);
         end
 
     end,
 
+    __clone = function(this, cdat)
+        local pri = cdat.pri;
+        return Point(pri.x, pri.y);
+    end,
+
     __eq = function(this, other, cdat)
         local bRet = false;
 
-        if (type(this) == "point" and type(other) == "point") then
+        if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = args[nIns][other][nPri];
             bRet = pri.x == otherpri.x and pri.y == otherpri.y;
@@ -82,7 +87,7 @@ return class("Point",
     __le = function(this, other, cdat)
         local bRet = false;
 
-        if (type(this) == "point" and type(other) == "point") then
+        if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = args[nIns][other][nPri];
             bRet = pri.x <= otherpri.x and pri.y <= otherpri.y;
@@ -94,7 +99,7 @@ return class("Point",
     __lt = function(this, other, cdat)
         local bRet = false;
 
-        if (type(this) == "point" and type(other) == "point") then
+        if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = args[nIns][other][nPri];
             bRet = pri.x < otherpri.x and pri.y < otherpri.y;
@@ -106,7 +111,7 @@ return class("Point",
     --[[__mul = function(this, vRight)
         local sType = type(vRight);
 
-        if (sType == "point") then
+        if (sType == "Point") then
             this.x = this.x + vRight.x;
             this.y = this.y + vRight.y;
         --elseif (sType == "table") then
@@ -128,11 +133,11 @@ return class("Point",
     end,
     __sub = function(this, other, cdat)
 
-        if (type(this) == "point" and type(other) == "point") then
+        if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = args[nIns][other][nPri];
 
-            return point(pri.x - otherpri.x,
+            return Point(pri.x - otherpri.x,
                          pri.y - otherpri.y);
         end
 
@@ -154,7 +159,7 @@ return class("Point",
     deserialize = function(tData)
         print(tData.x, tData.y)--LEFT OFF HERE data is bad, find out why
         print(type(tData.x), type(tData.y))
-        return point(5, 8);
+        return Point(5, 8);
     end,
 
 },
@@ -167,9 +172,9 @@ return class("Point",
 },
 {--public
     --[[
-    @desc This is the constructor for the point class.
-    @func point The constructor for the point class.
-    @mod point
+    @desc This is the constructor for the Point class.
+    @func Point The constructor for the Point class.
+    @mod Point
     @param nX number The x value. If nil, it defaults to 0.
     @param nY number The y value. If nil, it defaults to 0.
     ]]
@@ -188,12 +193,6 @@ return class("Point",
 
         return this;
     end,]]
-
-    clone = function(this, cdat)
-        local pri = cdat.pri;
-        return point(pri.x, pri.y);
-    end,
-
     get = function(this, cdat)
         local pri = cdat.pri;
         return pri.x, pri.y;
@@ -256,7 +255,7 @@ return class("Point",
     distanceTo = function(this, oOther)
         local nRet = 0;
 
-        if (type(this) == "point" and type(oOther) == "point") then
+        if (type(this) == "Point" and type(oOther) == "Point") then
             nRet = math.sqrt( (this.x - oOther.x) ^ 2 + (this.y - oOther.y) ^ 2);
         end
 
@@ -266,8 +265,8 @@ return class("Point",
 
     --[[!
         @desc Serializes the object's data.
-        @func point.serialize
-        @module point
+        @func Point.serialize
+        @module Point
         @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
         @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
     !]]
@@ -310,7 +309,7 @@ return class("Point",
     slopeTo = function(this, oOther)
         local nRet = 0;
 
-        if (type(this) == "point" and type(oOther) == "point") then
+        if (type(this) == "Point" and type(oOther) == "Point") then
             nXDelta = this.x - oOther.x;
             nYDelta = this.y - oOther.y;
 

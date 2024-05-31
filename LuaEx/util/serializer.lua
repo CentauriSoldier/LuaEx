@@ -84,8 +84,8 @@ local function registerType(sType, oType, bDoNotPack)
 
     assert(type(tMeta)                      == "table", sErrorPrefix.."Object of type '"..sType.."' does not have an accessible metatable.");
     assert(type(sType)                      == "string" and sType:isvariablecompliant(true), sErrorPrefix.."Object must have a __type metatable index whose value is a unique, variable-compliant string.");
-    assert(not tPackables[sType] and not tNonPackables[sType], sErrorPrefix.."Object already exists.");
-    assert(type(tMeta.__call)               == "function", sErrorPrefix.."Object must have a __call metamethod capable of creating the (equivilant) object instance.")
+    assert(not tPackables[sType] and not tNonPackables[sType], sErrorPrefix.."Object of type "..sType.." is already registered.");
+    assert(type(tMeta.__call)               == "function", sErrorPrefix.."Object ("..sType..") must have a __call metamethod capable of creating the (equivilant) object instance.")
 
     if (bDoNotPack) then
         tNonPackables[sType] = oType;
@@ -113,7 +113,7 @@ end
 
 
 --INCOMPLETE
-tPackables = {--the serialize FUNCTIONS table
+tPackables = {--the tPackables FUNCTIONS table
     ["array"]                   = function(aItem)
         return getmetatable(aItem).__serialize();
     end,
@@ -129,7 +129,7 @@ tPackables = {--the serialize FUNCTIONS table
 };
 
 --INCOMPLETE
-tNonPackables = {--the serializerDoNotPack FUNCTIONS table
+tNonPackables = {--the tNonPackables FUNCTIONS table
     ["arrayfactory"]            = function(aItem)
         return getmetatable(aItem).__serialize();
     end,
@@ -240,7 +240,7 @@ tNonPackables = {--the serializerDoNotPack FUNCTIONS table
 local function serialize(vInput, tSavedTables, tTabCount)
     local sRet = "";
     local sType = type(vInput);
-
+--TODO set the flow like the cloner as it with the error at the end
     --first, check if this is a primitive type
     if (tNonPackables[sType]) then
         sRet = tNonPackables[sType](vInput);
@@ -257,7 +257,7 @@ local function serialize(vInput, tSavedTables, tTabCount)
         sRet = packSerialData(sType, vData);
 
     --look for a serialize metamethod in unregistered type
-elseif(rawtype(vInput) == "table") then--QUESTION should I allow a second inpuit from serizliaser that would tell whether to pack the data?
+    elseif(rawtype(vInput) == "table") then--QUESTION should I allow a second input from serializer that would tell whether to pack the data?
 
         local tMeta = getmetatable(vInput);
 
@@ -270,7 +270,7 @@ elseif(rawtype(vInput) == "table") then--QUESTION should I allow a second inpuit
 
             sRet = packSerialData(sType, vData);
         else
-            error("Unregisted type, '${type}', cannot be serialized;\nIt does not have a __serialize metamethod." % {type = sType});
+            error("Unregisted type, '${type}', cannot be serialized;\nIt does not have a __serialize metamethod." % {type = sType}, 2);
         end
 
     --throw an error for an unregistered type without a __serialize metamethod
@@ -309,7 +309,7 @@ end]]
 
 local tSerializerActual = {
     deserialize         = deserialize,
-    registerType        = registerType,
+    --registerType        = registerType,
     serialize           = serialize,
     --deserializeFunction = deserializeFunction,
     unpackData          = unpackSerialData,
@@ -321,6 +321,6 @@ return setmetatable({}, {
         return tSerializerActual[k] or nil;
     end,
     __newindex = function(t, k, v)
-        error("Error: attempting to modify read-only serializer at index ${index} with ${value} ${(type)}." % {index = tostring(k), value = tostring(v), type = type(v)});
+        error("Error: attempting to modify read-only serializer at index ${index} with ${value} (${type})." % {index = tostring(k), value = tostring(v), type = type(v)});
     end,
 });

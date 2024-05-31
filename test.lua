@@ -190,7 +190,35 @@ local oSettings = Ini(str);
 --local sSettings = serialize(oSettings);
 local aNoPet = array({"Aligator", "T-Rex", "Rino", "Leech", "Dragon"});
 local aCloned = clone(aNoPet);
-print(aCloned)
+local tCloneMe = {
+    [1] = 44,
+    cat = "meow",
+    etc = "More",
+};
+tCloneMe.me  = tCloneMe;
+
+tCloned = clone(tCloneMe);
+
+--print(tCloneMe, (tCloned.me.me.me.me.me.me.me.me.me))
+local aBlarg = array({1, 3, 2});
+aTest = array(5);
+aTest[1] = aTest;
+aTest[2] = aTest;
+aTest[3] = aBlarg
+aTest[4] = aTest;
+aTest[5] = aTest;
+
+local k = structfactory("testing", {a = 3})
+local t = k();
+--local kk = clone()
+
+--local aClonedTest = clone();
+--print((aClonedTest))
+--local oClonedSet = clone(Set());
+--print(oClonedSet)
+--print(aTest == 4)
+-- Define the metatable for numeric values
+
 
 --writeToFile("\\Sync\\Projects\\GitHub\\LuaEx\\test.ini", tostring(oSettings));
 --local tTop, tSections, tSectionOrder = import(str);

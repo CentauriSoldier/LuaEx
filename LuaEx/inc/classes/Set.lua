@@ -125,6 +125,10 @@ return class("Set",
 
    end,
 
+   --TODO docs
+   __clone = function(this, cdat)
+       error("Cloner for set not yet implemented.")
+   end,
 
    --[[!
    @module Set
@@ -197,7 +201,9 @@ return class("Set",
        return oRet;
    end,
 
-
+   __serialize = function()
+       error("Serializer for Set has not been completed.", 2);
+   end,
     --[[!
     @module Set
     @func __tostring
@@ -450,4 +456,7 @@ return class("Set",
     size = function(this, cdat)
         return cdat.pri.size;
     end,
-}, nil, false);
+},
+nil,
+false,
+iCloneable);

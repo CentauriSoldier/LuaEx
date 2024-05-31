@@ -21,7 +21,7 @@ local function visibilitytablehasfunction(tTable, sFunction)
     local bRet = false;
 
     for k, v in pairs(tTable) do
-        --print(k)
+
         if (type(v) == "function" and k == sFunction) then
             bRet = true;
             break;
@@ -37,7 +37,7 @@ local function validatevisibilitytable(sKit, sInterface, tKit, tInterface, sVisi
     for sFunction, _ in pairs(tInterface[sVisibility]) do
 
         assert(visibilitytablehasfunction(	tKit[sVisibility], sFunction),
-                                            "Error creating class, ${class}. Class implements interface, ${interface}, but is missing ${visibility} method, '${method}'."
+                                            "Error creating class, ${class}. Class implements interface, ${interface}, but is missing '${method}' method in ${visibility} table."
                                             % {class = sKit, interface = sInterface, method = sFunction, visibility = tVisibilityToErrorString[sVisibility]});
     end
 

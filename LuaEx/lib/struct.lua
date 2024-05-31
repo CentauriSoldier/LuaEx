@@ -20,7 +20,7 @@ local factory = {
     },
 };
 local struct = {
-    restrictedKeys = {__readOnly = true, __name, clone = true},
+    restrictedKeys = {__readOnly = true, __name},
     repo = {
         byName = {},
     },
@@ -297,19 +297,9 @@ function struct.build(sName, tInputArgs)
     --tStructInfo.__factory  = tFactory.decoy;
     tStructInfo.__name     = sName;
 
-    --set the reserved methods
-    tStructInfo.clone = function()
-        local tArgs = {};
-
-        for sKey, tValue in pairs(tStructActual) do
-            tArgs[sKey] = tValue.value; --TODO FIX CLONE ALL CLONEABLE ITEMS such as tables
-        end
-
-        return struct.build(sName, tArgs);
-    end
 
     --set this struct's metatable
-    struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy);
+    struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy, tFactory);
 
     --register the struct type with the serializer
     --serializer.registerType(sName, tStructDecoy);
@@ -318,8 +308,17 @@ function struct.build(sName, tInputArgs)
 end
 
 
-function struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy)
+function struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy, tFactory)
     local tMeta = {
+        __clone     = function()
+            local tArgs = {};
+
+            for sKey, tValue in pairs(tStructActual) do
+                tArgs[sKey] = tValue.value; --TODO FIX CLONE ALL CLONEABLE ITEMS such as tables
+            end
+
+            return tFactory.decoy(sName, tArgs, tStructActual.__readOnly);
+        end,
         __close 	= false,
         __concat	= errmathinstance,
         __div		= errmathinstance,
@@ -468,8 +467,10 @@ setmetatable(tStructDecoy,
 {
     __call 		= function(t, ...)
         local xStruct = factory.build(...);
-        print(xStruct)
         return xStruct();
+    end,
+    __clones     = function()
+        return tStructDecoy;
     end,
     __index 	= function(t, k, v)
         return tStructActual[k] or nil;
@@ -500,11 +501,14 @@ local tStructFactoryActual = {
     end,
 };
 
-tStructFactoryDecoy = {};
+local tStructFactoryDecoy = {};
 
 setmetatable(tStructFactoryDecoy,
 {
     __call 		= factory.build,
+    __clones     = function()
+        return tStructFactoryDecoy;
+    end,
     __index 	= function(t, k, v)
         return tStructFactoryActual[k] or nil;
     end,

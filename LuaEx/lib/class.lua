@@ -99,7 +99,8 @@ __len       = true,	    __lt	      = true,	  __metatable = false,
 __mod 		= true,     __mode 		  = false,    __mul 	  = true,
 __name 	    = true,	    __newindex    = false,    __pairs     = true,
 __pow 		= true,     __shl 		  = true,	  __shr       = true,
-__sub 	    = true,	    __tostring	  = true,     __unm 	  = true, __serialize = true};
+__sub 	    = true,	    __tostring	  = true,     __unm 	  = true,
+__serialize = true,     __clone       = true,};
 
 local function getMetaNamesAsString()
     local sRet              = "";
@@ -257,7 +258,7 @@ function class.build(tKit)
         __index     = function(t, k)
 
             if (rawtype(tClass[k]) == "nil") then
-                error("Error in class object, '${class}'. Attempt to access non-existent public static member, '${index}'." % {class = sName, index = tostring(k)});
+                error("Error in class object, '${class}'. Attempt to access non-existent public static member, '${index}'." % {class = sName, index = tostring(k)}, 2);
             end
 
             return tClass[k];
@@ -350,8 +351,32 @@ function class.build(tKit)
         end
     );
 
+    --[[this SECTION has been DEPRECATED due to the more efficient handling
+        in the serializer and cloner modules themselves. This efficiency
+        affects not only classes but all other objects which makes it much
+        more useful, more easily implemented/maintained and globally-accessible
+        for all object types.
+
     --register this class with the serializer
     serializer.registerType(sName, oClass);
+
+    --register this class with the cloner (if there's a clone method)
+    local bHasCloner = false;
+    local tCurrentKit = tKit;
+
+    while (tCurrentKit) do
+
+        for sIndexName, vItem in pairs(tKit.met) do--clone must be a public method
+
+            if (sIndexName == "clone" and rawtype(vItem) == "function") then
+                cloner.registerType(sName, oClass);
+                break;
+            end
+
+        end
+
+        tCurrentKit = tCurrentKit.parent or nil;
+    end]]
 
     return oClass;
 end
@@ -784,6 +809,9 @@ end
 @desc Imports a kit for later use in building class objects
 @ret class Class Returns the class returned from the kit.build() tail call.
 !f]]
+function kit.buildPrivate()
+
+end
 function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, bIsFinal, ...)
     local tInterfaces = {...} or arg;
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
@@ -820,8 +848,8 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         met 	        = clone(tMetamethods, 	true),--TODO this was recently changed to TRUE since (I think) user-defined metatables should be ignored from input
         stapub 	        = clone(tStaticPublic, 	true),
         pri			    = clone(tPrivate, 		true),
-        pro 		    = clone(tProtected, 		true),
-        pub      	    = clone(tPublic, 			true),
+        pro 		    = clone(tProtected, 	true),
+        pub      	    = clone(tPublic, 		true),
     };
 
 

@@ -3,7 +3,81 @@ local assert = assert; ---TODO localize all called functions
 --										🆃🆈🅿🅴 🅼🅴🆃🅰🆃🅰🅱🅻🅴🆂
 
 --<<  🅱🅾🅾🅻🅴🅰🅽  >>
-local tBooleanMeta = getmetatable(true) or true;
+-- Retrieve the existing metatable for booleans, or create a new one if it doesn't exist
+local tBooleanMeta = getmetatable(true) or {}
+
+-- Define custom metamethods for boolean operations
+local tNewBooleanMetamethods = {
+    -- Logical OR (already defined)
+    __add = function(bLeft, bRight)
+        return bLeft or bRight;
+    end,
+
+    -- Concatenation to string
+    __concat = function(vLeft, vRight)
+        if type(vLeft) == "boolean" then
+            return tostring(vLeft) .. vRight;
+        else
+            return vLeft .. tostring(vRight);
+        end
+    end,
+
+    -- Length operation
+    __len = function(bVal)
+        return bVal and 1 or 0;
+    end,
+
+    -- Logical AND (already defined)
+    __mul = function(bLeft, bRight)
+        return bLeft and bRight;
+    end,
+
+    -- Convert boolean to string
+    __tostring = function(bVal)
+        return bVal and "true" or "false";
+    end,
+
+    -- Negation
+    __unm = function(bVal)
+        return not bVal;
+    end,
+
+    -- Logical XOR
+    __bxor = function(bLeft, bRight)
+        return (bLeft and not bRight) or (not bLeft and bRight);
+    end,
+
+    -- Logical NAND
+    __band = function(bLeft, bRight)
+        return not (bLeft and bRight);
+    end,
+
+    -- Logical NOR
+    __bor = function(bLeft, bRight)
+        return not (bLeft or bRight);
+    end,
+
+    -- Logical XNOR (equivalence)
+    __eq = function(bLeft, bRight);
+        return bLeft == bRight
+    end,
+
+    -- Implication (if bLeft then bRight)
+    __imp = function(bLeft, bRight)
+        return (not bLeft) or bRight;
+    end
+}
+
+-- Assign the custom metamethods to the boolean metatable
+for k, v in pairs(tNewBooleanMetamethods) do
+    tBooleanMeta[k] = v;
+end
+
+-- Set the updated metatable for booleans
+debug.setmetatable(true, tBooleanMeta)
+
+
+--[[local tBooleanMeta = getmetatable(true) or true;
 
 debug.setmetatable(tBooleanMeta, {
     __add = function(bLeft, bRight)
@@ -31,7 +105,14 @@ debug.setmetatable(tBooleanMeta, {
         return not bVal;
     end,
 });
+]]
 
+
+
+
+--[[Example usage of the enhanced boolean operations
+
+]]
 
 --<<  🅽🆄🅼🅱🅴🆁  >>
 local tNumberMeta = getmetatable(0) or 0;
@@ -52,6 +133,9 @@ debug.setmetatable(tNumberMeta, {
     __tostring = function(nVal)
         return sBlank..(nVal)..sBlank;
     end,
+    __round = function(t)
+        print(t)
+    end
 });
 
 

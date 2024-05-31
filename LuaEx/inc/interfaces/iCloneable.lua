@@ -1,9 +1,9 @@
 return interface("iCloneable",
-{},--metamethods
-{},--static public
-{},--private
-{},--protected
-{--public
-    "clone",
-}
+{  --METAMETHODS
+    "__clone",
+},
+{},--STATIC PUBLIC
+{},--PRIVATE
+{},--PROTECTED
+{} --PUBLIC
 );

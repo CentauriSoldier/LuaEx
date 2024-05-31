@@ -38,7 +38,7 @@ In C#, Array.Copy and Array.CopyTo are both used to copy elements from one array
 In summary, Array.Copy offers more flexibility for copying specific ranges of elements between arrays, while Array.CopyTo is simpler to use when you want to copy all elements of one array to another.
 
 ]]
-
+--TODO typeis function
 local tArrayActual = {
     deserialize = function(tData)
         --QUESTION assert data? Or should I depend on the serializer
@@ -60,6 +60,7 @@ return setmetatable(tArrayActual,
         local tItems        = {};   --the actual array data
         local sArrayType    = null; --the type the array stores
         local tActual;              --this is where the array methods and properties live
+        local tArrayDecoy   = {};   --the returned array object
         tActual             = {
             length = 0,             --the length of the array
             clear = function()
@@ -68,20 +69,6 @@ return setmetatable(tArrayActual,
                     tItems[x]       = null;
                 end
 
-            end,
-            clone = function(aInput)
-                local tData = {};
-
-                for k, v in ipairs(tItems) do
-
-                    if (type(v) ~= sArrayType) then
-                        error("Error cloning array. Cannot clone array with null values.")
-                    end
-
-                    tData[k] = clone(v);
-                end
-
-                return array(tData);
             end,
             indexof = function(vItem)
                 local nIndex = -1;
@@ -195,6 +182,25 @@ return setmetatable(tArrayActual,
                 end
 
             end,
+            __clone = function(aInput)
+                local tData = {};
+
+                for k, v in ipairs(tItems) do
+
+                    if (type(v) ~= sArrayType) then
+                        error("Error cloning array. Cannot clone array with null values.")
+                    end
+
+                    if (v ~= tArrayDecoy) then
+                        tData[k] = clone(v);
+                    else
+                        tData[k] = v;
+                    end
+
+                end
+
+                return array(tData);
+            end,
             --[[!
             @module array
             @func __index
@@ -278,6 +284,11 @@ return setmetatable(tArrayActual,
                 };
 
                 for nIndex, vItem in ipairs(tItems) do
+
+                    if type(vItem) == "null" then
+                        error("Error serializing array. Arrays with null values cannot be serialized", 2);
+                    end
+
                     tRet.items[nIndex] = vItem;
                 end
 
@@ -294,7 +305,13 @@ return setmetatable(tArrayActual,
                 local sRet = "";
 
                 for nIndex, vItem in ipairs(tItems) do
-                    sRet = sRet..", "..tostring(vItem);
+
+                    if (vItem ~= tArrayDecoy) then
+                        sRet = sRet..", "..tostring(vItem);
+                    else
+                        sRet = sRet..", <_SELF_REFERENCE_>";
+                    end
+
                 end
 
                 return '{'..sRet:sub(3)..'}';
@@ -303,7 +320,7 @@ return setmetatable(tArrayActual,
 
         };
 
-        return setmetatable({}, tArrayMeta);
+        return setmetatable(tArrayDecoy, tArrayMeta);
     end,
 
 
