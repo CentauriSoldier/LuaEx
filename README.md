@@ -231,7 +231,7 @@ This helps maintain expectations of the user while accessing **Lua** items while
 <details>
 <summary>View Conventions</summary>  
 
-Variables are prefixed with the following lower-case symbols based on their type/application.  
+Variables are prefixed with the following lower-case symbols based on their type/application and appear to be PascalCase *after* the prefix. Combined with the prefix, this makes them camelCase.
 
 *a* |   **array**  
 *b*	|	**boolean**  

@@ -180,6 +180,7 @@ require("LuaEx.constants");
 
 --🅸🅼🅿🅾🆁🆃 🅾🆃🅷🅴🆁 🅼🅾🅳🆄🅻🅴🆂
 --import lua hook modules (except 'typehook' which is loaded first [above])
+io   		= require("LuaEx.hook.iohook");
 math 		= require("LuaEx.hook.mathhook");
 string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");

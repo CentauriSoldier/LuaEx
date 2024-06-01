@@ -379,9 +379,10 @@ return class("Dox",
 
 
             --process all other types of blocks and import them into modules
-            for _, sBlock in pairs(tBlocks) do
 
-            end
+        end
+
+        for _, sBlock in pairs(tBlocks) do
 
         end
 

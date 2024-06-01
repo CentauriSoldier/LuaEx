@@ -1,7 +1,10 @@
 --==============================================================================
 --================================ Load LuaEx ==================================
 --==============================================================================
+local sSourcePath = "";
 if not (LUAEX_INIT) then
+    --sSourccePath = "";
+
     function getsourcepath()
         --determine the call location
         local sPath = debug.getinfo(1, "S").source;
@@ -27,10 +30,10 @@ if not (LUAEX_INIT) then
     end
 
     --determine the call location
-    local sPath = getsourcepath();
+     sSourcePath = getsourcepath();
 
     --update the package.path (use the main directory to prevent namespace issues)
-    package.path = package.path..";"..sPath.."\\..\\..\\?.lua;";
+    package.path = package.path..";"..sSourcePath.."\\..\\..\\?.lua;";
 
     --load LuaEx
     require("LuaEx.init");
@@ -44,7 +47,7 @@ end
 
 ]]
 
-local Plates = stack();
+local Plates = Stack();
 Plates.push(1)
 Plates.push(2)
 Plates.push(3)
@@ -53,5 +56,5 @@ Plates.push(5)
 Plates.push(6)
 Plates.push(7)
 Plates.push(8)
---print(Plates)
---print(Plates.reverse())
+print(Plates)
+print(Plates.reverse())
