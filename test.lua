@@ -49,5 +49,26 @@ local function runExample(sExample)
 end
 --runExample("struct");
 --runExample("class\\Set");
-io.dirList(sSourcePath.."\\LuaEx", true, true)
---io.dir(sSourcePath.."\\LuaEx")
+--tF, tR = io.list("C:", true)
+--tF, tR = io.list(sSourcePath.."\\LuaEx", true, nil, {".txt"});
+
+--for x = 1, #tF do
+--    print(tF[x], tR[x])
+--end
+local tFiles, tRel = io.dir(sSourcePath.."\\LuaEx", false, 0, {"lua"})
+
+--local tParts = io.splitpath(sSourcePath.."\\LuaEx\\test.ext")
+
+for k, v in pairs(tFiles) do
+    --print(v)
+end
+local myt = {};
+setmetatable(myt, {
+    __newindex = function(t, k, v)
+        print(t, k, v)
+    end
+
+});
+
+myt[4] = "asd";
+myt[2] = nil

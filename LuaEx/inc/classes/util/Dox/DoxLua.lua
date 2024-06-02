@@ -61,7 +61,7 @@ return class("DoxLua",
 
 
 
-        super("DoxLua", "@", oModuleBlockTagGroup, oFunctionBlockTagGroup);
+        super("DoxLua", {"lua"}, "@", oModuleBlockTagGroup, oFunctionBlockTagGroup);
     end,
 },
 Dox,    --extending class

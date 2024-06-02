@@ -304,7 +304,8 @@ return class("Dox",
 {--private
     blockTagGroups      = {}, --this contains groups of block tags group objects
     moduleBlockTagGroup = null,
-    modules             = {}, --a list of module objects indexed by module names
+    mimeTypes           = null,
+    modules             = sorteddictionary(), --a list of module objects indexed by module names
     name                = "",
     snippetClose        = "", --QUESTION How will this work now that we're using mutiple tag groups?
     snippetOpen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
@@ -394,16 +395,17 @@ return class("Dox",
     blockTagGroup   = DoxBlockTagGroup,
 },
 {--public
-    Dox = function(this, cdat, sName, sTagOpen, oModuleBlockTagGroup, ...)--TODO take moduleinfo, struct, enum and constant block tags too
+    Dox = function(this, cdat, sName, tMimeTypes, sTagOpen, oModuleBlockTagGroup, ...)--TODO take moduleinfo, struct, enum and constant block tags too
         type.assert.string(sName,    "%S+", "Dox subclass name must not be blank.");
         type.assert.string(sTagOpen, "%S+", "Open tag symbol must not be blank.");
         type.assert.custom(oModuleBlockTagGroup, "DoxBlockTagGroup");
+        type.assert.table(tMimeTypes, "number", "string", 1);
 
         local pri               = cdat.pri;
+        pri.mimeTypes           = Set(tMimeTypes);
         pri.name                = sName;
         pri.tagOpen             = sTagOpen;
         pri.moduleBlockTagGroup = oModuleBlockTagGroup;
-
 
         --TODO put block tags in order of display (as input)!
         --TODO clone these properly
@@ -414,6 +416,10 @@ return class("Dox",
             tBlockTagGroups[#tBlockTagGroups + 1] = oBlockTagGroup.clone();
         end
 
+    end,
+    addMineType = function(this, cdat, sType)
+        type.assert.string(sType,    "%S+", "Mime type must not be blank.");
+        cdat.pri.mimeTypes.add(sType);
     end,
     blockTagGroups = function(this, cdat)
         local tBlockTagGroups = cdat.pri.blockTagGroups;
@@ -535,6 +541,9 @@ return class("Dox",
         --local tModuleInfo = extractBlocks(pri);
         --local tFunctionBlocks = extractBlocks(sInput, pri.blco);
 
+    end,
+    mineTypes = function(this, cdat)--TODO should I clone the set? probably/
+        return cdat.pri.mimeTypes;
     end,
 },
 nil,    --extending class

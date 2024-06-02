@@ -72,7 +72,8 @@ local tFileFindMethods = {
 	},
 };
 
-function getProcessList(sDir, bRecurse, tInputFiles)
+
+--[[function getProcessList(sDir, bRecurse, tInputFiles)
 	local tRet = type(tInputFiles) == "table" and tInputFiles or {};
 
 	--setup the commands
@@ -149,12 +150,12 @@ function getProcessList(sDir, bRecurse, tInputFiles)
 
 	return tRet;
 end
+]]
 
 
 
-
-local pLuaEx = getsourcepath().."\\..\\..\\";
-getProcessList(sSourcePath.."\\..\\..\\LuaEx", true);
+--local pLuaEx = getsourcepath().."\\..\\..\\";
+--getProcessList(sSourcePath.."\\..\\..\\LuaEx", true);
 
 
 
@@ -210,6 +211,8 @@ end
 
 
 local oLuaExDox = DoxLua();
+local oLuaExDox2 = DoxLua();
+
 for k in oLuaExDox.blockTagGroups() do
 
     for f in k.blockTags() do
@@ -217,9 +220,47 @@ for k in oLuaExDox.blockTagGroups() do
     end
 
 end
-
+oLuaExDox.addMineType("bp");
+oLuaExDox.addMineType("bp");
+--print(oLuaExDox.mineTypes())
 --TODO create tests for each thing and use them as examples
 
+local function sorter(a, b)
+    print(a, b)
+    --return a > b
+end
+
+
+
+
+
+
+-- Create a new SortedDictionary instance
+local mySortedDict = sorteddictionary()
+
+-- Test the SortedDictionary instance
+local tab = {};
+
+mySortedDict["OR"] = "Oregon";
+mySortedDict["WA"] = "Washington";
+mySortedDict["KS"] = "Kanasa";
+mySortedDict["MO"] = "AAA";
+local function sorterF(a, b)
+    return a > b;
+    --return a.foo < b.bar
+end
+mySortedDict(sorterF);
+
+mySortedDict["TX"] = "Texas";
+mySortedDict["AK"] = "Arkansas";
+mySortedDict["WA"] = nil;
+mySortedDict["WA"] = "Montant";
+--mySortedDict = mySortedDict - "WA";
+
+-- Output the SortedDictionary instance
+for k, v in pairs(mySortedDict) do
+    print(k, v)
+end
 
 --print(readFile(pFile))
 --local tModules, tBlocks = oLuaExDox.importString(readFile(pFile));

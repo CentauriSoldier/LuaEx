@@ -1,5 +1,5 @@
 local string = string;
-
+local table = table;
 local execute = os.execute;
 
 -- Define the os type
@@ -7,15 +7,60 @@ local _ = package.config:sub(1,1)
 local sOSType = _ == "\\" and "windows" or (_ == "/" and "unix" or "unknown");
 
 -- Determine the operating system type
-local bIsWindows = sOSType == "windows";
-local bIsLinux   = sOSType == "unix";
-local bIsUnknown = sOSType == "unknown";
+local bIsWindows    = sOSType == "windows";
+local bIsUnix       = sOSType == "unix";
+local bIsUnknown    = sOSType == "unknown";
 
 
+local function splitpath(sPath)
+    local pathTable = {
+        filename = "",
+        extension = "",
+        drive = "",
+        directory = ""
+    }
 
+    -- Define the path separator based on the OS type
+    local pathSeparator = sOSType == "windows" and "\\" or "/"
 
+    -- Extract drive letter if present (Windows only)
+    local drive, path
+    if sOSType == "windows" then
+        drive, path = sPath:match("^([A-Za-z]:)[/\\]?(.*)")
+        if drive then
+            pathTable.drive = drive
+        else
+            path = sPath
+        end
+    else
+        path = sPath
+    end
 
+    -- Remove trailing slash if present
+    if path:sub(-1) == pathSeparator then
+        path = path:sub(1, -2)
+    end
 
+    -- Extract directory and filename
+    local directory, filename = path:match("^(.*)[" .. pathSeparator .. "]([^" .. pathSeparator .. "]+)$")
+    if directory then
+        pathTable.directory = directory
+        pathTable.filename = filename
+    else
+        pathTable.filename = path
+    end
+
+    -- Extract extension without the dot
+    local extension = pathTable.filename:match("%.([^.]+)$")
+    if extension then
+        pathTable.extension = extension
+        pathTable.filename = pathTable.filename:sub(1, -(#extension + 2)) -- +2 to remove the dot as well
+    end
+
+    return pathTable
+end
+
+io.splitpath = splitpath;
 
 
 -- File Compression
@@ -27,71 +72,243 @@ function io.unzip(archive, destination)
     return execute('unzip "'..archive..'" -d "'..destination..'"')
 end
 
+-- Determine the operating system type
 
 
 
 
+-- Function to list files and directories
+function io.list(sPath, bRecursive, nType, tFileTypes)
+    local sCommand;
+    local tFilters;
+    local bFilters       = false;
+    local nItemType      = 3;
+    local tFullPaths     = {};
+    local tRelativePaths = {};
 
+    if type(nType) == "number" then
+        nItemType = nType;
+    end
 
+    if type(tFileTypes) == "table" then
+        local nTypeCount = 0;
+        tFilters = {};
 
+        for _, sType in pairs(tFileTypes) do
 
+            if type(sType) == "string" and sType:gsub("%s+", "") ~= "" and sType:find("^[^.]+$") and not sType:find("[^%w._-]") then
+                nTypeCount = nTypeCount + 1;
+                tFilters[nTypeCount] = sType:lower();
+                bFilters = true;
+            end
 
+        end
 
+    end
 
-
-
-
-
-
-
-
-
-
-
--- Define the functions for file listing
--- Define the function for directory listing
-function io.dirList(path, recursive, relativePaths)
-    local command
     if bIsWindows then
-        command = 'dir "'..path..'\\*.*" /b /ad'..(recursive and '/s' or '')..' 2>nul'
-    elseif bIsLinux then
-        command = "ls -a -d '"..path.."'/"..(recursive and '**' or '*').." 2>/dev/null"
+
+        if nItemType == 0 then
+            sCommand = 'dir "'..sPath..'\\*.*" /b /a-d'..(bRecursive and ' /s' or '')..' 2>nul'
+        elseif nItemType == 1 then
+            sCommand = 'dir "'..sPath..'\\*.*" /b /ad'..(bRecursive and ' /s' or '')..' 2>nul'
+        else
+            sCommand = 'dir "'..sPath..'\\*.*" /b'..(bRecursive and ' /s' or '')..' 2>nul'
+        end
+
+    elseif bIsUnix then
+
+        if nItemType == 0 then
+            sCommand = 'find "'..sPath..'" -type f'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null'
+        elseif nItemType == 1 then
+            sCommand = 'find "'..sPath..'" -type d'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null'
+        else
+            sCommand = 'find "'..sPath..'"'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null'
+        end
+
     else
         error("Unsupported operating system")
     end
-    local output = execute(command:gsub("//", "/"))
-    if relativePaths and not bIsWindows then
-        local basePath = path:gsub("/$", "") -- Remove trailing slash if present
-        local relativePaths = {}
-        for line in output:gmatch("[^\n]+") do
-            table.insert(relativePaths, line:gsub("^"..basePath.."/?", ""))
-        end
-        return relativePaths
+
+    local sOutput = io.popen(sCommand):read("*a")
+
+    local pBase;
+
+    if bIsWindows then
+        pBase = sPath:gsub("[/\\]$", ""):gsub("/", "\\") -- Ensure consistent use of backslashes for Windows
     else
-        return output
+        pBase = sPath:gsub("[/\\]$", ""):gsub("\\", "/") -- Ensure consistent use of forward slashes for Unix
     end
+
+    local nLineCount = 0
+    for sLine in sOutput:gmatch("[^\r\n]+") do
+        nLineCount = nLineCount + 1
+
+        local pFull = sLine:gsub("\\", "/") -- Replace backslashes with forward slashes for consistency
+
+        if bIsWindows then
+            pFull = sLine:gsub("/", "\\") -- Replace forward slashes with backslashes for Windows
+        end
+
+        if not sLine:match("^"..pBase) then--QUESTION this should also check for OS type? If so, it should pick the correct separator
+            pFull = pBase .. "\\" .. pFull; -- Using "\\" for Windows paths
+        end
+
+        local bIncludeItem  = false;
+        local tPathParts    = splitpath(pFull);
+        local sExtension    = tPathParts.extension:lower();
+
+        if (sExtension == "" and nItemType ~= 0) then --directory
+            bIncludeItem = true;
+        else --file
+
+            if (nType ~= 1) then
+                bIncludeItem = -bFilters;
+
+                if (bFilters) then
+
+                    for _, sType in ipairs(tFilters) do
+
+                        if (sExtension == sType) then
+                            bIncludeItem = true;
+                            break;
+                        end
+
+                    end
+
+                end
+
+            end
+
+        end
+
+        if nItemType == 0 and tFilters and #tFilters > 0 then
+
+            for _, sType in ipairs(tFilters) do
+
+                if (sExtension == sType) then
+                    bIncludeItem = true
+                    break
+                end
+
+            end
+
+        end
+
+        if (bIncludeItem) then
+            tFullPaths[nLineCount] = pFull;
+
+            local pRelative = pFull:gsub("^"..pBase.."[\\/]*", "");
+            tRelativePaths[nLineCount] = pRelative;
+        end
+    end
+
+    return tFullPaths, tRelativePaths;
 end
 
--- File Listing
 
--- Directory Listing
-function io.list(path)
-    if sOSType == "windows" then
-        if path then
-            return execute('dir "'..path..'" /b')
-        else
-            return execute('dir /b')
-        end
-    elseif sOSType == "unix" then
-        if path then
-            return execute('ls "'..path..'"')
-        else
-            return execute('ls')
-        end
-    else
-        print("Unsupported operating system")
+
+--[[OLD WORKING
+
+function io.list(sPath, bRecursive, nType, tFileTypes)
+    local sCommand;
+    local nItemType  = 3;
+    local tFileTypes;
+
+    if (rawtype(nTypeRestriction) == "number") then
+        nItemType = nType;
     end
+
+    if (rawtype(tFileTypes) == "table") then
+        local nTypeCount = 0;
+        tFileTypes = {};
+
+        for _, sType in pairs(tFileTypes) do
+
+            if (type(sType) == "string"         and
+                sType:gsub("%s+", "") ~= ""     and    -- Check if the string is not blank
+                sType:find("^[^.]+$") ~= nil    and   -- Check if the string doesn't contain only periods
+                not sType:find("[^%w._-]") )  then
+                nTypeCount = nTypeCount + 1;
+                tFileTypes[nTypeCount] = sType;
+            end
+
+        end
+
+    end
+
+    if bIsWindows then
+
+        if nItemType == 0 then
+            sCommand = 'dir "'..sPath..'\\*.*" /b /a-d'..(bRecursive and ' /s' or '')..' 2>nul';
+        elseif nItemType == 1 then
+            sCommand = 'dir "'..sPath..'\\*.*" /b /ad'..(bRecursive and ' /s' or '')..' 2>nul';
+        else
+            sCommand = 'dir "'..sPath..'\\*.*" /b'..(bRecursive and ' /s' or '')..' 2>nul';
+        end
+
+    elseif bIsUnix then
+
+        if nItemType == 0 then
+            sCommand = 'find "'..sPath..'" -type f'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null';
+        elseif nItemType == 1 then
+            sCommand = 'find "'..sPath..'" -type d'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null';
+        else
+            sCommand = 'find "'..sPath..'"'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null';
+        end
+
+    else
+        error("Unsupported operating system");
+    end
+
+    local sOutput = io.popen(sCommand):read("*a")
+    local tFullPaths = {}
+    local tRelativePaths = {}
+    local pBase
+
+    if bIsWindows then
+        pBase = sPath:gsub("[/\\]$", ""):gsub("/", "\\"); -- Ensure consistent use of backslashes for Windows
+    else
+        pBase = sPath:gsub("[/\\]$", ""):gsub("\\", "/"); -- Ensure consistent use of forward slashes for Unix
+    end
+
+    local nLineCount = 0;
+    for sLine in sOutput:gmatch("[^\r\n]+") do
+        nLineCount = nLineCount + 1;
+
+        local pFull = sLine:gsub("\\", "/"); -- Replace backslashes with forward slashes for consistency
+
+        if bIsWindows then
+            pFull = sLine:gsub("/", "\\"); -- Replace forward slashes with backslashes for Windows
+        end
+
+        if not sLine:match("^"..pBase) then
+            pFull = pBase .. "\\" .. pFull;  -- Using "\\" for Windows paths
+        end
+
+        tFullPaths[nLineCount] = pFull;
+
+        local pRelative = pFull:gsub("^"..pBase.."[\\/]*", "");
+        tRelativePaths[nLineCount] = pRelative;
+    end
+
+    return tFullPaths, tRelativePaths
 end
+
+
+]]
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- Alias creation
 io.dir = io.list

@@ -263,6 +263,54 @@ local type = {
 
             assert(bConditionMet, sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""));
         end,
+        table = function(vInput, vIndexType, vValueType, vMinItems, nMaxItems)
+            local bConditionMet = rawtype(vInput) == "table";
+            local sError        = "Error in parameter input.";
+            local sIndexType    = rawtype(vIndexType)   == "string"   and vIndexType or false;
+            local sValueType    = rawtype(vValueType)   == "string"   and vValueType or false;
+            local nMinItems     = rawtype(vMinItems)    == "number"   and vMinItems  or false;
+            local nMaxItems     = rawtype(vMinItems)    == "number"   and vMinItems  or false;
+            local nItems        = 0;
+
+            if (bConditionMet) then
+
+                for k, v in pairs(vInput) do
+                    nItems = nItems + 1;
+
+                    --check the index type
+                    if (sIndexType and rawtype(k) ~= sIndexType) then
+                        sError = sError.."\nIndices must be of type "..sIndexType..". Type given: "..rawtype(k)..".";
+                        bConditionMet = false;
+                    end
+
+                    --check the value type
+                    if (sValueType and rawtype(v) ~= sValueType) then
+                        sError = sError.."\nValues must be of type "..sIndexType..". Type given: "..rawtype(v)..".";
+                        bConditionMet = false;
+                    end
+
+                end
+
+                local sItems = nItems < 2 and "item" or "items";
+
+                --min items
+                if (nMinItems and nItems < nMinItems) then
+                    sError = sError.."\nTable must contain no fewer than "..nMinItems.." "..sItems..". Item count: "..nItems..'.';
+                    bConditionMet = false;
+                end
+
+                --max items
+                if (nMaxItems and nItems > nMaxItems) then
+                    sError = sError.."\nTable must contain no more than "..nMinItems.." "..sItems..". Item count: "..nItems..'.';
+                    bConditionMet = false;
+                end
+
+            else
+                sError = sError.."\nInput must be of type table. Type given: "..rawtype(vInput)..'.';
+            end
+
+            assert(bConditionMet, sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""));
+        end,
     },
     mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?
         return (sLeftType == sObjType and sRightType ~= sTypeInQuestion);

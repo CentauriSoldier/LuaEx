@@ -141,21 +141,22 @@ cloner, clone = nil; --delcared here so all lower modules can use it
 --QUESTION do i need serializer here too? I think not but double check
 
 --🅸🅼🅿🅾🆁🆃 🅿🆁🅴🆁🅴🆀🆄🅸🆂🅸🆃🅴 🅼🅾🅳🆄🅻🅴🆂
-type 			=  	require("LuaEx.hook.typehook");
-                    require("LuaEx.hook.metahook");
-                    require("LuaEx.lib.stdlib");
-constant 		= 	require("LuaEx.lib.constant");
---clausum			=	require("LuaEx.lib.clausum");--TODO what is the purpose of this? Does it have any practical use?
-local null		= 	require("LuaEx.lib.null");
-                    rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
-                    rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
-array           =   require("LuaEx.lib.array");
-enum			= 	require("LuaEx.lib.enum");
-local tStruct   = 	require("LuaEx.lib.struct");
-struct          =   tStruct.struct;
-structfactory   =   tStruct.structfactory;
-source			=	require("LuaEx.util.source");
-infusedhelp		= 	require("LuaEx.lib.infusedhelp");
+type 			        =  	require("LuaEx.hook.typehook");
+                            require("LuaEx.hook.metahook");
+                            require("LuaEx.lib.stdlib");
+constant 		        = 	require("LuaEx.lib.constant");
+--clausum			    =	require("LuaEx.lib.clausum");--TODO what is the purpose of this? Does it have any practical use?
+local null		        = 	require("LuaEx.lib.null");
+                            rawset(tLuaEx, "null", null); 	-- make sure null can't be overwritten
+                            rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
+array                   =   require("LuaEx.lib.array");
+enum			        = 	require("LuaEx.lib.enum");
+local tStruct           = 	require("LuaEx.lib.struct");
+struct                  =   tStruct.struct;
+structfactory           =   tStruct.structfactory;
+sorteddictionary        =   require("LuaEx.lib.sorteddictionary");
+source			        =	require("LuaEx.util.source");
+infusedhelp		        = 	require("LuaEx.lib.infusedhelp");
 --run the 'directives'
 --directive	=	require("LuaEx.lib.directive"); TODO finish directives for enums (and classes?)
 

@@ -341,10 +341,10 @@ return setmetatable(tArrayActual,
     @module arrayfactory
     @func __newindex
     @scope public
-    @desc A deadcall method to prevents modification of the array factory.
+    @desc An error method to prevent modification of the array factory.
     !]]
     __newindex = function(t, k, v)
-
+        error("Error: attempting to modify read-only array factory at index ${index} with ${value} (${type})." % {index = tostring(k), value = tostring(v), type = type(v)});
     end,
 
     __serialize = function()
