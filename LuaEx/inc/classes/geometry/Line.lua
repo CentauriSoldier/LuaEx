@@ -208,19 +208,10 @@ return class("Line",
     deserialize = function(this, cdat, sData)
         local tData = deserialize.table(sData);
 
-        this.start     = this.start.deserialize(tData.start);
-        this.stop    = this.stop.deserialize(tData.stop);
+        this.start = this.start.deserialize(tData.start);
+        this.stop  = this.stop.deserialize(tData.stop);
         error("UDPATE THIS FUNCTION")
         return this;
-    end,
-
-
-    getASCII = function(this, cdat)
-        --TODO shrink the line to proportions of 10s
-        local sRet = "";
-
-
-        return sRet;
     end,
 
     --TODO finish this! Check if it's accurate
@@ -261,14 +252,34 @@ return class("Line",
         return cdat.pri.midpoint;
     end,
 
-    getPointAtDistance = function(this, cdat, nDistance)
-        --https://stackoverflow.com/questions/1250419/finding-points-on-a-line-with-a-given-distance
+    getPointAtDistance = function(this, cdat, nDistance)--TODO check this!
+        local pri = cdat.pri
+        local startX = pri.start.getX()
+        local startY = pri.start.getY()
+
+        -- Calculate direction vector (deltaX, deltaY)
+        local deltaX = pri.deltaX
+        local deltaY = pri.deltaY
+
+        -- Calculate the magnitude of the direction vector
+        local magnitude = pri.length
+
+        -- Normalize the direction vector
+        local normX = deltaX / magnitude
+        local normY = deltaY / magnitude
+
+        -- Calculate the new point coordinates
+        local newX = startX + normX * nDistance
+        local newY = startY + normY * nDistance
+
+        -- Return the new point as a Point object
+        return Point(newX, newY)
     end,
 
     getPointOfIntersection = function(this, cdat, other)
         local tMe         = cdat.pri;
-        local tOther     = args[nIns][other][nPri];
-        local oRet        = MATH_UNDEF;
+        local tOther      = cdat.ins[other].pri;
+        local oRet        = nil;--MATH_UNDEF;--TODO update this
 --TODO optimize function calls
         local A1 = tMe.stop.getY() - tMe.start.getY();
         local B1 = tMe.start.getX() - tMe.stop.getX();
@@ -299,7 +310,6 @@ return class("Line",
         return cdat.pri.slope;
     end,
 
-
     getStart = function(this, cdat)
         return cdat.pri.start;
     end,
@@ -320,7 +330,7 @@ return class("Line",
 
     intersects = function(this, cdat, other)
         local tMe       = cdat.pri;
-        local tOther    = args[nIns][other][nPri];
+        local tOther    = cdat.ins[other].pri;
 
         local A1 = tMe.stop.getY() - tMe.start.getY();
         local B1 = tMe.start.getX() - tMe.stop.getX();
@@ -337,7 +347,7 @@ return class("Line",
 
     isParrallelTo = function(this, cdat, other)--TODO fix this and others needs new pri
         local tMe                       = cdat.pri;
-        local tOther                    = args[nIns][other][nPri];
+        local tOther                    = cdat.ins[other].pri;
         local bBothSlopesAreDefined     = (not tMe.slopeIsUndefined) and (not tOther.slopeIsUndefined);
         local bBothSlopesAreUndefined   = tMe.slopeIsUndefined and tOther.slopeIsUndefined;
 
@@ -346,7 +356,7 @@ return class("Line",
 
     coincidesWith = function(this, cdat, other)
         local tMe                           = cdat.pri;
-        local tOther                        = args[nIns][other][nPri];
+        local tOther                        = cdat.ins[other].pri;
         local bBothSlopesAreDefined         = (not tMe.slopeIsUndefined) and (not tOther.slopeIsUndefined);
         local bBothSlopesAreUndefined       = tMe.slopeIsUndefined and tOther.slopeIsUndefined;
         local bBothXInterceptsAreDefined    = (not tMe.xInterceptIsUndefined) and (not tOther.xInterceptIsUndefined);

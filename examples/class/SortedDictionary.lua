@@ -42,17 +42,58 @@ end
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
 
+--create a new SortedDictionary
+local oDictionary = SortedDictionary()
+local function printMe()--TODO add tostring/ser/des methods
+    for k, v in pairs(oDictionary) do
+        print(k, v);
+    end
+end
 
---[[NOTE:
 
-]]
+--add some items
+oDictionary.add("OR", "Oregon");
+oDictionary.add("KS", "Kanas");
+oDictionary.add("CA", "California");
+oDictionary.add("ND", "North Dakota");
+oDictionary.add("WA", "Washington");
+oDictionary.add("TX", "Texas");
+oDictionary.add("AK", "Arkansas");
 
-local oLine = Queue();
-oLine.enqueue(1);
-oLine.enqueue(2);
-oLine.enqueue(3);
-oLine.enqueue(4);
-oLine.enqueue(Queue({"cat", "mouse", "ant"}));
-oLine.enqueue(6);
-print(oLine)
-print(oLine.reverse())
+--print the dictionary
+print("Sort normally (a < b) :")
+printMe();
+
+--set an item to nil
+oDictionary.set("WA", nil);
+
+--print the dictionary again
+print("\nSet a value to nil: ")
+printMe();
+
+--set the previously-set nil value to something else
+print("\nSet the nil value to something else: ")
+oDictionary.set("WA", "New Washington");
+printMe();
+
+--set a new sorter function and print the results
+print("\nSet a new sorter function.")
+oDictionary.setSortFunction(function (a, b)
+    return a > b;
+    --return a.foo < b.bar --Uncomment to see an error for bad sorter function
+end)
+printMe();
+
+print("\nSet the sorter function back to default.");
+oDictionary.setSortFunction();
+printMe();
+
+--chain and print
+print("\nChain some actions together.");
+oDictionary.set("TX", "New Texas").set("TX", "Newer Texas").set("TX", "Newest Texas");
+print(oDictionary.get("TX"));
+
+--remove a key and print
+print("\nRemove California.");
+oDictionary.remove("CA");
+printMe();

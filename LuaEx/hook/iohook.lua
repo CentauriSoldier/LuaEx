@@ -76,7 +76,8 @@ end
 
 
 
-
+--TODO BUG FIX nil items are getting added to the return
+--TODO trim trailing directory separator before processing path
 -- Function to list files and directories
 function io.list(sPath, bRecursive, nType, tFileTypes)
     local sCommand;
@@ -207,6 +208,59 @@ function io.list(sPath, bRecursive, nType, tFileTypes)
 end
 
 
+
+
+function io.normalizepath(path)
+    local isWindows = package.config:sub(1, 1) == '\\'
+
+    -- Split the path into components
+    local parts = {}
+    local driveLetter = nil
+
+    for part in path:gmatch("[^/\\]+") do
+        if isWindows and not driveLetter then
+            -- Extract the drive letter if present
+            driveLetter = part:match("^[A-Za-z]:$")
+            if driveLetter then
+                parts[#parts + 1] = driveLetter
+            else
+                -- If no drive letter, add the part
+                if part == ".." then
+                    if #parts > 0 and parts[#parts] ~= driveLetter then
+                        table.remove(parts)
+                    end
+                elseif part ~= "." then
+                    parts[#parts + 1] = part
+                end
+            end
+        else
+            if part == ".." then
+                if #parts > 0 and parts[#parts] ~= driveLetter then
+                    table.remove(parts)
+                end
+            elseif part ~= "." then
+                parts[#parts + 1] = part
+            end
+        end
+    end
+
+    -- Join the parts back into a normalized path
+    local separator = isWindows and "\\" or "/"
+    local normalizedPath = table.concat(parts, separator)
+
+    -- Handle Windows drive letters
+    if isWindows and driveLetter then
+        normalizedPath = driveLetter .. "\\" .. table.concat(parts, separator, 2)
+    elseif isWindows then
+        normalizedPath = "\\" .. normalizedPath
+    else
+        if path:sub(1, 1) == "/" then
+            normalizedPath = "/" .. normalizedPath
+        end
+    end
+
+    return normalizedPath
+end
 
 --[[OLD WORKING
 

@@ -15,9 +15,11 @@
     <li>
         <b>0.7</b>
         <br>
+        <p>Bugfix: private methods not able to be overriden from within the class.</p>
         <p>Bugfix: public static members could not be set or retrieved.</p>
         <p>Bugfix: __shr method not providing 'other' parameter to client.</p>
         <p>Feature: completed the interface system.</p>
+        <p>Feature: added cloning and serialization capabilities.</p>
         <p>Feature: added _FNL directive allowing for final methods and metamethods.</p>
         <p>Feature: added _AUTO directive allowing automatically created mutator and accessor methods for members.</p>
         <p>Feature: rewrote <em>(and improved)</em> set, stack and queue classes for new class system.</p>
@@ -605,7 +607,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                         name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
-                if (sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
+                if (sCAI ~= "pri" and sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
                     error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
                         name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
                 end
@@ -705,28 +707,32 @@ function instance.wrapMetamethods(tInstance, tClassData)--TODO double check thes
             sMetamethod == "__eq"       or sMetamethod == "__idiv"      or sMetamethod == "__le"    or
             sMetamethod == "__lt"       or sMetamethod == "__mod"       or sMetamethod == "__mul"   or
             sMetamethod == "__pow"      or sMetamethod == "__shl"       or sMetamethod == "__shr"   or
-            sMetamethod == "__sub"      or sMetamethod == "__pairs"     or sMetamethod == "__ipairs")  then
+            sMetamethod == "__sub")  then
 
             rawset(tInstance.met, sMetamethod, function(a, b)
                 return fMetamethod(a, b, tClassData);
             end);
 
-        elseif (sMetamethod == "__bnot" or sMetamethod == "__len" or sMetamethod == "__unm" ) then
+        elseif (   sMetamethod == "__bnot"  or sMetamethod == "__len"
+                or sMetamethod == "__unm"   or sMetamethod == "__tostring") then--TODO can these be moved...XSE
 
             rawset(tInstance.met, sMetamethod, function(a)
                 return fMetamethod(a, tClassData);
             end);
 
-        elseif (sMetamethod == "__call" or sMetamethod == "__name" or sMetamethod == "__serialize") then
+        elseif (   sMetamethod == "__call"      or sMetamethod == "__name"--TODO XSE..to here
+                or sMetamethod == "__serialize" or sMetamethod == "__clone"
+                or sMetamethod == "__ipairs"    or sMetamethod == "__pairs") then
+
             rawset(tInstance.met, sMetamethod, function(...)
                 return fMetamethod(oInstance, tClassData, ...)
             end);
 
-        elseif (sMetamethod == "__tostring") then
+        --elseif (sMetamethod == "__tostring") then
 
-            rawset(tInstance.met, sMetamethod, function(a)
-                return fMetamethod(a, tClassData)
-            end);
+        --    rawset(tInstance.met, sMetamethod, function(a)
+        --        return fMetamethod(a, tClassData)
+        --    end);
 
         end
 

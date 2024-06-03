@@ -50,134 +50,6 @@ local sDoxIgnoreFile 	= ".doxignore";    --ignores all files in current director
 local sDoxIgnoreSubFile = ".doxignoresub"; --ignores all files in sub directories
 local sDoxIgnoreAllFile = ".doxignoreall"; --ignores all files current and subdirectories
 
-local nMinFileLength = 5; --some character plus a dot then the file extension (e.g., t.lua)
-
---get directory spacer
-local _ = package.config:sub(1,1);
---get the os type
-local sOSType = _ == "\\" and "windows" or (_ == "/" and "unix" or "unknown");
-
-local tFileFindMethods = {
-	["unix"] = {
-		fileFind = function(sDir, sFile, bRecursive)
-			local sRecurs = bRecursive and "" or " -maxdepth 1 ";
-			return 'find "'..sDir..'"'..sRecurs..'-name "'..sFile..'"'
-		end,
-	},
-	["windows"] = {
-		fileFind = function(sDir, sFile, bRecursive)
-			local sRecurs = bRecursive and " /s" or "";
-			return 'dir "'..sDir.."\\"..sFile..'" /b'..sRecurs;
-		end,
-	},
-};
-
-
---[[function getProcessList(sDir, bRecurse, tInputFiles)
-	local tRet = type(tInputFiles) == "table" and tInputFiles or {};
-
-	--setup the commands
-	--local sGetFilesCommand 	= (_ == "\\") and	('dir "'..sDir..'\\*.*" /b /a-d'):gsub("\\\\", "\\") 	or ('find '..sDir.."/"..'-maxdepth 1 ! –type d'):gsub("//", "/");
-	--local sGetDirsCommand 	= (_ == "\\") and	('dir "'..sDir..'\\*.*" /b /d'):gsub("\\\\", "\\") 		or ("ls -a -d /*"):gsub("//", "/");
-    --local sGetFilesCommand      = (_ == "\\") and ('dir "'..sDir..'\\*.*" /b /a-d 2>nul'):gsub("\\\\", "\\")    or ('find '..sDir.."/"..'-maxdepth 1 ! –type d'):gsub("//", "/");
-    --local sGetDirsCommand       = (_ == "\\") and ('dir "'..sDir..'\\*.*" /b /ad 2>nul'):gsub("\\\\", "\\")     or ("ls -a -d /* 2>/dev/null"):gsub("//", "/");
-    local sGetFilesCommand      = (_ == "\\") and ('dir "'..sDir..'\\*.*" /b /a-d 2>nul'):gsub("\\\\", "\\")    or ('find "'..sDir..'" -maxdepth 1 ! -type d 2>/dev/null'):gsub("//", "/");
-    local sGetDirsCommand       = (_ == "\\") and ('dir "'..sDir..'\\*.*" /b /ad 2>nul'):gsub("\\\\", "\\")     or ("ls -a -d '"..sDir.."'/* 2>/dev/null"):gsub("//", "/");
-
-	local hFiles 	= io.popen(sGetFilesCommand);
-
-	--process files and folders
-	if (hFiles) then
-		local bIgnore 		= false;
-		local bIgnoreSub	= false;
-		local bIgnoreAll 	= false;
-		local tFiles 		= {};
-
-		--look for ignore files
-		for sFile in hFiles:lines() do
-
-			if (sFile == sDoxIgnoreAllFile) then
-				bIgnoreAll = true;
-				break; --no need to continue at this point
-			end
-
-			if (sFile == sDoxIgnoreSubFile) then
-				bIgnoreSub = true;
-			end
-
-			if (sFile == sDoxIgnoreFile) then
-				bIgnore = true;
-			end
-
-			if not (bIgnoreAll or bIgnore) then
-				tFiles[#tFiles + 1] = sFile;
-			end
-
-		end
-
-		--only process items if the .doxignoreall file was NOT found
-		if not (bIgnoreAll) then
-
-			--add (any) files that exist to the return table
-			for nIndex, sFile in pairs(tFiles) do
-
-				--check that the file type is valid --TODO chance this since it can use other languages
-				if (sFile:len() >= nMinFileLength and sFile:reverse():sub(1, 4):lower() == "aul.") then
-					--add the file to the list
-					tRet[#tRet + 1] = sDir.._..sFile;
-                    print("file found: "..sDir.._..sFile);
-				end
-
-			end
-
-			--process subdirectories
-			if not (bIgnoreSub) then
-				local hDirs	= io.popen(sGetDirsCommand);
-
-				if (hDirs) then
-
-					for sDirectory in hDirs:lines() do
-						getProcessList(sDir.._..sDirectory, bRecurse, tRet);
-					end
-
-				end
-
-			end
-
-		end
-
-	end
-
-	return tRet;
-end
-]]
-
-
-
---local pLuaEx = getsourcepath().."\\..\\..\\";
---getProcessList(sSourcePath.."\\..\\..\\LuaEx", true);
-
-
-
-
-
-
-local function readFile(pFile)
-    local sContent;
-    local sError;
-
-    local hFile = io.open(pFile, "r");
-
-    if not (hFile) then
-        sError = "Could not open file: "..pFile;
-    else
-        local content = hFile:read("*all");
-        hFile:close();
-    end
-
-    return sContent, sError;
-end
-
 
 local function writeToFile(path, content)
     -- Get the path to the "Documents" directory
@@ -208,64 +80,23 @@ end
 
 
 
-
-
 local oLuaExDox = DoxLua();
-local oLuaExDox2 = DoxLua();
-
-for k in oLuaExDox.blockTagGroups() do
-
-    for f in k.blockTags() do
-        --print(k.getName().." | "..f.getDisplay())
-    end
-
-end
-oLuaExDox.addMineType("bp");
-oLuaExDox.addMineType("bp");
---print(oLuaExDox.mineTypes())
+--oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
+oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"), true);
 --TODO create tests for each thing and use them as examples
 
-local function sorter(a, b)
-    print(a, b)
-    --return a > b
-end
 
 
 
 
 
 
--- Create a new SortedDictionary instance
-local mySortedDict = sorteddictionary()
 
--- Test the SortedDictionary instance
-local tab = {};
-
-mySortedDict["OR"] = "Oregon";
-mySortedDict["WA"] = "Washington";
-mySortedDict["KS"] = "Kanasa";
-mySortedDict["MO"] = "AAA";
-local function sorterF(a, b)
-    return a > b;
-    --return a.foo < b.bar
-end
-mySortedDict(sorterF);
-
-mySortedDict["TX"] = "Texas";
-mySortedDict["AK"] = "Arkansas";
-mySortedDict["WA"] = nil;
-mySortedDict["WA"] = "Montant";
---mySortedDict = mySortedDict - "WA";
-
--- Output the SortedDictionary instance
-for k, v in pairs(mySortedDict) do
-    print(k, v)
-end
 
 --print(readFile(pFile))
 --local tModules, tBlocks = oLuaExDox.importString(readFile(pFile));
 --local tModules, tBlocks = oLuaExDox.importstring(k);
 
-for k, v in pairs(tBlocks or {}) do
+--for k, v in pairs(tBlocks or {}) do
     --print(k.." = "..serialize(v));
-end
+--end

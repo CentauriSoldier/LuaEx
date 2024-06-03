@@ -154,7 +154,7 @@ enum			        = 	require("LuaEx.lib.enum");
 local tStruct           = 	require("LuaEx.lib.struct");
 struct                  =   tStruct.struct;
 structfactory           =   tStruct.structfactory;
-sorteddictionary        =   require("LuaEx.lib.sorteddictionary");
+--sorteddictionary        =   require("LuaEx.lib.sorteddictionary");
 source			        =	require("LuaEx.util.source");
 infusedhelp		        = 	require("LuaEx.lib.infusedhelp");
 --run the 'directives'
@@ -230,9 +230,10 @@ if (tClassLoadValues[_nClassSystem]) then
 
     if (tClassLoadValues[_nBasicClasses]) then
         --dependency class
-        Queue      = require("LuaEx.inc.classes.Queue");
-        Stack      = require("LuaEx.inc.classes.Stack");
-        Set        = require("LuaEx.inc.classes.Set");
+        Queue               = require("LuaEx.inc.classes.Queue");
+        Stack               = require("LuaEx.inc.classes.Stack");
+        Set                 = require("LuaEx.inc.classes.Set");
+        SortedDictionary    = require("LuaEx.inc.classes.SortedDictionary");
         --OrderedSet = require("LuaEx.inc.classes.OrderedSet");
 
         if (tClassLoadValues[_nComponentClasses]) then

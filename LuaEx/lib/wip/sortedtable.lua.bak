@@ -64,13 +64,7 @@ return rawsetmetatable(tSDActual, {
                 local sTypeV = rawtype(v);
                 print(sTypeK, sTypeV)
                 if (sTypeK ~= "string") then
-
-                    --if (sTypeK == "function") then
-                        error("Error adding item to sorted dictionary.\nKey type expected: string. Type given: "..sTypeK..'.', 2);
-                    --else
-
-                    --end
-
+                    error("Error adding item to sorted dictionary.\nKey type expected: string. Type given: "..sTypeK..'.', 2);
                 end
 
                 if (sTypeV ~= "nil") then

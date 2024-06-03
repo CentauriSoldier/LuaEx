@@ -19,7 +19,7 @@ return class("DoxLua",
         local bMultipleAllowed  = true;
 
         --create the module block fence group
-        local oModuleBlockTagGroup = fBlockTagGroup("Module",    "Modules",    "--[[*", "*]]",
+        local oModuleBlockTagGroup = fBlockTagGroup("Module",    "Modules",   "--[[",   "]]",   "*",    "*",
             fBlockTag({"authors"},                        "Authors",          1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"copy", "copyright"},              "Copyright",        1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"depend", "dependencies"},         "Dependencies",     1,  -bRequired,   -bMultipleAllowed),
@@ -40,7 +40,7 @@ return class("DoxLua",
             fBlockTag({"x", "twitter"},                   "X (Twitter)",      1,  -bRequired,   -bMultipleAllowed));
 
         --create the function block fence group
-        local oFunctionBlockTagGroup = fBlockTagGroup("Function",    "Functions",    "--[[f!", "!f]]",
+        local oFunctionBlockTagGroup = fBlockTagGroup("Function",    "Functions",    "--[[", "]]",  "f!",   "!f",
             fBlockTag({"des", "desc", "description"},    "Description",   1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"ex", "example", "examples"},     "Example",       1, -bRequired,   bMultipleAllowed),
             --fBlockTag({"fun", "func", "function"},       "Function",      1,  bRequired,   -bMultipleAllowed),

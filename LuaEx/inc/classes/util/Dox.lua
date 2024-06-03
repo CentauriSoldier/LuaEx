@@ -168,9 +168,11 @@ local DoxBlockTagGroup = class("DoxBlockTagGroup",
 
     },
     {--public
-        DoxBlockTagGroup = function(this, cdat, sName, sNamePlural, sOpen, sClose, ...)
+        DoxBlockTagGroup = function(this, cdat, sName, sNamePlural, sCommentOpen, sCommentClose, sOpen, sClose, ...)
             type.assert.string(sName,        "%S+", "Dox block tag group name must not be blank.");
             type.assert.string(sNamePlural,  "%S+", "Dox block tag group plural name must not be blank.");
+            type.assert.string(sCommentOpen, "%S+", "Dox block tag group comment open symbol(s) must not be blank.");
+            type.assert.string(sCommentClose,"%S+", "Dox block tag group comment close symbol(s) must not be blank.");
             type.assert.string(sOpen,        "%S+", "Dox block tag group open symbol(s) must not be blank.");
             type.assert.string(sClose,       "%S+", "Dox block tag group close symbol(s) must not be blank.");
 
@@ -178,8 +180,8 @@ local DoxBlockTagGroup = class("DoxBlockTagGroup",
             local pri = cdat.pri;
             pri.name           = sName;
             pri.namePlural     = sNamePlural
-            pri.open           = sOpen;
-            pri.close          = sClose;
+            pri.open           = sCommentOpen..sOpen;   --These have to be separated in the args to prevent...
+            pri.close          = sClose..sCommentClose; --...dox from seeing them as actual tags to parse
 
             --a table to track all required tags
             local nRequiredTags         = #tRequiredGroupBlockTags;
@@ -274,9 +276,9 @@ local DoxModule = class("DoxModule",
         pri.name = sName;
         pri.moduleBlockTagGroup = oModuleBlockTagGroup;
     end,
-    importBlock = function(this, cdat)
+    importBlock = function(this, cdat, sBlock)
         type.assert.string(sBlock, "%S+");
-        --sBlock
+        --sBlock--TODO HERE
     end,
 },
 nil,    --extending class
@@ -305,7 +307,7 @@ return class("Dox",
     blockTagGroups      = {}, --this contains groups of block tags group objects
     moduleBlockTagGroup = null,
     mimeTypes           = null,
-    modules             = sorteddictionary(), --a list of module objects indexed by module names
+    modules             = SortedDictionary(), --module objects indexed (and sorted) by name
     name                = "",
     snippetClose        = "", --QUESTION How will this work now that we're using mutiple tag groups?
     snippetOpen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
@@ -353,24 +355,41 @@ return class("Dox",
 
         return tModuleBlocks, tBlocks;
     end,
-    parseBlock = function(this, cdat, sBlock, bIsModule)
+    parseBlock = function(this, cdat, tBlock, bIsModule)
+        local pri                   = cdat.pri;
+        local oModules              = pri.modules;
+        local oModuleBlockTagGroup  = pri.moduleBlockTagGroup;
+        local fBlockTagGroups       = cdat.pub.blockTagGroups;
+
+        if (bIsModule) then
+
+        else
+            --TODO LEFT OFF HERE ...
+            for oBlockTagGroup in fBlockTagGroups() do
+                print(serialize(tBlock));
+            end
+
+        end
 
     end,
     processString = function(this, cdat, sInput)
         local pri                   = cdat.pri;
+        local oModules              = pri.modules;
         local oModuleBlockTagGroup  = pri.moduleBlockTagGroup;
         --get all blocks from the string
         local tModuleBlocks, tBlocks = pri.extractBlocks(sInput);
 
         --TODO process \@ symbols?
         --process each module block
-        for sName, sBlock in pairs(tModuleBlocks) do
-
-            --WTF LEFT OFF HERE ...need to get the name of the module
+        for sModuleTypeName, tModuleBlock in pairs(tModuleBlocks) do
+            --print(serialize(tModuleBlock))
+            --TODO finish the block parser then come back here
             --create the module (if it doesn't exist)
-            if not (pri.modules[sName]) then
-                pri.modules[sName] = DoxModule(sName, sBlock, oModuleBlockTagGroup);
+            if not (oModules.containsKey(sModuleTypeName)) then
+                --print(sName, sBlock)
+                oModules.add(sModuleTypeName, DoxModule(sModuleTypeName, sBlock, oModuleBlockTagGroup));
             end
+
 
             --create the "Orphaned" module for items that name a non-existent module
 
@@ -383,7 +402,8 @@ return class("Dox",
 
         end
 
-        for _, sBlock in pairs(tBlocks) do
+        for _, tBlock in pairs(tBlocks) do
+            local tParsed = pri.parseBlock(tBlock, false);
 
         end
 
@@ -453,10 +473,32 @@ return class("Dox",
     getTagOpen = function(this, cdat)
         return cdat.pri.tagOpen;
     end,
-    importDirectory = function(this, cdat, bRecurse)
+    importDirectory = function(this, cdat, pDir, bRecursion)
+        type.assert.string(pDir, "%S+");
+        local bRecurse = bRecursion;
+
+        if (rawtype(bRecurse) ~= "boolean") then
+            bRecurse = false;
+        end
+        --TODO rewrite this to check for .doxignore files
+        local tFiles, tRel = io.dir(pDir, bRecurse, 0, cdat.pri.mimeTypes);
+        --TODO THROW ERROR FOR FAILURE
+        for k, v in pairs(tFiles) do
+            cdat.pub.importFile(v);
+        end
 
     end,
-    importFile = function(this, cdat)
+    importFile = function(this, cdat, pFile)
+        type.assert.string(pFile, "%S+");
+        local hFile = io.open(pFile, "r");
+
+        if not (hFile) then
+            error("Error importing file to Dox.\nCould not open file: "..pFile);
+        else
+            local sContent = hFile:read("*all");
+            cdat.pri.processString(sContent);
+            hFile:close();
+        end
 
     end,
     importString = function(this, cdat, sInput)

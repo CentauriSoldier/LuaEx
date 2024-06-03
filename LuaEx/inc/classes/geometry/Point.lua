@@ -59,8 +59,8 @@ return class("Point",
 
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
-            local otherpri = args[nIns][other][nPri];
-
+            local otherpri = cdat.ins[other].pri;
+            
             return Point(pri.x + otherpri.x,
                          pri.y + otherpri.y);
         end
@@ -77,7 +77,7 @@ return class("Point",
 
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
-            local otherpri = args[nIns][other][nPri];
+            local otherpri = cdat.ins[other].pri;
             bRet = pri.x == otherpri.x and pri.y == otherpri.y;
          end
 
@@ -89,7 +89,7 @@ return class("Point",
 
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
-            local otherpri = args[nIns][other][nPri];
+            local otherpri = cdat.ins[other].pri;
             bRet = pri.x <= otherpri.x and pri.y <= otherpri.y;
          end
 
@@ -101,7 +101,7 @@ return class("Point",
 
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
-            local otherpri = args[nIns][other][nPri];
+            local otherpri = cdat.ins[other].pri;
             bRet = pri.x < otherpri.x and pri.y < otherpri.y;
          end
 
@@ -126,7 +126,6 @@ return class("Point",
         local tData = {
             x = pri.x,
             y = pri.y,
-            t = type(cdat),
         };
 
         return tData;
@@ -135,7 +134,7 @@ return class("Point",
 
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
-            local otherpri = args[nIns][other][nPri];
+            local otherpri = cdat.ins[other].pri;
 
             return Point(pri.x - otherpri.x,
                          pri.y - otherpri.y);
@@ -157,9 +156,7 @@ return class("Point",
 },
 {--static public
     deserialize = function(tData)
-        print(tData.x, tData.y)--LEFT OFF HERE data is bad, find out why
-        print(type(tData.x), type(tData.y))
-        return Point(5, 8);
+        return Point(tData.x, tData.y);
     end,
 
 },
@@ -209,12 +206,12 @@ return class("Point",
     end,
 
     --return O, X, Y, -X, -Y, I, II, III or IV
-    getQuadrant = function(this, cdat)
+    getQuadrant = function(this, cdat)--TODO use enum
         local pri = cdat.pri;
-        local sRet         = "ERROR";
-        local bYIsNeg     = pri.y < 0;
+        local sRet      = "ERROR";
+        local bYIsNeg   = pri.y < 0;
         local bYIs0     = pri.y == 0;
-        local bYIsPos     = pri.y > 0;--not bYIsNeg and not bYIs0;
+        local bYIsPos   = pri.y > 0;--not bYIsNeg and not bYIs0;
 
         if (pri.x < 0) then
 
@@ -288,7 +285,7 @@ return class("Point",
     set = function(this, cdat, nX, nY)
         local pri = cdat.pri;
         pri.x = type(nX) == "number" and nX or pri.x;
-        pri.x = type(nY) == "number" and nY or pri.y;
+        pri.y = type(nY) == "number" and nY or pri.y;
         return this;
     end,
 

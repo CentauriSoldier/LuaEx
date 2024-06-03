@@ -54,14 +54,15 @@ local tPure = {
 
 local tSynth = {
     ["array"]                   = function(aItem) return rawgetmetatable(aItem).__clone(aItem) end,
-    ["class"]                   = function(cItem)
+    ["class"]                   = function(cItem)--TODO is this ever called? We don't actually want to clone class objects (such as Point)
+                                    local tMeta = rawgetmetatable(cItem);
 
-                                    if (rawtype(cItem.clone) ~= "function") then
-                                        --TODO get the class name
+                                    if (rawtype(tMeta.__clones) ~= "function") then
+                                        --TODO get the class name and FIX this error ...make sure it works
                                         error("Class is not clonable.", 2);
                                     end
-
-                                    return cItem.clone()
+                                    --no need to infuse cItem since it's already injected by the class
+                                    return rawgetmetatable(cItem).__clone();
                                 end,
     ["enum"]                    = function(eItem) return rawgetmetatable(eItem).__clone(eItem) end,
     ["null"]                    = returnPure,
@@ -127,9 +128,8 @@ local function clone(vItem, bIgnoreMetaTable)
         local tMeta = getmetatable(vItem);
 
         if (tMeta and rawtype(tMeta.__clone) == "function") then
-            sRet = tMeta.__clone(vItem);
+            vRet = tMeta.__clone(vItem);
             bFoundCloner = true;
-
         end
 
     end

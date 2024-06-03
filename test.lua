@@ -50,25 +50,13 @@ end
 --runExample("struct");
 --runExample("class\\Set");
 --tF, tR = io.list("C:", true)
---tF, tR = io.list(sSourcePath.."\\LuaEx", true, nil, {".txt"});
+--tF, tR = io.list(sSourcePath, true, nil, {".ini"});
 
 --for x = 1, #tF do
 --    print(tF[x], tR[x])
 --end
-local tFiles, tRel = io.dir(sSourcePath.."\\LuaEx", false, 0, {"lua"})
-
---local tParts = io.splitpath(sSourcePath.."\\LuaEx\\test.ext")
-
+local tFiles, tRel = io.dir(sSourcePath.."\\LuaEx", true, 0, {"lua"})
 for k, v in pairs(tFiles) do
-    --print(v)
+    print(v)--, tR[x])
 end
-local myt = {};
-setmetatable(myt, {
-    __newindex = function(t, k, v)
-        print(t, k, v)
-    end
-
-});
-
-myt[4] = "asd";
-myt[2] = nil
+--local tParts = io.splitpath(sSourcePath.."\\LuaEx\\test.ext")

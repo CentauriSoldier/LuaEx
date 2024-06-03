@@ -41,18 +41,18 @@ end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
+--[[    Line 1: From (1, 1) to (4, 4)
+    Line 2: From (1, 4) to (4, 1)
 
+The intersection point of these two lines is (2.5, 2.5).]]
+--create a couple lines
+local oLine1 = Line(Point(1, 1), Point(4, 4));
+local oLine2 = Line(Point(1, 4), Point(4, 1));
+--print("oLine1\n", oLine1);
+--print("\noLine2\n", oLine2);
 
---[[NOTE:
-
-]]
-
-local oLine = Queue();
-oLine.enqueue(1);
-oLine.enqueue(2);
-oLine.enqueue(3);
-oLine.enqueue(4);
-oLine.enqueue(Queue({"cat", "mouse", "ant"}));
-oLine.enqueue(6);
-print(oLine)
-print(oLine.reverse())
+--test the lines' interactions
+print("Interection: ", oLine1.getPointOfIntersection(oLine2));
+print(oLine1.getR())
+print(oLine1.getTheta())
+--TODO FINISH
