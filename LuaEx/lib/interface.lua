@@ -139,7 +139,7 @@ local function interface(sName, tMetamethods, tStaticPublic, tPrivate, tProtecte
     --process the parents
     local tParents = {};
 
-    --create the tParents table with top-most classes in descending order
+    --create the tParents table with top-most in descending order
     if (bExtend) then
         local tParent = getparent(tInterfaceObjects[iExtendor].name);
         tParent.children[sName] = tInterfaceBuilder[sName];

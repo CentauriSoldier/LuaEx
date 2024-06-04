@@ -42,11 +42,8 @@ end
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
 
-
---[[NOTE:
-
-]]
-
+--create a set and add some things to it
+print("Creating set A with some items.");
 local oA = Set();
 oA.add(34);
 oA.add(44);
@@ -58,17 +55,30 @@ oA.add("bug");
 oA.add({});
 oA.add(true);
 oA.add(false);
-oA.add(nil);
 oA.add(null);
+--show the set as-is
+for vItem in oA() do
+    print(vItem);
+end
 
---RemoveME = set().importset(oA).remove("bug");
---print(oA.issubset(RemoveME))
---oA.removeset(RemoveME);
+--count the items
+print("\nSet A has "..oA.size().." items.");
 
---print(oA.contains("ASdasd"));
+--show the set as-is
+for vItem in oA() do
+    print(vItem);
+end
 
+--check if set A contains certain things
+print("\nSet A contains 'moose': ", oA.contains("moose"));
+print("Set A contains 54: \t", oA.contains(54));
+print("Set A contains this new table: ", oA.contains({}));
+print("Set A contains the null value: ", oA.contains(null));
+
+
+--create another set and add items to it
+print("\nCreating set B.");
 local oB = Set();
---oB.add(tShared)
 oB.add(34);
 oB.add(44);
 oB.add(700);
@@ -78,13 +88,13 @@ oB.add("frog");
 oB.add(false);
 oB.add("bat");
 
---print(oB.contains("frog"))
+print(oB.contains("frog"));
 
 
-print(oB.size())
+print(oB.size());
 
 for vItem in oB() do
-    print(vItem)
+    print(vItem);
 end
 
 
@@ -99,14 +109,14 @@ for x = 3, 6 do
     --B.add(x)
 end
 
-print("A -> "..tostring(A))
-print("B -> "..tostring(B))
-print("A-B -> "..tostring(A - B))
-print("B-A -> "..tostring(B - A))
-print("A+B -> "..tostring(A + B))
---print(#true)
---print(oA - oB)
---print(fh())
+print("A -> "..tostring(A));
+print("B -> "..tostring(B));
+print("A-B -> "..tostring(A - B));
+print("B-A -> "..tostring(B - A));
+print("A+B -> "..tostring(A + B));
+print(#true);
+print(oA - oB);
+
 
 S = Set().add("alex").add("casey").add("drew").add("hunter");
 T = Set().add("casey").add("drew").add("jade");

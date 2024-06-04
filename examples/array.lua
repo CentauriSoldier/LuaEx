@@ -73,7 +73,7 @@ aPet[5] = "Bunny";
 --print the aPet array
 print("aPet (It's okay, you can pet these ones.) -> ", aPet);
 
---index some items by index
+--access some items by index
 print("Don't pet the "..aNoPet[3]..'! But, you can pet the '..aPet[1]..'.');
 
 --iterate over one of the arrays using the built-in iterator
@@ -103,7 +103,7 @@ aMethods[1] = function()
     print("You can make an array of functions/methods.");
 end
 aMethods[2] = function(...)
-    local sOutput = "You can referene the aMethods "..type(aMethods)..".\n";
+    local sOutput = "You can reference the aMethods "..type(aMethods)..".\n";
     sOutput = sOutput.."\nThen, you can do whatever else you want even setting the other items."
 
     if (type(aMethods[3]) == "null") then

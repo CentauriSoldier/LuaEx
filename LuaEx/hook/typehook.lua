@@ -186,7 +186,9 @@ type = nil;
 local type = {
     assert = {
         custom = function(vInput, sType)--TODO custom message
-            assert(type(vInput) == sType, "Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)});
+            if (type(vInput) ~= sType) then
+                error("Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)}, 2);
+            end
         end,
         number = function (vInput, bErrorNegative, bErrorZero, bErrorPositive, bErrorFloat, bErrorInteger, nMin, nMax)
             local sType  = rawtype(vInput);
@@ -230,12 +232,12 @@ local type = {
                 end
 
             else
-                error("Expected type is number. Type given: ${given}." % {given = sType});
+                error("Expected type is number. Type given: ${given}." % {given = sType}, 2);
             end
 
 
             if (bError) then
-                error(sError.."\nValue given: "..vInput);
+                error(sError.."\nValue given: "..vInput, 2);
             end
 
         end,
@@ -261,7 +263,9 @@ local type = {
                 sError = sError.."\nExpected type is string. Type given: "..sType..'.';
             end
 
-            assert(bConditionMet, sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""));
+            if not (bConditionMet) then
+                error(sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""), 2);
+            end
         end,
         table = function(vInput, vIndexType, vValueType, vMinItems, nMaxItems)
             local bConditionMet = rawtype(vInput) == "table";
@@ -309,7 +313,9 @@ local type = {
                 sError = sError.."\nInput must be of type table. Type given: "..rawtype(vInput)..'.';
             end
 
-            assert(bConditionMet, sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""));
+            if not (bConditionMet) then
+                error(sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""), 2);
+            end
         end,
     },
     mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?

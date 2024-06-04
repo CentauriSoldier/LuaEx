@@ -93,8 +93,11 @@ print("P4: ", -oP4);
 --cloning and other things
 local oP1Clone = clone(oP1);
 print("\nP1 Cloned: ", oP1Clone);
+--test equality of the original to the clone
 print("P1 == oP1Clone: ", oP1 == oP1Clone);
+--create a new point by adding two points
 local oP5 = oP1 + oP3;
-print("\noP1 + oP3 = oP5:\n(", oP1, ") + (", oP3, ") = (", oP5, ')');
+print("\nP1 + P3 = P5:\n(", oP1, ") + (", oP3, ") = (", oP5, ')');
+--create another new point by adding two points
 local oP6 = oP1 - oP3;
-print("\noP1 - oP3 = oP6:\n(", oP1, ") - (", oP3, ") = (", oP6, ')');
+print("\nP1 - P3 = P6:\n(", oP1, ") - (", oP3, ") = (", oP6, ')');

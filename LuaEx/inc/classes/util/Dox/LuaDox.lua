@@ -1,4 +1,4 @@
-return class("DoxLua",
+return class("LuaDox",
 {--metamethods
 
 },
@@ -12,14 +12,16 @@ return class("DoxLua",
 
 },
 {--public
-    DoxLua = function(this, cdat, super)
-        local fBlockTag       = cdat.pro.blockTag;
-        local fBlockTagGroup  = cdat.pro.blockTagGroup;
+    LuaDox = function(this, cdat, super)
+        local fBlockTag         = cdat.pro.blockTag;
+        local fBlockTagGroup    = cdat.pro.blockTagGroup;
+        local eLanguage         = Dox.LANGUAGE.LUA;
         local bRequired         = true;
         local bMultipleAllowed  = true;
+        local bIsModule         = true;
 
         --create the module block fence group
-        local oModuleBlockTagGroup = fBlockTagGroup("Module",    "Modules",   "--[[",   "]]",   "*",    "*",
+        local oModuleBlockTagGroup = fBlockTagGroup("Module",    "Modules",   bIsModule, eLanguage, "*",    "*",
             fBlockTag({"authors"},                        "Authors",          1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"copy", "copyright"},              "Copyright",        1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"depend", "dependencies"},         "Dependencies",     1,  -bRequired,   -bMultipleAllowed),
@@ -29,7 +31,7 @@ return class("DoxLua",
             fBlockTag({"github"},                         "GitHub",           1,  -bRequired,   -bMultipleAllowed),
             fBlockTag({"license"},                        "License",          1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"des", "desc", "description"},     "Description",      1,  -bRequired,   -bMultipleAllowed),
-            fBlockTag({"mod"},                            "Mod",              1,  bRequired,    -bMultipleAllowed),
+            fBlockTag({"module"},                         "Module",           1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"name"},                           "Name",             1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"planned"},                        "Planned Features", 1,  -bRequired,   -bMultipleAllowed),
             fBlockTag({"todo"},                           "TODO",             1,  -bRequired,   -bMultipleAllowed),
@@ -40,11 +42,11 @@ return class("DoxLua",
             fBlockTag({"x", "twitter"},                   "X (Twitter)",      1,  -bRequired,   -bMultipleAllowed));
 
         --create the function block fence group
-        local oFunctionBlockTagGroup = fBlockTagGroup("Function",    "Functions",    "--[[", "]]",  "f!",   "!f",
+        local oFunctionBlockTagGroup = fBlockTagGroup("Function",    "Functions", -bIsModule, eLanguage, "f!",   "!f",
             fBlockTag({"des", "desc", "description"},    "Description",   1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"ex", "example", "examples"},     "Example",       1, -bRequired,   bMultipleAllowed),
             --fBlockTag({"fun", "func", "function"},       "Function",      1,  bRequired,   -bMultipleAllowed),
-            fBlockTag({"mod"},                           "Mod",           1,  bRequired,   -bMultipleAllowed),
+            fBlockTag({"module"},                        "Module",        1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"name"},                          "Name",          2,  bRequired,   -bMultipleAllowed),
             fBlockTag({"parameter", "param"},            "Parameter",     2, -bRequired,   bMultipleAllowed),
             fBlockTag({"return", "ret",},                "Return",        2, -bRequired,   bMultipleAllowed),
@@ -61,7 +63,7 @@ return class("DoxLua",
 
 
 
-        super("DoxLua", {"lua"}, "@", oModuleBlockTagGroup, oFunctionBlockTagGroup);
+        super("DoxLua", "@", eLanguage, oModuleBlockTagGroup, oFunctionBlockTagGroup);
     end,
 },
 Dox,    --extending class

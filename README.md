@@ -191,7 +191,66 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 - QoL methods and properties like ***next***, ***previous***, etc.
 
 ##### Structs
- - Structs working but description not complete. ***TODO***
+ - Structs working but description not complete. ***TODO***  
+
+<details>
+<summary>View Code</summary>
+
+ ```lua
+--create a mutable bullet struct table
+local bImmutable = false; --set this to true to disallow value changes
+local tBullet = {
+    speed   = 5,
+    damage  = 10,
+    caliber = "9mm",
+    owner   = null, --this type can be set later by each bullet created
+};
+
+--create the struct factory
+xBullet = structfactory("bullet", tBullet, bImmutable);
+
+--print the details of the struct factory
+print("Bullet factory:\n", xBullet);
+
+--print the factory's type and subtype
+print("Factory's Type - Subtype :\n", type(xBullet), " - ",subtype(xBullet));
+
+--let's make a bullet with the default values
+local oBullet1 = xBullet();
+
+--print the first bullet
+print("\n\nBullet #1:\n", oBullet1);
+
+--print the bullet's type and subtype
+print("Bullet #1's Type - Subtype :\n", type(oBullet1), " - ",subtype(oBullet1));
+
+--let's make another but with some custom initial values
+local oBullet2 = xBullet({damage = 25, caliber = ".30-06"});
+
+--print the second bullet
+print("\n\nBullet #2:\n", oBullet2);
+
+--clone oBullet1
+local oBullet1Clone = clone(oBullet1);
+
+--print the clone's details
+print("\n\nBullet #1 Cloned:\n", oBullet1Clone);
+
+--make some changes to oBullet1
+oBullet1.speed = 35;
+--print the bullet's caliber and speed
+print("\n\nBullet #1 Caliber: ", oBullet1.caliber);
+print("\n\nBullet #1's New Speed: ", oBullet1.speed);
+
+--serialize oBullet1 and print it
+local zBullet1 = serialize(oBullet1);
+print("\n\nBullet #1 Serialized:\n", zBullet1);
+
+--deserialize it (creating a new struct object) and show it's type and details
+local oBullet1Deserialized = deserialize(zBullet1);
+print("\n\nBullet #1 Deerialized:\n", "type: "..type(oBullet1Deserialized).."\n", oBullet1Deserialized);
+```
+</details>
 
 ##### Arrays
 - The **array** object behaves like traditional arrays in as many ways as is possible in **Lua**.
@@ -202,7 +261,90 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 - Initializing with a number—e,g., aMyArray = **array**(*nLength*)—all values are set to **null** and the **array** type is set upon the first value assignment.
 - Strict bounds checking upon assignment/retrieval.
 - Returns **null** value for unassigned values in numerically-instantiated **array**.
-- Obligatory methods such as ***sort***, ***clear***, ***copy***, ***clone***, etc.
+- Obligatory methods such as ***sort***, ***clear***, ***copy***, ***clone***, etc.  
+
+<details>
+<summary>View Code</summary>  
+
+```lua
+--initialized with a size, but no type.
+local aPet = array(5);
+
+--show some info on the aPet array
+print("aPets is an "..type(aPet).." made by the "..type(array)..'.');
+
+--print the value at index 5 (null)
+print("aPet[3] -> "..tostring(aPet[3]));
+
+--initialized with a size and type.
+local aNoPet = array({"Aligator", "T-Rex", "Rino", "Leech", "Dragon"});
+
+--print the aNoPet array
+print("aNoPet (Don't pet these things! Stop it, no pet!) -> ", aNoPet);
+
+--add some items to the aPet array (and set the type with the first assignment)
+aPet[1] = "Cat";
+aPet[2] = "Frog";
+aPet[3] = "Doggo";
+aPet[4] = "Lizard";
+--aPet[4] = 45; --this will throw an error for trying to set a different type
+aPet[5] = "Bunny";
+
+--print the aPet array
+print("aPet (It's okay, you can pet these ones.) -> ", aPet);
+
+--access some items by index
+print("Don't pet the "..aNoPet[3]..'! But, you can pet the '..aPet[1]..'.');
+
+--iterate over one of the arrays using the built-in iterator
+for nIndex, sValue in aNoPet() do
+    print("No pet the "..sValue..'!');
+end
+
+--show the legth of an array
+print("There are "..aPet.length.." animals you can pet.");
+
+--sort and print the arrays
+aPet.sort();
+aNoPet.sort()
+
+print("\naPet Sorted: -> "..tostring(aPet));
+print("aNoPet Sorted: -> "..tostring(aNoPet));
+
+--reverse sort the aNoPet array and print the results
+aNoPet.sort(function(a, b) return a > b end)
+print("aNoPet Reverse Sorted: -> "..tostring(aNoPet));
+
+print("\n")
+
+--you can create arrays of any single type (including functions)
+local aMethods = array(3);
+aMethods[1] = function()
+    print("You can make an array of functions/methods.");
+end
+aMethods[2] = function(...)
+    local sOutput = "You can referene the aMethods "..type(aMethods)..".\n";
+    sOutput = sOutput.."\nThen, you can do whatever else you want even setting the other items."
+
+    if (type(aMethods[3]) == "null") then
+        aMethods[3] = function()
+            print("Calling aMethods[2] will print this very boring message.");
+        end
+
+    end
+
+    print(sOutput);
+end
+
+aMethods[1]();
+aMethods[2]();
+aMethods[3]();
+
+--TODO clone and copy examples
+local aCloned = clone(aNoPet);
+print(aCloned)
+```
+</details>
 
 
 ##### Notes on Factories
@@ -277,7 +419,7 @@ For their benefit and my own, I take user feedback seriously and address and app
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
 **LuaEx** is designed for **Lua 5.3**; however, I will make every possible effort to make it backward compatible with the latest version of **Lua 5.1**.  
 To that end, if you're using **Lua 5.1** and come across a bug that appears specific to that version, please submit a issue and I'll address it.  
-Please keep in mind, if there is ever an intractable conflict between **Lua 5.1** and **Lua 5.3**, **Lua 5.3** will always take precedence.
+Please keep in mind, if there is ever an intractable conflict between **Lua 5.1** and **Lua 5.3**, **Lua 5.3** will ***always*** take precedence.
 
 ## 🆁🅴🆂🅾🆄🆁🅲🅴🆂 ⚒
 - Logo: https://cooltext.com/
@@ -363,7 +505,7 @@ Please keep in mind, if there is ever an intractable conflict between **Lua 5.1*
 **v0.50**
 - Bugfix: ***table.lock*** was altering the metatable of **enums** when it should not have been.
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible).
-- Change: classes are no longer automatically added to the global scope when created; rather, they are returned	for the calling script to handle.
+- Change: classes are no longer automatically added to the global scope when created; rather, they are returned for the calling script to handle.
 - Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
 - Change: **enums** values may now be of any non-nil type(previously only **string** and **number** were allowed).
 - Feature: **class** constructor methods now pass, not only the instance, but a protected, shared (fields and methods) table to parent classes.
@@ -470,7 +612,75 @@ LuaEx does ship with a few, basic classes and interfaces.
 - ##### Set *(in progress-90%)*
 - ##### Stack      *(in progress-90%)*
 - ##### Ini        *(in progress-70%)*
-- ##### Point      *(in progress-90%)*
+- ##### Point
+    A basic point class with obligatory methods and properties.
+
+    <details>
+    <summary>View Example</summary>  
+
+    ```lua
+    --create new points and print them
+    local oP1 = Point(-5, -8);
+    local oP2 = Point(0, 7);
+    local oP3 = Point(-10, 16);
+    local oP4 = Point(6, -12);
+
+    print("P1: ", oP1);
+    print("P2: ", oP2);
+    print("P3: ", oP3);
+    print("P4: ", oP4);
+
+    --serialize P1
+    local sP1 = serialize(oP1);
+    print("\n\nP1 Serialized: "..sP1);
+    --deserialize P1
+    local oP1_1 = deserialize(sP1);
+    print("\nP1 Deserialized: ", oP1_1);
+
+    --get the points' cartesian position
+    print("\nP1 Position: ",    oP1.getQuadrant());
+    print("P2 Position: ",      oP2.getQuadrant());
+    print("P3 Position: ",      oP3.getQuadrant());
+    print("P4 Position: ",      oP4.getQuadrant());
+
+    --change points' values
+    print("\nChanging values...")
+    oP1.setX(0);
+    oP2.setY(0);
+    oP3.set(4, 20);
+    oP4.setY(0);
+
+    print("P1: ", oP1);
+    print("P2: ", oP2);
+    print("P3: ", oP3);
+    print("P4: ", oP4);
+
+    print("\nP1 Position: ",    oP1.getQuadrant());
+    print("P2 Position: ",      oP2.getQuadrant());
+    print("P3 Position: ",      oP3.getQuadrant());
+    print("P4 Position: ",      oP4.getQuadrant());
+
+    --negatation
+    print("\nNegation");
+    print("P1: ", -oP1);
+    print("P2: ", -oP2);
+    print("P3: ", -oP3);
+    print("P4: ", -oP4);
+
+    --cloning and other things
+    local oP1Clone = clone(oP1);
+    print("\nP1 Cloned: ", oP1Clone);
+    --test equality of the original to the clone
+    print("P1 == oP1Clone: ", oP1 == oP1Clone);
+    --create a new point by adding two points
+    local oP5 = oP1 + oP3;
+    print("\nP1 + P3 = P5:\n(", oP1, ") + (", oP3, ") = (", oP5, ')');
+    --create another new point by adding two points
+    local oP6 = oP1 - oP3;
+    print("\nP1 - P3 = P6:\n(", oP1, ") - (", oP3, ") = (", oP6, ')');
+
+    ```    
+    </details>
 - ##### Line       *(in progress-90%)*
 - ##### Shape
 - ##### Circle     *(in progress-70%)*

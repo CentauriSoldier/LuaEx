@@ -234,7 +234,6 @@ if (tClassLoadValues[_nClassSystem]) then
         Stack               = require("LuaEx.inc.classes.Stack");
         Set                 = require("LuaEx.inc.classes.Set");
         SortedDictionary    = require("LuaEx.inc.classes.SortedDictionary");
-        --OrderedSet = require("LuaEx.inc.classes.OrderedSet");
 
         if (tClassLoadValues[_nComponentClasses]) then
             --component classes
@@ -254,7 +253,7 @@ if (tClassLoadValues[_nClassSystem]) then
             if (tClassLoadValues[_nUtilClasses]) then
                 --dox and included language classes
                 Dox    = require("LuaEx.inc.classes.util.Dox");
-                DoxLua = require("LuaEx.inc.classes.util.Dox.DoxLua");
+                LuaDox = require("LuaEx.inc.classes.util.Dox.LuaDox");
 
                 --ini
                 Ini    = require("LuaEx.inc.classes.util.Ini"); --TODO need to finish OrderedSet first

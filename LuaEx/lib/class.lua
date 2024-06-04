@@ -91,7 +91,7 @@ local type              = type;
 
 --WARNING   changing these values can break the entire system; modify at your own risk
 --NOTE      when modifying/adding/removing items in this table, be sure to update them in instance.wrapMetamethods()
-local tMetaNames = { --the value indicates whether the index is allowed
+local _tMetaNames = { --the value indicates whether the index is allowed
 __add 		= true,     __band        = true,     __bnot      = true,
 __bor 		= true,     __bxor        = true,	  __call      = true,
 __close     = false,    __concat 	  = true,     __div	      = true,
@@ -108,7 +108,7 @@ local function getMetaNamesAsString()
     local sRet              = "";
     local tSortedMetaNames  = {};
 
-    for sName, _ in pairs(tMetaNames) do
+    for sName, _ in pairs(_tMetaNames) do
         table.insert(tSortedMetaNames, sName);
     end
 
@@ -173,7 +173,7 @@ local kit = {
                                 ╚██████╗███████╗██║  ██║███████║███████║
                                 ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝]]
 
-
+--TODO ERROR BUG FIX interfaces are throwing an error for missing metamethods even though parents have them
 --[[f!
 @module class
 @func class.build
@@ -642,7 +642,7 @@ function instance.setMetatable(tInstance, tClassData)
     local oInstance = tInstance.decoy;
 
     --iterate over all metanames
-    for sMetamethod, bAllowed in pairs(tMetaNames) do
+    for sMetamethod, bAllowed in pairs(_tMetaNames) do
 
         if (bAllowed) then --only add if it's allowed
             local fMetamethod = tInstance.met[sMetamethod] or nil; --check if the metamethod exists in this class
@@ -815,9 +815,6 @@ end
 @desc Imports a kit for later use in building class objects
 @ret class Class Returns the class returned from the kit.build() tail call.
 !f]]
-function kit.buildPrivate()
-
-end
 function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, bIsFinal, ...)
     local tInterfaces = {...} or arg;
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
@@ -1220,7 +1217,7 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
     for sMetaItem, vMetaItem in pairs(tMetamethods) do
         local sMetaname = sMetaItem:gsub("_FNL$", '');--TODO form string above forloop using constant
         --print(sMetaItem, sMetaname)
-        assert(tMetaNames[sMetaname],
+        assert(_tMetaNames[sMetaname],
                 "Error creating class, '${class}'. Invalid metamethod, '${metaname}'.\nPermitted metamethods are:\n${metanames}" %
                 {class = sName, metaname = sMetaname, metanames = getMetaNamesAsString()});
 

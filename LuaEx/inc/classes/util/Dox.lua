@@ -12,10 +12,259 @@ local string    = string;
 local table     = table;
 local type      = type;
 
+
+
+local tLanguage = {
+    ["Ada"] = {
+        fileTypes = {".adb", ".ads"},
+        comment = {
+            open = "--",
+            close = "--"
+        }
+    },
+    ["Assembly (NASM)"] = {
+        fileTypes = {".asm", ".s"},
+        comment = {
+            open = "%{",
+            close = "%}"
+        }
+    },
+    ["C"] = {
+        fileTypes = {".c", ".h"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["C++"] = {
+        fileTypes = {".cpp", ".cxx", ".cc", ".h", ".hh", ".hpp"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["CSS"] = {
+        fileTypes = {".css"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Dart"] = {
+        fileTypes = {".dart"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Elm"] = {
+        fileTypes = {".elm"},
+        comment = {
+            open = "{-",
+            close = "-}"
+        }
+    },
+    ["F#"] = {
+        fileTypes = {".fs"},
+        comment = {
+            open = "(*",
+            close = "*)"
+        }
+    },
+    ["Fortran"] = {
+        fileTypes = {".f90"},
+        comment = {
+            open = "!",
+            close = ""
+        }
+    },
+    ["Go"] = {
+        fileTypes = {".go"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Groovy"] = {
+        fileTypes = {".groovy"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Haskell"] = {
+        fileTypes = {".hs"},
+        comment = {
+            open = "{-",
+            close = "-}"
+        }
+    },
+    ["HTML"] = {
+        fileTypes = {".html"},
+        comment = {
+            open = "<!--",
+            close = "-->"
+        }
+    },
+    ["Lua"] = {
+        fileTypes = {".lua"},
+        comment = {
+            open = "--[[",
+            close = "]]"
+        }
+    },
+    ["Java"] = {
+        fileTypes = {".java"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["JavaScript"] = {
+        fileTypes = {".js"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Julia"] = {
+        fileTypes = {".jl"},
+        comment = {
+            open = "#=",
+            close = "=#"
+        }
+    },
+    ["Kotlin"] = {
+        fileTypes = {".kt", ".kts"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Matlab"] = {
+        fileTypes = {".m"},
+        comment = {
+            open = "%{",
+            close = "%}"
+        }
+    },
+    ["Objective-C"] = {
+        fileTypes = {".m", ".h"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Perl"] = {
+        fileTypes = {".pl", ".pm"},
+        comment = {
+            open = "=pod",
+            close = "=cut"
+        }
+    },
+    ["PHP"] = {
+        fileTypes = {".php"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Python"] = {
+        fileTypes = {".py"},
+        comment = {
+            open = '"""',
+            close = '"""'
+        }
+    },
+    ["Ruby"] = {
+        fileTypes = {".rb"},
+        comment = {
+            open = "=begin",
+            close = "=end"
+        }
+    },
+    ["Rust"] = {
+        fileTypes = {".rs"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Scala"] = {
+        fileTypes = {".scala"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["Swift"] = {
+        fileTypes = {".swift"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["TypeScript"] = {
+        fileTypes = {".ts"},
+        comment = {
+            open = "/*",
+            close = "*/"
+        }
+    },
+    ["XML"] = {
+        fileTypes = {".xml"},
+        comment = {
+            open = "<!--",
+            close = "-->"
+        }
+    },
+    -- Add more languages as needed
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local tRequiredGroupBlockTags;
 tRequiredGroupBlockTags = setmetatable(--these block tags must exist within each dox block tag group
 {
-    [1] = "mod",
+    [1] = "module",
     [2] = "name",
 },
 {
@@ -51,9 +300,20 @@ tRequiredGroupBlockTags = setmetatable(--these block tags must exist within each
     @param pattern A string containing the pattern to be escaped.
     @ret Returns the escaped string with special characters prefixed by a `%`.
 !f]]
-local function escapePattern(pattern)
+local function escapePatternOLD(pattern)
     return pattern:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
 end
+
+local function escapePattern(pattern)
+    -- Escape special characters in the pattern
+    local escapedPattern = pattern:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+
+    -- Remove leading and trailing whitespace from the escaped pattern
+    escapedPattern = escapedPattern:gsub("^%s*(.-)%s*$", "%1")
+
+    return escapedPattern
+end
+
 
 
 --[[
@@ -160,6 +420,7 @@ local DoxBlockTagGroup = class("DoxBlockTagGroup",
     {--private
         blockTags = {},
         close       = "",
+        language    = null,
         name        = "",
         namePlural  = "",
         open        = "",
@@ -168,20 +429,26 @@ local DoxBlockTagGroup = class("DoxBlockTagGroup",
 
     },
     {--public
-        DoxBlockTagGroup = function(this, cdat, sName, sNamePlural, sCommentOpen, sCommentClose, sOpen, sClose, ...)
-            type.assert.string(sName,        "%S+", "Dox block tag group name must not be blank.");
-            type.assert.string(sNamePlural,  "%S+", "Dox block tag group plural name must not be blank.");
-            type.assert.string(sCommentOpen, "%S+", "Dox block tag group comment open symbol(s) must not be blank.");
-            type.assert.string(sCommentClose,"%S+", "Dox block tag group comment close symbol(s) must not be blank.");
-            type.assert.string(sOpen,        "%S+", "Dox block tag group open symbol(s) must not be blank.");
-            type.assert.string(sClose,       "%S+", "Dox block tag group close symbol(s) must not be blank.");
+        DoxBlockTagGroup = function(this, cdat, sName, sNamePlural, bIsModule, eLanguage, sOpen, sClose, ...)
+            type.assert.string(sName,         "%S+", "Dox block tag group name must not be blank.");
+            type.assert.string(sNamePlural,   "%S+", "Dox block tag group plural name must not be blank.");
+            bIsModule = rawtype(bIsModule) == "boolean" and bIsModule or false;
+            type.assert.custom(eLanguage,     "DoxLanguage");
+            --type.assert.string(sCommentOpen, "%S+", "Dox block tag group comment open symbol(s) must not be blank.");
+            --type.assert.string(sCommentClose,"%S+", "Dox block tag group comment close symbol(s) must not be blank.");
+            type.assert.string(sOpen,         "%S+", "Dox block tag group open symbol(s) must not be blank.");
+            type.assert.string(sClose,        "%S+", "Dox block tag group close symbol(s) must not be blank.");
 
 
             local pri = cdat.pri;
+            pri.language       = eLanguage;
             pri.name           = sName;
             pri.namePlural     = sNamePlural
-            pri.open           = sCommentOpen..sOpen;   --These have to be separated in the args to prevent...
-            pri.close          = sClose..sCommentClose; --...dox from seeing them as actual tags to parse
+            --pri.open           = sCommentOpen..sOpen;   --These have to be separated in the args to prevent...
+            --pri.close          = sClose..sCommentClose; --...dox from seeing them as actual tags to parse
+            local tLanguageDetails = tLanguage[eLanguage.value];
+            pri.open           = tLanguageDetails.comment.open..sOpen;
+            pri.close          = sClose..tLanguageDetails.comment.close;
 
             --a table to track all required tags
             local nRequiredTags         = #tRequiredGroupBlockTags;
@@ -189,7 +456,7 @@ local DoxBlockTagGroup = class("DoxBlockTagGroup",
 
             local tBlockTags = pri.blockTags;
             for _, oBlockTag in pairs({...} or arg) do
-                --TODO QUESTION should i check that this tag is set to bRequired in the input?
+                --TODO QUESTION should i check that this tag is set to bRequired in the input or just internally enforce it later?
                 for nIndex, sTag in tRequiredGroupBlockTags() do
 
                     if (not (tRequiredTagsFound[nIndex]) and oBlockTag.hasRequired(sTag) ) then
@@ -262,6 +529,23 @@ local DoxModule = class("DoxModule",
 {--private
     moduleBlockTagGroup = null,
     name = "",
+    parseBlock = function(this, cdat, tBlock, bIsModule)
+        local pri                   = cdat.pri;
+        local oModules              = pri.modules;
+        local oModuleBlockTagGroup  = pri.moduleBlockTagGroup;
+        local fBlockTagGroups       = cdat.pub.blockTagGroups;
+
+        if (bIsModule) then
+
+        else
+            --TODO LEFT OFF HERE ...
+            for oBlockTagGroup in fBlockTagGroups() do
+                print(serialize(tBlock));
+            end
+
+        end
+
+    end,
 },
 {--protected
 
@@ -302,12 +586,17 @@ return class("Dox",
 },
 {--static public
     MIME = enum("MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
+    LANGUAGE = enum("DoxLanguage", {"ADA", "ASSEMBLY_NASM", "C", "C_SHARP", "C_PLUS_PLUS", "CSS", "DART", "ELM", "F_SHARP", "FORTRAN", "GO", "GROOVY", "HASKELL", "HTML", "JAVA", "JAVASCRIPT", "JULIA", "KOTLIN", "LUA", "MATLAB", "OBJECTIVE_C", "PERL", "PHP", "PYTHON", "RUBY", "RUST", "SCALA", "SWIFT", "TYPESCRIPT", "XML"},
+                                {"Ada", "Assembly (NASM)", "C", "C#", "C++", "CSS", "Dart", "Elm", "F#", "Fortran", "Go", "Groovy", "Haskell", "HTML", "Java", "JavaScript", "Julia", "Kotlin", "Lua", "Matlab", "Objective-C", "Perl", "PHP", "Python", "Ruby", "Rust", "Scala", "Swift", "TypeScript", "XML"}),
+
 },
 {--private
     blockTagGroups      = {}, --this contains groups of block tags group objects
     moduleBlockTagGroup = null,
-    mimeTypes           = null,
+    language            = null,
+    --mimeTypes           = null,
     modules             = SortedDictionary(), --module objects indexed (and sorted) by name
+    orphanBlocks        = {},
     name                = "",
     snippetClose        = "", --QUESTION How will this work now that we're using mutiple tag groups?
     snippetOpen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
@@ -329,12 +618,18 @@ return class("Dox",
             local sEscapedOpen   = escapePattern(sOpen);
             local sEscapedClose  = escapePattern(sClose);
 
+            --sEscapedOpen = sEscapedOpen:match("^%s*(.-)%s*$")
+   --sEscapedClose = sEscapedClose:match("^%s*(.-)%s*$")
+
             if not (tRet[sBlockTagGroupName]) then
                 tRet[sBlockTagGroupName] = {};
             end
 
-            for sMatch in sInput:gmatch(sEscapedOpen .. "(.-)" .. sEscapedClose) do
-                table.insert(tRet[sBlockTagGroupName], fTrim(sMatch));
+            --local sPattern = sEscapedOpen .. "(.-)" .. sEscapedClose
+            local sPattern = sEscapedOpen.."(.-)"..sEscapedClose
+
+            for sMatch in sInput:gmatch(sPattern) do
+                table.insert(tRet[sBlockTagGroupName], fTrim(sMatch));--TODO these block can contain leading whitespace, get rid of it during processing
             end
 
                 return tRet;
@@ -354,23 +649,6 @@ return class("Dox",
             end
 
         return tModuleBlocks, tBlocks;
-    end,
-    parseBlock = function(this, cdat, tBlock, bIsModule)
-        local pri                   = cdat.pri;
-        local oModules              = pri.modules;
-        local oModuleBlockTagGroup  = pri.moduleBlockTagGroup;
-        local fBlockTagGroups       = cdat.pub.blockTagGroups;
-
-        if (bIsModule) then
-
-        else
-            --TODO LEFT OFF HERE ...
-            for oBlockTagGroup in fBlockTagGroups() do
-                print(serialize(tBlock));
-            end
-
-        end
-
     end,
     processString = function(this, cdat, sInput)
         local pri                   = cdat.pri;
@@ -403,8 +681,7 @@ return class("Dox",
         end
 
         for _, tBlock in pairs(tBlocks) do
-            local tParsed = pri.parseBlock(tBlock, false);
-
+            --local tParsed = pri.parseBlock(tBlock, false);
         end
 
         return tModuleBlocks, tBlocks;
@@ -415,14 +692,17 @@ return class("Dox",
     blockTagGroup   = DoxBlockTagGroup,
 },
 {--public
-    Dox = function(this, cdat, sName, tMimeTypes, sTagOpen, oModuleBlockTagGroup, ...)--TODO take moduleinfo, struct, enum and constant block tags too
+    Dox = function(this, cdat, sName, sTagOpen, eLanguage, oModuleBlockTagGroup, ...)--TODO take moduleinfo, struct, enum and constant block tags too
         type.assert.string(sName,    "%S+", "Dox subclass name must not be blank.");
         type.assert.string(sTagOpen, "%S+", "Open tag symbol must not be blank.");
+        type.assert.custom(eLanguage, "DoxLanguage");
         type.assert.custom(oModuleBlockTagGroup, "DoxBlockTagGroup");
-        type.assert.table(tMimeTypes, "number", "string", 1);
+        --type.assert.table(tMimeTypes, "number", "string", 1);
 
         local pri               = cdat.pri;
-        pri.mimeTypes           = Set(tMimeTypes);
+        --pri.mimeTypes           = Set();
+        --TODO add mime types from language
+        pri.language            = eLanguage;
         pri.name                = sName;
         pri.tagOpen             = sTagOpen;
         pri.moduleBlockTagGroup = oModuleBlockTagGroup;

@@ -3,70 +3,6 @@ local class         = class;
 local pairs         = pairs;
 local rawtype       = rawtype;
 local table         = table;
-local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
-
---[[!
-    @module Set
-    @func addItem
-    @scope static private
-    @desc Adds an item to the Set.
-    @param Set oSet The Set upon which to operate.
-    @param table cdat The instance class data table.
-    @param any vItem The item to add to the Set.
-    @ret boolean True if the item was added successfully, false otherwise.
-!]]
-addItem = function(cdat, vItem)
-    local bRet = false;
-
-    if (rawtype(vItem) ~= "nil") then
-
-        if (not cdat.pri.set[vItem]) then
-            cdat.pri.set[vItem] 		    = true;
-            cdat.pri.size 				    = cdat.pri.size + 1;
-            cdat.pri.indexed[cdat.pri.size] = vItem;
-
-            bRet = true;
-        end
-
-    end
-
-    return bRet;
-end
-
-
---[[!
-    @module Set
-    @func removeItem
-    @scope static private
-    @desc Removes an item from the Set.
-    @param Set oSet The Set upon which to operate.
-    @param table cdat The instance class data table.
-    @param any vItem The item to remove from the Set.
-    @ret boolean True if the item was removed successfully, false otherwise.
-!]]
-removeItem = function(cdat, vItem)
-    local bRet = false;
-
-    if (cdat.pri.set[vItem] ~= nil) then
-        cdat.pri.set[vItem] = nil;
-
-        for x = 1, cdat.pri.size do
-
-            if (cdat.pri.indexed[x] == vItem) then
-                table.remove(cdat.pri.indexed, x);
-                break;
-            end
-
-        end
-
-        cdat.pri.size = cdat.pri.size - 1;
-
-        bRet = true;
-    end
-
-    return bRet;
-end
-
 
 return class("Set",
 {--metamethods
@@ -81,22 +17,23 @@ return class("Set",
     @ret Set A new Set containing items that are the union of this Set and the other.
     !]]
     __add = function(left, right, cdat)
+        local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
         assert(type(left)   == "Set", sOtherError % {method = "__add"}..type(left)..'.');
-        assert(type(right)  == "Set", sOtherError % {method = "__add"}..type(right)..'.');
+        assert(type(right)  == "Set", sOtherError % {method = "__add"}..type(right)..'.');--TODO these should be isa assertions so subclasses can use them
 
-        local oRet      = Set();
+        local oRet      = Set();--TODO also this...?
         local newcdat   = cdat.ins[oRet];
         local leftcdat  = cdat.ins[left];
         local rightcdat = cdat.ins[right];
 
         --add this Set's items to the new Set
-        for nIndex, vItem in pairs(leftcdat.pri.indexed) do
-            addItem(newcdat, vItem);
+        for nIndex, vItem in pairs(leftcdat.pro.indexed) do
+            newcdat.pro.addItem(vItem);
         end
 
         --add the other Set items to the new Set
-        for nIndex, vItem in pairs(rightcdat.pri.indexed) do
-            addItem(newcdat, vItem);
+        for nIndex, vItem in pairs(rightcdat.pro.indexed) do
+            newcdat.pro.addItem(vItem);
         end
 
         return oRet;
@@ -112,13 +49,13 @@ return class("Set",
     !]]
     __call = function(this, cdat)
         local nIndex = 0;
-           local nMax = cdat.pri.size;
+           local nMax = cdat.pro.size;
 
         return function()
             nIndex = nIndex + 1;
 
             if (nIndex <= nMax) then
-                return cdat.pri.indexed[nIndex];
+                return cdat.pro.indexed[nIndex];
             end
 
         end
@@ -138,18 +75,19 @@ return class("Set",
    @ret boolean True if the two Sets are equal, false otherwise.
    !]]
    __eq = function(left, right, cdat)
+       local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
        assert(type(left)   == "Set", sOtherError % {method = "__eq"}..type(left)..'.');
        assert(type(right)  == "Set", sOtherError % {method = "__eq"}..type(right)..'.');
        local leftcdat  = cdat.ins[left];
        local rightcdat = cdat.ins[right];
 
        --start by checking their size
-       local bRet = leftcdat.pri.size == rightcdat.pri.size;
+       local bRet = leftcdat.pro.size == rightcdat.pro.size;
 
        --check each value for existence in the other Set
-       for nIndex, vItem in pairs(leftcdat.pri.indexed) do
+       for nIndex, vItem in pairs(leftcdat.pro.indexed) do
 
-           if (rawtype(rightcdat.pri.set[vItem]) == "nil") then
+           if (rawtype(rightcdat.pro.set[vItem]) == "nil") then
                bRet = false;
                break;
            end
@@ -168,7 +106,7 @@ return class("Set",
    @ret number The number of elements in the Set.
    !]]
    __len = function(this, cdat)
-      return cdat.pri.size;
+      return cdat.pro.size;
     end,
 
 
@@ -181,6 +119,7 @@ return class("Set",
    @ret Set A new Set containting values that are in this Set but not in the other Set.
    !]]
    __sub = function(left, right, cdat)
+       local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
        assert(type(left)    == "Set", sOtherError % {method = "__sub"}..type(left)..'.');
        assert(type(right)   == "Set", sOtherError % {method = "__sub"}..type(right)..'.');
 
@@ -190,10 +129,10 @@ return class("Set",
        local rightcdat = cdat.ins[right];
 
        --iterate over the left Set
-       for nIndex, vItem in pairs(leftcdat.pri.indexed) do
+       for nIndex, vItem in pairs(leftcdat.pro.indexed) do
 
-           if not (rightcdat.pri.set[vItem]) then
-               addItem(newcdat, vItem);
+           if not (rightcdat.pro.set[vItem]) then
+               newcdat.pro.addItem(vItem);
            end
 
        end
@@ -214,20 +153,94 @@ return class("Set",
     __tostring = function(this, cdat)--TODO allow table serialization
         local sRet = "{";
 
-        for nIndex, vItem in pairs(cdat.pri.indexed) do
+        for nIndex, vItem in pairs(cdat.pro.indexed) do
             sRet = sRet..tostring(vItem)..", ";
         end
 
         return sRet:sub(1, #sRet - 2).."}";
     end,
 },
-{},--static public
-{--private
+{
+    --[[!
+    @mod Set
+    @func Set.deserialize
+    @scope static public
+    @desc Deserializes the Set object from a string.
+    !]]
+    deserialize = function(this, cdat)
+        return "ERROR: Set.deserialize method still in development.";
+    end,
+},--static public
+{},--private
+{
     indexed = {},
     set		= {},
     size 	= 0,
-},
-{},--protected
+    --[[!
+        @module Set
+        @func addItem
+        @scope protected
+        @desc Adds an item to the Set.
+        @param Set oSet The Set upon which to operate.
+        @param table cdat The instance class data table.
+        @param any vItem The item to add to the Set.
+        @ret boolean True if the item was added successfully, false otherwise.
+    !]]
+    addItem = function(this, cdat, vItem)
+        local bRet = false;
+
+        if (rawtype(vItem) == "nil") then
+            error("Error adding item to Set. Nil value given.", 3);
+        end
+
+        if (not cdat.pro.set[vItem]) then
+            cdat.pro.set[vItem] 		    = true;
+            cdat.pro.size 				    = cdat.pro.size + 1;
+            cdat.pro.indexed[cdat.pro.size] = vItem;
+
+            bRet = true;
+        end
+
+
+        return bRet;
+    end,
+    --[[!
+        @module Set
+        @func removeItem
+        @scope protected
+        @desc Removes an item from the Set.
+        @param Set oSet The Set upon which to operate.
+        @param table cdat The instance class data table.
+        @param any vItem The item to remove from the Set.
+        @ret boolean True if the item was removed successfully, false otherwise.
+    !]]
+    removeItem = function(this, cdat, vItem)
+        local bRet = false;
+
+        if (rawtype(vItem) == "nil") then
+            error("Error removing item from Set. Nil value given.", 3);
+        end
+
+        if (cdat.pro.set[vItem] ~= nil) then
+            cdat.pro.set[vItem] = nil;
+
+            for x = 1, cdat.pro.size do
+
+                if (cdat.pro.indexed[x] == vItem) then
+                    table.remove(cdat.pro.indexed, x);
+                    break;
+                end
+
+            end
+
+            cdat.pro.size = cdat.pro.size - 1;
+
+            bRet = true;
+        end
+
+        return bRet;
+    end,
+},--protected
 {--public
     --[[!
     @module Set
@@ -236,12 +249,12 @@ return class("Set",
     @param table|nil A table of items to add to the Set (optional).
     @desc Constructs a new Set object.
     !]]
-    Set = function(cdat, cdat, tItems)
+    Set = function(this, cdat, tItems)
 
         if (type(tItems) == "table") then
 
             for _, vItem in pairs(tItems) do
-                addItem(cdat, vItem);
+                cdat.pro.addItem(vItem);
             end
 
         end
@@ -259,7 +272,7 @@ return class("Set",
     @ret Set The Set object after adding the item.
     !]]
     add = function(this, cdat, vItem)
-        addItem(cdat, vItem);
+        cdat.pro.addItem(vItem);
         return this;
     end,
 
@@ -272,19 +285,12 @@ return class("Set",
     @ret Set The Set object after adding the item.
     !]]
     clear = function(this, cdat)
-        cdat.pri.indexed = {};
-        cdat.pri.set 	 = {};
-        cdat.pri.size 	 = 0;
+        cdat.pro.indexed = {};
+        cdat.pro.set 	 = {};
+        cdat.pro.size 	 = 0;
 
         return this;
     end,
-
-
-    --[[
-    clone = function(this, cdat)
-
-    end,
-    ]]
 
 
     --[[!
@@ -296,18 +302,7 @@ return class("Set",
     @ret boolean Returns true if the Set contains the item, false otherwise.
     !]]
     contains = function(this, cdat, vItem)
-        return cdat.pri.set[vItem] ~= nil;
-    end,
-
-
-    --[[!
-    @mod Set
-    @func Set.deserialize
-    @scope public
-    @desc Deserializes the Set object from a string.
-    !]]
-    deserialize = function(this, cdat)
-        return "ERROR: Set.deserialize method still in development.";
+        return cdat.pro.set[vItem] ~= nil;
     end,
 
 
@@ -320,11 +315,12 @@ return class("Set",
     @ret Set This Set object after adding the items found in the other Set.
     !]]
     importSet = function(this, cdat, other)
+        local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
         assert(type(other) == "Set", sOtherError % {method = "addSet"}..type(other)..'.');
         local othercdat = cdat.ins[other];
 
-        for nIndex, vItem in ipairs(othercdat.pri.indexed) do
-            addItem(cdat, vItem);
+        for nIndex, vItem in ipairs(othercdat.pro.indexed) do
+            cdat.pro.addItem(vItem);
         end
 
         return this;
@@ -340,15 +336,16 @@ return class("Set",
     @ret Set A new Set containting values that intersect with this Set and the other Set.
     !]]
     intersection = function(this, cdat, other)
+        local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
         assert(type(other) == "Set", sOtherError % {method = "intersection"}..type(other)..'.');
         local oRet      = Set();
         local newcdat   = cdat.ins[oRet];
         local othercdat = cdat.ins[other];
 
-        for nIndex, vItem in pairs(cdat.pri.indexed) do
+        for nIndex, vItem in pairs(cdat.pro.indexed) do
 
-            if (rawtype(othercdat.pri.set[vItem]) ~= "nil") then
-                addItem(newcdat, vItem);
+            if (rawtype(othercdat.pro.set[vItem]) ~= "nil") then
+                newcdat.pro.addItem(vItem);
             end
 
         end
@@ -365,7 +362,7 @@ return class("Set",
     @ret boolean Returns true if the Set is empty, false otherwise.
     !]]
     isEmpty = function(this, cdat)
-        return cdat.pri.size < 1;
+        return cdat.pro.size < 1;
     end,
 
 
@@ -378,13 +375,14 @@ return class("Set",
     @ret boolean Returns true if the other Set is a subset of this Set, false otherwise.
     !]]
     isSubSet = function(this, cdat, other)--TODO use cdat
+        local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
         assert(type(other) == "Set", sOtherError % {method = "isSubset"}..type(other)..'.');--TODO make this work children
         local bRet = true;
         local othercdat = cdat.ins[other];
 
-        for nIndex, vItem in pairs(cdat.pri.indexed) do
+        for nIndex, vItem in pairs(cdat.pro.indexed) do
 
-            if (rawtype(othercdat.pri.set[vItem]) == "nil") then
+            if (rawtype(othercdat.pro.set[vItem]) == "nil") then
                 bRet = false;
                 break;
             end
@@ -418,13 +416,14 @@ return class("Set",
     @ret Set This Set object after removing items found in the other Set.
     !]]
     purgeSet = function(this, cdat, other)
+        local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
         assert(type(other) == "Set", sOtherError % {method = "removeSet"}..type(other)..'.');
         local othercdat = cdat.ins[other];
-        local indexedCopy = {table.unpack(cdat.pri.indexed)}
+        local indexedCopy = {table.unpack(cdat.pro.indexed)}
 
         for nIndex, vItem in pairs(indexedCopy) do
 
-            if (othercdat.pri.set[vItem]) then
+            if (othercdat.pro.set[vItem]) then
                 removeItem(cdat, vItem);
             end
 
@@ -454,7 +453,7 @@ return class("Set",
     @ret number The number of items in the Set.
     !]]
     size = function(this, cdat)
-        return cdat.pri.size;
+        return cdat.pro.size;
     end,
 },
 nil,
