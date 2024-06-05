@@ -13,15 +13,15 @@ return class("LuaDox",
 },
 {--public
     LuaDox = function(this, cdat, super)
-        local fBlockTag         = cdat.pro.blockTag;
-        local fBlockTagGroup    = cdat.pro.blockTagGroup;
+        local fBlockTag         = DoxBlockTag;
+        local fBlockTagGroup    = DoxBlockTagGroup;
         local eLanguage         = Dox.LANGUAGE.LUA;
         local bRequired         = true;
         local bMultipleAllowed  = true;
         local bIsModule         = true;
 
         --create the module block fence group
-        local oModuleBlockTagGroup = fBlockTagGroup("Module",    "Modules",   bIsModule, eLanguage, "*",    "*",
+        local oModuleBlockTagGroup = fBlockTagGroup("Module", "Modules", bIsModule, eLanguage, "*", "*",
             fBlockTag({"authors"},                        "Authors",          1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"copy", "copyright"},              "Copyright",        1,  bRequired,    -bMultipleAllowed),
             fBlockTag({"depend", "dependencies"},         "Dependencies",     1,  -bRequired,   -bMultipleAllowed),
@@ -45,7 +45,6 @@ return class("LuaDox",
         local oFunctionBlockTagGroup = fBlockTagGroup("Function",    "Functions", -bIsModule, eLanguage, "f!",   "!f",
             fBlockTag({"des", "desc", "description"},    "Description",   1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"ex", "example", "examples"},     "Example",       1, -bRequired,   bMultipleAllowed),
-            --fBlockTag({"fun", "func", "function"},       "Function",      1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"module"},                        "Module",        1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"name"},                          "Name",          2,  bRequired,   -bMultipleAllowed),
             fBlockTag({"parameter", "param"},            "Parameter",     2, -bRequired,   bMultipleAllowed),
@@ -53,6 +52,15 @@ return class("LuaDox",
             fBlockTag({"scope"},                         "Scope",         1,  bRequired,   -bMultipleAllowed),
             fBlockTag({"usage", "use"},                  "Usage",         1, -bRequired,   bMultipleAllowed));
 
+            local oClassBlockTagGroup = fBlockTagGroup("Class",    "Classes", -bIsModule, eLanguage, "c!",   "!c",
+                fBlockTag({"des", "desc", "description"},    "Description",   1,  bRequired,   -bMultipleAllowed),
+                fBlockTag({"ex", "example", "examples"},     "Example",       1, -bRequired,   bMultipleAllowed),
+                fBlockTag({"module"},                        "Module",        1,  bRequired,   -bMultipleAllowed),
+                fBlockTag({"name"},                          "Name",          2,  bRequired,   -bMultipleAllowed),
+                fBlockTag({"parent"},                        "Parameter",     2, -bRequired,   -bMultipleAllowed),
+                fBlockTag({"interface"},                     "Return",        2, -bRequired,   bMultipleAllowed),
+                fBlockTag({"scope"},                         "Scope",         1,  bRequired,   -bMultipleAllowed),
+                fBlockTag({"usage", "use"},                  "Usage",         1, -bRequired,   bMultipleAllowed));
         --TODO enums, class, constants, arrays, etc. block tag groups
         --local oArrayBlockTagGroup       = fBlockTagGroup("Array",       "Arrays",       "--[[a!", "!a]]", nil);
         --local oClassBlockTagGroup       = fBlockTagGroup("Class",       "Classes",      "--[[o!", "!o]]", nil); WTF would this not be modules?

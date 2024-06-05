@@ -251,9 +251,14 @@ if (tClassLoadValues[_nClassSystem]) then
             end
 
             if (tClassLoadValues[_nUtilClasses]) then
-                --dox and included language classes
-                Dox    = require("LuaEx.inc.classes.util.Dox");
-                LuaDox = require("LuaEx.inc.classes.util.Dox.LuaDox");
+                --dox and included support and language classes
+                DoxLanguage         = require("LuaEx.inc.classes.util.Dox.DoxLanguage");
+                Dox                 = require("LuaEx.inc.classes.util.Dox.Dox");
+                DoxBlock            = require("LuaEx.inc.classes.util.Dox.DoxBlock");
+                DoxBlockTag         = require("LuaEx.inc.classes.util.Dox.DoxBlockTag");
+                DoxBlockTagGroup    = require("LuaEx.inc.classes.util.Dox.DoxBlockTagGroup");
+                DoxModule           = require("LuaEx.inc.classes.util.Dox.DoxModule");
+                LuaDox              = require("LuaEx.inc.classes.util.Dox.Languages.LuaDox");
 
                 --ini
                 Ini    = require("LuaEx.inc.classes.util.Ini"); --TODO need to finish OrderedSet first

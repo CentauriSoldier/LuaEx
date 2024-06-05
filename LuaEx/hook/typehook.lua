@@ -267,13 +267,13 @@ local type = {
                 error(sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""), 2);
             end
         end,
-        table = function(vInput, vIndexType, vValueType, vMinItems, nMaxItems)
+        table = function(vInput, vIndexType, vValueType, vMinItems, vMaxItems)
             local bConditionMet = rawtype(vInput) == "table";
             local sError        = "Error in parameter input.";
             local sIndexType    = rawtype(vIndexType)   == "string"   and vIndexType or false;
             local sValueType    = rawtype(vValueType)   == "string"   and vValueType or false;
             local nMinItems     = rawtype(vMinItems)    == "number"   and vMinItems  or false;
-            local nMaxItems     = rawtype(vMinItems)    == "number"   and vMinItems  or false;
+            local nMaxItems     = rawtype(vMaxItems)    == "number"   and vMaxItems  or false;
             local nItems        = 0;
 
             if (bConditionMet) then

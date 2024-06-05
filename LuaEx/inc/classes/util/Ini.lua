@@ -182,6 +182,6 @@ return class("Ini",
     end
 },
 nil,   --extending class
-false, --if the class is final
+true,  --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

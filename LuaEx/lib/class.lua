@@ -176,10 +176,10 @@ local kit = {
 --TODO ERROR BUG FIX interfaces are throwing an error for missing metamethods even though parents have them
 --[[f!
 @module class
-@func class.build
+@name class.build
 @param table tKit The kit that is to be built.
 @scope local
-@desc Builds a complete class object given the the kit table. This is called by kit.build().
+@desc Builds a complete class \@(Remove THIS AFTER TESTING) object given \@AAND THIS the the kit table. This is called by kit.build().
 @ret class A class object.
 !f]]
 function class.build(tKit)
@@ -255,7 +255,7 @@ function class.build(tKit)
         end,
         __eq = function(left, right)--TODO COMPLETE
             print(type(left), type(right))
-            return "asdasd"
+            return "asdasd";
         end,
         __index     = function(t, k)
 
@@ -394,7 +394,7 @@ end
 
 --[[f!
 @module class
-@func instance.build
+@name instance.build
 @param table tKit The kit from which the instance is to be built.
 @param table tParentActual The (actual) parent instance table (if any).
 @scope local
@@ -459,7 +459,7 @@ end
 
 --[[f!
 @module class
-@func instance.buildAutoMethods
+@name instance.buildAutoMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -489,7 +489,7 @@ end
 
 --[[f!
 @module class
-@func instance.prepClassData
+@name instance.prepClassData
 @param table tInstance The (actual) instance table.
 @scope local
 @desc Creates and prepares the decoy and actual class data tables for use by the instance input.
@@ -535,7 +535,7 @@ end
 
 --[[f!
 @module class
-@func instance.setClassDataMetatable
+@name instance.setClassDataMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -630,7 +630,7 @@ end
 
 --[[f!
 @module class
-@func instance.setMetatable
+@name instance.setMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -691,7 +691,7 @@ end
 
 --[[f!
 @module class
-@func instance.wrapMetamethods
+@name instance.wrapMetamethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -743,7 +743,7 @@ end
 
 --[[f!
 @module class
-@func instance.wrapMethods
+@name instance.wrapMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -801,7 +801,7 @@ end
 
 --[[f!
 @module class
-@func kit.build
+@name kit.build
 @param string sName The name of the class kit. This must be a unique, variable-compliant name.
 @param table tMetamethods A table containing all class metamethods.
 @param table tStaticPublic A table containing all static public class members.
@@ -893,7 +893,7 @@ end
 
 --[[f!
 @module class
-@func kit.mayExtend
+@name kit.mayExtend
 @param table tKit The kit to check.
 @scope local
 @desc Checks whether a class kit is allowed to be extended.
@@ -916,7 +916,7 @@ end
 
 --[[f!
 @module class
-@func kit.processDirectiveAuto
+@name kit.processDirectiveAuto
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all private and protected members to process them if they have an auto directive.
@@ -1010,7 +1010,7 @@ end
 
 --[[f!
 @module class
-@func kit.processDirectiveFinal
+@name kit.processDirectiveFinal
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all protected and public members to process them if they have a directive. !TODO add metamethods
@@ -1059,7 +1059,7 @@ end
 
 --[[f!
 @module class
-@func kit.processInterfaces
+@name kit.processInterfaces
 @param table tKit The kit for which the interfaces should be processed.
 @param table tInterfaces The table of interfaces to enforece.
 Note: must be at least an entry table.
@@ -1080,7 +1080,7 @@ end
 
 --[[f!
 @module class
-@func kit.shadowCheck
+@name kit.shadowCheck
 @param table tKit The kit the check for member shadowing.
 @scope local
 @desc Ensures there is no member shadowing happening in the class.
@@ -1130,7 +1130,7 @@ end
 
 --[[f!
 @module class
-@func kit.validateInterfaces
+@name kit.validateInterfaces
 @param table The varargs table.
 @scope local
 @desc Checks to see if the args input are all valid interfaces.
@@ -1149,7 +1149,7 @@ end
 
 --[[f!
 @module class
-@func kit.validateName
+@name kit.validateName
 @param string sName The name to be checked.
 @scope local
 @desc Ensure the class name is a variable-compliant string.
@@ -1163,7 +1163,7 @@ end
 
 --[[f!
 @module class
-@func kit.validateTables
+@name kit.validateTables
 @param string sName The class name.
 @param table tMetamethods The metamethods input table.
 @param table tStaticPublic The static public input table.
@@ -1322,7 +1322,7 @@ local tClassActual = {
 return rawsetmetatable({}, {
     --[[f!
     @module class
-    @func class
+    @name class
     @param string sClass The name of the class. Note: this must be a unique, variable-compliant string.
     @param table tMetamethods A table containing the class metamethods. Note: undeclared metamethods in this class, if present in a parent class, are automatically inherited.
     @param table tStaticPublic A table containing static public class members.

@@ -70,7 +70,7 @@ print("Bullet factory:\n", xBullet);
 --print the factory's type and subtype
 print("Factory's Type - Subtype :\n", type(xBullet), " - ",subtype(xBullet));
 
---let's make a bullet with the default values
+--make a bullet with the default values
 local oBullet1 = xBullet();
 
 --print the first bullet
@@ -103,4 +103,4 @@ print("\n\nBullet #1 Serialized:\n", zBullet1);
 
 --deserialize it (creating a new struct object) and show it's type and details
 local oBullet1Deserialized = deserialize(zBullet1);
-print("\n\nBullet #1 Deerialized:\n", "type: "..type(oBullet1Deserialized).."\n", oBullet1Deserialized);
+print("\n\nBullet #1 Deserialized:\n", "type: "..type(oBullet1Deserialized).."\n", oBullet1Deserialized);

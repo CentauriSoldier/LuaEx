@@ -42,7 +42,8 @@ end
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
 --[[NOTE
-To make this example work, you'll need to delete dox ingore files in the LuaEx folders.
+To make this example work, you'll need to delete/rename dox ingore files in the LuaEx folders or change the input path to your own
+documented code files.
 ]]
 
 --ignore files cause dox to ignore files/folders where the files are found
@@ -79,14 +80,11 @@ end
 --print(serialize(fFindFiles(pLuaEx)))
 
 
+
 local oLuaExDox = LuaDox();
 --oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
-oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"), true);
+oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"));
 --TODO create tests for each thing and use them as examples
-
-
-
-
 
 
 --print(readFile(pFile))
