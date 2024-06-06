@@ -3,36 +3,39 @@ return class("DoxBlockTag",
 {--metamethods
     __clone = function(this, cdat)
         local pri = cdat.pri;
-        return DoxBlockTag(clone(pri.names), pri.display, pri.items, pri.required, pri.multipleAllowed);
+        return DoxBlockTag(clone(pri.aliases), pri.display, pri.items, pri.required, pri.multipleAllowed);
+    end,
+    __tostring = function(this, cdat)
+        return "NOT DONE!"
     end,
 },
 {--static public
 
 },
 {--private
+    aliases             = {},
     display             = "",
     items_AUTO          = 0,
     multipleAllowed     = false,
-    names               = {},
     required            = false,
 },
 {--protected
 
 },
 {--public
-    DoxBlockTag = function(this, cdat, tNames, sDisplay, nItems, bRequired, bMultipleAllowed)
+    DoxBlockTag = function(this, cdat, tAliases, sDisplay, nItems, bRequired, bMultipleAllowed)
         type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.");
         type.assert.number(nItems, true, true, false, true);
 
 
         cdat.pri.display         = sDisplay;
-        cdat.pri.items           = nItems;
-        cdat.pri.multipleAllowed = type(bMultipleAllowed) == "boolean" and bMultipleAllowed or false;
-        cdat.pri.required        = type(bMultipleAllowed) == "boolean" and bMultipleAllowed or false;
+        cdat.pri.items           = nItems;--TODO what is this?
+        cdat.pri.multipleAllowed = type(bMultipleAllowed)   == "boolean"  and bMultipleAllowed    or false;
+        cdat.pri.required        = type(bRequired)          == "boolean"  and bRequired           or false;
 
-        for _, sName in pairs(tNames) do
-            type.assert.string(sName, "^[^%s]+$", "Block tag must be a non-blank string containing no space characters.");
-            cdat.pri.names[#cdat.pri.names + 1] = sName;
+        for _, sAlias in pairs(tAliases) do
+            type.assert.string(sAlias, "^[^%s]+$", "Block tag must be a non-blank string containing no space characters.");
+            cdat.pri.aliases[#cdat.pri.aliases + 1] = sAlias:lower();
         end
 
     end,
@@ -48,12 +51,13 @@ return class("DoxBlockTag",
     getDisplay = function(this, cdat)
         return cdat.pri.display;
     end,
-    hasName = function(this, cdat, sName)
-        local bRet = false;
+    hasAlias = function(this, cdat, sInputRaw)
+        local bRet      = false;
+        local sInput    = sInputRaw:lower();
 
-        for _, sTagName in pairs(cdat.pri.names) do
-
-            if (sTagName:lower() == sName:lower()) then
+        for _, sAlias in pairs(cdat.pri.aliases) do
+            
+            if (sAlias == sInput) then
                 bRet = true;
                 break;
             end
@@ -62,16 +66,16 @@ return class("DoxBlockTag",
 
         return bRet;
     end,
-    names = function(this, cdat)
-        local nIndex = 0;
-        local tNames = cdat.pri.names;
-        local nMax   = #tNames;
+    aliases = function(this, cdat)
+        local nIndex    = 0;
+        local tAliases  = cdat.pri.aliases;
+        local nMax      = #tAliases;
 
         return function()
             nIndex = nIndex + 1;
 
             if (nIndex <= nMax) then
-                return tNames[nIndex];
+                return tAliases[nIndex];
             end
 
         end

@@ -1,4 +1,5 @@
 --[[*
+@fqxn LuaEx.class
 @author Centauri Soldier
 @copyright See LuaEx License
 @description
@@ -174,14 +175,13 @@ local kit = {
                                 ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝]]
 
 --TODO ERROR BUG FIX interfaces are throwing an error for missing metamethods even though parents have them
---[[f!
-@module class
-@name class.build
+--[[!
+@fqxn LuaEx.class.class.Functions.build
 @param table tKit The kit that is to be built.
 @scope local
 @desc Builds a complete class \@(Remove THIS AFTER TESTING) object given \@AAND THIS the the kit table. This is called by kit.build().
 @ret class A class object.
-!f]]
+!]]
 function class.build(tKit)
     local oClass    = {}; --this is the class object that gets returned
     local sName     = tKit.name;
@@ -392,15 +392,14 @@ end
                     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝]]
 
 
---[[f!
-@module class
-@name instance.build
+--[[!
+@fqxn LuaEx.class.instance.Functions.build
 @param table tKit The kit from which the instance is to be built.
 @param table tParentActual The (actual) parent instance table (if any).
 @scope local
 @desc Builds an instance of an object given the name of the kit.
 @ret object|table oInstance|tInstance The instance object (decoy) and the instance table (actual).
-!f]]
+!]]
 function instance.build(tKit, tParentActual)
     local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
@@ -457,14 +456,13 @@ function instance.build(tKit, tParentActual)
 end
 
 
---[[f!
-@module class
-@name instance.buildAutoMethods
+--[[!
+@fqxn LuaEx.class.instance.Functions.buildAutoMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Iterates over instance members to create auto accessor/mutaor methods for those marked with the _AUTO directive.
-!f]]
+!]]
 function instance.buildAutoMethods(tInstance, tClassData)
     local tKit = tInstance.metadata.kit;
 
@@ -487,14 +485,13 @@ function instance.buildAutoMethods(tInstance, tClassData)
 end
 
 
---[[f!
-@module class
-@name instance.prepClassData
+--[[!
+@fqxn LuaEx.class.instance.Functions.prepClassData
 @param table tInstance The (actual) instance table.
 @scope local
 @desc Creates and prepares the decoy and actual class data tables for use by the instance input.
 @ret table tClassData The decoy class data table.
-!f]]
+!]]
 function instance.prepClassData(tInstance)
     local tKit = tInstance.metadata.kit;
     local tClassData        = {};   --decoy class data (this gets pushed through the wrapped methods)
@@ -533,14 +530,13 @@ function instance.prepClassData(tInstance)
 end
 
 
---[[f!
-@module class
-@name instance.setClassDataMetatable
+--[[!
+@fqxn LuaEx.class.instance.Functions.setClassDataMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Creates and sets the instance's class data metatable, helping prevent incidental, erroneous acces and alteration of the class data.
-!f]]
+!]]
 function instance.setClassDataMetatable(tInstance, tClassData)
     local tClassDataIndices = {pri, pro, pub};
     local sName             = tInstance.metadata.kit.name;
@@ -628,14 +624,13 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 end
 
 
---[[f!
-@module class
-@name instance.setMetatable
+--[[!
+@fqxn LuaEx.class.instance.Functions.setMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Creates and sets the instance's metatable.
-!f]]
+!]]
 function instance.setMetatable(tInstance, tClassData)
     local tMeta     = {}; --actual
     local tKit      = tInstance.metadata.kit;
@@ -689,14 +684,13 @@ function instance.setMetatable(tInstance, tClassData)
 end
 
 
---[[f!
-@module class
-@name instance.wrapMetamethods
+--[[!
+@fqxn LuaEx.class.instance.Functions.wrapMetamethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Wraps all the instance metamethods so they have access to the instance object (decoy) and the class data.
-!f]]
+!]]
 function instance.wrapMetamethods(tInstance, tClassData)--TODO double check these
     local oInstance = tInstance.decoy;
 
@@ -741,14 +735,13 @@ function instance.wrapMetamethods(tInstance, tClassData)--TODO double check thes
 end
 
 
---[[f!
-@module class
-@name instance.wrapMethods
+--[[!
+@fqxn LuaEx.class.instance.Functions.wrapMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
 @desc Wraps all the instance methods so they have access to the instance object (decoy) and the class data.
-!f]]
+!]]
 function instance.wrapMethods(tInstance, tClassData)
     local tKit              = tInstance.metadata.kit;
     local oInstance         = tInstance.decoy;
@@ -799,9 +792,8 @@ end
                                             ╚═╝  ╚═╝╚═╝   ╚═╝ ]]
 
 
---[[f!
-@module class
-@name kit.build
+--[[!
+@fqxn LuaEx.class.kit.Functions.build
 @param string sName The name of the class kit. This must be a unique, variable-compliant name.
 @param table tMetamethods A table containing all class metamethods.
 @param table tStaticPublic A table containing all static public class members.
@@ -814,7 +806,7 @@ end
 @scope local
 @desc Imports a kit for later use in building class objects
 @ret class Class Returns the class returned from the kit.build() tail call.
-!f]]
+!]]
 function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, bIsFinal, ...)
     local tInterfaces = {...} or arg;
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
@@ -891,14 +883,13 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 end
 
 
---[[f!
-@module class
-@name kit.mayExtend
+--[[!
+@fqxn LuaEx.class.kit.Functions.mayExtend
 @param table tKit The kit to check.
 @scope local
 @desc Checks whether a class kit is allowed to be extended.
 @ret boolean True if the class can be extended, false otherwise.
-!f]]
+!]]
 function kit.mayExtend(sName, cExtendor)
     local bRet = false;
 
@@ -914,13 +905,12 @@ function kit.mayExtend(sName, cExtendor)
 end
 
 
---[[f!
-@module class
-@name kit.processDirectiveAuto
+--[[!
+@fqxn LuaEx.class.kit.Functions.processDirectiveAuto
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all private and protected members to process them if they have an auto directive.
-!f]]
+!]]
 local tAutoVisibility = {pri, pro};
 function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too...firgure out how to do that
     local tAuto         = {};
@@ -1008,13 +998,12 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
 end
 
 
---[[f!
-@module class
-@name kit.processDirectiveFinal
+--[[!
+@fqxn LuaEx.class.kit.Functions.processDirectiveFinal
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all protected and public members to process them if they have a directive. !TODO add metamethods
-!f]]
+!]]
 local tFinalVisibility = {met, pro, pub};
 function kit.processDirectiveFinal(tKit)
     local tFinal = {};
@@ -1057,15 +1046,14 @@ function kit.processDirectiveFinal(tKit)
 end
 
 
---[[f!
-@module class
-@name kit.processInterfaces
+--[[!
+@fqxn LuaEx.class.kit.Functions.processInterfaces
 @param table tKit The kit for which the interfaces should be processed.
 @param table tInterfaces The table of interfaces to enforece.
 Note: must be at least an entry table.
 @scope local
 @desc Stores and enforces each interface.
-!f]]
+!]]
 function kit.processInterfaces(tKit, tInterfaces)
 
     for nIndex, iInterface in ipairs(tInterfaces) do
@@ -1078,13 +1066,12 @@ function kit.processInterfaces(tKit, tInterfaces)
 end
 
 
---[[f!
-@module class
-@name kit.shadowCheck
+--[[!
+@fqxn LuaEx.class.kit.Functions.shadowCheck
 @param table tKit The kit the check for member shadowing.
 @scope local
 @desc Ensures there is no member shadowing happening in the class.
-!f]]
+!]]
 local tCheckIndices  = {met, pro, pub};
 function kit.shadowCheck(tKit) --checks for public/protected shadowing
     local tParent   = tKit.parent;
@@ -1128,13 +1115,12 @@ function kit.shadowCheck(tKit) --checks for public/protected shadowing
 end
 
 
---[[f!
-@module class
-@name kit.validateInterfaces
+--[[!
+@fqxn LuaEx.class.kit.Functions.validateInterfaces
 @param table The varargs table.
 @scope local
 @desc Checks to see if the args input are all valid interfaces.
-!f]]
+!]]
 function kit.validateInterfaces(sKit, tVarArgs)
 
     for _, vVarArg in ipairs(tVarArgs) do
@@ -1147,13 +1133,12 @@ function kit.validateInterfaces(sKit, tVarArgs)
 end
 
 
---[[f!
-@module class
-@name kit.validateName
+--[[!
+@fqxn LuaEx.class.kit.Functions.validateName
 @param string sName The name to be checked.
 @scope local
 @desc Ensure the class name is a variable-compliant string.
-!f]]
+!]]
 function kit.validateName(sName)
     assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
     assert(sName:isvariablecompliant(),					"Error creating class, '${class}'. Name must be a variable-compliant string.\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
@@ -1161,9 +1146,8 @@ function kit.validateName(sName)
 end
 
 
---[[f!
-@module class
-@name kit.validateTables
+--[[!
+@fqxn LuaEx.class.kit.Functions.validateTables
 @param string sName The class name.
 @param table tMetamethods The metamethods input table.
 @param table tStaticPublic The static public input table.
@@ -1172,7 +1156,7 @@ end
 @param table tPublic The public input table.
 @scope local
 @desc Validates all class input tables.
-!f]]
+!]]
 function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic)
     assert(type(tMetamethods)			== "table", 	"Error creating class, '${class}'. Metamethods values table expected.\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tMetamethods),		item = tostring(tMetamethods)});
     assert(type(tStaticPublic)			== "table", 	"Error creating class, '${class}'. Static public values table expected.\nGot: (${type}) ${item}." 	% {class = sName, 	type = type(tStaticPublic),		item = tostring(tStaticPublic)});
@@ -1320,9 +1304,8 @@ local tClassActual = {
 
 
 return rawsetmetatable({}, {
-    --[[f!
-    @module class
-    @name class
+    --[[!
+    @fqxn LuaEx.class.Functions.class
     @param string sClass The name of the class. Note: this must be a unique, variable-compliant string.
     @param table tMetamethods A table containing the class metamethods. Note: undeclared metamethods in this class, if present in a parent class, are automatically inherited.
     @param table tStaticPublic A table containing static public class members.
@@ -1335,7 +1318,7 @@ return rawsetmetatable({}, {
     @scope global
     @desc Builds a class.<br>Note: every method within the static public, private, protected and public tables must accept the instance object and class data table as their first and second arguments respectively.<br>Note: all metamethod within the metamethods table also accept the class instance and cdat table but may also accept a second item depending on if the metamethod is using binary operators such as +, %, etc.<br>Note: The class data table is indexed my pri (private members), pro (protected members), pub (public members) and ins (for all class instances of this class type) and each grants access to the items in that table.<br>Note: to prevent fatal conflicts within the code, all class members are strongly typed. No member's type may be changed with the exception of the null type. Types may be set to and from null; however, items which begin as null, once set to another type, cannot be changed from that type to another non-null type. Items that begins as a type and are then set to null, may be changed back to that original type only. In addition, no class member may be set to nil.<br>Class methods cannot be changed to other methods but may be overridden by methods of the same name within child classes. The one exception to this is methods which have the _FNL suffix added to their name. These methods are final and may not be overridden. Note: though the _FNL suffix appears within the method name in the class table, that suffix is removed during class creation. That is, a method such as, MyMethod_FNL will be called as MyMethod(), leaving off the _FNL suffix during calls to that method. _FNL (and other such suffixes that may be added in the future) can be thought of as a directive to the class building code which, after it renames the method to remove the suffix, marks it as final within the class code to prevent overrides.
     @ret class The class object.
-    !f]]
+    !]]
     __call 		= kit.build,
     __len 		= function() return kit.count end,
     __index 	= function(t, k)

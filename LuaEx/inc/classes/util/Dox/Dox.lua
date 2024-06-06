@@ -1,3 +1,5 @@
+--TODO add option to get and print TODO, BUG, etc.
+
 --OMG use queues for output
 --[[TODO
     Use MD for text
@@ -11,6 +13,66 @@ local rawtype   = rawtype;
 local string    = string;
 local table     = table;
 local type      = type;
+
+
+--[[*
+    @module Dox
+    @name DoxLanguage
+*]]
+local DoxLanguage = class("DoxLanguage",
+{--metamethods
+
+},
+{--static public
+
+},
+{--private
+    name            = "",
+    fileTypes       = SortedDictionary(),
+    commentOpen     = "",
+    commentClose    = "",
+    escapeCharacter = "",
+},
+{--protected
+
+},
+{--public
+    DoxLanguage = function(this, cdat, sName, tFileTypes, sCommentOpen, sCommentClose, sEscapeCharacter)
+        type.assert.string(sName,               "%S+");
+        type.assert.table(tFileTypes,           "number", "string", 1);
+        type.assert.string(sCommentOpen,        "%S+");
+        type.assert.string(sCommentClose,       "[^\n]+");
+        type.assert.string(sEscapeCharacter,    "%S+");
+
+        local pri           = cdat.pri;
+        pri.name            = sName;
+        for _, sType in pairs(tFileTypes) do
+            pri.fileTypes.add(sType); --TODO format this uniformly
+        end
+        pri.commentOpen     = sCommentOpen;
+        pri.commentClose    = sCommentClose;
+        pri.escapeCharacter = sEscapeCharacter;
+    end,
+    getCommentClose = function(this, cdat)
+        return cdat.pri.commentClose;
+    end,
+    getCommentOpen = function(this, cdat)
+        return cdat.pri.commentOpen;
+    end,
+    getEscapeCharater = function(this, cdat)
+        return cdat.pri.escapeCharacter;
+    end,
+    getFileTypes = function(this, cdat)
+        return clone(cdat.pri.fileTypes);
+    end,
+    getName = function(this, cdat)
+        return cdat.pri.name;
+    end,
+},
+nil,    --extending class
+true,   --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
 
 --TODO consider moving this to its own file and creating the enum using a static initializer
 local eDoxLanguage = enum("DoxLanguage",
@@ -56,46 +118,42 @@ DoxLanguage("XML",              {".xml"},                                       
 },
 true);
 
---these block tags must exist within each dox block tag group and each block
-local tRequiredNames = {
-    [1] = "module",
-    [2] = "name",
+--these block tags must exist each block (and in subclasses' input block tags)
+local _tRequiredBlockTags = {
+    DoxBlockTag({"fqxn"}, "FQXN", 1, true, false),
 };
 
-local tRequiredNamesMeta = {
-    __call = function(__IGNORE__)
-        local nIndex    = 0;
-        local nMax      = #tRequiredNames;
+local DoxBlock = class("DoxBlock",
+{--METAMETHODS
 
-        return function()
-            nIndex = nIndex + 1;
+},
+{--STATIC PUBLIC
 
-            if (nIndex <= nMax) then
-                return nIndex, tRequiredNames[nIndex];
-            end
+},
+{--PRIVATE
+    --parseBlock
+    --type        = "",
+},
+{--PROTECTED
 
-        end
+},
+{--PUBLIC
+    DoxBlock = function(this, cdat, tBlockItems, tRequiredBlockTags)
+        type.assert.table(tBlockItems, "number", "string", 1);
+
+        local pri       = cdat.pri;
+
+
+
+        --print(serialize(tBlockItems))
+
 
     end,
-    __len = function(__IGNORE__)
-        return #tRequiredNames;
-    end,
-    __unm = function()
-        local tRet = {};
-
-        for nIndex, sName in pairs(tRequiredNames) do
-            tRet[nIndex] = false;
-        end
-
-        return tRet;
-    end,
-    __index = function(t, k)
-        error("Error accessing Dox.RequiredNames table.\nTo get a list of required names, use unary minus (__unm) metamethod.\nTo iterate over the list of names, call the table.", 3);
-    end,
-    __newindex = function(t, k, v)
-        error("Attempt to modify read-only Dox.RequiredNames table.", 3);
-    end,
-};
+},
+nil,   --extending class
+true,  --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
 
 --[[f!
     @mod dox
@@ -132,194 +190,222 @@ return class("Dox",
     end,
 },
 {--static public
-    MIME = enum("MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
-    LANGUAGE = eDoxLanguage,
-    RequiredNames = rawsetmetatable({}, tRequiredNamesMeta),
+    MIME         = enum("MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
+    LANGUAGE     = eDoxLanguage,
 },
 {--private
-    blockTagGroups      = {}, --this contains groups of block tags group objects
-    moduleBlockTagGroup = null,
+    blockOpen           = "",
+    blockClose          = "",
+    blockTags           = {},
+    blockStrings        = {};
+    finalized           = {}; --this is the final, processed data (updated using the refresh() method)
     language            = null,
-    --fileTypes           = null, --set by the language
     modules             = SortedDictionary(), --module objects indexed (and sorted) by name
-    orphanBlocks        = {},
     name                = "",
-    snippetClose        = "", --QUESTION How will this work now that we're using mutiple tag groups?
+    requiredBlockTags   = {},
+    snippetClose        = "",
     snippetOpen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
     --Start 	= "##### START DOX [SUBCLASS NAME] SNIPPETS -->>> ID: ",
     --End 	= "#####   <<<-- END DOX [SUBCLASS NAME] SNIPPETS ID: ",
     tagOpen             = "",
-    --toprocess           = {}, --this is a holding table for strings which need to be parsed for blocks
-    buildBlocks = function(this, cdat, tModuleBlockStrings, tBlockStrings)
-        local tModuleBlocks    = {};
-        local tBlocks          = {};
-        local sTempAtSymbol    = "DOXAtSymbole7fa52f71cfe48298a9ad784026556fb";
-        local sTagOpen         = cdat.pri.tagOpen;
-        local sEscapedTagOpen  = cdat.pri.language.value.getEscapeCharater()..sTagOpen;
-        print(sEscapedTagOpen)
-        --module blocks
-        for sModuleTypeName, tModule in pairs(tModuleBlockStrings) do
-
-            for nIndex, sBlock in pairs(tModule) do
-                --replace the escaped @ symbols temporarily
-                sBlock = sBlock:gsub(sEscapedTagOpen, sTempAtSymbol);
-
-                --break the
-                local tRawBlock = sBlock:totable(sTagOpen);
-
-                for k, v in pairs(tRawBlock) do
-                    --print(k, v)
-                end
-            end
-
-        end
---TODO account for new lines (delete unescaped ones)
-        --non-module blocks
-        for _, tBlockTypes in pairs(tBlockStrings) do
-
-            for sBlockType, tRawBlocks in pairs(tBlockTypes) do
-
-                --print(sBlockType, serialize(tRawBlocks))
-                for __, sRawBlock in pairs(tRawBlocks) do
-
-                    --replace the escaped @ symbols temporarily
-                    local sBlock = sRawBlock:gsub(sEscapedTagOpen, sTempAtSymbol);
-
-                    --break the block up into items
-                    local tBlockItems = sBlock:totable(sTagOpen);
-
-                    --replace the @ symbols
-                    for nItemIndex, sItem in pairs(tBlockItems) do
-                        tBlockItems[nItemIndex] = sItem:gsub(sTempAtSymbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), sTagOpen);
-                    end
-
-
-
-                    --build the block and add it to the return table
-                    table.insert(tBlocks, DoxBlock(sBlockType, tBlockItems));
-                end
-
-            end
-
-        end
-
-
-        --print(serialize(tModuleBlockStrings))
-        --print(serialize(tBlockStrings))
-        return tBlocks
-    end,
+    --[[!
+    @fqxn LuaEx.Classes.Dox.Methods.extractBlockStrings
+    @desc Extracts Dox comment blocks from a string input and stores them for later processing.
+    @par string sInput The string from which the comment blocks should be extracted.
+    !]]
     extractBlockStrings = function(this, cdat, sInput)
-        local tModuleBlockStrings   = null;
-        local tBlockStrings         = {};
+        --local tBlockStrings         = {};
+        local pri                   = cdat.pri;
         local fTrim                 = string.trim;
-        local oModuleBlockTagGroup  = cdat.pri.moduleBlockTagGroup;
-        local fBlockTagGroups       = cdat.pub.blockTagGroups;
-        local oDoxLanguage          = cdat.pri.language.value;
+        local oDoxLanguage          = pri.language.value;
         local sOpenPrefix           = oDoxLanguage.getCommentOpen();
         local sCloseSuffix          = oDoxLanguage.getCommentClose();
+        local sBlockOpen            = pri.blockOpen;
+        local sBlockClose           = pri.blockClose;
 
-        -- Helper function to extract blocks from input based on open and close tags
-        local function extractFenceBlocks(sBlockTagGroupName, sInput, sOpen, sClose)
-            local tRet           = {};
+        local sPattern = escapePattern(sOpenPrefix..sBlockOpen).."(.-)"..escapePattern(sBlockClose..sCloseSuffix);
+        for sMatch in sInput:gmatch(sPattern) do
+            local sBlock = fTrim(sMatch);
 
-            if not (tRet[sBlockTagGroupName]) then
-                tRet[sBlockTagGroupName] = {};
+            if not (pri.blockStrings[sBlock]) then
+                pri.blockStrings[sBlock] = true;
             end
 
-            local sPattern = escapePattern(sOpenPrefix..sOpen).."(.-)"..escapePattern(sClose..sCloseSuffix);
-
-            for sMatch in sInput:gmatch(sPattern) do
-                table.insert(tRet[sBlockTagGroupName], fTrim(sMatch));
-            end
-
-            return tRet;
         end
 
-        -- Extract module blocks
-        local sModuleOpen   = oModuleBlockTagGroup.getBlockOpen();
-        local sModuleClose  = oModuleBlockTagGroup.getBlockClose();
-        tModuleBlockStrings = extractFenceBlocks(oModuleBlockTagGroup:getName(), sInput, sModuleOpen, sModuleClose);
-
-        -- Extract non-module blocks
-        for oBlockTagGroup in fBlockTagGroups() do--TODO check that is only 1 DTG!
-            local sOpen         = oBlockTagGroup.getBlockOpen();
-            local sClose        = oBlockTagGroup.getBlockClose();
-            local tGroupBlocks  = extractFenceBlocks(oBlockTagGroup.getName(), sInput, sOpen, sClose);
-            table.insert(tBlockStrings, tGroupBlocks);
-        end
-
-        --print(serialize(tModuleBlockStrings), serialize(tBlockStrings))
-        return tModuleBlockStrings, tBlockStrings;
     end,
-    processString = function(this, cdat, sInput)
-        local pri                   = cdat.pri;
-        local oModules              = pri.modules;
-        local oModuleBlockTagGroup  = pri.moduleBlockTagGroup;
+    getBlockTagForAlias = function(this, cdat, sAlias)
+        local oRet;
 
-        --get all block strings from the input string
-        local tModuleBlockStrings, tBlockStrings = pri.extractBlockStrings(sInput);
+        for _, oBlockTag in pairs(cdat.pri.blockTags) do
 
-        --build block objects out of them
-        local tModuleBlocks, tBlocks = pri.buildBlocks(tModuleBlockStrings, tBlockStrings);
+            if oBlockTag.hasAlias(sAlias) then
+                oRet = oBlockTag;
+                break;
+            end
 
+        end
+
+        return oRet;
+    end,
+    parseBlockString = function(this, cdat, sRawBlock)
+        local tRet = {};
+        local pri              = cdat.pri;
+        local sTempAtSymbol    = "DOXAtSymbole7fa52f71cfe48298a9ad784026556fb";
+        local tBlockStrings    = pri.blockStrings;
+        local sTagOpen         = pri.tagOpen;
+        local sEscapedTagOpen  = pri.language.value.getEscapeCharater()..sTagOpen;
+
+        --TODO account for new lines (delete unescaped ones)
+        --process raw string blocks
+
+        --replace the escaped @ symbols temporarily
+        local sBlock = sRawBlock:gsub(sEscapedTagOpen, sTempAtSymbol);
+
+        --break the block up into items
+        local tBlockItems = sBlock:totable(sTagOpen)
+
+        if not (tBlockItems) then
+            error("Error parsing Dox block string: malformed block:\n'"..sBlock.."'");
+        end
+
+        --iterate over each block item
+        for nItemIndex, sRawItem in pairs(tBlockItems) do
+            --replace the @ symbols and trim trailing space
+            local sItemInProcess = sRawItem:gsub(sTempAtSymbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), sTagOpen):gsub("%s+$", "");--gsub("\n$", "");
+            local sItem = sItemInProcess:match("%S.*%S");
+
+            if not (sItem) then --validate the item is still good
+                error("Error parsing Dox block string: malformed block item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'");
+            end
+
+            local sAlias = sItem:match("%S+"); --get the alias
+
+            if not (sAlias) then --validate the item alias
+                error("Error parsing Dox block string: malformed block item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'");
+            end
+
+            local oBlockTag = pri.getBlockTagForAlias(sAlias); --get the BlockTag object associated with the item
+
+            if not (oBlockTag) then --make sure a BlockTag object was recovered
+                error("Error parsing Dox block string:: invalid block item alias, '"..sAlias.."', in item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'");
+            end
+
+            tRet[#tRet + 1] = {
+                item            = sItem,
+                blockTagObject  = oBlockTag,
+            };
+        end
+
+        --print(serialize(tRet))
+        return tRet;
+    end,
+    --[[!
+    @desc Refreshes the finalized data
+    !]]
+    refresh = function(this, cdat)
+        local pri = cdat.pri;
+
+        for sBlock, _ in pairs(pri.blockStrings) do
+            local pri = cdat.pri;
+
+            --reset the finalized data table
+            pri.finalized = {};
+
+            --get the block data
+            local tBlockData = pri.parseBlockString(sBlock);
+
+            for _, oBlockTag in ipairs(pri.blockTags) do
+            --ensure that all required tags are present
+            --TODO LEFT OFF HERE
+            end
+
+        end
 
     end,
 },
 {},--protected
 {--public
-    Dox = function(this, cdat, sName, sTagOpen, eLanguage, oModuleBlockTagGroup, ...)
-        type.assert.string(sName,    "%S+", "Dox subclass name must not be blank.");
-        type.assert.string(sTagOpen, "%S+", "Open tag symbol must not be blank.");
-        type.assert.custom(eLanguage, "DoxLanguage");
-        type.assert.custom(oModuleBlockTagGroup, "DoxBlockTagGroup");
+    Dox = function(this, cdat, sName, sBlockOpen, sBlockClose, sTagOpen, eLanguage, ...)
+        type.assert.string(sName,       "%S+", "Dox subclass name must not be blank.");
+        type.assert.string(sBlockOpen,  "%S+", "Block Open symbol must not be blank.");
+        type.assert.string(sBlockClose, "%S+", "Block Close symbol must not be blank.");
+        type.assert.string(sTagOpen,    "%S+", "Tag Open symbol must not be blank.");
+        type.assert.custom(eLanguage,   "DoxLanguage");
         --type.assert.table(tfileTypes, "number", "string", 1);
-
+--"DoxLua", "!", "!", "@", eLanguage,
         local pri               = cdat.pri;
+        pri.blockOpen           = sBlockOpen;
+        pri.blockClose          = sBlockClose;
         --pri.fileTypes           = Set();
         --TODO add mime types from language
         pri.language            = eLanguage;
         pri.name                = sName;
         pri.tagOpen             = sTagOpen;
-        pri.moduleBlockTagGroup = oModuleBlockTagGroup;
+        pri.requiredBlockTags   = {};
 
-        --TODO put block tags in order of display (as input)!
-        local tBlockTagGroups = pri.blockTagGroups;
-
-        for _, oBlockTagGroup in pairs({...} or arg) do
-            type.assert.custom(oBlockTagGroup, "DoxBlockTagGroup");
-            tBlockTagGroups[#tBlockTagGroups + 1] = clone(oBlockTagGroup);
+        --import all Dox-required BlockTags
+        for _, oBlockTag in ipairs(_tRequiredBlockTags) do
+            table.insert(pri.requiredBlockTags, clone(oBlockTag));
+            table.insert(pri.blockTags, oBlockTag);
         end
 
-    end,
-    addFileType = function(this, cdat, sType)
-        type.assert.string(sType,    "%S+", "Mime type must not be blank.");
-        cdat.pri.fileTypes.add(sType);
-    end,
-    blockTagGroups = function(this, cdat)
-        local tBlockTagGroups = cdat.pri.blockTagGroups;
-        local nIndex            = 0;
-        local nMax              = #tBlockTagGroups;
+        --store all input BlockTags and log required ones found
+        for nIndex, oBlockTag in ipairs({...} or arg) do
+            --validate the type
+            type.assert.custom(oBlockTag, "DoxBlockTag");
 
-        return function()
-            nIndex = nIndex + 1;
+            --search for required blocktags conflicts
+            for _, oRequiredBlockTag in pairs(pri.requiredBlockTags) do
 
-            if (nIndex <= nMax) then
-                return tBlockTagGroups[nIndex];
+                for sAlias in oRequiredBlockTag.aliases() do
+
+                    if ( oBlockTag.hasAlias(sAlias) ) then
+                        error(  "Error creating Dox subclass, '${subclass}'.\nRequired alias, '${alias}', cannot be overriden or duplicated." %
+                                {subclass = sName, alias = sAlias}, 2);
+                    end
+
+                end
+
+            end
+
+            --store the block tag
+            table.insert(pri.blockTags, oBlockTag);
+
+            --if the BlockTag is required, store it
+            if (oBlockTag.isRequired()) then
+                table.insert(pri.requiredBlockTags, oBlockTag);
             end
 
         end
 
-    end,
-    export = function(this, cdat, pDir, eMimeType, bPulsar)
+        --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
 
     end,
-    getName = function(this, cdat)
+    addFileType_FNL = function(this, cdat, sType)
+        type.assert.string(sType,    "%S+", "Mime type must not be blank.");
+        cdat.pri.fileTypes.add(sType);
+    end,
+    export_FNL = function(this, cdat, pDir, eMimeType, bPulsar)
+
+
+    end,
+    getBlockTagGroup_FNL = function(this, cdat)
+        return cdat.pri.blockTagGroup;
+    end,
+    getName_FNL = function(this, cdat)
         return cdat.pri.name;
     end,
-    getTagOpen = function(this, cdat)
+    getBlockClose_FNL = function(this, cdat)
+        return cdat.pri.blockClose;
+    end,
+    getBlockOpen_FNL = function(this, cdat)
+        return cdat.pri.blockOpen;
+    end,
+    getTagOpen_FNL = function(this, cdat)
         return cdat.pri.tagOpen;
     end,
-    importDirectory = function(this, cdat, pDir, bRecursion)
+    importDirectory_FNL = function(this, cdat, pDir, bRecursion)
         type.assert.string(pDir, "%S+");
         local bRecurse = bRecursion;
 
@@ -334,7 +420,7 @@ return class("Dox",
         end
 
     end,
-    importFile = function(this, cdat, pFile)
+    importFile_FNL = function(this, cdat, pFile)
         type.assert.string(pFile, "%S+");
         local hFile = io.open(pFile, "r");
 
@@ -342,14 +428,17 @@ return class("Dox",
             error("Error importing file to Dox.\nCould not open file: "..pFile);
         else
             local sContent = hFile:read("*all");
-            cdat.pri.processString(sContent);
+            cdat.pub.importString(sContent);
+            --cdat.pri.extractBlockStrings(sContent);
             hFile:close();
         end
 
     end,
-    importString = function(this, cdat, sInput)
+    importString_FNL = function(this, cdat, sInput)
         type.assert.string(sInput);
-        cdat.pri.processString(sInput);
+        cdat.pri.extractBlockStrings(sInput);
+
+        cdat.pri.refresh();
     end,
     fileTypes = function(this, cdat)--TODO should I clone the set? probably/
         return cdat.pri.fileTypes;
