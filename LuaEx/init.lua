@@ -273,6 +273,9 @@ end
 unpack = unpack or table.unpack;--TODO move this to table hook
 --table.serialize 	= serialize.table;
 --string.serialize 	= serialize.string;
+--[[
+![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
+]]
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?
