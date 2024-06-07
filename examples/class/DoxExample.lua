@@ -86,11 +86,6 @@ end
 
 
 
-
-
-
-
-
 local oLuaExDox = LuaDox();
 --oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
 oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"));

@@ -21,27 +21,35 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
-#### Current Version: Alpha v0.81
+#### Current Version: Alpha v0.82
 <details>
 <summary>🆅🅸🅴🆆 🅲🅷🅰🅽🅶🅴🅻🅾🅶</summary>
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
+**v0.83**   IN PROGRESS — NOT ALL ITEMS LISTED in v0.83 CHANGELOG ARE COMPLETE (Coming Soon)
+- ☑️ Bugfix:  various, minor bugs.
+- ☑️Bugfix:   major bug in class auto directive causing malformed classes.
+- ☑️Feature:  reorganized and added sections and examples to README.
+- 🔲Feature:  integrated and rewrote Dox documentation module and added support for other languages.
+- ☑️Refactor: restructured module layout and added more examples to the **examples** directory.
+
 **v0.82**
-- Bugfix:  corrected various, minor bugs.
-- Feature: created new **Ini.lua** module.
-- Feature: created new **base64.lua** module.
-- Feature: created **cloner.lua** module. Updated various, existing items to make them clonable.
-- Feature: created new **serializer.lua** module that handles serialization and deserialization.
-- Feature: added serval examples in the **examples** directory for demonstrating usage.
-- Change:  removed old **ini.lua** module.
-- Change:  removed old **base64.lua** module.
-- Change:  modified **cloner** to with custom, user-created objects.
-- Change:  removed old **serialize.lua** and **deserialize.lua** modules.
-- Change:  modified the serializer to work with custom, user-created objects.
-- Change:  modified the cloner to work with custom, user-created objects.
-- Change:  moved several items in the directory structure
-- Change:  modified **init.lua** to provide some user options for class loading.
-- Change:  changed all class names to CamelCase to provide clear distinction between class variables and other variables.
+- Bugfix:   various, minor bugs.
+- Feature:  created new **Ini.lua** module.
+- Feature:  created new **base64.lua** module.
+- Feature:  created **cloner.lua** module. Updated various, existing items to make them clonable.
+- Feature:  created new **serializer.lua** module that handles serialization and deserialization.
+- Feature:  added serval examples in the **examples** directory for demonstrating usage.
+- Change:   removed old **ini.lua** module.
+- Change:   removed old **base64.lua** module.
+- Change:   modified **cloner** to work with custom, user-created objects.
+- Change:   removed old **serialize.lua** and **deserialize.lua** modules.
+- Change:   modified the serializer to work with custom, user-created objects.
+- Change:   modified the cloner to work with custom, user-created objects.
+- Change:   modified **init.lua** to provide some user options for class loading.
+- Change:   changed all class names to PascalCase to provide clear distinction between class variables and other variables.
+- Refactor: moved several items in the directory structure
+
 **v0.81**
 - Bugfix: renamed the **\_\_LUAEX\_\_** table reference in the **enum** module that got missed.
 - Change: removed class system from **v0.8** as it had a fatal, uncorrectable flaw.
@@ -52,55 +60,54 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Change: class members are now strongly typed.
 - Change: ***temporarily*** disabled compulsory classes until they're refactored for new class system.
 - Change: ***temporarily*** removed class interfaces until it's rewritten to operate with the new class system.
-- Change: removed most of the non-basic classes to another repository in an ongoing effort to keep **LuaEx** simple and small.
 - Change: cleaned up and reorganized a lot of the files in the **LuaEx** module.
 
 **v0.80**
-- Change: rewrote the class system from scratch.
-- Change: moved various modules to different directories.
-- Change: renamed **\_\_LUAEX\_\_** global table **luaex**.
-- Feature: added class interfaces.
-- Feature: class system now uses full encapsulation (static protected, static public, private, protected and public fields & methods).
-- Feature: **luaex** table now contains a **\_VERSION** variable.
+- Change:   rewrote the class system from scratch.
+- Change:   renamed **\_\_LUAEX\_\_** global table **luaex**.
+- Feature:  added class interfaces.
+- Feature:  class system now uses full encapsulation (static protected, static public, private, protected and public fields & methods).
+- Feature:  **luaex** table now contains a **\_VERSION** variable.
+- Refactor: moved various modules to different directories.
 
 **v0.70**
-- Change: enum items now use functions (.) instead of methods (:) and automatically input themselves as arguments.
-- Change: enum items' ***next*** and ***previous*** functions *may* now wrap around to the start and end respectively.
-- Change: moved all type items to **types.lua**.
-- Change: renamed functions in various modules to conform with Lua's lowercase naming convention.
-- Change: improved the ***string.totable*** function.
-- Change: the ***xtype*** function will now ignore user-defined types but return **LuaEx**'s type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as opposed to returning, *"table"*. *Use the **rawtype** function to ignore all **LuaEx** type mechanics*.
-- Change: renamed the ***string.delimitedtotable*** function to ***string.totable***.
-- Bugfix: corrected several minor bugs in enum library.
-- Bugfix: corrected assertions in stack class.
-- Bugfix: ***set.addset*** was not adding items.
-- Feature: added several type functions and metamethods to various default types (e.g., boolean, string, number, etc.).
-- Feature: added serialization to enums.
-- Feature: added the **ini** module.
-- Feature: added ***string.isnumeric*** function.
-- Feature: added a ***\_\_mod*** metamethod for string which allows for easy interpolation.
-- Feature: added null type.
-- Feature: added the **struct** factory module.
-- Feature: added the ***xtype*** function.
-- Feature: added the ***fulltype*** function.
+- Change:   enum items now use functions (.) instead of methods (:) and automatically input themselves as arguments.
+- Change:   enum items' ***next*** and ***previous*** functions *may* now wrap around to the start and end respectively.
+- Change:   renamed functions in various modules to conform with Lua's lowercase naming convention.
+- Change:   improved the ***string.totable*** function.
+- Change:   the ***xtype*** function will now ignore user-defined types but return **LuaEx**'s type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as opposed to returning, *"table"*. *Use the **rawtype** function to ignore all **LuaEx** type mechanics*.
+- Change:   renamed the ***string.delimitedtotable*** function to ***string.totable***.
+- Bugfix:   corrected several minor bugs in enum library.
+- Bugfix:   corrected assertions in stack class.
+- Bugfix:   ***set.addset*** was not adding items.
+- Feature:  added several type functions and metamethods to various default types (e.g., boolean, string, number, etc.).
+- Feature:  added serialization to enums.
+- Feature:  added the **ini** module.
+- Feature:  added ***string.isnumeric*** function.
+- Feature:  added a ***\_\_mod*** metamethod for string which allows for easy interpolation.
+- Feature:  added null type.
+- Feature:  added the **struct** factory module.
+- Feature:  added the ***xtype*** function.
+- Feature:  added the ***fulltype*** function.
+- Refactor: moved all type items to **types.lua**.
 
 **v0.60**
-- Feature: removed ***string.left*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
-- Feature: removed ***string.right*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
-- Feature: added ***string.trim*** function.
-- Feature: added ***string.trimleft*** function.
-- Feature: added ***string.trimright*** function.
-- Bugfix: corrected package.path code in init.lua and removed ***import*** function.
+- Feature:  removed ***string.left*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
+- Feature:  removed ***string.right*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
+- Feature:  added ***string.trim*** function.
+- Feature:  added ***string.trimleft*** function.
+- Feature:  added ***string.trimright*** function.
+- Bugfix:   corrected package.path code in init.lua and removed ***import*** function.
 - Refactor: moved modules into appropriate subdirectories and updated init.lua to find them.
 - Refactor: appended ***string***, ***math*** & ***table*** module files with "hook" without which they would not load properly.
-- Update: updated README with more information.
+- Update:   updated README with more information.
 
 **v0.50**
 - Bugfix: ***table.lock*** was altering the metatable of **enums** when it should not have been.
 - Bugfix: ***table.lock*** was not preserving metatable items (where possible).
 - Change: classes are no longer automatically added to the global scope when created; rather, they are returned for the calling script to handle.
-- Change: **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
-- Change: **enums** values may now be of any non-nil type(previously only **string** and **number** were allowed).
+- Change:  **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
+- Change:  **enums** values may now be of any non-nil type(previously only **string** and **number** were allowed).
 - Feature: **class** constructor methods now pass, not only the instance, but a protected, shared (fields and methods) table to parent classes.
 - Feature: **enums** may now be nested.
 - Feature: added ***protect*** function (in ***stdlib***).
@@ -116,21 +123,21 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Feature: added ***stack*** class.
 
 **v0.40**
-- Bugfix: metavalue causing custom type check to fail to return the proper value.
-- Bugfix: typo that caused global enums to not be put into the global environment.
+- Bugfix:  metavalue causing custom type check to fail to return the proper value.
+- Bugfix:  typo that caused global enums to not be put into the global environment.
 - Feature: enums can now also be non-global.
 - Feature: the enum created by a call to the enum function is now returned.
 
 **v0.30**
-- Hardened the protected table to prevent accidental tampering.
-- Added a meta table to ***\_G*** in the **init** module.
-- Changed the name of the const module and function to constant for Lua 5.1 - 5.4 compatibility.
-- Altered the way constants and enums work by using the new, ***\_G*** metatable to prevent deletion or overwriting.
-- Updated several modules.
+- Change:  Added a meta table to ***\_G*** in the **init** module.
+- Change:  Changed the name of the **const** module and function to **constant** for Lua 5.1 - 5.4 compatibility.
+- Change:  Altered the way constants and enums work by using the new, ***\_G*** metatable to prevent deletion or overwriting.
+- Change:  Updated several modules.
+- Feature: Hardened the protected table to prevent accidental tampering.
 
 **v0.20**
-- Added the enum object.
-- Updated a few modules.
+- Change: Added the enum object.
+- Change: Updated a few modules.
 
 **v0.10**
 - Compiled various modules into **LuaEx**.
@@ -472,7 +479,7 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 ##### Structs 🕋
 These objects are meant to behave as you might expect from other languages but with added features.  
 
-They are made by first creating a struct factory (of type **structfactory**). The factory created is of type **[sName]factory** where *sName* is the name input into the *struct factory builder* (as shown in the example below).  
+They are made by first creating a struct factory. The factory created is of type **[sName]factory** (of subtype **structfactory**) where *sName* is the name input into the *struct factory builder* (as shown in the example below).  
 
 Struct factories output type **sName** (of subtype **struct**).
 
@@ -564,7 +571,7 @@ local aPet = array(5);
 print("aPets is an "..type(aPet).." made by the "..type(array)..'.');
 
 --print the value at index 5 (null)
-print("aPet[3] -> "..tostring(aPet[3]));
+print("aPet[5] -> "..tostring(aPet[5]));
 
 --initialized with a size and type.
 local aNoPet = array({"Aligator", "T-Rex", "Rino", "Leech", "Dragon"});
@@ -646,7 +653,7 @@ print(aCloned)
 
 ## 🆂🅴🆁🅸🅰🅻🅸🆉🅴🆁 ❓➡️ 🔤
 
-The serializer system is designed to work with (most) both native **Lua** types as well as custom objects such as **classes**, **arrays**, etc., and user-created objects.  
+The serializer system is designed to work with most native **Lua** types as well as custom objects such as **classes**, **arrays**, etc., and user-created objects.  
 The two **Lua** types <u>**not currently**</u> able to be serialized/deserialized are:
 - **thread**
 - **userdata**
@@ -654,13 +661,15 @@ The two **Lua** types <u>**not currently**</u> able to be serialized/deserialize
 To serialize something, simply call the ***serialize()*** function with the item input (as shown in the example below).  
 To deserialize something that was serialized, call the ***deserialize()*** function with the item as input.
 
-These two functions work seamlessly for  native **Lua** types but use with custom objects depend on a contract.  
+These two functions work effortlessly for  native **Lua** types but use with custom objects depends on a contract.  
 Any object which is to be serialized must have a ***__serialize*** metamethod.
 To deserialize it, a static ***deserialize*** method must exist.
 
 The contract between the ***__serialize*** metamethod and the static ***deserialize*** method is as follows: whatever is returned from ***__serialize*** will be input by the serializer system into the ***deserialize*** method as the first argument exactly as output by from ***__serialize***.  
 
-It is the responsibility of the ***__serialize*** metamethod to ensure all custom objects it returns are serialized before returned (user should confirm those custom objects also have a ***__serialize*** metamethod).  
+It's the responsibility of the ***__serialize*** metamethod to ensure all custom objects it returns are serialized before returned (user should confirm those custom objects also have a ***__serialize*** metamethod).  
+
+It's the responsibility of the static ***deserialize*** method to return the expected object.
 
 <details>
 <summary>🆅🅸🅴🆆 🅴🆇🅰🅼🅿🅻🅴</summary>

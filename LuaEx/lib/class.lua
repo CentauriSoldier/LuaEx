@@ -16,6 +16,7 @@
     <li>
         <b>0.7</b>
         <br>
+        <p>Bugfix: editing kit visibility table during iteration in _AUTO directive was causing malformed classes.</p>
         <p>Bugfix: private methods not able to be overriden from within the class.</p>
         <p>Bugfix: public static members could not be set or retrieved.</p>
         <p>Bugfix: __shr method not providing 'other' parameter to client.</p>
@@ -847,7 +848,6 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         pub      	    = clone(tPublic, 		true),
     };
 
-
     --note and rename final methods
     kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
 
@@ -923,6 +923,7 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
             if (sItemType ~= "function") then
 
                 if (sName:sub(-CLASS_DIRECTIVE_AUTO_LENGTH) == CLASS_DIRECTIVE_AUTO) then
+
                     local sFormattedName = sName:sub(1, #sName - CLASS_DIRECTIVE_AUTO_LENGTH);
 
                     if (type(tKit[sCAI][sFormattedName]) ~= "nil") then
@@ -944,9 +945,9 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
                         formattedname   = sFormattedName,
                     };
 
-                    --set the proper name
-                    tKit[sCAI][sFormattedName]  = vItem;
-                    tKit[sCAI][sName]           = nil;
+                    --set the proper name (MOVED BELOW AS EDITING DURING ITERATION WAS CAUSING FAILURE)
+                    --tKit[sCAI][sFormattedName]  = vItem;
+                    --tKit[sCAI][sName]           = nil;
                 end
 
             end
@@ -993,6 +994,10 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
 
         --store the auto settings for later creation during instantiation
         tKit.auto[sName] = tItem;
+
+        --set the proper name
+        tKit[sVisibility][sFormattedName]  = tItem.item;
+        tKit[sVisibility][sName]           = nil;
     end
 
 end
@@ -1035,7 +1040,7 @@ function kit.processDirectiveFinal(tKit)
             local sNewName = sName:sub(1, #sName - CLASS_DIRECTIVE_FINAL_LENGTH);
             --add/delete proper key
             tKit[sCAI][sNewName] = fMethod;
-            tKit[sCAI][sName] = nil;
+            tKit[sCAI][sName]    = nil;
 
             --log the method as final
             tKit.finalmethodnames[sCAI][sNewName] = true;

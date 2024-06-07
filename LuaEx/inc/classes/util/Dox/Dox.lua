@@ -176,6 +176,7 @@ local function escapePattern(pattern)
     return escapedPattern
 end
 
+
 --[[
 ██████╗  ██████╗ ██╗  ██╗
 ██╔══██╗██╔═══██╗╚██╗██╔╝
@@ -314,8 +315,9 @@ return class("Dox",
 
             --get the block data
             local tBlockData = pri.parseBlockString(sBlock);
-
+            print((tBlockData))
             for _, oBlockTag in ipairs(pri.blockTags) do
+
             --ensure that all required tags are present
             --TODO LEFT OFF HERE
             end
@@ -440,7 +442,7 @@ return class("Dox",
 
         cdat.pri.refresh();
     end,
-    fileTypes = function(this, cdat)--TODO should I clone the set? probably/
+    fileTypes_FNL = function(this, cdat)--TODO should I clone the set? probably/
         return cdat.pri.fileTypes;
     end,
 },
