@@ -32,7 +32,7 @@ local tClassLoadValues = {
     [_nBasicClasses]        = true,  --load basic classes (set, queue, stack, dox, etc.)?
     [_nComponentClasses]    = true,  --component class (potentiometer, protean, etc.)?
     [_nGeometryClasses]     = true,  --geometry classes (shape, circle, polygon, etc.)?
-    [_nUtilClasses]         = true,  --other things like Ini, etc.
+    [_nUtilClasses]         = true,  --other things like Dox, Ini, etc.
 };
 
 
@@ -251,11 +251,11 @@ if (tClassLoadValues[_nClassSystem]) then
             end
 
             if (tClassLoadValues[_nUtilClasses]) then
-                --dox and included support and language classes
-                DoxBlockTag         = require("LuaEx.inc.classes.util.dox.DoxBlockTag");
+                --dox and included support and language classes                
+                DoxBlockTag         = require("LuaEx.inc.classes.util.Dox.DoxBlockTag");
                 Dox                 = require("LuaEx.inc.classes.util.Dox.Dox");
-                DoxModule           = require("LuaEx.inc.classes.util.dox.DoxModule");
-                LuaDox              = require("LuaEx.inc.classes.util.dox.Languages.LuaDox");
+                DoxModule           = require("LuaEx.inc.classes.util.Dox.DoxModule");
+                LuaDox              = require("LuaEx.inc.classes.util.Dox.Languages.LuaDox");
 
                 --ini
                 Ini    = require("LuaEx.inc.classes.util.Ini"); --TODO need to finish OrderedSet first

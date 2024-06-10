@@ -264,7 +264,7 @@ Please keep in mind, if there is ever an intractable conflict between **Lua 5.1*
 
 ---
 
-# <center><a id="features"></a>✨⭐ 🅵🅴🅰🆃🆄🆁🅴🆂 📲</center>
+# <center><a id="features"></a>🅵🅴🅰🆃🆄🆁🅴🆂✨⭐📲</center>
 
 ---
 
@@ -665,7 +665,7 @@ These two functions work effortlessly for  native **Lua** types but use with cus
 Any object which is to be serialized must have a ***__serialize*** metamethod.
 To deserialize it, a static ***deserialize*** method must exist.
 
-The contract between the ***__serialize*** metamethod and the static ***deserialize*** method is as follows: whatever is returned from ***__serialize*** will be input by the serializer system into the ***deserialize*** method as the first argument exactly as output by from ***__serialize***.  
+The contract between the ***__serialize*** metamethod and the static ***deserialize*** method is as follows: whatever is returned from ***__serialize*** will be input by the serializer system into the ***deserialize*** method as the first argument exactly as output by ***__serialize***.  
 
 It's the responsibility of the ***__serialize*** metamethod to ensure all custom objects it returns are serialized before returned (user should confirm those custom objects also have a ***__serialize*** metamethod).  
 

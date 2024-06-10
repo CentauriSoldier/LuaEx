@@ -76,22 +76,65 @@ local function writeToFile(path, content)
 end
 
 
+local function simple_hash256(input_string)
+    local hash = {0, 0, 0, 0, 0, 0, 0, 0}
+    local prime = 31
 
+    for i = 1, #input_string do
+        local char = string.byte(input_string, i)
+        for j = 1, #hash do
+            hash[j] = (hash[j] * prime + char) % 2^32
+        end
+        prime = prime + 2  -- Change the prime for each character to introduce more variability
+    end
 
+    local hash_string = ""
+    for i = 1, #hash do
+        hash_string = hash_string .. string.format("%08x", hash[i])
+    end
 
+    return hash_string
+end
 
+local function test_collision_rate256(num_samples, string_length)
+    local hash_table = {}
+    local collisions = 0
 
+    for i = 1, num_samples do
+        local input = ""
+        for j = 1, string_length do
+            input = input .. string.char(math.random(32, 126))  -- Generate a random string of given length
+        end
+        local hash = simple_hash256(input)
+        if hash_table[hash] then
+            collisions = collisions + 1
+        else
+            hash_table[hash] = true
+        end
+    end
 
+    return collisions, num_samples
+end
 
+-- Run the collision test for the 256-bit hash function
+math.randomseed(os.time())
+local num_samples = 1000000  -- 1 million samples
+local string_length = 40      -- Length of each random string
+--local collisions, total_samples = test_collision_rate256(num_samples, string_length)
 
-
+--print("Total samples: " .. total_samples)
+--print("Collisions: " .. collisions)
+--print("Collision rate: " .. (collisions / total_samples))
 
 local oLuaExDox = LuaDox();
 --oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
 oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"));
+
+local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\DoxTest.html"
+oLuaExDox.setOutputPath(pHTML);
+oLuaExDox.output(Dox.OUTPUT.HTML);
 --oLuaExDox.export();
 --TODO create tests for each thing and use them as examples
-
 
 --print(readFile(pFile))
 --local tModules, tBlocks = oLuaExDox.importString(readFile(pFile));

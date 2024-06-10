@@ -407,7 +407,7 @@ function instance.build(tKit, tParentActual)
         met = clone(tKit.met), --create the metamethods
         pri = clone(tKit.pri), --create the private members
         pro = clone(tKit.pro), --etc.
-        pub = clone(tKit.pub), --TODO should I use clone item or wil this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
+        pub = clone(tKit.pub), --TODO should I use clone item or will this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
         children            = {},    --TODO move to class level or to here? Is there any use for it here? IS THIS EVER USED AT ALL? Perhaps for class-level funtions?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
@@ -429,7 +429,7 @@ function instance.build(tKit, tParentActual)
     --wrap the private, protected and public methods
     instance.wrapMethods(tInstance, tClassData)
 
-    ----create auto getter/setter methods
+    --create auto getter/setter methods
     instance.buildAutoMethods(tInstance, tClassData);
 
     --create and set the instance metatable
@@ -437,8 +437,8 @@ function instance.build(tKit, tParentActual)
 
     --TODO I need to update the children field of each parent (OR do I?)
     --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
-    ---TODO move to kit.buildclass tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
-    --TODO  static initializers for altering static fields ONCE at runtime
+    --TODO move to kit.buildclass tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
+    --TODO static initializers for altering static fields ONCE at runtime
 
     --store the class data so it can be used interally by classes to access other object cdat.
     rawset(tKit.ins, oInstance, tClassData);
@@ -689,7 +689,6 @@ end
 @fqxn LuaEx.class.instance.Functions.wrapMetamethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
-@scope local
 @desc Wraps all the instance metamethods so they have access to the instance object (decoy) and the class data.
 !]]
 function instance.wrapMetamethods(tInstance, tClassData)--TODO double check these
