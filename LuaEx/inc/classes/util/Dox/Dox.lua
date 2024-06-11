@@ -454,81 +454,104 @@ return class("Dox",
             local tFunctions = cdat.pri[eOutputType.HTML.name];
             local tbl = cdat.pri.finalized;
 
-            local html_code = "<!DOCTYPE html>\n<html>\n<head>\n"
-            html_code = html_code .. '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">\n'
-            html_code = html_code .. '<style>body { display: flex; } nav { width: 25%; } .content { margin-left: 25%; padding: 20px; }</style>\n'
-            html_code = html_code .. '</head>\n<body>\n'
-            html_code = html_code .. '<nav id="accordion">\n'
-            html_code = html_code .. tFunctions.generate_navigation(this, cdat, tbl, {"Root"})
-            html_code = html_code .. '</nav>\n'
-            html_code = html_code .. '<div class="content">\n'
-            html_code = html_code .. tFunctions.generate_content_sections(this, cdat, tbl, {"Root"})
-            html_code = html_code .. '</div>\n'
-            html_code = html_code .. '<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>\n'
-            html_code = html_code .. '<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>\n'
-            html_code = html_code .. '<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>\n'
-            html_code = html_code .. '</body>\n</html>'
+            local sCode = "<!DOCTYPE html>\n<html>\n";
+            sCode = sCode..tFunctions.buildHead();
+            sCode = sCode.."\n\t<body>\n";
+            sCode = sCode..[[
+        <div class="wrapper">
+            <nav class="sidebar d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Main Menu</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="collapse" href="#item1SubMenu" aria-expanded="false" aria-controls="item1SubMenu">Item 1</a>
+                            <div class="collapse" id="item1SubMenu">
+                                <ul class="flex-column pl-2 nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#">Subitem 1.1</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#">Subitem 1.2</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="collapse" href="#item2SubMenu" aria-expanded="false" aria-controls="item2SubMenu">Item 2</a>
+                            <div class="collapse" id="item2SubMenu">
+                                <ul class="flex-column pl-2 nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#">Subitem 2.1</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#">Subitem 2.2</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main role="main" class="main-content">
+                <!-- Your main content here -->
+                <h1>Main Content</h1>
+                <p>This is the main content area.</p>
+            </main>
+        </div>
+        ]];
+        sCode = sCode..[[
+        <!-- Javascript -->
+        <script src="assets/plugins/popper.min.js"></script>
+        <script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+
+
+        <!-- Page Specific JS -->
+        <script src="assets/plugins/smoothscroll.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/highlight.min.js"></script>
+        <script src="assets/js/highlight-custom.js"></script>
+        <script src="assets/plugins/simplelightbox/simple-lightbox.min.js"></script>
+        <script src="assets/plugins/gumshoe/gumshoe.polyfills.min.js"></script>
+        <script src="assets/js/docs.js"></script>
+
+    </body>
+</html>]];
 
             -- Write HTML code to a file
             local file = io.open(cdat.pri.OutputPath, "w")
-            file:write(html_code)
+            file:write(sCode)
             file:close()
         end,
-        generate_navigation = function(this, cdat, tbl, breadcrumbs, level)
-            local nav_html = ""
-            level = level or 0
+        buildHead = function(this, cdat)
+            return [[
+        <head>
+        <title>CoderDocs - Bootstrap Documentation Template For Software Projects</title>
 
-            local function add_nav_items(tbl, breadcrumbs, parent_id, level)
-                for key, value in pairs(tbl) do
-                    local crumb_path = table.concat(breadcrumbs, "_") .. "_" .. key
-                    local collapse_id = crumb_path .. "_collapse"
-                    local show = (level == 0) and " show" or ""
+        <!-- Meta -->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-                    nav_html = nav_html .. '<div class="card">\n'
-                    nav_html = nav_html .. '<div class="card-header" id="' .. crumb_path .. '">\n'
-                    nav_html = nav_html .. '<h5 class="mb-0">\n'
-                    nav_html = nav_html .. '<button class="btn btn-link' .. (level > 0 and " collapsed" or "") .. '" data-toggle="collapse" data-target="#' .. collapse_id .. '" aria-expanded="' .. (level == 0 and "true" or "false") .. '" aria-controls="' .. collapse_id .. '">' .. key .. '</button>\n'
-                    nav_html = nav_html .. '</h5>\n</div>\n'
+        <meta name="description" content="Bootstrap 4 Template For Software Startups">
+        <meta name="author" content="Xiaoying Riley at 3rd Wave Media">
+        <link rel="shortcut icon" href="favicon.ico">
 
-                    nav_html = nav_html .. '<div id="' .. collapse_id .. '" class="collapse' .. show .. '" aria-labelledby="' .. crumb_path .. '" data-parent="#' .. (parent_id or "accordion") .. '">\n'
-                    nav_html = nav_html .. '<div class="card-body">\n'
-                    if type(value) == "table" then
-                        add_nav_items(value, {unpack(breadcrumbs), key}, collapse_id, level + 1)
-                    else
-                        nav_html = nav_html .. '<a class="nav-link" href="#' .. crumb_path .. '">' .. key .. '</a>\n'
-                    end
-                    nav_html = nav_html .. '</div>\n</div>\n</div>\n'
-                end
-            end
+        <!-- Google Font -->
+        <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap" rel="stylesheet">
 
-            add_nav_items(tbl, breadcrumbs, nil, level)
-            return nav_html
-        end,
+        <!-- FontAwesome JS-->
+        <script defer src="assets/fontawesome/js/all.min.js"></script>
 
-        -- Generates content sections
-        generate_content_sections = function(this, cdat, tbl, breadcrumbs)
-            local content_html = ""
+        <!-- Plugins CSS -->
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.2/styles/atom-one-dark.min.css">
+        <link rel="stylesheet" href="assets/plugins/simplelightbox/simple-lightbox.min.css">
 
-            local function add_content_sections(tbl, breadcrumbs)
-                for key, value in pairs(tbl) do
-                    local crumb_path = table.concat(breadcrumbs, "_") .. "_" .. key
-                    content_html = content_html .. '<section id="' .. crumb_path .. '">\n'
-                    content_html = content_html .. '<h3>' .. key .. '</h3>\n'
-                    if type(value) == "table" then
-                        add_content_sections(value, {unpack(breadcrumbs), key})
-                    else
-                        -- Assuming value is an iterator returning content table
-                        local content = value()
-                        for _, item in ipairs(content) do
-                            content_html = content_html .. '<p>' .. item.content .. '</p>\n'
-                        end
-                    end
-                    content_html = content_html .. '</section>\n'
-                end
-            end
+        <!-- Theme CSS -->
+        <link id="theme-style" rel="stylesheet" href="assets/css/theme.css">
 
-            add_content_sections(tbl, breadcrumbs)
-            return content_html
+    </head>]]
         end,
     },
 },

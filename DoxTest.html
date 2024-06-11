@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Layout</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .breadcrumb {
+            background: none;
+            margin-bottom: 0;
+        }
+        .breadcrumb-wrapper {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 20px;
+        }
+        .sidebar-wrapper {
+            display: flex;
+            height: 100%;
+        }
+        .sidebar {
+            flex: 1;
+            padding: 10px;
+        }
+        .sidebar-1 {
+            background-color: #343a40;
+            color: white;
+        }
+        .sidebar-2 {
+            background-color: #495057;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Topbar 1 -->
+    <div class="container-fluid bg-primary text-light py-2 mb-1">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <img src="https://via.placeholder.com/150" width="30" height="30" class="d-inline-block align-top mr-2" alt="">
+            </div>
+            <div class="col-auto">
+                <h5 class="m-0">Documentation Layout</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-wrapper vh-100 d-flex flex-column">
+
+        <div class="container-fluid d-flex flex-column flex-grow-1">
+
+            <div class="row flex-grow-1">
+
+                <!-- Sidebar Wrapper -->
+                <div class="col-lg-3 bg-dark text-light">
+                    <div class="sidebar-wrapper">
+                        <!-- Sidebar 1 -->
+                        <div class="sidebar sidebar-1">
+                            <h2>Modules</h2>
+                            <ul id="menu" class="nav flex-column"></ul>
+                        </div>
+
+                        <!-- Sidebar 2 -->
+                        <div class="sidebar sidebar-2">
+                            <h2>Navigation</h2>
+                            <ul id="submenu" class="nav flex-column"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Panel -->
+                <div class="col-lg-9 bg-light position-relative">
+                    <div class="breadcrumb-wrapper">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb" id="breadcrumb"></ol>
+                        </nav>
+                    </div>
+                    <div class="main-panel h-100">
+                        <h2>Documentation Content</h2>
+                        <div id="content">Select an item to see details.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer bg-light">
+            <div class="container">
+                <span class="text-muted">Footer Bar</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <script>
+        // Example FQXN Data for Stress Testing
+        const documentationData = {
+            "ModuleA": {
+                "Functions": {
+                    "FunctionA1": "Details about FunctionA1.",
+                    "FunctionA2": "Details about FunctionA2.",
+                    "FunctionA3": "Details about FunctionA3."
+                },
+                "Enums": {
+                    "EnumA1": "Details about EnumA1.",
+                    "EnumA2": "Details about EnumA2."
+                },
+                "Constants": {
+                    "ConstantA1": "Details about ConstantA1."
+                },
+                "SubModuleA1": {
+                    "Functions": {
+                        "FunctionA1.1": "Details about FunctionA1.1.",
+                        "FunctionA1.2": "Details about FunctionA1.2."
+                    },
+                    "SubModuleA1.1": {
+                        "Functions": {
+                            "FunctionA1.1.1": "Details about FunctionA1.1.1."
+                        }
+                    }
+                }
+            },
+            "ModuleB": {
+                "Functions": {
+                    "FunctionB1": "Details about FunctionB1.",
+                    "FunctionB2": "Details about FunctionB2."
+                },
+                "Enums": {
+                    "EnumB1": "Details about EnumB1."
+                },
+                "Constants": {
+                    "ConstantB1": "Details about ConstantB1.",
+                    "ConstantB2": "Details about ConstantB2."
+                },
+                "SubModuleB1": {
+                    "Functions": {
+                        "FunctionB1.1": "Details about FunctionB1.1."
+                    },
+                    "SubModuleB1.1": {
+                        "Functions": {
+                            "FunctionB1.1.1": "Details about FunctionB1.1.1."
+                        }
+                    }
+                }
+            },
+            "ModuleC": {
+                "Functions": {
+                    "FunctionC1": "Details about FunctionC1."
+                },
+                "SubModuleC1": {
+                    "Functions": {
+                        "FunctionC1.1": "Details about FunctionC1.1.",
+                        "FunctionC1.2": "Details about FunctionC1.2."
+                    },
+                    "SubModuleC1.1": {
+                        "Functions": {
+                            "FunctionC1.1.1": "Details about FunctionC1.1.1.",
+                            "FunctionC1.1.2": "Details about FunctionC1.1.2."
+                        }
+                    }
+                }
+            }
+        };
+
+        // Load top-level modules into the sidebar
+        function loadSidebar() {
+            const menu = document.getElementById('menu');
+            menu.innerHTML = '';
+            for (const module in documentationData) {
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'nav-link';
+                a.textContent = module;
+                a.onclick = function() {
+                    updateBreadcrumb(module);
+                };
+                li.appendChild(a);
+                menu.appendChild(li);
+            }
+        }
+
+        // Update breadcrumb, main content, and sidebar 2 based on the selected item
+        function updateBreadcrumb(path) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const content = document.getElementById('content');
+            const submenu = document.getElementById('submenu');
+            const parts = path.split('.');
+            let currentData = documentationData;
+            breadcrumb.innerHTML = '';
+            submenu.innerHTML = '';
+
+            parts.forEach((part, index) => {
+                let li = document.createElement('li');
+                li.className = 'breadcrumb-item';
+                
+                if (index === parts.length - 1) {
+                    li.textContent = part;
+                    li.className += ' active';
+                    li.setAttribute('aria-current', 'page');
+                } else {
+                    let a = document.createElement('a');
+                    a.href = '#';
+                    a.textContent = part;
+                    a.onclick = function() {
+                        updateBreadcrumb(parts.slice(0, index + 1).join('.'));
+                    };
+                    li.appendChild(a);
+                }
+                
+                breadcrumb.appendChild(li);
+
+                if (currentData[part]) {
+                    currentData = currentData[part];
+                }
+            });
+
+            if (typeof currentData === 'string') {
+                content.innerHTML = currentData;
+            } else {
+                content.innerHTML = 'Select a subitem to see details.';
+            }
+
+            if (typeof currentData !== 'string') {
+                loadSubmenu(currentData, path);
+            }
+        }
+
+        // Load submenu items in sidebar 2
+        function loadSubmenu(subitems, path) {
+            const submenu = document.getElementById('submenu');
+            submenu.innerHTML = '';  // Clear submenu before loading new items
+            for (const subitem in subitems) {
+                let li = document.createElement('li');
+                li.className = 'nav-item';
+                let a = document.createElement('a');
+                a.href = '#';
+                a.className = 'nav-link';
+                a.textContent = subitem;
+                a.onclick = function() {
+                    updateBreadcrumb(path + '.' + subitem);
+                };
+                li.appendChild(a);
+                submenu.appendChild(li);
+            }
+        }
+
+        loadSidebar();
+        updateBreadcrumb('Home');
+    </script>
+</body>
+</html>
