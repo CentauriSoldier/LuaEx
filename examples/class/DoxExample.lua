@@ -126,13 +126,16 @@ local string_length = 40      -- Length of each random string
 --print("Collisions: " .. collisions)
 --print("Collision rate: " .. (collisions / total_samples))
 
-local oLuaExDox = LuaDox();
+local oLuaExDox = LuaDox("LuaEx");
 --oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
 oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"));
 
 local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\DoxTest.html"
 oLuaExDox.setOutputPath(pHTML);
-oLuaExDox.output(Dox.OUTPUT.HTML);
+oLuaExDox.export(Dox.OUTPUT.HTML);
+
+
+
 --oLuaExDox.export();
 --TODO create tests for each thing and use them as examples
 

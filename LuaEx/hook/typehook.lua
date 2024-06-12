@@ -507,14 +507,6 @@ local function newindex(t, k, v)
 
 end
 
---aliases for ease-of use TODO these should be removed and localized as needed
-rawtype 	= type.raw;
-xtype 		= type.ex;
-fulltype	= type.full;
-subtype 	= type.sub;
-settype		= type.set;
-setsubtype	= type.setsub;
-
 --setup the 'is' functions for all types
 for sType, _ in pairs(tLuaTypes) do
     rawset(type, "is"..sType, function(vVal)
@@ -534,6 +526,16 @@ for sType, _ in pairs(tUserTypes) do
         return type(vVal) == sType;
     end);
 end
+
+--aliases for ease-of use TODO these should be removed and localized as needed
+rawtype 	= type.raw;
+xtype 		= type.ex;
+fulltype	= type.full;
+subtype 	= type.sub;
+settype		= type.set;
+setsubtype	= type.setsub;
+isnil       = type.isnil;
+isnull      = type.isnull;
 
 --rework the type system
 setmetatable(type,

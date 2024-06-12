@@ -151,6 +151,8 @@ function table.purge(tInput, bIgnoreMetaTable)
 
 end
 
+
+
 --TODO move these alias to somewhere else
 table.settype = type.set;
 table.setsubtype = type.setsub;

@@ -12,12 +12,13 @@ return class("LuaDox",
 
 },
 {--public
-    LuaDox = function(this, cdat, super)
+    LuaDox = function(this, cdat, super, sTitle)
         local fBlockTag         = DoxBlockTag;
         local eLanguage         = Dox.LANGUAGE.LUA;
         local bRequired         = true;
         local bMultipleAllowed  = true;
 
+        type.assert.string(sTitle, "%S+", "Dox documentation title name must not be blank.");
 
         --TODO enums, class, constants, arrays, etc. block tag groups
         --local oArrayBlockTagGroup       = fBlockTagGroup("Array",       "Arrays",       "--[[a!", "!a]]", nil);
@@ -25,7 +26,7 @@ return class("LuaDox",
         --local oConstantBlockTagGroup    = fBlockTagGroup("Constant",    "Constants",    "--[[c!", "!c]]", nil);
         --local oEnumBlockTagGroup        = fBlockTagGroup("Enum",        "Enums",        "--[[e!", "!e]]", nil);
 
-        super(  "DoxLua", "!", "!", "@", eLanguage,
+        super(  "DoxLua", sTitle, "!", "!", "@", eLanguage,
                 fBlockTag({"parameter", "param", "par"},        "Parameter",            -bRequired,     bMultipleAllowed),
                 fBlockTag({"scope"},                            "Scope",                -bRequired,     -bMultipleAllowed),--TODO make not reqwuired afte testing
                 fBlockTag({"des", "desc", "description"},       "Description",          -bRequired,     -bMultipleAllowed),

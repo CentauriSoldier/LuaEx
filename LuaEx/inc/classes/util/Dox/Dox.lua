@@ -377,6 +377,7 @@ return class("Dox",
     --Start 	= "##### START DOX [SUBCLASS NAME] SNIPPETS -->>> ID: ",
     --End 	= "#####   <<<-- END DOX [SUBCLASS NAME] SNIPPETS ID: ",
     tagOpen             = "",
+    title               = "",
     --[[!
     @fqxn LuaEx.Classes.Dox.Methods.extractBlockStrings
     @desc Extracts Dox comment blocks from a string input and stores them for later processing.
@@ -435,10 +436,11 @@ return class("Dox",
 
                 --store the iterator for the items if last item or false
                 tContent[tActive] = bLastItem and tBlock.items or false;
-
+--TODO LEFT OFF HERE gotta get items working
                 --set the call to get the content
                 setmetatable(tActive, {
                     __call = function(t)
+                        --print(tContent[tActive])
                         return tContent[tActive];
                     end,
                 })
@@ -446,119 +448,403 @@ return class("Dox",
 
         end
 
+        --pri.finalized = table.sortalphabetically(pri.finalized);
         --print(serialize(pri.finalized.LuaEx.class.instance.Functions));
 
     end,
     [eOutputType.HTML.name] = {
         build = function(this, cdat)
-            local tFunctions = cdat.pri[eOutputType.HTML.name];
-            local tbl = cdat.pri.finalized;
+            local pri        = cdat.pri;
+            local tFunctions = pri[eOutputType.HTML.name];
+            local sTitle     = pri.title;
 
-            local sCode = "<!DOCTYPE html>\n<html>\n";
-            sCode = sCode..tFunctions.buildHead();
-            sCode = sCode.."\n\t<body>\n";
-            sCode = sCode..[[
-        <div class="wrapper">
-            <nav class="sidebar d-md-block bg-light sidebar">
-                <div class="sidebar-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Main Menu</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="collapse" href="#item1SubMenu" aria-expanded="false" aria-controls="item1SubMenu">Item 1</a>
-                            <div class="collapse" id="item1SubMenu">
-                                <ul class="flex-column pl-2 nav">
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">Subitem 1.1</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">Subitem 1.2</a>
-                                    </li>
-                                </ul>
+            local sCode = [[
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${title} Documentation</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+                <style>
+                    ${css}
+                </style>
+            </head>
+            <body>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                    <a class="navbar-brand" href="#">
+                        <img src="https://via.placeholder.com/150" width="30" height="30" class="d-inline-block align-top mr-2" alt="">
+                        ${title} Documentation
+                    </a>
+                </nav>
+
+                <!-- Content -->
+                <div class="container-fluid">
+                    <div class="row">
+            			<!-- Sidebar Wrapper -->
+            			<div class="col-lg-1 bg-dark text-light">
+            				<div class="sidebar-wrapper">
+            					<!-- Sidebar 1 -->
+            					<div class="sidebar">
+            						<div class="text-center">
+            							<h2>Modules</h2>
+            						</div>
+            						<ul id="menu1" class="nav flex-column"></ul>
+            					</div>
+            				</div>
+            			</div>
+
+            			<!-- Sidebar Wrapper -->
+            			<div class="col-lg-2 bg-dark text-light">
+            				<div class="sidebar-wrapper">
+            					<!-- Sidebar 2 -->
+            					<div class="sidebar">
+            						<div class="text-center">
+            							<h2 id="menu2itemtitle"></h2>
+            						</div>
+            						<ul id="menu2" class="nav flex-column"></ul>
+            					</div>
+            				</div>
+            			</div>
+
+                        <!-- Main Panel and Bars -->
+                        <div class="col-lg-8 bg-light position-relative">
+                            <div class="content-wrapper">
+
+                                <!-- Breadcrumb bar -->
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb breadcrumb-wrapper" id="breadcrumb"></ol>
+                                </nav>
+
+                                <!-- Content -->
+                                <div id="content">Select an item to see details.</div>
                             </div>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="collapse" href="#item2SubMenu" aria-expanded="false" aria-controls="item2SubMenu">Item 2</a>
-                            <div class="collapse" id="item2SubMenu">
-                                <ul class="flex-column pl-2 nav">
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">Subitem 2.1</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">Subitem 2.2</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
-            </nav>
 
-            <main role="main" class="main-content">
-                <!-- Your main content here -->
-                <h1>Main Content</h1>
-                <p>This is the main content area.</p>
-            </main>
-        </div>
-        ]];
-        sCode = sCode..[[
-        <!-- Javascript -->
-        <script src="assets/plugins/popper.min.js"></script>
-        <script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+                <!-- Footer -->
+                <footer class="footer bg-light">
+                    <div class="container">
+                        <span class="text-muted">Footer Bar</span>
+                    </div>
+                </footer>
 
+                <!-- JS Code -->
+                <script>
+                const documentationData = ${jsontable}
 
-        <!-- Page Specific JS -->
-        <script src="assets/plugins/smoothscroll.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.8/highlight.min.js"></script>
-        <script src="assets/js/highlight-custom.js"></script>
-        <script src="assets/plugins/simplelightbox/simple-lightbox.min.js"></script>
-        <script src="assets/plugins/gumshoe/gumshoe.polyfills.min.js"></script>
-        <script src="assets/js/docs.js"></script>
+                ${javascript}
+                </script>
 
-    </body>
-</html>]];
+            </body>
+            </html>
+            ]] %
+            {
+                css        = tFunctions.getCSS(this, cdat);
+                jsontable  = tFunctions.buildJSONTable(this, cdat),
+                javascript = tFunctions.getJavaScript(this, cdat),
+                title      = sTitle,
+            };
 
+            --print(tFunctions.buildJSONTable(this, cdat))
             -- Write HTML code to a file
             local file = io.open(cdat.pri.OutputPath, "w")
             file:write(sCode)
             file:close()
         end,
-        buildHead = function(this, cdat)
+        buildJSONTable = function(this, cdat) --TODO clean up
+            --TODO base64!
+            -- Function to escape special characters for JSON
+            local function escapeStr(s)
+                if type(s) ~= "string" then
+                    return ""
+                end
+                s = s:gsub("\\", "\\\\")
+                s = s:gsub('"', '\\"')
+                s = s:gsub("\b", "\\b")
+                s = s:gsub("\f", "\\f")
+                s = s:gsub("\n", "\\n")
+                s = s:gsub("\r", "\\r")
+                s = s:gsub("\t", "\\t")
+                return s
+            end
+
+            local function luaTableToJson(tbl)
+                local function processTable(t)
+                    local result = {}
+
+                    -- Create a table to store sorted keys
+                    local sortedKeys = {}
+                    for key in pairs(t) do
+                        table.insert(sortedKeys, key)
+                    end
+                    -- Sort keys alphabetically
+                    table.sort(sortedKeys)
+
+                    -- Insert sorted keys into the JSON table in order
+                    for _, key in ipairs(sortedKeys) do
+                        local subtable = t[key]
+                        local value = subtable()
+                        local subtableResult = processTable(subtable)
+                        result[#result + 1] = '"' .. key .. '":{ "value":"' .. escapeStr(value) .. '", "subtable":' .. (next(subtableResult) and "{" .. table.concat(subtableResult, ",") .. "}" or "null") .. '}'
+                    end
+
+                    return result
+                end
+
+                local jsonResult = processTable(tbl)
+                return "{" .. table.concat(jsonResult, ",") .. "}"
+            end
+
+
+            -- Convert the Lua table to JSON format
+            return luaTableToJson(cdat.pri.finalized);
+        end,
+        getCSS = function(this, cdat)
             return [[
-        <head>
-        <title>CoderDocs - Bootstrap Documentation Template For Software Projects</title>
+            @media (max-width: 768px) {
+                .col-lg-1, .col-lg-2, .col-lg-8 {
+                    flex: 0 0 100%; /* Make columns full width on small screens */
+                    max-width: 100%;
+                }
+            }
 
-        <!-- Meta -->
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            /* General font scaling for headings and other elements */
+            h1, h2, h3, h4, h5, h6,
+            .breadcrumb, .breadcrumb-wrapper, .topbar,
+            .sidebar, .list-group-item, .footer {
+                font-size: calc(1vw + 1vh + 0.5vmin);
+            }
 
-        <meta name="description" content="Bootstrap 4 Template For Software Startups">
-        <meta name="author" content="Xiaoying Riley at 3rd Wave Media">
-        <link rel="shortcut icon" href="favicon.ico">
+            /* Specific adjustments for individual elements */
+            .breadcrumb {
+                background: none;
+                margin-bottom: 4px;
+            }
 
-        <!-- Google Font -->
-        <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap" rel="stylesheet">
+            .breadcrumb-wrapper {
+                background-color: #ffc107;
+                padding: 5px 20px;
+            }
 
-        <!-- FontAwesome JS-->
-        <script defer src="assets/fontawesome/js/all.min.js"></script>
+            .topbar {
+                background-color: #17a2b8;
+                color: white;
+                padding: 10px 20px;
+            }
 
-        <!-- Plugins CSS -->
-        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.2/styles/atom-one-dark.min.css">
-        <link rel="stylesheet" href="assets/plugins/simplelightbox/simple-lightbox.min.css">
+            .sidebar-wrapper {
+                height: calc(100vh - 126px); /* Adjusted height */
+                overflow-y: auto; /* Add scrollbar if content exceeds height */
+            }
 
-        <!-- Theme CSS -->
-        <link id="theme-style" rel="stylesheet" href="assets/css/theme.css">
+            .sidebar {
+                background-color: #343a40;
+                color: white;
+                padding: 10px;
+            }
 
-    </head>]]
+            .content-wrapper {
+                padding: 0 20px;
+            }
+
+            .scrollable-list {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .list-group {
+                display: flex;
+                padding: 0;
+            }
+
+            .list-group-item {
+                flex: 0 0 auto;
+                margin-right: 10px; /* Adjust spacing between items */
+            }
+
+            .footer {
+                background-color: #f8f9fa;
+                color: #6c757d;
+                padding: 10px 20px;
+                height: 40px; /* Set the height to 40 pixels */
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+            }
+            /* Adjust container for Sidebar 1 and Sidebar 2 */
+            .row {
+                display: flex; /* Use flexbox */
+                flex-wrap: nowrap; /* Prevent wrapping */
+            }
+            /* Remove margin and padding from Sidebar 1 and Sidebar 2 */
+            .col-lg-1, .col-lg-2 {
+                padding: 0 !important; /* Remove padding */
+                margin: 0 !important; /* Remove margin */
+            }
+            /* Sidebar 1 specific adjustments */
+            .col-lg-1 {
+                flex: 0 0 auto; /* Don't grow or shrink */
+                width: auto; /* Auto width */
+                max-width: none; /* No maximum width */
+            }
+
+            /* Sidebar 2 specific adjustments */
+            .col-lg-2 {
+                flex: 0 0 auto; /* Don't grow or shrink */
+                width: auto; /* Auto width */
+                max-width: none; /* No maximum width */
+            }
+            /* Remove margin and padding from Sidebar 1 and Sidebar 2 */
+            .col-lg-1, .col-lg-2 {
+                padding: 0 !important; /* Remove padding */
+                margin: 0 !important; /* Remove margin */
+            }
+            ]];
+        end,
+        getJavaScript = function(this, cdat)
+            return [[
+            // Global variable to store the current path
+    		let currentPath = '';
+
+
+    		// Load top-level modules into the sidebar
+    		function loadSidebar() {
+    			const menu = document.getElementById('menu1');
+    			menu.innerHTML = '';
+    			for (const module in documentationData) {
+    				const li = document.createElement('li');
+    				li.className = 'nav-item';
+    				const a = document.createElement('a');
+    				a.href = '#';
+    				a.className = 'nav-link';
+    				a.textContent = module;
+    				a.onclick = function() {
+    					currentPath = module; // Update the current path
+    					updateBreadcrumb();
+    					loadSidebar2(documentationData[module].subtable); // Load the second sidebar
+    					const newValue = getPropertyByPath(documentationData, currentPath, "value");
+    						if (newValue) {
+    								content.innerHTML = newValue;
+    						}
+    				};
+    				li.appendChild(a);
+    				menu.appendChild(li);
+    			}
+    		}
+
+
+
+    		function getPropertyByPath(obj, path, property) {
+    			const parts = path.split('.');
+    			let current = obj;
+
+    			for (let part of parts) {
+    				if (current[part]) {
+    					//current = current[part].subtable !== null ? current[part].subtable : current[part];
+    					current = current[part][property] !== null ? current[part][property] : current[part];
+    				} else {
+    					return undefined;
+    				}
+    			}
+    			return current;
+    		}
+
+    		function updateBreadcrumb() {
+    			const breadcrumb = document.getElementById('breadcrumb');
+    			const content = document.getElementById('content');
+    			const parts = currentPath.split('.');
+    			let currentData = documentationData;
+    			breadcrumb.innerHTML = '';
+
+    			parts.forEach((part, index) => {
+    				let li = document.createElement('li');
+    				li.className = 'breadcrumb-item';
+
+    				if (index === parts.length - 1) {
+    					li.textContent = part;
+    					li.className += ' active';
+    					li.setAttribute('aria-current', 'page');
+    				} else {
+    					let a = document.createElement('a');
+    					a.href = '#';
+    					a.textContent = part;
+    					a.onclick = function() {
+    						currentPath = parts.slice(0, index + 1).join('.');
+    						updateBreadcrumb();
+    						const newData = getPropertyByPath(documentationData, currentPath, "subtable");
+    						const newValue = getPropertyByPath(documentationData, currentPath, "value");
+    						if (newData) {
+    							loadSidebar2(newData);
+    						}
+    						if (newValue) {
+    							content.innerHTML = newValue;
+    						}
+    					};
+    					li.appendChild(a);
+    				}
+
+    				breadcrumb.appendChild(li);
+
+    				if (currentData && currentData[part]) {
+    					currentData = currentData[part].subtable || currentData[part];
+    				}
+    			});
+
+    			//if (currentData && typeof currentData.value === 'string') {
+    			//    content.innerHTML = currentData.value;
+    		   // } else {
+    			 //   content.innerHTML = 'Select a subitem to see details.';
+    		   // }
+    		}
+
+
+    		function loadSidebar2(data) {
+    			const menu2 = document.getElementById('menu2');
+    			menu2.innerHTML = '';
+
+    			Object.keys(data).forEach(key => {
+    				const li = document.createElement('li');
+    				li.className = 'nav-item';
+    				const a = document.createElement('a');
+    				a.className = 'nav-link';
+    				a.href = '#';
+    				a.textContent = key;
+    				a.onclick = function() {
+    					currentPath += `.${key}`;
+    					updateBreadcrumb();
+    					const subtable = data[key].subtable;
+    					if (subtable) {
+    						loadSidebar2(subtable);
+    					} else {
+    						menu2.innerHTML = '<em>' + key + '</em>'; // Clear menu2 if there's no subtable
+    					}
+    					if (data[key].value) {
+    						document.getElementById('content').innerHTML = data[key].value;
+    					}
+    				};
+    				document.getElementById('menu2itemtitle').innerHTML = currentPath.split('.').pop();;
+    				li.appendChild(a);
+    				menu2.appendChild(li);
+    			});
+    		}
+
+
+    		// Initial load
+    		loadSidebar();
+    		updateBreadcrumb('Home');
+            ]];
         end,
     },
 },
 {},--protected
 {--public
-    Dox = function(this, cdat, sName, sBlockOpen, sBlockClose, sTagOpen, eLanguage, ...)
+    Dox = function(this, cdat, sName, sTitle, sBlockOpen, sBlockClose, sTagOpen, eLanguage, ...)
         type.assert.string(sName,       "%S+", "Dox subclass name must not be blank.");
+        type.assert.string(sTitle,      "%S+", "Dox documentation title name must not be blank.");
         type.assert.string(sBlockOpen,  "%S+", "Block Open symbol must not be blank.");
         type.assert.string(sBlockClose, "%S+", "Block Close symbol must not be blank.");
         type.assert.string(sTagOpen,    "%S+", "Tag Open symbol must not be blank.");
@@ -572,6 +858,7 @@ return class("Dox",
         --TODO add mime types from language
         pri.language            = eLanguage;
         pri.name                = sName;
+        pri.title               = sTitle;
         pri.tagOpen             = sTagOpen;
         pri.requiredBlockTags   = {};
 
@@ -620,9 +907,11 @@ return class("Dox",
     fileTypes_FNL = function(this, cdat)--TODO should I clone the set? probably/
         return cdat.pri.fileTypes;
     end,
-    export_FNL = function(this, cdat, pDir, eMimeType, bPulsar)
-
-
+    export_FNL = function(this, cdat, eOutputType, bPulsar)
+        type.assert.custom(eOutputType, "DoxOutput");
+        --TODO puslar snippets
+        --print(type.isDoxOutput(cDoxOutput))
+        cdat.pri[eOutputType.name].build(this, cdat);
     end,
     getBlockTagGroup_FNL = function(this, cdat)
         return cdat.pri.blockTagGroup;
@@ -679,12 +968,6 @@ return class("Dox",
 
         --generate_full_html(cdat.pri.finalized, os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\DoxTest.html")
 
-
-    end,
-    output = function(this, cdat, eOutputType)
-        type.assert.custom(eOutputType, "DoxOutput");
-        --print(type.isDoxOutput(cDoxOutput))
-        cdat.pri[eOutputType.name].build(this, cdat);
 
     end,
 },
