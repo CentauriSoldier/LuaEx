@@ -6,6 +6,29 @@
     Allow internal anchor links
     Allow external links
 ]]
+function getsourcepath()
+    --determine the call location
+    local sPath = debug.getinfo(1, "S").source;
+    --remove the calling filename
+    local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
+    --make a pattern to account for case
+    local sFilename = "";
+    for x = 1, #sFilenameRAW do
+        local sChar = sFilenameRAW:sub(x, x);
+
+        if (sChar:find("[%a]")) then
+            sFilename = sFilename.."["..sChar:upper()..sChar:lower().."]";
+        else
+            sFilename = sFilename..sChar;
+        end
+
+    end
+    sPath = sPath:gsub("@", ""):gsub(sFilename, "");
+    --remove the "/" at the end
+    sPath = sPath:sub(1, sPath:len() - 1);
+
+    return sPath;
+end
 
 local assert    = assert;
 local class     = class;
@@ -293,11 +316,16 @@ local DoxBlock = class("DoxBlock",
             nIndex = nIndex + 1;
 
             if (nIndex <= nMax) then
-                return nIndex == nMax, tFQXN[nIndex];
+                return nIndex == nMax, nIndex, tFQXN[nIndex];
             end
 
         end
 
+    end,
+    item = function(this, cdat, nIndex)
+        local tItems = cdat.pri.items;
+        local tItem = tItems[nIndex];--TODO error check
+        return clone(tItem.blockTag), tItem.content;
     end,
     items = function(this, cdat)
         local tItems = cdat.pri.items;
@@ -417,15 +445,13 @@ return class("Dox",
 
         --inject all block strings into finalized data table
         for sRawBlock, _ in pairs(pri.blockStrings) do
-            local tBlock = {};
-
             --create the DoxBlock
-            local tBlock = DoxBlock(sRawBlock, pri.language, pri.tagOpen,
+            local oBlock = DoxBlock(sRawBlock, pri.language, pri.tagOpen,
                                     pri.blockTags, pri.requiredBlockTags);
 
             local tActive = pri.finalized;
 
-            for bLastItem, sFQXN in tBlock.fqxn() do
+            for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do
 
                 if not (tActive[sFQXN]) then
                     tActive[sFQXN] = {};
@@ -434,13 +460,32 @@ return class("Dox",
                 --update the active table variable
                 tActive = tActive[sFQXN];
 
+                --create the content string
+                --<thead><tr><th>Tag</th><th>Info</th></tr></thead>
+                local sOuterContent = [[<div class="container-fluid table-container"><table class="table table-striped"><tbody>]];
+
+
+
+                for oBlockTag, sContent in oBlock.items() do
+                    sOuterContent = sOuterContent..[[<tr><td>${display}</td><td>${content}</td></tr>]] %
+                    {
+                        display = oBlockTag.getDisplay(),
+                        content = sContent,
+                    };
+                end
+
+                local sOuterContent = sOuterContent..[[</tbody></table></div>]];
+
+                --TODO gsub last newline
+
                 --store the iterator for the items if last item or false
-                tContent[tActive] = bLastItem and tBlock.items or false;
---TODO LEFT OFF HERE gotta get items working
+                --tContent[tActive] = bLastItem and oBlock.items or false;
+                tContent[tActive] = sOuterContent;
+                --TODO LEFT OFF HERE gotta get items working
+
                 --set the call to get the content
                 setmetatable(tActive, {
                     __call = function(t)
-                        --print(tContent[tActive])
                         return tContent[tActive];
                     end,
                 })
@@ -457,103 +502,89 @@ return class("Dox",
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
             local sTitle     = pri.title;
+            local pSource    = io.normalizepath(getsourcepath());--TODO trim ending dir sep and dups
+            local pCSS       = pSource.."\\Data\\Dox.css";
+            local pBanner    = pSource.."\\Data\\Banner.txt";
+            local pJS        = pSource.."\\Data\\Dox.js";
+            local pHTML      = pSource.."\\Data\\Dox.html";
+            local pHTMLOut   = cdat.pri.OutputPath.."\\"..sTitle..".html";--TODO use proper directory separator
+            local pJSOut     = cdat.pri.OutputPath.."\\"..sTitle..".js";
 
-            local sCode = [[
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${title} Documentation</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-                <style>
-                    ${css}
-                </style>
-            </head>
-            <body>
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-                    <a class="navbar-brand" href="#">
-                        <img src="https://via.placeholder.com/150" width="30" height="30" class="d-inline-block align-top mr-2" alt="">
-                        ${title} Documentation
-                    </a>
-                </nav>
+            local function readFile(pFile)
+                local hFile = io.open(pFile, "r");
+                if not hFile then
+                    error("Error outputting Dox: File '"..pFile.."' not found.", 3)--TODO nice error message
+                end
+                local sRet = hFile:read("*all");
+                hFile:close();
+                return sRet;
+            end
 
-                <!-- Content -->
-                <div class="container-fluid">
-                    <div class="row">
-            			<!-- Sidebar Wrapper -->
-            			<div class="col-lg-1 bg-dark text-light">
-            				<div class="sidebar-wrapper">
-            					<!-- Sidebar 1 -->
-            					<div class="sidebar">
-            						<div class="text-center">
-            							<h2>Modules</h2>
-            						</div>
-            						<ul id="menu1" class="nav flex-column"></ul>
-            					</div>
-            				</div>
-            			</div>
+            local function writeFile(pFile, sContent)
+                local hFile = io.open(pFile, "w");
+                if not hFile then
+                    error("Error outputting Dox: Can't write to file, '"..pFile.."'.", 3)--TODO nice error message
+                end
+                hFile:write(sContent)
+                hFile:close();
+            end
 
-            			<!-- Sidebar Wrapper -->
-            			<div class="col-lg-2 bg-dark text-light">
-            				<div class="sidebar-wrapper">
-            					<!-- Sidebar 2 -->
-            					<div class="sidebar">
-            						<div class="text-center">
-            							<h2 id="menu2itemtitle"></h2>
-            						</div>
-            						<ul id="menu2" class="nav flex-column"></ul>
-            					</div>
-            				</div>
-            			</div>
-
-                        <!-- Main Panel and Bars -->
-                        <div class="col-lg-8 bg-light position-relative">
-                            <div class="content-wrapper">
-
-                                <!-- Breadcrumb bar -->
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb breadcrumb-wrapper" id="breadcrumb"></ol>
-                                </nav>
-
-                                <!-- Content -->
-                                <div id="content">Select an item to see details.</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <footer class="footer bg-light">
-                    <div class="container">
-                        <span class="text-muted">Footer Bar</span>
-                    </div>
-                </footer>
-
-                <!-- JS Code -->
-                <script>
-                const documentationData = ${jsontable}
-
-                ${javascript}
-                </script>
-
-            </body>
-            </html>
-            ]] %
-            {
-                css        = tFunctions.getCSS(this, cdat);
-                jsontable  = tFunctions.buildJSONTable(this, cdat),
-                javascript = tFunctions.getJavaScript(this, cdat),
-                title      = sTitle,
+            --read the html and helper files
+            local sCSS      = readFile(pCSS);
+            local sBanner   = readFile(pBanner);
+            local sHTML     = readFile(pHTML);
+            
+            --update and write the html
+            sHTML = sHTML % {css = sCSS};
+            sHTML = sHTML % {
+                bannerURL   = sBanner:gsub("\n", ''), --TODO allow custom banner
+                title       = sTitle
             };
 
-            --print(tFunctions.buildJSONTable(this, cdat))
-            -- Write HTML code to a file
-            local file = io.open(cdat.pri.OutputPath, "w")
-            file:write(sCode)
-            file:close()
+            --write the html file
+            writeFile(pHTMLOut, sHTML);
+
+            --build and write js to file
+            local sJS = tFunctions.buildJS(this, cdat);
+            writeFile(pJSOut, "const userData = "..sJS);--TODO local global var this string
+
+        end,
+        buildJS = function(this, cdat)
+            local sRet       = "";
+            local pri        = cdat.pri;
+            local tFunctions = pri[eOutputType.HTML.name];
+            local pSource    = io.normalizepath(getsourcepath());--TODO trim ending dir sep and dups
+            local pJS        = pSource.."\\Data\\Dox.js";
+
+            -- Open the input file in read mode
+            local hFile = io.open(pJS, "r")
+            if not hFile then
+                return nil, "Input file not found"--TODO error messages
+            end
+
+            local lineNumber    = 0;
+            local bFound        = false;
+
+            -- Read the input file line by line
+            for line in hFile:lines() do
+                lineNumber = lineNumber + 1
+                -- Check if the search string is in the current line
+                if bFound then
+                    sRet = sRet .. line .. "\n"
+                elseif string.find(line, "//—©_END_DOX_TESTDATA_©—", 1, true) then --TODO make this a module global var
+                    bFound = true
+                end
+            end
+
+            hFile:close()
+
+            if not bFound then
+                return nil, "String not found in the input file"
+            end
+
+            local sJSON = tFunctions.buildJSONTable(this, cdat);
+
+            return sJSON.."\n\n"..sRet;
         end,
         buildJSONTable = function(this, cdat) --TODO clean up
             --TODO base64!
@@ -572,271 +603,39 @@ return class("Dox",
                 return s
             end
 
-            local function luaTableToJson(tbl)
-                local function processTable(t)
-                    local result = {}
+            local function luaTableToJson(tbl, startIndent)
+                startIndent = startIndent or 0
+                local indentSpace = string.rep(" ", startIndent)
 
-                    -- Create a table to store sorted keys
+                local function processTable(t, indent)
+                    local result = {}
                     local sortedKeys = {}
+
                     for key in pairs(t) do
                         table.insert(sortedKeys, key)
                     end
-                    -- Sort keys alphabetically
                     table.sort(sortedKeys)
 
-                    -- Insert sorted keys into the JSON table in order
                     for _, key in ipairs(sortedKeys) do
                         local subtable = t[key]
                         local value = subtable()
-                        local subtableResult = processTable(subtable)
-                        result[#result + 1] = '"' .. key .. '":{ "value":"' .. escapeStr(value) .. '", "subtable":' .. (next(subtableResult) and "{" .. table.concat(subtableResult, ",") .. "}" or "null") .. '}'
+                        local subtableResult = processTable(subtable, indent .. "    ")
+                        table.insert(result, string.format(
+                            '%s"%s": {\n%s    "value": "%s",\n%s    "subtable": %s\n%s}',
+                            indent, key, indent, escapeStr(value), indent, next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null", indent
+                        ))
                     end
 
                     return result
                 end
 
-                local jsonResult = processTable(tbl)
-                return "{" .. table.concat(jsonResult, ",") .. "}"
+                local jsonResult = processTable(tbl, indentSpace)
+                return "{\n" .. table.concat(jsonResult, ",\n") .. "\n" .. indentSpace .. "}"
             end
 
-
             -- Convert the Lua table to JSON format
-            return luaTableToJson(cdat.pri.finalized);
-        end,
-        getCSS = function(this, cdat)
-            return [[
-            @media (max-width: 768px) {
-                .col-lg-1, .col-lg-2, .col-lg-8 {
-                    flex: 0 0 100%; /* Make columns full width on small screens */
-                    max-width: 100%;
-                }
-            }
-
-            /* General font scaling for headings and other elements */
-            h1, h2, h3, h4, h5, h6,
-            .breadcrumb, .breadcrumb-wrapper, .topbar,
-            .sidebar, .list-group-item, .footer {
-                font-size: calc(1vw + 1vh + 0.5vmin);
-            }
-
-            /* Specific adjustments for individual elements */
-            .breadcrumb {
-                background: none;
-                margin-bottom: 4px;
-            }
-
-            .breadcrumb-wrapper {
-                background-color: #ffc107;
-                padding: 5px 20px;
-            }
-
-            .topbar {
-                background-color: #17a2b8;
-                color: white;
-                padding: 10px 20px;
-            }
-
-            .sidebar-wrapper {
-                height: calc(100vh - 126px); /* Adjusted height */
-                overflow-y: auto; /* Add scrollbar if content exceeds height */
-            }
-
-            .sidebar {
-                background-color: #343a40;
-                color: white;
-                padding: 10px;
-            }
-
-            .content-wrapper {
-                padding: 0 20px;
-            }
-
-            .scrollable-list {
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            .list-group {
-                display: flex;
-                padding: 0;
-            }
-
-            .list-group-item {
-                flex: 0 0 auto;
-                margin-right: 10px; /* Adjust spacing between items */
-            }
-
-            .footer {
-                background-color: #f8f9fa;
-                color: #6c757d;
-                padding: 10px 20px;
-                height: 40px; /* Set the height to 40 pixels */
-                position: absolute;
-                bottom: 0;
-                width: 100%;
-            }
-            /* Adjust container for Sidebar 1 and Sidebar 2 */
-            .row {
-                display: flex; /* Use flexbox */
-                flex-wrap: nowrap; /* Prevent wrapping */
-            }
-            /* Remove margin and padding from Sidebar 1 and Sidebar 2 */
-            .col-lg-1, .col-lg-2 {
-                padding: 0 !important; /* Remove padding */
-                margin: 0 !important; /* Remove margin */
-            }
-            /* Sidebar 1 specific adjustments */
-            .col-lg-1 {
-                flex: 0 0 auto; /* Don't grow or shrink */
-                width: auto; /* Auto width */
-                max-width: none; /* No maximum width */
-            }
-
-            /* Sidebar 2 specific adjustments */
-            .col-lg-2 {
-                flex: 0 0 auto; /* Don't grow or shrink */
-                width: auto; /* Auto width */
-                max-width: none; /* No maximum width */
-            }
-            /* Remove margin and padding from Sidebar 1 and Sidebar 2 */
-            .col-lg-1, .col-lg-2 {
-                padding: 0 !important; /* Remove padding */
-                margin: 0 !important; /* Remove margin */
-            }
-            ]];
-        end,
-        getJavaScript = function(this, cdat)
-            return [[
-            // Global variable to store the current path
-    		let currentPath = '';
-
-
-    		// Load top-level modules into the sidebar
-    		function loadSidebar() {
-    			const menu = document.getElementById('menu1');
-    			menu.innerHTML = '';
-    			for (const module in documentationData) {
-    				const li = document.createElement('li');
-    				li.className = 'nav-item';
-    				const a = document.createElement('a');
-    				a.href = '#';
-    				a.className = 'nav-link';
-    				a.textContent = module;
-    				a.onclick = function() {
-    					currentPath = module; // Update the current path
-    					updateBreadcrumb();
-    					loadSidebar2(documentationData[module].subtable); // Load the second sidebar
-    					const newValue = getPropertyByPath(documentationData, currentPath, "value");
-    						if (newValue) {
-    								content.innerHTML = newValue;
-    						}
-    				};
-    				li.appendChild(a);
-    				menu.appendChild(li);
-    			}
-    		}
-
-
-
-    		function getPropertyByPath(obj, path, property) {
-    			const parts = path.split('.');
-    			let current = obj;
-
-    			for (let part of parts) {
-    				if (current[part]) {
-    					//current = current[part].subtable !== null ? current[part].subtable : current[part];
-    					current = current[part][property] !== null ? current[part][property] : current[part];
-    				} else {
-    					return undefined;
-    				}
-    			}
-    			return current;
-    		}
-
-    		function updateBreadcrumb() {
-    			const breadcrumb = document.getElementById('breadcrumb');
-    			const content = document.getElementById('content');
-    			const parts = currentPath.split('.');
-    			let currentData = documentationData;
-    			breadcrumb.innerHTML = '';
-
-    			parts.forEach((part, index) => {
-    				let li = document.createElement('li');
-    				li.className = 'breadcrumb-item';
-
-    				if (index === parts.length - 1) {
-    					li.textContent = part;
-    					li.className += ' active';
-    					li.setAttribute('aria-current', 'page');
-    				} else {
-    					let a = document.createElement('a');
-    					a.href = '#';
-    					a.textContent = part;
-    					a.onclick = function() {
-    						currentPath = parts.slice(0, index + 1).join('.');
-    						updateBreadcrumb();
-    						const newData = getPropertyByPath(documentationData, currentPath, "subtable");
-    						const newValue = getPropertyByPath(documentationData, currentPath, "value");
-    						if (newData) {
-    							loadSidebar2(newData);
-    						}
-    						if (newValue) {
-    							content.innerHTML = newValue;
-    						}
-    					};
-    					li.appendChild(a);
-    				}
-
-    				breadcrumb.appendChild(li);
-
-    				if (currentData && currentData[part]) {
-    					currentData = currentData[part].subtable || currentData[part];
-    				}
-    			});
-
-    			//if (currentData && typeof currentData.value === 'string') {
-    			//    content.innerHTML = currentData.value;
-    		   // } else {
-    			 //   content.innerHTML = 'Select a subitem to see details.';
-    		   // }
-    		}
-
-
-    		function loadSidebar2(data) {
-    			const menu2 = document.getElementById('menu2');
-    			menu2.innerHTML = '';
-
-    			Object.keys(data).forEach(key => {
-    				const li = document.createElement('li');
-    				li.className = 'nav-item';
-    				const a = document.createElement('a');
-    				a.className = 'nav-link';
-    				a.href = '#';
-    				a.textContent = key;
-    				a.onclick = function() {
-    					currentPath += `.${key}`;
-    					updateBreadcrumb();
-    					const subtable = data[key].subtable;
-    					if (subtable) {
-    						loadSidebar2(subtable);
-    					} else {
-    						menu2.innerHTML = '<em>' + key + '</em>'; // Clear menu2 if there's no subtable
-    					}
-    					if (data[key].value) {
-    						document.getElementById('content').innerHTML = data[key].value;
-    					}
-    				};
-    				document.getElementById('menu2itemtitle').innerHTML = currentPath.split('.').pop();;
-    				li.appendChild(a);
-    				menu2.appendChild(li);
-    			});
-    		}
-
-
-    		// Initial load
-    		loadSidebar();
-    		updateBreadcrumb('Home');
-            ]];
+            local nIndentSpaces = 4;
+            return luaTableToJson(cdat.pri.finalized, nIndentSpaces);
         end,
     },
 },

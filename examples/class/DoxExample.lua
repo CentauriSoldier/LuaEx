@@ -130,7 +130,7 @@ local oLuaExDox = LuaDox("LuaEx");
 --oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
 oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"));
 
-local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\DoxTest.html"
+local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects"
 oLuaExDox.setOutputPath(pHTML);
 oLuaExDox.export(Dox.OUTPUT.HTML);
 

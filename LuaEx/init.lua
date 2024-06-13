@@ -38,10 +38,10 @@ local tClassLoadValues = {
 
 --🅴🅽🅳 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂---------------------------------------------------
 
-
-
-
-
+--[[!
+@fqxn LuaEx
+@desc Put info about LuaEx here...
+!]]
 
 --🅼🅾🅳🅸🅵🆈 🆅🅰🅻🆄🅴🆂 🅱🅴🅻🅾🆆 🅰🆃 🆈🅾🆄🆁 🅾🆆🅽 🆁🅸🆂🅺
 --for backward compatibility
@@ -251,7 +251,7 @@ if (tClassLoadValues[_nClassSystem]) then
             end
 
             if (tClassLoadValues[_nUtilClasses]) then
-                --dox and included support and language classes                
+                --dox and included support and language classes
                 DoxBlockTag         = require("LuaEx.inc.classes.util.Dox.DoxBlockTag");
                 Dox                 = require("LuaEx.inc.classes.util.Dox.Dox");
                 DoxModule           = require("LuaEx.inc.classes.util.Dox.DoxModule");

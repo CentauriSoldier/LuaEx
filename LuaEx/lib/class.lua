@@ -1,15 +1,14 @@
---[[*
+--[[!
 @fqxn LuaEx.class
 @author Centauri Soldier
 @copyright See LuaEx License
-@description
+@desc
     <h2>class</h2>
     <h3>Bringing (pseudo) Object Oriented Programming to Lua</h3>
     <p>The class module aims to bring a simple-to-use, fully functional, pseudo OOP class system to Lua.
     <br>Among other things, It includes encapsulation, inheritence & polymorphism, final classes & methods, auto-setter/getter directives and interfaces.
     </p>
     @license <p>Same as LuaEx license.</p>
-@moduleid class
 @version 0.7
 @versionhistory
 <ul>
@@ -48,7 +47,7 @@
     </li>
 </ul>
 @website https://github.com/CentauriSoldier/Dox
-*]]
+!]]
 
 
 --LOCALIZATION
@@ -180,7 +179,7 @@ local kit = {
 @fqxn LuaEx.class.class.Functions.build
 @param table tKit The kit that is to be built.
 @scope local
-@desc Builds a complete class \@(Remove THIS AFTER TESTING) object given \@AAND THIS the the kit table. This is called by kit.build().
+@desc Builds a complete class object given the kit table. This is called by kit.build().
 @ret class A class object.
 !]]
 function class.build(tKit)
@@ -1053,7 +1052,7 @@ end
 --[[!
 @fqxn LuaEx.class.kit.Functions.processInterfaces
 @param table tKit The kit for which the interfaces should be processed.
-@param table tInterfaces The table of interfaces to enforece.
+@param table tInterfaces The table of interfaces to enforce.
 Note: must be at least an entry table.
 @scope local
 @desc Stores and enforces each interface.
