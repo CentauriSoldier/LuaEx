@@ -27,7 +27,7 @@ return class("LuaDox",
         --local oEnumBlockTagGroup        = fBlockTagGroup("Enum",        "Enums",        "--[[e!", "!e]]", nil);
 
         super(  "DoxLua", sTitle, "!", "!", "@", eLanguage,
-                fBlockTag({"parameter", "param", "par"},        "Parameter",            -bRequired,     bMultipleAllowed),
+                fBlockTag({"parameter", "param", "par"},        "Parameter",            -bRequired,     bMultipleAllowed, 2, {"*", "*"}, {"***", "***"}),
                 fBlockTag({"scope"},                            "Scope",                -bRequired,     -bMultipleAllowed),--TODO make not reqwuired afte testing
                 fBlockTag({"des", "desc", "description"},       "Description",          -bRequired,     -bMultipleAllowed),
                 fBlockTag({"features"},                         "Features",             -bRequired,     -bMultipleAllowed),
@@ -47,7 +47,7 @@ return class("LuaDox",
                 fBlockTag({"fb", "facebook"},                   "Facebook",             -bRequired,     -bMultipleAllowed),
                 fBlockTag({"x", "twitter"},                     "X (Twitter)",          -bRequired,     -bMultipleAllowed),
                 fBlockTag({"copy", "copyright"},                "Copyright",            -bRequired,     -bMultipleAllowed),
-                fBlockTag({"return", "ret",},                   "Return",               -bRequired,     bMultipleAllowed)
+                fBlockTag({"return", "ret",},                   "Return",               -bRequired,     bMultipleAllowed, 2, {"*", "*"}, {"***", "***"})
         );
     end,
 },--TODO ability to get sort order

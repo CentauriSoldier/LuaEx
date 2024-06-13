@@ -156,6 +156,7 @@ local DoxBlock = class("DoxBlock",
 
 },
 {--PRIVATE
+    columns = 1,
     fqxn    = {};
     items   = {},
     getBlockTagForAlias = function(this, cdat, tBlockTags, sAlias)
@@ -470,7 +471,7 @@ return class("Dox",
                     sOuterContent = sOuterContent..[[<tr><td>${display}</td><td>${content}</td></tr>]] %
                     {
                         display = oBlockTag.getDisplay(),
-                        content = sContent,
+                        content = sContent,--TODO breakk up content into columns as needed
                     };
                 end
 
@@ -533,7 +534,7 @@ return class("Dox",
             local sCSS      = readFile(pCSS);
             local sBanner   = readFile(pBanner);
             local sHTML     = readFile(pHTML);
-            
+
             --update and write the html
             sHTML = sHTML % {css = sCSS};
             sHTML = sHTML % {

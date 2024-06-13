@@ -1,3 +1,5 @@
+--TODO localization
+local math = math;
 
 return class("DoxBlockTag",
 {--metamethods
@@ -60,6 +62,13 @@ return class("DoxBlockTag",
 },
 {--private
     aliases             = {},
+    columnCount         = 1,
+    columnWrappers      = {
+        [1] = {
+            [1] = "",
+            [2] = "",
+        },
+    },
     display             = "",
     --items_AUTO          = 0,
     multipleAllowed     = false,
@@ -69,19 +78,41 @@ return class("DoxBlockTag",
 
 },
 {--public
-    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed)
+    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, nColumns, ...)
+        local pri = cdat.pri;
         type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.");
-        --type.assert.number(nItems, true, true, false, true);
 
-
-        cdat.pri.display         = sDisplay;
-        --cdat.pri.items           = nItems;--TODO what is this?
-        cdat.pri.multipleAllowed = type(bMultipleAllowed)   == "boolean"  and bMultipleAllowed    or false;
-        cdat.pri.required        = type(bRequired)          == "boolean"  and bRequired           or false;
+        pri.display         = sDisplay;
+        pri.multipleAllowed = type(bMultipleAllowed)   == "boolean"  and bMultipleAllowed    or false;
+        pri.required        = type(bRequired)          == "boolean"  and bRequired           or false;
 
         for _, sAlias in ipairs(tAliases) do
             type.assert.string(sAlias, "^[^%s]+$", "Block tag must be a non-blank string containing no space characters.");
-            cdat.pri.aliases[#cdat.pri.aliases + 1] = sAlias:lower();
+            pri.aliases[#cdat.pri.aliases + 1] = sAlias:lower();
+        end
+
+        pri.columnCount = (rawtype(nColumns) == "number" and nColumns > 0) and math.floor(nColumns) or pri.columnCount;
+
+
+        for nColumn, tFormat in pairs(arg or {...}) do
+            print(sDisplay)
+            if (nColumn > 0) then
+                print(nColumn, tFormat)
+                local _, sError = xpcall(type.assert.table(tFormat, "number", "string", 2, 2));
+
+                if (sError) then --allows nil input
+                    pri.columnWrappers[nColumn] = {
+                        [1] = {
+                            [1] = "",
+                            [2] = "",
+                        },
+                    };
+                else
+                    pri.columnWrappers[nColumn] = clone(tFormat);
+                end
+
+            end
+
         end
 
     end,
@@ -96,6 +127,13 @@ return class("DoxBlockTag",
     end,
     getDisplay = function(this, cdat)
         return cdat.pri.display;
+    end,
+    getColumnCount = function(this, cdat)
+        return cdat.pri.columnCount;
+    end,
+    getcolumnWrapper = function(this, cdat, nColumn)
+        type.assert.number(nColumn, true, true, false, true, false, 2);
+        return cdat.pri.columnWrappers[nColumn] or {[1] = "", [2] = ""};
     end,
     hasAlias = function(this, cdat, sInputRaw)
         local bRet      = false;
