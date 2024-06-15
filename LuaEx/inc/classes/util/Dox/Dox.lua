@@ -1,34 +1,75 @@
 --TODO add option to get and print TODO, BUG, etc.
 
+--TODO move this out
+local tMarkdownToHTML = {
+    ["*"]       = {"<em>", "</em>"},                    -- Emphasis
+    ["_"]       = {"<em>", "</em>"},                    -- Emphasis
+    ["**"]      = {"<strong>", "</strong>"},            -- Strong emphasis
+    ["***"]     = {"<strong><em>", "</em></strong>"},   -- Strong emphasis
+    --["__"]      = {"<strong>", "</strong>"},            -- Strong emphasis
+    ["#"]       = {"<h1>", "</h1>"},                    -- Header 1
+    ["##"]      = {"<h2>", "</h2>"},                    -- Header 2
+    ["###"]     = {"<h3>", "</h3>"},                    -- Header 3
+    ["####"]    = {"<h4>", "</h4>"},                    -- Header 4
+    ["#####"]   = {"<h5>", "</h5>"},                    -- Header 5
+    ["######"]  = {"<h6>", "</h6>"},                    -- Header 6
+    ["```"]     = {"<code>", "</code>"},                -- Code block
+    ["---"]     = {"<hr>", ""},                         -- Horizontal rule
+    --["-"] = {"<ul><li>", "</li></ul>"}, -- Unordered list item
+    --["+"] = {"<ul><li>", "</li></ul>"}, -- Unordered list item
+    --["*"] = {"<ul><li>", "</li></ul>"}, -- Unordered list item
+    --["1."] = {"<ol><li>", "</li></ol>"}, -- Ordered list item
+}
+
+local function markdownToHTML(sInput)
+    local sRet = sInput;
+--[[
+    for sPattern, tTags in pairs(tMarkdownToHTML) do
+        local sStartTag, sEndTag = tags[1], tags[2];
+
+        local nIndex = 1;
+        local nStart1, nEnd1, nStart2, nEnd2 = 1, 1, 1, 1;
+
+        while (nStart1 and nEnd1 and nStart2 and nEnd2) do
+             nStart1, nEnd1 = sInput:find(sPattern, nIndex);
+
+             if (nStart1 and nEnd1) then
+                 nIndex1 = 0;
+                 nStart1, nEnd1 = sInput:find(sPattern, nIndex);
+
+             end
+
+        end
+
+]]
+        --sRet = sRet:gsub(escapedPattern, function(match)
+            -- If not in a list item, apply markdown tags
+        --    return startTag .. match:gsub(escapedPattern, "") .. endTag
+        --end)
+        --sRet = sRet:gsub(sPattern, )
+    --end
+
+    return sRet;
+end
+
+
+
+
+
+
+
+
+
+
+
+
 --OMG use queues for output
 --[[TODO
     Use MD for text
     Allow internal anchor links
     Allow external links
 ]]
-function getsourcepath()
-    --determine the call location
-    local sPath = debug.getinfo(1, "S").source;
-    --remove the calling filename
-    local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
-    --make a pattern to account for case
-    local sFilename = "";
-    for x = 1, #sFilenameRAW do
-        local sChar = sFilenameRAW:sub(x, x);
 
-        if (sChar:find("[%a]")) then
-            sFilename = sFilename.."["..sChar:upper()..sChar:lower().."]";
-        else
-            sFilename = sFilename..sChar;
-        end
-
-    end
-    sPath = sPath:gsub("@", ""):gsub(sFilename, "");
-    --remove the "/" at the end
-    sPath = sPath:sub(1, sPath:len() - 1);
-
-    return sPath;
-end
 
 local assert    = assert;
 local class     = class;
@@ -37,70 +78,10 @@ local string    = string;
 local table     = table;
 local type      = type;
 
---[[*
-    @module Dox
-    @name DoxLanguage
-*]]
-local DoxLanguage = class("DoxLanguage",
-{--metamethods
-
-},
-{--static public
-
-},
-{--private
-    name            = "",
-    fileTypes       = SortedDictionary(),
-    commentOpen     = "",
-    commentClose    = "",
-    escapeCharacter = "",
-},
-{--protected
-
-},
-{--public
-    DoxLanguage = function(this, cdat, sName, tFileTypes, sCommentOpen, sCommentClose, sEscapeCharacter)
-        type.assert.string(sName,               "%S+");
-        type.assert.table(tFileTypes,           "number", "string", 1);
-        type.assert.string(sCommentOpen,        "%S+");
-        type.assert.string(sCommentClose,       "[^\n]+");
-        type.assert.string(sEscapeCharacter,    "%S+");
-
-        local pri           = cdat.pri;
-        pri.name            = sName;
-        for _, sType in pairs(tFileTypes) do
-            pri.fileTypes.add(sType); --TODO format this uniformly
-        end
-        pri.commentOpen     = sCommentOpen;
-        pri.commentClose    = sCommentClose;
-        pri.escapeCharacter = sEscapeCharacter;
-    end,
-    getCommentClose = function(this, cdat)
-        return cdat.pri.commentClose;
-    end,
-    getCommentOpen = function(this, cdat)
-        return cdat.pri.commentOpen;
-    end,
-    getEscapeCharater = function(this, cdat)
-        return cdat.pri.escapeCharacter;
-    end,
-    getFileTypes = function(this, cdat)
-        return clone(cdat.pri.fileTypes);
-    end,
-    getName = function(this, cdat)
-        return cdat.pri.name;
-    end,
-},
-nil,    --extending class
-true,   --if the class is final
-nil    --interface(s) (either nil, or interface(s))
-);
-
-
-local eOutputType = enum("DoxOutput", {"HTML", "MD"});
+local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
 --TODO consider moving this to its own file and creating the enum using a static initializer
-local eDoxLanguage = enum("DoxLanguage",
+eDoxLanguage = enum("DoxLanguage",
 {
 "ADA",          "ASSEMBLY_NASM",    "C",        "C_SHARP",      "C_PLUS_PLUS",
 "CSS",          "DART",             "ELM",      "F_SHARP",      "FORTRAN",
@@ -144,211 +125,12 @@ DoxLanguage("XML",              {".xml"},                                       
 true);
 
 --these block tags must exist each block (and in subclasses' input block tags)
-local _tRequiredBlockTags = {
-    DoxBlockTag({"fqxn"}, "FQXN", true, false),
+local _tBuiltInBlockTags = {
+    DoxBlockTag({"fqxn"},            "FQXN",       true,  false),
+    DoxBlockTag({"ex", "example"},   "Example",    false, true, {"<code>", "</code>"}),
 };
 
-local DoxBlock = class("DoxBlock",
-{--METAMETHODS
 
-},
-{--STATIC PUBLIC
-
-},
-{--PRIVATE
-    columns = 1,
-    fqxn    = {};
-    items   = {},
-    getBlockTagForAlias = function(this, cdat, tBlockTags, sAlias)
-        local oRet;
-
-        for _, oBlockTag in pairs(tBlockTags) do
-
-            if oBlockTag.hasAlias(sAlias) then
-                oRet = oBlockTag;
-                break;
-            end
-
-        end
-
-        return oRet;
-    end,
-    getBlockData = function(this, cdat, sRawBlock, eLanguage, sTagOpen, tBlockTags)
-        local pri   = cdat.pri;
-        local tRet  = {};
-        local sTempAtSymbol      = "DOXAtSymbole7fa52f71cfe48298a9ad784026556fb";
-        local sEscapedTagOpen    = eLanguage.value.getEscapeCharater()..sTagOpen;
-
-        --TODO account for new lines (delete unescaped ones)
-        --replace the escaped @ symbols temporarily
-        local sBlock = sRawBlock:gsub(sEscapedTagOpen, sTempAtSymbol);
-
-        --break the block up into items
-        local tBlockItems = sBlock:totable(sTagOpen);
-
-        if not (tBlockItems) then
-            error("Error creating DoxBlock object: malformed block:\n'"..sBlock.."'", 3);
-        end
-
-        --iterate over each block item
-        for nItemIndex, sRawItem in ipairs(tBlockItems) do
-            --replace the @ symbols and trim trailing space
-            local sItemInProcess = sRawItem:gsub(sTempAtSymbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), sTagOpen):gsub("%s+$", "");--gsub("\n$", "");
-            local sItem = sItemInProcess:match("%S.*%S");
-
-            --validate the item is still good
-            if not (sItem) then
-                error("Error creating DoxBlock object: malformed block item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
-            end
-
-            --get the alias
-            local sAlias = sItem:match("%S+");
-
-            --validate the item alias
-            if not (sAlias) then
-                error("Error creating DoxBlock object: malformed block item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
-            end
-
-            --get the BlockTag object associated with the item
-            local oBlockTag = pri.getBlockTagForAlias(tBlockTags, sAlias);
-
-            --make sure a BlockTag object was recovered
-            if not (oBlockTag) then
-                error("Error creating DoxBlock object: invalid block item alias, '"..sAlias.."', in item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
-            end
-
-            tRet[#tRet + 1] = {
-                item            = sItem,
-                blockTagObject  = oBlockTag,
-            };
-        end
-
-        return tRet;
-    end
-},
-{--PROTECTED
-
-},
-{--PUBLIC
-    DoxBlock = function(this, cdat, sRawBlock, eLanguage, sTagOpen, tBlockTags, tRequiredBlockTags)
-        local pri                = cdat.pri;
-        type.assert.string(sRawBlock, "%S+", "Dox blockstring must not be blank.");
-        --TODO asserts? Or, since this is internal, should I trust the input? Probably not.
-
-        local tBlockData = pri.getBlockData(sRawBlock, eLanguage, sTagOpen, tBlockTags);
-
-        --create a table for tracking required block tags found
-        local tRequiredBlockTagsFound = {};
-        for _, oBlockTag in pairs(tRequiredBlockTags) do
-            tRequiredBlockTagsFound[oBlockTag] = false;--true if not found
-        end
-
-        --keeps track of block tag count
-        local tBlockTagCounts = {};
-
-        --process the block data
-        for _, tLineData in ipairs(tBlockData) do
-            local sRawItem      = tLineData.item;
-            local oItemBlockTag = tLineData.blockTagObject;
-            --log required block tags found
-            for __, oRequiredBlockTag in pairs(tRequiredBlockTags) do
-
-                if (oItemBlockTag == oRequiredBlockTag) then
-                    --set as found
-                    tRequiredBlockTagsFound[oRequiredBlockTag] = true;
-                end
-                break;
-
-            end
-
-            --log block tag count
-            if not (tBlockTagCounts[oItemBlockTag]) then
-                tBlockTagCounts[oItemBlockTag] = 0;
-            end
-            tBlockTagCounts[oItemBlockTag] = tBlockTagCounts[oItemBlockTag] + 1;
-
-            --split the string into tag and contents
-            local sTag, sContent = sRawItem:match("([^%s]*)%s(.*)");
-            type.assert.string(sContent, "%S+", "Dox BlockTag content cannot be blank must not be blank.\n"..tostring(oItemBlockTag).."\n\nIn Block:\n"..sRawBlock);
-
-            --store the content
-            if (oItemBlockTag.getDisplay() == "FQXN") then
-
-                local tFQXN = sContent:totable('.');
-
-                if not (tFQXN) then
-                    error("Error creating DoxBlock: invalid FQXN\n"..tostring(oItemBlockTag).."\n\nIn Block:\n"..sRawBlock, 3);
-                end
-
-                pri.fqxn = tFQXN;
-            else
-                table.insert(pri.items, {
-                    blockTag    = oItemBlockTag,
-                    content     = sContent,
-                });
-            end
-
-        end
-
-        --make sure all required block tags were found in the block
-        for oBlockTag, bBlockTagFound in pairs(tRequiredBlockTagsFound) do
-
-            if not (bBlockTagFound) then
-                error("Error creating DoxBlock: required block tag missing\n"..tostring(oBlockTag).."\n\nIn Block:\n"..sRawBlock, 3);
-            end
-
-        end
-
-        --check for disallowed multiples
-        for oBlockTag, nCount in pairs(tBlockTagCounts) do
-            if (not oBlockTag.isMultipleAllowed() and nCount > 1) then
-                error("Error creating DoxBlock: multiple block tags not permitted: \n"..tostring(oBlockTag).."\n\nIn Block:\n"..sRawBlock.."\nTotal count: "..nCount..'.', 3);
-            end
-
-        end
-
-    end,
-    fqxn = function(this, cdat)
-        local tFQXN = cdat.pri.fqxn;
-        local nIndex    = 0;
-        local nMax      = #tFQXN;
-
-        return function()
-            nIndex = nIndex + 1;
-
-            if (nIndex <= nMax) then
-                return nIndex == nMax, nIndex, tFQXN[nIndex];
-            end
-
-        end
-
-    end,
-    item = function(this, cdat, nIndex)
-        local tItems = cdat.pri.items;
-        local tItem = tItems[nIndex];--TODO error check
-        return clone(tItem.blockTag), tItem.content;
-    end,
-    items = function(this, cdat)
-        local tItems = cdat.pri.items;
-        local nIndex    = 0;
-        local nMax      = #tItems;
-
-        return function()
-            nIndex = nIndex + 1;
-
-            if (nIndex <= nMax) then
-                local tItem = tItems[nIndex];
-                return clone(tItem.blockTag), tItem.content;
-            end
-
-        end
-
-    end,
-},
-nil,   --extending class
-true,  --if the class is final
-nil    --interface(s) (either nil, or interface(s))
-);
 
 --[[f!
     @mod dox
@@ -443,9 +225,12 @@ return class("Dox",
         --reset the finalized data table
         pri.finalized   = {};
         local tContent  = {};
-
+        local x = 0;
         --inject all block strings into finalized data table
         for sRawBlock, _ in pairs(pri.blockStrings) do
+            --x = x + 1;
+            --writeToFile("\\Sync\\Projects\\ZZZ Test\\"..x..".txt", sRawBlock)
+
             --create the DoxBlock
             local oBlock = DoxBlock(sRawBlock, pri.language, pri.tagOpen,
                                     pri.blockTags, pri.requiredBlockTags);
@@ -462,27 +247,100 @@ return class("Dox",
                 tActive = tActive[sFQXN];
 
                 --create the content string
-                --<thead><tr><th>Tag</th><th>Info</th></tr></thead>
-                local sOuterContent = [[<div class="container-fluid table-container"><table class="table table-striped"><tbody>]];
+                --local sOuterContent = [[<div class="container-fluid table-container"><table class="table table-striped"><tbody>]];
+                local sOuterContent = [[<div class="container-fluid">]];
+
+                local function splitStringBySpace(inputString, number)
+                    local result = {}
+                    local currentNumber = 1
+                    local currentIndex = 1
+
+                    while currentNumber <= number do
+                        local endIndex = inputString:find(" ", currentIndex)
+                        if not endIndex then
+                            result[currentNumber] = inputString:sub(currentIndex)
+                            currentIndex = #inputString + 2 -- Move currentIndex beyond the string length to break the loop
+                        else
+                            result[currentNumber] = inputString:sub(currentIndex, endIndex - 1)
+                            currentIndex = endIndex + 1
+                        end
+                        currentNumber = currentNumber + 1
+                    end
+
+                    -- Fill remaining indices with empty strings
+                    for i = currentNumber, number do
+                        result[i] = ""
+                    end
+
+                    return result
+                end
 
 
-
+                --build the row (block item)
                 for oBlockTag, sContent in oBlock.items() do
-                    sOuterContent = sOuterContent..[[<tr><td>${display}</td><td>${content}</td></tr>]] %
+                    local sTableDataItems = "";
+                    local nColumnCount    = oBlockTag.getColumnCount();
+                    local sCurrent        = sContent;
+                    local nStart          = 1;
+                    local nEnd            = -1;
+                    local tContent        = {};
+
+                    -- Iterate over the number of columns
+                    for x = 1, nColumnCount - 1 do
+                        -- Find the index of the next space
+                        local nStart, nEnd = sCurrent:find(" ", 1);
+
+                        -- Check if a space is found
+                        if not nStart then
+                            error("Unable to find space for column " .. x)--TODO better message
+                        end
+
+                        -- Extract the substring between the current start and end indices
+                        tContent[x] = sCurrent:sub(1, nEnd - 1);
+
+                        -- Update sCurrent to start from the next character after the space
+                        sCurrent = sCurrent:sub(nEnd + 1);
+                    end
+
+                    -- Add the remaining part of sCurrent as the last content item
+                    tContent[nColumnCount] = sCurrent
+
+
+                    for x = 1, #tContent do
+                        local tWrapper   = oBlockTag.getcolumnWrapper(x);
+                        local sWrapFront = tWrapper[1];
+                        local sWrapBack  = tWrapper[2];
+                        --sTableDataItems = sTableDataItems.."<td>"..sWrapFront..tContent[x]..sWrapBack.."</td>";
+                        sTableDataItems = sTableDataItems.."   "..sWrapFront..tContent[x]..sWrapBack.."";
+                    end
+
+
+
+
+                    --sOuterContent = sOuterContent..[[<tr><td>${display}</td>${content}</tr>]] %
+                    sOuterContent = sOuterContent..[[<div class="custom-section"><div class="section-title">${display}</div><div class="section-content"><p>${content}</p></div></div>]] %
                     {
                         display = oBlockTag.getDisplay(),
-                        content = sContent,--TODO breakk up content into columns as needed
+                        content = sTableDataItems,--TODO break up content into columns as needed
                     };
                 end
 
-                local sOuterContent = sOuterContent..[[</tbody></table></div>]];
+                --local sOuterContent = sOuterContent..[[</tbody></table></div>]];
+                local sOuterContent = sOuterContent..[[</div>]];
 
+                --parse the final string for markdown
+                sOuterContent = markdownToHTML(sOuterContent);
+                --print(sOuterContent)
                 --TODO gsub last newline
 
                 --store the iterator for the items if last item or false
                 --tContent[tActive] = bLastItem and oBlock.items or false;
                 tContent[tActive] = sOuterContent;
                 --TODO LEFT OFF HERE gotta get items working
+
+
+                --if (sFQXN == "class")
+
 
                 --set the call to get the content
                 setmetatable(tActive, {
@@ -494,16 +352,13 @@ return class("Dox",
 
         end
 
-        --pri.finalized = table.sortalphabetically(pri.finalized);
-        --print(serialize(pri.finalized.LuaEx.class.instance.Functions));
-
     end,
     [eOutputType.HTML.name] = {
         build = function(this, cdat)
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
             local sTitle     = pri.title;
-            local pSource    = io.normalizepath(getsourcepath());--TODO trim ending dir sep and dups
+            local pSource    = source.getpath();--TODO trim ending dir sep and dups
             local pCSS       = pSource.."\\Data\\Dox.css";
             local pBanner    = pSource.."\\Data\\Banner.txt";
             local pJS        = pSource.."\\Data\\Dox.js";
@@ -554,7 +409,7 @@ return class("Dox",
             local sRet       = "";
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
-            local pSource    = io.normalizepath(getsourcepath());--TODO trim ending dir sep and dups
+            local pSource    = source.getpath();--TODO trim ending dir sep and dups
             local pJS        = pSource.."\\Data\\Dox.js";
 
             -- Open the input file in read mode
@@ -662,10 +517,15 @@ return class("Dox",
         pri.tagOpen             = sTagOpen;
         pri.requiredBlockTags   = {};
 
-        --import all Dox-required BlockTags
-        for _, oBlockTag in ipairs(_tRequiredBlockTags) do
-            table.insert(pri.requiredBlockTags, clone(oBlockTag));
-            table.insert(pri.blockTags, oBlockTag);
+        --import all built-in BlockTags
+        for _, oBlockTag in ipairs(_tBuiltInBlockTags) do
+            local oClonedBlockTag = clone(oBlockTag);
+            table.insert(pri.blockTags, oClonedBlockTag);
+
+            if (oBlockTag.isRequired()) then
+                table.insert(pri.requiredBlockTags, oClonedBlockTag);
+            end
+
         end
 
         --store all input BlockTags and log required ones found
@@ -674,25 +534,30 @@ return class("Dox",
             type.assert.custom(oBlockTag, "DoxBlockTag");
 
             --search for required blocktags conflicts
-            for _, oRequiredBlockTag in pairs(pri.requiredBlockTags) do
+            for _, oBuiltInBlockTag in pairs(pri.blockTags) do
 
-                for sAlias in oRequiredBlockTag.aliases() do
+                for sAlias in oBuiltInBlockTag.aliases() do
 
                     if ( oBlockTag.hasAlias(sAlias) ) then
-                        error(  "Error creating Dox subclass, '${subclass}'.\nRequired alias, '${alias}', cannot be overriden or duplicated." %
-                                {subclass = sName, alias = sAlias}, 2);
+                        error(  "Error creating Dox subclass, '${subclass}'.\nBuilt-in BlockTag, '${display}', cannot be overriden or duplicated." %
+                                {subclass = sName,
+                                 display = oBuiltInBlockTag.getDisplay()},
+                                 2);
                     end
 
                 end
 
             end
 
+            --clone the blocktag
+            local oClonedBlockTag = clone(oBlockTag);
+
             --store the block tag
-            table.insert(pri.blockTags, oBlockTag);
+            table.insert(pri.blockTags, oClonedBlockTag);
 
             --if the BlockTag is required, store it
             if (oBlockTag.isRequired()) then
-                table.insert(pri.requiredBlockTags, oBlockTag);
+                table.insert(pri.requiredBlockTags, oClonedBlockTag);
             end
 
         end
@@ -700,21 +565,15 @@ return class("Dox",
         --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
 
     end,
-    addFileType_FNL = function(this, cdat, sType)
-        type.assert.string(sType,    "%S+", "Mime type must not be blank.");
-        cdat.pri.fileTypes.add(sType);
-    end,
-    fileTypes_FNL = function(this, cdat)--TODO should I clone the set? probably/
-        return cdat.pri.fileTypes;
-    end,
     export_FNL = function(this, cdat, eOutputType, bPulsar)
-        type.assert.custom(eOutputType, "DoxOutput");
+        --type.assert.custom(eOutputType, "DoxOutput");
+        eOutputType = Dox.OUTPUT.HTML -- TODO allow supporting other output types
         --TODO puslar snippets
         --print(type.isDoxOutput(cDoxOutput))
         cdat.pri[eOutputType.name].build(this, cdat);
     end,
-    getBlockTagGroup_FNL = function(this, cdat)
-        return cdat.pri.blockTagGroup;
+    getLanguage_FNL = function(this, cdat)
+        return cdat.pri.language;
     end,
     getName_FNL = function(this, cdat)
         return cdat.pri.name;

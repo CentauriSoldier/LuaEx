@@ -245,7 +245,7 @@ function class.build(tKit)
                 local sClass        = x == nParents and tKit.name or tParents[x + 1].kit.name;
 
                 if not (tParentInfo.actual.constructorcalled) then
-                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}'." % {class = sClass, parent = sParent});--TODO should i set a third arg for the errors?
+                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}'." % {class = sClass, parent = sParent});--TODO should i set a third argument for the errors?
                 end
 
                 rawset(tParentInfo.actual.pub, sParent, nil); --TODO change this index once other types of constructors are permitted

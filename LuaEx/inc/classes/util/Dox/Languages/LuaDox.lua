@@ -25,16 +25,15 @@ return class("LuaDox",
         --local oClassBlockTagGroup       = fBlockTagGroup("Class",       "Classes",      "--[[o!", "!o]]", nil); WTF would this not be modules?
         --local oConstantBlockTagGroup    = fBlockTagGroup("Constant",    "Constants",    "--[[c!", "!c]]", nil);
         --local oEnumBlockTagGroup        = fBlockTagGroup("Enum",        "Enums",        "--[[e!", "!e]]", nil);
-
-        super(  "DoxLua", sTitle, "!", "!", "@", eLanguage,
-                fBlockTag({"parameter", "param", "par"},        "Parameter",            -bRequired,     bMultipleAllowed, 2, {"*", "*"}, {"***", "***"}),
-                fBlockTag({"scope"},                            "Scope",                -bRequired,     -bMultipleAllowed),--TODO make not reqwuired afte testing
+--TODO move most of these inside dox as most languages could use them
+        super(  "LuaDox", sTitle, "!", "!", "@", eLanguage,
                 fBlockTag({"des", "desc", "description"},       "Description",          -bRequired,     -bMultipleAllowed),
+                fBlockTag({"parameter", "param", "par"},        "Parameter",            -bRequired,     bMultipleAllowed, 2, {"<em>", "</em>"}, {"<strong><em>", "</em></strong>"}),
+                fBlockTag({"scope"},                            "Scope",                -bRequired,     -bMultipleAllowed, 0, {"<em>", "</em>"}),
                 fBlockTag({"features"},                         "Features",             -bRequired,     -bMultipleAllowed),
                 fBlockTag({"parent"},                           "Parent",               -bRequired,     -bMultipleAllowed),
                 fBlockTag({"interface"},                        "Interface",            -bRequired,     bMultipleAllowed),
                 fBlockTag({"depend", "dependency"},             "Dependency",           -bRequired,     bMultipleAllowed),
-                fBlockTag({"ex", "example", "examples"},        "Example",              -bRequired,     bMultipleAllowed),
                 fBlockTag({"planned"},                          "Planned Features",     -bRequired,     -bMultipleAllowed),
                 fBlockTag({"todo"},                             "TODO",                 -bRequired,     bMultipleAllowed),
                 fBlockTag({"changelog", "versionhistory"},      "Changelog",            -bRequired,     -bMultipleAllowed),
@@ -47,7 +46,7 @@ return class("LuaDox",
                 fBlockTag({"fb", "facebook"},                   "Facebook",             -bRequired,     -bMultipleAllowed),
                 fBlockTag({"x", "twitter"},                     "X (Twitter)",          -bRequired,     -bMultipleAllowed),
                 fBlockTag({"copy", "copyright"},                "Copyright",            -bRequired,     -bMultipleAllowed),
-                fBlockTag({"return", "ret",},                   "Return",               -bRequired,     bMultipleAllowed, 2, {"*", "*"}, {"***", "***"})
+                fBlockTag({"return", "ret",},                   "Return",               -bRequired,     bMultipleAllowed, 2, {"<em>", "</em>"}, {"<strong><em>", "</em></strong>"})
         );
     end,
 },--TODO ability to get sort order

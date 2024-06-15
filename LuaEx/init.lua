@@ -38,10 +38,10 @@ local tClassLoadValues = {
 
 --🅴🅽🅳 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂---------------------------------------------------
 
---[[!
-@fqxn LuaEx
+--[[
+@fqxn LuaEx stuff
 @desc Put info about LuaEx here...
-!]]
+]]
 
 --🅼🅾🅳🅸🅵🆈 🆅🅰🅻🆄🅴🆂 🅱🅴🅻🅾🆆 🅰🆃 🆈🅾🆄🆁 🅾🆆🅽 🆁🅸🆂🅺
 --for backward compatibility
@@ -251,11 +251,13 @@ if (tClassLoadValues[_nClassSystem]) then
             end
 
             if (tClassLoadValues[_nUtilClasses]) then
-                --dox and included support and language classes
-                DoxBlockTag         = require("LuaEx.inc.classes.util.Dox.DoxBlockTag");
-                Dox                 = require("LuaEx.inc.classes.util.Dox.Dox");
-                DoxModule           = require("LuaEx.inc.classes.util.Dox.DoxModule");
-                LuaDox              = require("LuaEx.inc.classes.util.Dox.Languages.LuaDox");
+                --dox and included support classes
+                DoxLanguage = require("LuaEx.inc.classes.util.Dox.DoxLanguage");
+                DoxBlockTag = require("LuaEx.inc.classes.util.Dox.DoxBlockTag");
+                DoxBlock    = require("LuaEx.inc.classes.util.Dox.DoxBlock");
+                Dox         = require("LuaEx.inc.classes.util.Dox.Dox");
+                DoxModule   = require("LuaEx.inc.classes.util.Dox.DoxModule");
+                LuaDox      = require("LuaEx.inc.classes.util.Dox.Languages.LuaDox");
 
                 --ini
                 Ini    = require("LuaEx.inc.classes.util.Ini"); --TODO need to finish OrderedSet first

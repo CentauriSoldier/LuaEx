@@ -1,18 +1,19 @@
---TODO add tostring/ser/des methods
+--TODO add tostring/ser/des methods/clone
 --TODO localization
 -- Function to compare keys for sorting
 local function defaultSorter(a, b)
     return a < b;
 end
-
-local function add(this, cdat, vKey, vValue)
+local last = null;
+local function addOLD(this, cdat, vKey, vValue)
     local pri           = cdat.pri;
     local fSorter       = pri.sorter;
     local tActual       = pri.actual;
     local tKeys         = pri.keys;
     local sTypeKey      = rawtype(vKey);
     local sValueType    = rawtype(vValue);
-
+    print(last == tKeys)
+    last = tKeys
     if (sTypeKey ~= "string") then
         error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
     end
@@ -72,7 +73,39 @@ return class("SortedDictionary",
     SortedDictionary = function(this, cdat)--TODO allow initial input
         cdat.pri.sorter = defaultSorter;
     end,
-    add = add,
+    add = function(this, cdat, vKey, vValue)
+        local pri           = cdat.pri;
+        local fSorter       = pri.sorter;
+        local tActual       = pri.actual;
+        local tKeys         = pri.keys;
+        local sTypeKey      = rawtype(vKey);
+        local sValueType    = rawtype(vValue);
+        print(last == tKeys)
+        last = tKeys
+        if (sTypeKey ~= "string") then
+            error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
+        end
+        --TODO check for self-reference so we don't trigger a death loop
+
+        local bAddToKeys = true;
+        for _, sExistingKey in ipairs(tKeys) do
+
+            if (vKey == sExistingKey) then
+                bAddToKeys = false;
+                break;
+            end
+
+        end
+
+        if (bAddToKeys) then
+            tKeys[#tKeys + 1] = vKey;
+        end
+
+        table.sort(tKeys, fSorter);
+        tActual[vKey] = vValue;
+
+        return this;
+    end,
     containsKey = function(this, cdat, vKey)
         local bRet = false;
 
@@ -148,7 +181,39 @@ return class("SortedDictionary",
         table.sort(tKeys, fSorter);
         pri.actual[vKey] = nil;
     end,
-    set = add,
+    set = function(this, cdat, vKey, vValue)
+        local pri           = cdat.pri;
+        local fSorter       = pri.sorter;
+        local tActual       = pri.actual;
+        local tKeys         = pri.keys;
+        local sTypeKey      = rawtype(vKey);
+        local sValueType    = rawtype(vValue);
+        print(last == tKeys)
+        last = tKeys
+        if (sTypeKey ~= "string") then
+            error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
+        end
+        --TODO check for self-reference so we don't trigger a death loop
+
+        local bAddToKeys = true;
+        for _, sExistingKey in ipairs(tKeys) do
+
+            if (vKey == sExistingKey) then
+                bAddToKeys = false;
+                break;
+            end
+
+        end
+
+        if (bAddToKeys) then
+            tKeys[#tKeys + 1] = vKey;
+        end
+
+        table.sort(tKeys, fSorter);
+        tActual[vKey] = vValue;
+
+        return this;
+    end,
     setSortFunction = function(this, cdat, fSorter)
         local sSorterType = rawtype(fSorter);
 

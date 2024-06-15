@@ -19,7 +19,7 @@ local tPure = {
         if (type(tItem) == "table") then
 
             for vIndex, vItem in pairs(tItem) do
-
+--TODO what about indices? those should probably not be cloned
                 if (type(vItem) == "table") then --TODO account for self references
 
                     if  (tItem == vItem) then --self reference
@@ -29,6 +29,7 @@ local tPure = {
                     end
 
                 else
+                    --rawset(tRet, vIndex, clone(vItem)); --TODO LEFT OFF HERE... This has to get fixed!
                     rawset(tRet, vIndex, vItem);
                 end
 

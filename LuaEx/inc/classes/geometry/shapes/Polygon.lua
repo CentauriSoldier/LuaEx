@@ -554,7 +554,7 @@ return class("Polygon",
     serialize = function(this)
         return serialize.table(tProtectedRepo[this]);
     end,
-    --TODO should this auto-update position or at least have an optional arg for that?
+    --TODO should this auto-update position or at least have an optional argument for that?
     setAnchorIndex = function(this, nIndex)
         local tFields    = tProtectedRepo[this];
 

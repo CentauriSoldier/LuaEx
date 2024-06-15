@@ -72,7 +72,7 @@ function getsourcepathOld3()
     return sPath
 end
 
-function getsourcepath()
+function getsourcepathOLD4()
     -- Determine the call location
     local sPath = debug.getinfo(1, "S").source
     -- Remove the "@" at the beginning
@@ -94,9 +94,119 @@ function getsourcepath()
 end
 
 
+function getsourcepathOLD5()
+    -- Determine the call location
+    local sPath = debug.getinfo(1, "S").source
+
+    -- Handle different path formats
+    if sPath:sub(1, 1) == "@" then
+        sPath = sPath:sub(2) -- Remove the "@" at the beginning
+    end
+
+    -- Convert relative path to absolute path
+    if sPath:sub(1, 1) == "." then
+        local pipe = io.popen("cd")
+        local cwd = pipe:read("*a"):gsub("[\r\n]", "")
+        pipe:close()
+        sPath = cwd .. package.config:sub(1, 1) .. sPath:sub(3)
+    end
+
+    -- Normalize path separator
+    local pathSeparator = package.config:sub(1, 1)
+
+    -- Remove the calling filename
+    local sFilenameRAW = sPath:match("^.+" .. pathSeparator .. "(.+)$")
+
+    -- Make a pattern to account for case
+    local sFilename = ""
+    for x = 1, #sFilenameRAW do
+        local sChar = sFilenameRAW:sub(x, x)
+        if sChar:find("[%a]") then
+            sFilename = sFilename .. "[" .. sChar:upper() .. sChar:lower() .. "]"
+        else
+            sFilename = sFilename .. sChar
+        end
+    end
+
+    sPath = sPath:gsub(sFilename, "")
+
+    -- Ensure the path does not end with a separator
+    if sPath:sub(-1) == pathSeparator then
+        sPath = sPath:sub(1, -2)
+    end
+
+    -- Return the normalized full path
+    return sPath
+end
+
+
+function getsourcepath(level)
+    level = level or 2 -- Default to 2 levels up if not specified
+    -- Determine the call location
+    local sPath = debug.getinfo(level, "S").source
+
+    -- Handle paths from C functions
+    if sPath == "=[C]" then
+        return "C function"
+    end
+
+    -- Handle dynamically loaded chunks
+    if sPath:sub(1, 1) == "=" then
+        return sPath:sub(2)
+    end
+
+    -- Handle different path formats
+    if sPath:sub(1, 1) == "@" then
+        sPath = sPath:sub(2) -- Remove the "@" at the beginning
+    end
+
+    -- Convert relative path to absolute path
+    if sPath:sub(1, 1) == "." then
+        local pipe = io.popen("cd")
+        local cwd = pipe:read("*a"):gsub("[\r\n]", "")
+        pipe:close()
+        sPath = cwd .. package.config:sub(1, 1) .. sPath:sub(3)
+    end
+
+    -- Normalize path separator
+    local pathSeparator = package.config:sub(1, 1)
+
+    -- Print the sPath for debugging
+    --print("sPath:", sPath)
+
+    -- Remove the calling filename
+    local sFilenameRAW = sPath:match("^.+" .. pathSeparator .. "(.+)$")
+
+    -- Check if sFilenameRAW is nil
+    if not sFilenameRAW then
+        error("Could not extract filename from path: " .. sPath)
+    end
+
+    -- Make a pattern to account for case
+    local sFilename = ""
+    for x = 1, #sFilenameRAW do
+        local sChar = sFilenameRAW:sub(x, x)
+        if sChar:find("[%a]") then
+            sFilename = sFilename .. "[" .. sChar:upper() .. sChar:lower() .. "]"
+        else
+            sFilename = sFilename .. sChar
+        end
+    end
+
+    sPath = sPath:gsub(sFilename, "")
+
+    -- Ensure the path does not end with a separator
+    if sPath:sub(-1) == pathSeparator then
+        sPath = sPath:sub(1, -2)
+    end
+
+    -- Return the normalized full path
+    return sPath
+end
+
 return {
     addtopackagepath = function(...)
-        local tArgs = arg or {...};
+        local tArgs = {...} or arg;
         --TODO incorporate any subdirectories into path
 
         --get the full path

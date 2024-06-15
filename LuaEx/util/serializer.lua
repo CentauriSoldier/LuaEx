@@ -287,7 +287,7 @@ end
 local function deserialize(sRawData, tSavedTables, tTabCount)
 
     if (rawtype(sRawData) ~= "string") then
-        error("Error in deserializer. Expected string in arg 1. Type given: "..rawtype(sRawData));
+        error("Error in deserializer. Expected string in argument 1. Type given: "..rawtype(sRawData));
     end
 
     local fItem, sError = load("return "..sRawData);

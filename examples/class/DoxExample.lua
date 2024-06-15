@@ -52,7 +52,7 @@ local sDoxIgnoreSubFile = ".doxignoresub"; --ignores all files in sub directorie
 local sDoxIgnoreAllFile = ".doxignoreall"; --ignores all files current and subdirectories
 
 
-local function writeToFile(path, content)
+function writeToFile(path, content)
     -- Get the path to the "Documents" directory
     local path = os.getenv("USERPROFILE") .. path;
 
@@ -132,17 +132,87 @@ oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.
 
 local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects"
 oLuaExDox.setOutputPath(pHTML);
-oLuaExDox.export(Dox.OUTPUT.HTML);
-
-
-
---oLuaExDox.export();
---TODO create tests for each thing and use them as examples
-
---print(readFile(pFile))
---local tModules, tBlocks = oLuaExDox.importString(readFile(pFile));
---local tModules, tBlocks = oLuaExDox.importstring(k);
-
---for k, v in pairs(tBlocks or {}) do
-    --print(k.." = "..serialize(v));
+oLuaExDox.getLanguage().value.addFileType(".weapon");
+--print(type(oLuaExDox.getLanguage().value.getFileTypes()))
+--for k in pairs(oLuaExDox.getLanguage().value.getFileTypes()) do
+--    print(oLuaExDox.getLanguage(), k)
 --end
+
+for k, v in eDoxLanguage() do
+    print(k, v)
+    for kk in pairs(v.value.getFileTypes()) do
+        print("\t"..kk)
+    end
+end
+
+oLuaExDox.export();
+
+
+Soldier = class("Soldier",
+{--METAMETHODS
+
+},
+{--STATIC PUBLIC
+
+},
+{--PRIVATE
+    HP      = 0,
+    HPMax   = 100,
+    name    = "",
+    values  = {},
+},
+{--PROTECTED
+
+},
+{--PUBLIC
+    Soldier = function(this, cdat, sName, nHP, nValue)
+        local pri   = cdat.pri;
+        pri.name    = sName;
+        pri.HP      = nHP;
+        table.insert(pri.values, nValue);
+    end,
+    getValues = function(this, cdat)
+        local pri       = cdat.pri;
+        local nIndex    = 0;
+        local nMax      = #pri.values;
+
+        if (nIndex < nMax) then
+            return pri.values[nIndex];
+        end
+
+    end,
+    printValues = function(this, cdat)
+
+        for k, v in pairs(cdat.pri.values) do
+            print(cdat.pri.name, k, v);
+        end
+
+    end,
+    getName = function(this, cdat)
+        return cdat.pri.name;
+    end,
+    getHP = function(this, cdat)
+        return cdat.pri.HP;
+    end,
+    getHPMax = function(this, cdat)
+        return cdat.pri.HPMax;
+    end,
+},
+nil,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
+
+
+Bob = Soldier("Bob", 25, 25);
+Ed = Soldier("Ed",  30, 30);
+Steve = Soldier("Steve", 35, 35);
+Doug = Soldier("Doug", 40, 40);
+Marv = Soldier("Marv", 45, 45);
+--[[
+ Bob.printValues();
+Ed.printValues();
+Steve.printValues();
+Doug.printValues();
+Marv.printValues();
+]]

@@ -5,7 +5,9 @@ return class("DoxBlockTag",
 {--metamethods
     __clone = function(this, cdat)
         local pri = cdat.pri;
-        return DoxBlockTag(clone(pri.aliases), pri.display, pri.required, pri.multipleAllowed);
+        return DoxBlockTag( clone(pri.aliases), pri.display, pri.required,
+                            pri.multipleAllowed, pri.columnCount - 1,
+                            table.unpack(pri.columnWrappers));
     end,
     __eq = function(left, right, cdat)
         local pri  = cdat.pri;
@@ -43,7 +45,7 @@ return class("DoxBlockTag",
                 pri.required        == opri.required        and
                 pri.multipleAllowed == pri.multipleAllowed;
     end,
-    __tostring = function(this, cdat)
+    __tostring = function(this, cdat)--TODO add column info
         local pri = cdat.pri;
         local sRet = "Display: "..pri.display;
         sRet = sRet.."\nRequired: "..pri.required;
@@ -62,13 +64,8 @@ return class("DoxBlockTag",
 },
 {--private
     aliases             = {},
-    columnCount         = 1,
-    columnWrappers      = {
-        [1] = {
-            [1] = "",
-            [2] = "",
-        },
-    },
+    columnCount         = 1,  --NOTE: this does NOT include the tag column.
+    columnWrappers      = {}, --NOTE: this does NOT include the tag column. That wrapper is set in Dox.
     display             = "",
     --items_AUTO          = 0,
     multipleAllowed     = false,
@@ -78,7 +75,7 @@ return class("DoxBlockTag",
 
 },
 {--public
-    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, nColumns, ...)
+    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, nExtraColumns, ...)
         local pri = cdat.pri;
         type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.");
 
@@ -91,28 +88,24 @@ return class("DoxBlockTag",
             pri.aliases[#cdat.pri.aliases + 1] = sAlias:lower();
         end
 
-        pri.columnCount = (rawtype(nColumns) == "number" and nColumns > 0) and math.floor(nColumns) or pri.columnCount;
+        --set the column count
+        pri.columnCount = (rawtype(nExtraColumns) == "number" and nExtraColumns > 0) and
+                          (pri.columnCount + math.floor(nExtraColumns))         or
+                           pri.columnCount;
 
+        --build the default wrappers for the columns
+        for x = 1, pri.columnCount do
+            pri.columnWrappers[x] = {
+                [1] = "",
+                [2] = "",
+            };
+        end
 
-        for nColumn, tFormat in pairs(arg or {...}) do
-            print(sDisplay)
-            if (nColumn > 0) then
-                print(nColumn, tFormat)
-                local _, sError = xpcall(type.assert.table(tFormat, "number", "string", 2, 2));
-
-                if (sError) then --allows nil input
-                    pri.columnWrappers[nColumn] = {
-                        [1] = {
-                            [1] = "",
-                            [2] = "",
-                        },
-                    };
-                else
-                    pri.columnWrappers[nColumn] = clone(tFormat);
-                end
-
-            end
-
+        --import any wrappers that the user has input
+        for nColumn, tFormat in ipairs({...} or arg) do
+            type.assert.table(tFormat, "number", "string", 2, 2);
+            --set the wrapper for the not-first column
+            pri.columnWrappers[nColumn] = clone(tFormat);
         end
 
     end,
@@ -132,8 +125,14 @@ return class("DoxBlockTag",
         return cdat.pri.columnCount;
     end,
     getcolumnWrapper = function(this, cdat, nColumn)
-        type.assert.number(nColumn, true, true, false, true, false, 2);
-        return cdat.pri.columnWrappers[nColumn] or {[1] = "", [2] = ""};
+        type.assert.number(nColumn, true, true, false, true, false);
+        local tRet = {[1] = "", [2] = ""};
+
+        if (cdat.pri.columnWrappers[nColumn]) then
+            tRet = clone(cdat.pri.columnWrappers[nColumn]);
+        end
+
+        return tRet;
     end,
     hasAlias = function(this, cdat, sInputRaw)
         local bRet      = false;
