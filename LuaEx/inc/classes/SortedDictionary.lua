@@ -41,6 +41,15 @@ end
 
 return class("SortedDictionary",
 {--METAMETHODS
+    __clone = function(this, cdat)
+        local pri     = cdat.pri;
+        local oNew    = SortedDictionary();
+        local newcdat = cdat.ins[oNew];
+
+        newcdat.actual  = clone(pri.actual);
+        newcdat.keys    = clone(pri.keys);
+        newcdat.sorter  = pri.sorter; --don't clone the sorter function
+    end,
     __pairs = function(this, cdat)
         local nIndex    = 0;
         local tActual   = cdat.pri.actual;
@@ -245,7 +254,7 @@ return class("SortedDictionary",
         return this;
     end,
 },
-nil,   --extending class
-false, --if the class is final
-nil    --interface(s) (either nil, or interface(s))
+nil,        --extending class
+false,      --if the class is final
+iCloneable  --interface(s) (either nil, or interface(s))
 );

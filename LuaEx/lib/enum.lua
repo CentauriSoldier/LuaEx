@@ -375,6 +375,7 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
 		end,
 		__newindex 	= modifyError,
 		__call 		= items,
+        --__clone     = sFormattedEnumName,
 		__tostring 	= function() return sFormattedEnumName; end,
 		__len		= function() return  nItemCount end,
 		__type		= "enum",
@@ -488,7 +489,7 @@ local function prep(sName, bPrivate)
 		end,
 
 		__type = sPrepMarker,
-
+        --__clone = function() return sFormattedEnumName end,
 	});
 end
 

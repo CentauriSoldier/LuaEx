@@ -60,7 +60,7 @@ return class("Point",
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = cdat.ins[other].pri;
-            
+
             return Point(pri.x + otherpri.x,
                          pri.y + otherpri.y);
         end

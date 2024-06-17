@@ -180,7 +180,18 @@ end
 
 return class("Potentiometer",
 {--metamethods
+    __clone = function(this, cdat)
+        local pri = cdat.pri;
+        local oPotentiometer = Potentiometer(pri.min, pri.max, pri.pos, pri.rate, pri.continuity);
+        local tNewCdat = cdat.ins[oPotentiometer];
 
+        tNewCdat.alternator         = pri.alternator;
+        tNewCdat.isAtStart          = pri.isAtStart;
+        tNewCdat.isAtEnd            = pri.isAtEnd;
+        tNewCdat.toggleAlternator   = pri.toggleAlternator;
+
+        return oPotentiometer;
+    end,
 },
 {--static public
 

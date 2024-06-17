@@ -138,8 +138,8 @@ end
 local class = {
     count = 0,
     repo  = { --updated on kit.build()
-        bykit     = {}, --indexed by kit
-        byname    = {}, --index by class/kit name
+        byKit     = {}, --indexed by kit
+        byName    = {}, --index by class/kit name
     },
 };
 
@@ -147,10 +147,10 @@ local class = {
 local instance = {
     repo = {
         --TODO do I need these?
-        byclass = {}, --indexed by class object
-        bykit   = {}, --indexed by kit
-        byname  = {}, --index by class/kit name
-        byobject= {}, --has info about the instance such as class, kit, etc.
+        byClass = {}, --indexed by class object
+        byKit   = {}, --indexed by kit
+        byName  = {}, --index by class/kit name
+        byObject= {}, --has info about the instance such as class, kit, etc.
     },
 };
 
@@ -159,8 +159,8 @@ local kit = {
     --trackers, repo & other properties
     count  = 0, --keep track of the total number of class kits
     repo   = { --stores all class kits for later use
-        byname 		= {}, --indexed by class/kit name | updated on kit.build()
-        byobject 	= {}, --index by class object | updated when a class object is created
+        byName 		= {}, --indexed by class/kit name | updated on kit.build()
+        byObject 	= {}, --index by class object | updated when a class object is created
     },
 };
 --TODO go through and set error levels on every error (test each one)
@@ -272,8 +272,8 @@ function class.build(tKit)
                 error("Error: attempt to compare non-class type.");--TODO complete this
             end
 
-            local tLessKit      = kit.repo.byobject[less];
-            local tGreaterKit   = kit.repo.byobject[greater];
+            local tLessKit      = kit.repo.byObject[less];
+            local tGreaterKit   = kit.repo.byObject[greater];
 
             local tLesserParentKit = tLessKit.parent;
 
@@ -324,8 +324,8 @@ function class.build(tKit)
     rawsetmetatable(oClass, tClassMeta);
 
     --update the repos
-    class.repo.bykit[tKit]          = oClass;
-    class.repo.byname[tKit.name]    = oClass;
+    class.repo.byKit[tKit]          = oClass;
+    class.repo.byName[tKit.name]    = oClass;
 
     --create the 'is' function (e.g., isCreature(vVal))
     rawset(type, "is" .. tKit.name,
@@ -333,7 +333,7 @@ function class.build(tKit)
             local sType         = type(vVal)
             local sTargetType   = tKit.name;
             local bIs           = sType == sTargetType;
-            local tRepo         = instance.repo.byobject[vVal] or nil;
+            local tRepo         = instance.repo.byObject[vVal] or nil;
 
             if (not(bIs) and tRepo) then
                 local tActiveKit = tRepo.kit or nil;
@@ -443,10 +443,10 @@ function instance.build(tKit, tParentActual)
     rawset(tKit.ins, oInstance, tClassData);
 
     --store it in the instance repo too
-    --instance.repo.byclass[]
-    --instance.repo.bykit[]
-    --instance.repo.byname[]
-    instance.repo.byobject[oInstance] = {
+    --instance.repo.byClass[]
+    --instance.repo.byKit[]
+    --instance.repo.byName[]
+    instance.repo.byObject[oInstance] = {
         actual  = tInstance,
         kit     = tKit,
         class   = STUFF,--!TODO
@@ -819,8 +819,8 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         --properties
         auto            = {}, --these are the auto getter/setter methods to build on instantiation
         children		= {
-            byname 		= {}, --updated on build
-            byobject 	= {}, --updated when a class object is created
+            byName 		= {}, --updated on build
+            byObject 	= {}, --updated when a class object is created
         },
         finalmethodnames= {   --this keeps track of methods marked as final to prevent overriding
             met = {},
@@ -835,17 +835,17 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             }
         ),
         interfaces      = {},
-        isfinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
+        isFinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
         name 			= sName,
-        parent			= kit.mayExtend(sName, cExtendor) and kit.repo.byobject[cExtendor] or nil, --note the parent kit
+        parent			= kit.mayExtend(sName, cExtendor) and kit.repo.byObject[cExtendor] or nil, --note the parent kit
         --tables
-        met 	        = clone(tMetamethods, 	true),--TODO this was recently changed to TRUE since (I think) user-defined metatables should be ignored from input
+        met 	        = clone(tMetamethods, 	true),
         stapub 	        = clone(tStaticPublic, 	true),
         pri			    = clone(tPrivate, 		true),
         pro 		    = clone(tProtected, 	true),
         pub      	    = clone(tPublic, 		true),
     };
-
+    
     --note and rename final methods
     kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
 
@@ -860,7 +860,6 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 
     --enforce (any) implemented interfaces
     kit.processInterfaces(tKit, tInterfaces);
-
     --now that this class kit has been validated, imported & stored, build the class object
     local oClass = class.build(tKit);
 
@@ -868,13 +867,13 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.count = kit.count + 1;
 
     --store the class kit and class object in the kit repo
-    kit.repo.byname[sName]      = tKit;
-    kit.repo.byobject[oClass]   = tKit;
+    kit.repo.byName[sName]      = tKit;
+    kit.repo.byObject[oClass]   = tKit;
 
     --if this has a parent, update the parent kit's child table
     if (tKit.parent) then
-        tKit.parent.children.byname[sName]      = tKit;
-        tKit.parent.children.byobject[oClass]   = tKit;
+        tKit.parent.children.byName[sName]      = tKit;
+        tKit.parent.children.byObject[oClass]   = tKit;
     end
 
     return oClass;--return the class object;
@@ -893,8 +892,8 @@ function kit.mayExtend(sName, cExtendor)
 
     --check that the extending class exists
     if (type(cExtendor) == "class") then
-        assert(type(kit.repo.byobject[cExtendor]) == "table", "Error creating derived class, '${class}'. Parent class, '${item}', does not exist. Got (${type}) '${item}'."	% {class = sName, type = type(cExtendor), item = tostring(cExtendor)}); --TODO since nil is allowed, this never fires. Why have it here?
-        assert(kit.repo.byobject[cExtendor].isfinal == false, "Error creating derived class, '${class}'. Parent class '${parent}' is final and cannot be extended."	% {class = sName, parent = kit.repo.byobject[cExtendor].name})
+        assert(type(kit.repo.byObject[cExtendor]) == "table", "Error creating derived class, '${class}'. Parent class, '${item}', does not exist. Got (${type}) '${item}'."	% {class = sName, type = type(cExtendor), item = tostring(cExtendor)}); --TODO since nil is allowed, this never fires. Why have it here?
+        assert(kit.repo.byObject[cExtendor].isFinal == false, "Error creating derived class, '${class}'. Parent class '${parent}' is final and cannot be extended."	% {class = sName, parent = kit.repo.byObject[cExtendor].name})
 
         bRet = true;
     end
@@ -1126,9 +1125,10 @@ end
 !]]
 function kit.validateInterfaces(sKit, tVarArgs)
 
-    for _, vVarArg in ipairs(tVarArgs) do
-        assert(type(vVarArg) == "interface",   "Error creating class, '${class}'. Vararg input must be of type interface.\nGot type ${type}."
-                                            % {class = sKit, type = type(vVarArg)});
+    for nIndex, vVarArg in ipairs(tVarArgs) do
+        assert( type(vVarArg) == "interface",
+                "Error creating class, '${class}'. Vararg index #{index} must be of type interface.\nGot type ${type}."
+                % {class = sKit, type = type(vVarArg), index = nIndex});
     end
 
 
@@ -1145,7 +1145,7 @@ end
 function kit.validateName(sName)
     assert(type(sName) 					== "string", 	"Error creating class. Name must be a string.\nGot: (${type}) ${item}." 								    % {					type = type(sName), 			item = tostring(sName)});
     assert(sName:isvariablecompliant(),					"Error creating class, '${class}'. Name must be a variable-compliant string.\nGot: (${type}) ${item}."	% {class = sName,	type = type(sName), 			item = tostring(sName)});
-    assert(type(kit.repo.byname[sName])	== "nil", 		"Error creating class, '${class}'. Class already exists."													% {class = sName});
+    assert(type(kit.repo.byName[sName])	== "nil", 		"Error creating class, '${class}'. Class already exists."													% {class = sName});
 end
 
 
@@ -1257,7 +1257,7 @@ local tClassActual = {
 
         if sClass then--TODO THROW if not valid
             local sData = sRawData:sub(_sSerializePrefixLength + #sClass + _sSerializeSuffixLength + 1)
-            local oClass = class.repo.byname[sClass] or nil; --TODO THROW if not a class
+            local oClass = class.repo.byName[sClass] or nil; --TODO THROW if not a class
             local vError, fLoadData = serpent.load(sData); --TODO THROW if not a function
             return oClass.deserialize(fLoadData);
 
@@ -1279,11 +1279,11 @@ local tClassActual = {
     --[[--DEPRECATED
     serialize = function(oInstance)
 
-        if not (instance.repo.byobject[oInstance]) then
+        if not (instance.repo.byObject[oInstance]) then
             error("Error serializing class instance.\nInput, of type ${type}, is not a class instance." % {type = type(oInstance)});
         end
 
-        local tInstanceInfo     = instance.repo.byobject[oInstance];
+        local tInstanceInfo     = instance.repo.byObject[oInstance];
         local sClass            = tInstanceInfo.kit.name;
         local sHeader           = _sSerializePrefix..sClass.._sSerializeSuffix; -- Serialization header
         local tInstance         = tInstanceInfo.actual;
@@ -1375,12 +1375,12 @@ return vRet;
 end
 
 function kit.exists = function(vName)
-local tRepo	= type(vName) == "class" and kit.repo.byobject or kit.repo.byname;
+local tRepo	= type(vName) == "class" and kit.repo.byObject or kit.repo.byName;
 return type(tRepo[vName] ~= "nil");
 end
 
 function kit.get = function(vName)
-local tRepo	= type(vName) == "class" and kit.repo.byobject or kit.repo.byname;
+local tRepo	= type(vName) == "class" and kit.repo.byObject or kit.repo.byName;
 assert(type(tRepo[vName] ~= "nil"), "Error getting class kit, '${name}'. Class does not exist." % {name = tostring(vName)});
 return tRepo[vName];
 end

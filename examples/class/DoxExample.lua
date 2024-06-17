@@ -135,7 +135,7 @@ oLuaExDox.setOutputPath(pHTML);
 oLuaExDox.getLanguage().value.addFileType(".weapon");
 --print(type(oLuaExDox.getLanguage().value.getFileTypes()))
 --for k in pairs(oLuaExDox.getLanguage().value.getFileTypes()) do
---    print(oLuaExDox.getLanguage(), k)
+--    print(oLuaExDox.getLanguage(), k)clone(tMetamethods, 	true)
 --end
 
 for k, v in eDoxLanguage() do
@@ -216,3 +216,12 @@ Steve.printValues();
 Doug.printValues();
 Marv.printValues();
 ]]
+
+
+
+
+local function Test()
+    print("HELLO TEST!")
+end
+
+test();

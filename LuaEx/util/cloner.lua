@@ -1,3 +1,5 @@
+local loader = load or loadstring;
+
 local function returnPure(vItem)
     return vItem;
 end
@@ -8,15 +10,83 @@ end
 
 local tPure = {
     ["boolean"]  = returnPure,
-    ["function"] = function(fItem) return load("return "..string.dump(fItem)) end,
+    ["functionOLD"] = function(fItem)
+        local sFunction = string.dump(fItem);
+        return loader(sFunction);
+    end,
+    ["function"] = function(fItem)
+        local dump = string.dump(fItem)  -- Serialize the function into bytecode
+
+        local function loadWithUpvalues(dump, upvalues)
+            local clonedFunc = load(dump)  -- Load the bytecode into a function
+
+            -- Check if we need to set upvalues
+            if upvalues and type(upvalues) == "table" then
+                local i = 1
+                local name, value = debug.getupvalue(fItem, i)
+                while name do
+                    -- Set the upvalue in the cloned function
+                    debug.setupvalue(clonedFunc, i, upvalues[name])
+                    i = i + 1
+                    name, value = debug.getupvalue(fItem, i)
+                end
+            end
+
+            return clonedFunc
+        end
+
+        -- Get the upvalues of the original function
+        local upvalues = {}
+        local i = 1
+        local name, value = debug.getupvalue(fItem, i)
+        while name do
+            upvalues[name] = value
+            i = i + 1
+            name, value = debug.getupvalue(fItem, i)
+        end
+
+        -- Return a function that can load the bytecode with upvalues
+        return function()
+            return loadWithUpvalues(dump, upvalues)
+        end
+    end,
     ["nil"]      = returnPure,
     ["number"]   = returnPure,
     ["string"]   = returnPure,
+    ["tableTEST"]    = function (tItem, bIgnoreMetaTable, tSeen)
+        tSeen = tSeen or {}
+
+        -- If we've already seen this table, return the already cloned version to handle self-references
+        if tSeen[tItem] then
+            return tSeen[tItem]
+        end
+
+        local tRet = {}
+        tSeen[tItem] = tRet
+
+        for vIndex, vItem in pairs(tItem) do
+            -- Recursively clone nested tables
+            if type(vItem) == "table" then
+                tRet[vIndex] = clone(vItem, bIgnoreMetaTable, tSeen)
+            else
+                tRet[vIndex] = clone(vItem);
+            end
+        end
+
+        -- Clone the metatable if not ignored
+        if not bIgnoreMetaTable then
+            local tMeta = getmetatable(tItem)
+            if tMeta then
+                setmetatable(tRet, tMeta)
+            end
+        end
+
+        return tRet
+    end,
     ["table"]    = function (tItem, bIgnoreMetaTable)
         local tRet = {};
-
         --clone each item in the table
-        if (type(tItem) == "table") then
+        --if (type(tItem) == "table") then
 
             for vIndex, vItem in pairs(tItem) do
 --TODO what about indices? those should probably not be cloned
@@ -24,13 +94,16 @@ local tPure = {
 
                     if  (tItem == vItem) then --self reference
                         rawset(tRet, vIndex, vItem);
+                        --tRet[vIndex] = vItem;
                     else
-                        rawset(tRet, vIndex, clone(vItem));
+                        rawset(tRet, vIndex, clone(vItem, bIgnoreMetaTable));
+                        --tRet[vIndex] = clone(vItem, bIgnoreMetaTable);
                     end
 
                 else
                     --rawset(tRet, vIndex, clone(vItem)); --TODO LEFT OFF HERE... This has to get fixed!
-                    rawset(tRet, vIndex, vItem);
+                    rawset(tRet, vIndex, clone(vItem, bIgnoreMetaTable));
+                    --tRet[vIndex] = clone(vItem, bIgnoreMetaTable);
                 end
 
             end
@@ -45,7 +118,7 @@ local tPure = {
 
             end
 
-        end
+        --end
 
         return tRet;
     end,
@@ -65,7 +138,7 @@ local tSynth = {
                                     --no need to infuse cItem since it's already injected by the class
                                     return rawgetmetatable(cItem).__clone();
                                 end,
-    ["enum"]                    = function(eItem) return rawgetmetatable(eItem).__clone(eItem) end,
+    --["enum"]                    = function(eItem) return rawgetmetatable(eItem).__clone(eItem) end,
     ["null"]                    = returnPure,
     ["struct"]                  = function(rItem) return rawgetmetatable(rItem).__clone(rItem) end,
 };
@@ -90,7 +163,7 @@ end
 local function registerFactory(xFactory)
     local sType = type(xFactory);
 
-    --make ssure the type is valid
+    --make sure the type is valid
     if (sType == "table" or rawtype(xFactory) ~= "table") then
         error("Error registering factory with cloner.\nType, ${type} (of rawtype, ${rawtype}), is not a factory." % {type = sType, rawtype = rawtype(xFactory)}, 2);
     end
@@ -119,6 +192,9 @@ local function clone(vItem, bIgnoreMetaTable)
 
     if (tPure[sType]) then
         vRet = tPure[sType](vItem, bIgnoreMetaTable);
+        --if sType == "table" then
+            --print(sType, serialize(vRet), serialize(vItem))
+        --end
         bFoundCloner = true;
 
     elseif (tSynth[sType]) then
@@ -136,7 +212,10 @@ local function clone(vItem, bIgnoreMetaTable)
     end
 
     if not (bFoundCloner) then
-        error("Error cloning item. Cloner not found for item of type ${type}:\n'${item}'." % {item = tostring(vItem), type = sType}, 2);
+        --error(  "Error cloning item. Cloner not found for item of type ${type}:\n'${item}'." %
+        --        {item = tostring(vItem), type = sType}, 2);
+        error(  "Error cloning item. Cloner not found for item of type '${type}'." %
+                {type = sType}, 2);
     end
 
     return vRet;

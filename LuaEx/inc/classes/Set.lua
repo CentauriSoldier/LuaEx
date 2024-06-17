@@ -160,7 +160,7 @@ return class("Set",
         return sRet:sub(1, #sRet - 2).."}";
     end,
 },
-{
+{--static public
     --[[!
     @mod Set
     @func Set.deserialize
@@ -170,9 +170,9 @@ return class("Set",
     deserialize = function(this, cdat)
         return "ERROR: Set.deserialize method still in development.";
     end,
-},--static public
+},
 {},--private
-{
+{--protected
     indexed = {},
     set		= {},
     size 	= 0,
@@ -240,7 +240,7 @@ return class("Set",
 
         return bRet;
     end,
-},--protected
+},
 {--public
     --[[!
     @module Set
@@ -458,4 +458,4 @@ return class("Set",
 },
 nil,
 false,
-iCloneable);
+nil);

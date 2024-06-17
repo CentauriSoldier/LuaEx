@@ -45,11 +45,14 @@ local tClassLoadValues = {
 
 --🅼🅾🅳🅸🅵🆈 🆅🅰🅻🆄🅴🆂 🅱🅴🅻🅾🆆 🅰🆃 🆈🅾🆄🆁 🅾🆆🅽 🆁🅸🆂🅺
 --for backward compatibility
-loadstring = loadstring;
+--loadstring = loadstring;
+--load = load or loadstring;
 
-if (type(loadstring) ~= "function" and type(load) == "function") then
-    loadstring = load;
-end
+--if (type(loadstring) ~= "function" and type(load) == "function") then
+--    loadstring = load;
+--end
+
+
 --TODO I think I need to do this with table.unpack
 
 

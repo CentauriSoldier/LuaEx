@@ -36,7 +36,7 @@ local math          = math;
 local Point         = Point;
 local rawtype       = rawtype;
 local serialize     = serialize;
-local type          = type;
+--local type          = type;
 local MATH_ARL      = MATH_ARL;
 local MATH_UNDEF    = MATH_UNDEF;
 
@@ -111,6 +111,9 @@ end
 
 return class("Line",
 {--metamethods
+    __clone = function(this, cdat)
+        --TODO CLONE THIS
+    end,
     __tostring = function(this, cdat)
         local pri   = cdat.pri;
         local sRet  = "";
