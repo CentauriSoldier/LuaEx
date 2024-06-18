@@ -177,9 +177,32 @@ DoxLanguage("XML",              {".xml"},                                       
 true);
 
 --these block tags are built-in to each Dox class
-local _tBuiltInBlockTags = {
-    DoxBlockTag({"fqxn"},            "FQXN",       true,  false),
-    DoxBlockTag({"ex", "example"},   "Example",    false, true, {"<code>", "</code>"}),
+local _bRequired        = true;
+local _bMultipleAllowed = true;
+local _tBuiltInBlockTags = {--TODO allow modification and ordering --TODO add a bCombine Variable for block tags with (or using) plural form
+    DoxBlockTag({"fqxn"},                               "FQXN",                 _bRequired,     -_bMultipleAllowed),
+    DoxBlockTag({"des", "desc", "description"},         "Description",          -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
+    DoxBlockTag({"return", "ret",},                     "Return",               -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
+    DoxBlockTag({"ex", "example"},                      "Example",              -_bRequired,    _bMultipleAllowed,        {"<code>", "</code>"}),
+    DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -bMultipleAllowed,    0,  {"<em>", "</em>"}),--TODO is this correct? 0?
+    DoxBlockTag({"features"},                           "Features",             -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    bMultipleAllowed),
+    DoxBlockTag({"depend", "dependency"},               "Dependency",           -_bRequired,    bMultipleAllowed),
+    DoxBlockTag({"planned"},                            "Planned Features",     -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"todo"},                               "TODO",                 -_bRequired,    bMultipleAllowed),
+    DoxBlockTag({"issue"},                              "TODO",                 -_bRequired,    bMultipleAllowed),
+    DoxBlockTag({"changelog", "versionhistory"},        "Changelog",            -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"version", "ver"},                     "Version",              -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"author"},                             "Author",               -_bRequired,    bMultipleAllowed),
+    DoxBlockTag({"email"},                              "Email",                -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"license"},                            "License",              -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"www", "web", "website"},              "Website",              -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"github"},                             "GitHub",               -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"fb", "facebook"},                     "Facebook",             -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"x", "twitter"},                       "X (Twitter)",          -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"copy", "copyright"},                  "Copyright",            -_bRequired,    -bMultipleAllowed),
 };
 
 
@@ -521,13 +544,13 @@ return class("Dox",
                     return ""
                 end
                 s = s:gsub("\\", "\\\\")
-                --s = s:gsub('"', '\\"')
+                s = s:gsub('"', '\\"')
                 s = s:gsub("'", "\\'");
                 --s = s:gsub("\b", "\\b")
-                s = s:gsub("\f", "<br>")
+                --s = s:gsub("\f", "<br>")
                 s = s:gsub("\n", "<br>")
-                s = s:gsub("\r", "<br>")
-                s = s:gsub("\t", "    ")                
+                --s = s:gsub("\r", "<br>")
+                s = s:gsub("\t", "    ")
                 return s
             end
 
@@ -548,10 +571,11 @@ return class("Dox",
                         local subtable = t[key]
                         local value = subtable()
                         local subtableResult = processTable(subtable, indent .. "    ")
-                        table.insert(result, string.format(--TODO issue with HTML is here!
-                            '%s"%s": {\n%s    "value": \'%s\',\n%s    "subtable": %s\n%s}',
+                        local newstring = string.format(--TODO issue with HTML is here!
+                            '%s"%s": {\n%s    "value": "%s",\n%s    "subtable": %s\n%s}',
                             indent, key, indent, escapeStr(value), indent, next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null", indent
-                        ))
+                        )
+                        table.insert(result, newstring);
                     end
 
                     return result
