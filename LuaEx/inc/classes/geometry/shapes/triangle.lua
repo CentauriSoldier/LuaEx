@@ -83,9 +83,8 @@ end
 local triangle = class "triangle" : extends(polygon) {
 
 	--[[
+    @fqxn LuaEx.Classes.Geometry.triangle.Triangle
 	@desc The constructor for the triangle class.
-	@func triangle
-	@mod triangle
 	@ret oTriangle triangle A triangle object. Public properties are vertices (a table containing points for each corner [topLeft, topRight, bottomRight, bottomLeft, center]), width and height.
 	]]
 	__construct = function(this, tProtected, oPoint1, oPoint2, oPoint3)
@@ -189,22 +188,6 @@ local triangle = class "triangle" : extends(polygon) {
 
 	end
 ]]
-	--[[!
-		@desc Serializes the object's data.
-		@func triangle.serialize
-		@module triangle
-		@param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
-		@ret sData StringOrTable The data, returned as a serialized table (string) or a table is the defer option is set to true.
-	!]]
-	serialize = function(this, bDefer)
-		error("Complete this function.");
-	end,
-
-	--setPos = function(this)
-
-	--end,
-
-
 
 };
 

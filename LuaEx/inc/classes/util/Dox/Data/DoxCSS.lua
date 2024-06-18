@@ -1,3 +1,4 @@
+return [[
     :root {
             --banner-height: 10vh;
             --base-font-size: 16px; /* Define a base font size */
@@ -135,3 +136,4 @@
           padding: 10px; /* Adjust padding as needed */
           border: 1px solid #ccc; /* Add border for content area */
         }
+]];

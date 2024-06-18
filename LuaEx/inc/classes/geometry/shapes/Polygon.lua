@@ -323,8 +323,7 @@ return class("Polygon",
 },
 {--public
     --[[!
-        @mod Polygon
-        @func Polygon
+        @fqxn LuaEx.Classes.Geometry.Polygon
         @desc Used for creating various Polygons and handling Point
         detection and detector properties. The child class is responsible
         for creating vertices (upon construction) and storing them

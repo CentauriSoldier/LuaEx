@@ -1,3 +1,4 @@
+return [[
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,6 +42,13 @@
             </div>
         </div>
 
+        <!-- Breadcrumb bar -->
+        <div class="row bg-secondary">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-wrapper" id="DOX_breadcrumb"></ol>
+            </nav>
+        </div>
+
         <div class="row">
             <!-- Sidebar Wrapper - Column 1 -->
             <div class="col-3 bg-secondary text-light sidebar">
@@ -49,13 +57,10 @@
 
             <!-- Main Panel - Column 3 -->
             <div class="col-9 bg-light p-0 m-0">
-                <!-- Breadcrumb bar -->
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb breadcrumb-wrapper" id="DOX_breadcrumb"></ol>
-                </nav>
 
                 <!-- Content -->
-                <div id="DOX_content" class="scrollable-div overflow-auto border"></div>
+                <!-- <div id="DOX_content" class="scrollable-div overflow-auto border"></div>-->
+                <div id="DOX_content"></div>
             </div>
         </div>
     </div>
@@ -72,3 +77,4 @@
     </script>
 </body>
 </html>
+]];

@@ -169,13 +169,12 @@ return class("Point",
 },
 {--public
     --[[
+    @fqxn LuaEx.Classes.Line.Point
     @desc This is the constructor for the Point class.
-    @func Point The constructor for the Point class.
     @mod Point
     @param nX number The x value. If nil, it defaults to 0.
     @param nY number The y value. If nil, it defaults to 0.
     ]]
-
     Point = function(this, cdat, nX, nY)
         local pri = cdat.pri;
         pri.x = rawtype(nX) == "number" and nX or pri.x;
@@ -260,28 +259,7 @@ return class("Point",
     end,
     ]]
 
-    --[[!
-        @desc Serializes the object's data.
-        @func Point.serialize
-        @module Point
-        @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
-        @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
-    !]]
-    --[[serialize = function(this, cdat, bDefer)
-        local pri = cdat.pri;
-
-        local tData = {
-            x = pri.x,
-            y = pri.y,
-        };
-
-        if (not bDefer) then
-            tData = serialize.table(tData);
-        end
-
-        return tData;
-    end,]]
-
+    
     set = function(this, cdat, nX, nY)
         local pri = cdat.pri;
         pri.x = type(nX) == "number" and nX or pri.x;

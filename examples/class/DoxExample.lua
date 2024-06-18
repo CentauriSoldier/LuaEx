@@ -120,32 +120,40 @@ end
 math.randomseed(os.time())
 local num_samples = 1000000  -- 1 million samples
 local string_length = 40      -- Length of each random string
---local collisions, total_samples = test_collision_rate256(num_samples, string_length)
+--local collisions, total_samples = test_collision_rate256(num_samples, sFtring_length)
 
 --print("Total samples: " .. total_samples)
 --print("Collisions: " .. collisions)
 --print("Collision rate: " .. (collisions / total_samples))
 
+
+
 local oLuaExDox = LuaDox("LuaEx");
 --oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
-oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"));
-
+--oLuaExDox.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\lib\\class.lua"));
+oLuaExDox.importDirectory(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx"), true);
 local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects"
 oLuaExDox.setOutputPath(pHTML);
-oLuaExDox.getLanguage().value.addFileType(".weapon");
+--oLuaExDox.getLanguage().value.addFileType(".weapon");
 --print(type(oLuaExDox.getLanguage().value.getFileTypes()))
 --for k in pairs(oLuaExDox.getLanguage().value.getFileTypes()) do
 --    print(oLuaExDox.getLanguage(), k)clone(tMetamethods, 	true)
 --end
 
 for k, v in eDoxLanguage() do
-    print(k, v)
+    --print(v.name.."\n")
     for kk in pairs(v.value.getFileTypes()) do
-        print("\t"..kk)
+        --print("\t"..kk)
     end
 end
 
 oLuaExDox.export();
+
+-- Function to get the directory path of the current Lua script
+
+
+
+
 
 
 Soldier = class("Soldier",
@@ -203,7 +211,6 @@ false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
 
-
 Bob = Soldier("Bob", 25, 25);
 Ed = Soldier("Ed",  30, 30);
 Steve = Soldier("Steve", 35, 35);
@@ -216,12 +223,3 @@ Steve.printValues();
 Doug.printValues();
 Marv.printValues();
 ]]
-
-
-
-
-local function Test()
-    print("HELLO TEST!")
-end
-
-test();

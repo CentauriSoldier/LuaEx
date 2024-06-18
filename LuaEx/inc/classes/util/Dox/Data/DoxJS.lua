@@ -1,3 +1,4 @@
+return [[
 const userData = {
     "ModuleA": {
         "value": "Some value for ModuleA",
@@ -97,7 +98,7 @@ const doxData = {
                 <div class="col-lg-12">
                     <div class="welcome-message p-5 text-center bg-light rounded">
                         <h1 class="text-primary">Welcome to Dox: The Lua-based Documentation System!</h1>
-                        <p class="lead">We're thrilled to introduce you to our new documentation system, Dox. With Dox, you can effortlessly organize and navigate through your project's documentation, making it easier for your team and users to find the information they need.</p>
+                        <p class="lead">With Dox, you can effortlessly organize and navigate through your project's documentation, making it easier for your team and users to find the information they need.</p>
                         <p class="lead">Explore our features to see how Dox can streamline your documentation process and enhance collaboration:</p>
                         <ul class="list-unstyled">
                             <li><i class="fas fa-angle-double-right text-primary"></i> Simple to Use</li>
@@ -342,3 +343,4 @@ class Dox {
 
 
 }
+]];

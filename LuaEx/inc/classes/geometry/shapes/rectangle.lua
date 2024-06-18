@@ -46,8 +46,7 @@ return class "rectangle" : extends(polygon) {
 
 	--[[
 	@desc The constructor for the rectangle class.
-	@func rectangle
-	@mod rectangle
+	@fqxn LuaEx.Classes.Geometry.rectangle
 	@ret oRectangle rectangle A rectangle object. Public properties are vertices (a numerically-indexed table containing points for each corner), width and height.
 	]]
 	__construct = function(this, tProtected, pTopLeft, nWidth, nHeight)
@@ -127,8 +126,7 @@ return class "rectangle" : extends(polygon) {
 
 	--[[!
 		@desc Serializes the object's data.
-		@func rectangle.serialize
-		@module rectangle
+		@fqxn LuaEx.Classes.Geometry.serialize		
 		@param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
 		@ret sData StringOrTable The data, returned as a serialized table (string) or a table is the defer option is set to true.
 	!

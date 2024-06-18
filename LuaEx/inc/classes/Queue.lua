@@ -12,8 +12,7 @@ return class("Queue",
 
 
     --[[!
-    @module Queue
-    @func __call
+    @fqxn LuaEx.Classes.Queue.Metamethods.__call
     @scope public
     @desc Creates an iterator function to iterate over the elements of the Queue.
     @ret function An iterator function that returns each element of the Queue.
@@ -33,8 +32,7 @@ return class("Queue",
 
 
     --[[!
-    @module Queue
-    @func __len
+    @fqxn LuaEx.Classes.Queue.Metamethods.__len
     @scope public
     @desc Returns the number of elements currently in the Queue.
     @ret number The number of elements in the Queue.
@@ -45,8 +43,7 @@ return class("Queue",
 
 
     --[[!
-    @module Queue
-    @func __tostring
+    @fqxn LuaEx.Classes.Queue.Metamethods.__tostring
     @scope public
     @desc Returns a string representing the items in the Queue.
     @ret string A string representing the items in the Queue.
@@ -69,8 +66,7 @@ return class("Queue",
 {},--protected
 {--public
     --[[!
-    @mod Queue
-    @func Queue
+    @fqxn LuaEx.Classes.Queue.Methods.Queue
     @scope public
     @desc Constructs a new Queue object.
     @param table|nil A numerically-indexed table of items to add to enQueue (optional).
@@ -95,8 +91,7 @@ return class("Queue",
 
 
     --[[!
-    @module Queue
-    @func Queue.clear
+    @fqxn LuaEx.Classes.Queue.Methods.clear
     @scope public
     @desc Removes all items from the Queue.
     ret Queue The Queue object after clearing all items.
@@ -110,8 +105,7 @@ return class("Queue",
 
 
     --[[!
-    @module Queue
-    @func Queue.enqueue
+    @fqxn LuaEx.Classes.Queue.Methods.enqueue
     @scope public
     @desc Adds an element to the end of the Queue.
     @param any vValue The value to enQueue.
@@ -129,8 +123,7 @@ return class("Queue",
 
 
     --[[!
-    @module Queue
-    @func Queue.dequeue
+    @fqxn LuaEx.Classes.Queue.Methods.dequeue
     @scope public
     @desc Adds an element to the end of the Queue.
     @param any vValue The value to deQueue.
@@ -149,8 +142,7 @@ return class("Queue",
 
 
     --[[!
-    @mod Queue
-    @func Queue.deserialize
+    @fqxn LuaEx.Classes.Queue.Methods.deserialize
     @scope public
     @desc Deserializes the Queue object from a string.
     !]]
@@ -160,8 +152,7 @@ return class("Queue",
 
 
     --[[!
-    @module Queue
-    @func Queue.peek
+    @fqxn LuaEx.Classes.Queue.Methods.peek
     @scope public
     @param table cdat The class data table.
     @desc Retrieves the next-in-line element from the Queue without removing it.
@@ -173,8 +164,7 @@ return class("Queue",
 
 
     --[[!
-    @mod Queue
-    @func Queue.reverse
+    @fqxn LuaEx.Classes.Queue.Methods.reverse
     @scope public
     @desc Reverses the order of elements in the Queue.
     @ret Queue The Queue object after reversing the elements.
@@ -192,20 +182,7 @@ return class("Queue",
 
 
     --[[!
-    @mod Queue
-    @func Queue.serialize
-    @scope public
-    @desc Serializes the Queue object to a string.
-    @ret string A string representing the Queue object which can be stored and later deserialized.
-    !]]
-    serialize = function(this, cdat)
-        return "ERROR: Queue.serialize method still in development.";
-    end,
-
-
-    --[[!
-    @module Queue
-    @func Queue.size
+    @fqxn LuaEx.Classes.Queue.Methods.size
     @scope public
     @desc Returns the number of elements currently in the Queue.
     @ret number The number of elements in the Queue.

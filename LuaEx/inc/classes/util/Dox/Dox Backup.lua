@@ -1,59 +1,4 @@
---load in Dox's required files
-local pDoxRequirePath   = "LuaEx.inc.classes.util.Dox.Data"
-local _sDoxBanner       = require(pDoxRequirePath..".DoxBanner");
-local _sDoxCSS          = require(pDoxRequirePath..".DoxCSS");
-local _sDoxHTML         = require(pDoxRequirePath..".DoxHTML")
-local _sDoxJS           = require(pDoxRequirePath..".DoxJS");
-
 --TODO add option to get and print TODO, BUG, etc.
-
---[[if PATH then
-    print(PATH)
-    local filename = "inc/classes/util/Dox/Data/Banner.txt"
-    local file_path = PATH .. "/" .. filename
-
-    local file = io.open(file_path, "r")
-    if file then
-        local content = file:read("*all")
-        file:close()
-        print("File content:")
-        print(content)
-    else
-        print("Error: File not found or could not be opened")
-    end
-else
-    print("Error: Could not determine script directory")
-end]]
-
-
-
-
---[[
-local function splitStringBySpace(inputString, number)
-    local result = {}
-    local currentNumber = 1
-    local currentIndex = 1
-
-    while currentNumber <= number do
-        local endIndex = inputString:find(" ", currentIndex)
-        if not endIndex then
-            result[currentNumber] = inputString:sub(currentIndex)
-            currentIndex = #inputString + 2 -- Move currentIndex beyond the string length to break the loop
-        else
-            result[currentNumber] = inputString:sub(currentIndex, endIndex - 1)
-            currentIndex = endIndex + 1
-        end
-        currentNumber = currentNumber + 1
-    end
-
-    -- Fill remaining indices with empty strings
-    for i = currentNumber, number do
-        result[i] = ""
-    end
-
-    return result
-end
-]]
 
 --TODO move this out
 local tMarkdownToHTML = {
@@ -116,6 +61,9 @@ end
 
 
 
+
+
+--OMG use queues for output
 --[[TODO
     Use MD for text
     Allow internal anchor links
@@ -267,142 +215,158 @@ return class("Dox",
         end
 
     end,
-    processBlockItem = function(this, cdat, oBlockTag, sContent)
-        local sTableDataItems = "";
-        local nColumnCount    = oBlockTag.getColumnCount();
-        local sCurrent        = sContent;
-        local nStart          = 1;
-        local nEnd            = -1;
-        local tContent        = {};
+    processBlockString = function(this, cdat, sRawBlock, tContent)
+        --x = x + 1;
+        --writeToFile("\\Sync\\Projects\\ZZZ Test\\"..x..".txt", sRawBlock)
 
-        -- Iterate over the number of columns
-        for x = 1, nColumnCount - 1 do
-            -- Find the index of the next space
-            local nStart, nEnd = sCurrent:find(" ", 1);
+        --create the DoxBlock
+        local oBlock = DoxBlock(sRawBlock, pri.language, pri.tagOpen,
+                                pri.blockTags, pri.requiredBlockTags);
 
-            -- Check if a space is found
-            if not nStart then
-                error("Unable to find space for column " .. x)--TODO better message
+        local tActive = pri.finalized;
+
+        for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do
+
+            if not (tActive[sFQXN]) then
+                tActive[sFQXN] = {};
             end
 
-            -- Extract the substring between the current start and end indices
-            tContent[x] = sCurrent:sub(1, nEnd - 1);
-
-            -- Update sCurrent to start from the next character after the space
-            sCurrent = sCurrent:sub(nEnd + 1);
-        end
-
-        -- Add the remaining part of sCurrent as the last content item
-        tContent[nColumnCount] = sCurrent;
-
-
-        for x = 1, #tContent do
-            local tWrapper   = oBlockTag.getcolumnWrapper(x);
-            local sWrapFront = tWrapper[1];
-            local sWrapBack  = tWrapper[2];
-            --sTableDataItems = sTableDataItems.."<td>"..sWrapFront..tContent[x]..sWrapBack.."</td>";
-            sTableDataItems = sTableDataItems.."   "..sWrapFront..tContent[x]..sWrapBack.."";
-        end
-
-        return [[<div class="custom-section"><div class="section-title">${display}</div><div class="section-content"><p>${content}</p></div></div>]] %
-        {
-            display = oBlockTag.getDisplay(),
-            content = sTableDataItems,--TODO break up content into columns as needed
-        };
-    end,
-    processBlockString = function(this, cdat)
-        local pri = cdat.pri;
-    end,
-    --[[!
-    @fqxn LuaEx.Classes.Dox.Methods.refresh
-    @desc Refreshes the finalized data
-    !]]
-    refresh = function(this, cdat)
-        local pri = cdat.pri;
-
-        --reset the finalized data table
-        pri.finalized = {};
-
-        --inject all block strings into finalized data table
-        for sRawBlock, _ in pairs(pri.blockStrings) do
-            --pri.processBlockString(sRawBlock)
-            --x = x + 1;
-            --writeToFile("\\Sync\\Projects\\ZZZ Test\\"..x..".txt", sRawBlock)
-
-            --create the DoxBlock
-            local oBlock = DoxBlock(sRawBlock, pri.language, pri.tagOpen,
-                                    pri.blockTags, pri.requiredBlockTags);
-
-            local tActive = pri.finalized;
-
-            for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do
-
-                if not (tActive[sFQXN]) then
-                    tActive[sFQXN] = setmetatable({}, {
-                        __call = function(t)
-                            return "";
-                        end,
-                    });
-                end
-
-                --update the active table variable
-                tActive = tActive[sFQXN];
-            end
-
-
+            --update the active table variable
+            tActive = tActive[sFQXN];
 
             --create the content string
             --local sOuterContent = [[<div class="container-fluid table-container"><table class="table table-striped"><tbody>]];
-            local sContent = [[<div class="container-fluid">]];
+            local sOuterContent = [[<div class="container-fluid">]];
+
+            local function splitStringBySpace(inputString, number)
+                local result = {}
+                local currentNumber = 1
+                local currentIndex = 1
+
+                while currentNumber <= number do
+                    local endIndex = inputString:find(" ", currentIndex)
+                    if not endIndex then
+                        result[currentNumber] = inputString:sub(currentIndex)
+                        currentIndex = #inputString + 2 -- Move currentIndex beyond the string length to break the loop
+                    else
+                        result[currentNumber] = inputString:sub(currentIndex, endIndex - 1)
+                        currentIndex = endIndex + 1
+                    end
+                    currentNumber = currentNumber + 1
+                end
+
+                -- Fill remaining indices with empty strings
+                for i = currentNumber, number do
+                    result[i] = ""
+                end
+
+                return result
+            end
+
 
             --build the row (block item)
-            for oBlockTag, sRawInnerContent in oBlock.items() do
-                local sInnerContent = pri.processBlockItem(oBlockTag, sRawInnerContent);
-                sContent = sContent..sInnerContent;
+            for oBlockTag, sContent in oBlock.items() do
+                local sTableDataItems = "";
+                local nColumnCount    = oBlockTag.getColumnCount();
+                local sCurrent        = sContent;
+                local nStart          = 1;
+                local nEnd            = -1;
+                local tContent        = {};
+
+                -- Iterate over the number of columns
+                for x = 1, nColumnCount - 1 do
+                    -- Find the index of the next space
+                    local nStart, nEnd = sCurrent:find(" ", 1);
+
+                    -- Check if a space is found
+                    if not nStart then
+                        error("Unable to find space for column " .. x)--TODO better message
+                    end
+
+                    -- Extract the substring between the current start and end indices
+                    tContent[x] = sCurrent:sub(1, nEnd - 1);
+
+                    -- Update sCurrent to start from the next character after the space
+                    sCurrent = sCurrent:sub(nEnd + 1);
+                end
+
+                -- Add the remaining part of sCurrent as the last content item
+                tContent[nColumnCount] = sCurrent
+
+
+                for x = 1, #tContent do
+                    local tWrapper   = oBlockTag.getcolumnWrapper(x);
+                    local sWrapFront = tWrapper[1];
+                    local sWrapBack  = tWrapper[2];
+                    --sTableDataItems = sTableDataItems.."<td>"..sWrapFront..tContent[x]..sWrapBack.."</td>";
+                    sTableDataItems = sTableDataItems.."   "..sWrapFront..tContent[x]..sWrapBack.."";
+                end
+
+
+
+
+                --sOuterContent = sOuterContent..[[<tr><td>${display}</td>${content}</tr>]] %
+                sOuterContent = sOuterContent..[[<div class="custom-section"><div class="section-title">${display}</div><div class="section-content"><p>${content}</p></div></div>]] %
+                {
+                    display = oBlockTag.getDisplay(),
+                    content = sTableDataItems,--TODO break up content into columns as needed
+                };
             end
 
             --local sOuterContent = sOuterContent..[[</tbody></table></div>]];
-            --tContent[tActive] = sContent..[[</div>]];
+            local sOuterContent = sOuterContent..[[</div>]];
 
             --parse the final string for markdown
-            --sOuterContent = markdownToHTML(sOuterContent);
+            sOuterContent = markdownToHTML(sOuterContent);
             --print(sOuterContent)
             --TODO gsub last newline
 
             --store the iterator for the items if last item or false
             --tContent[tActive] = bLastItem and oBlock.items or false;
-            --tContent[tActive] = sOuterContent;
+            tContent[tActive] = sOuterContent;
             --TODO LEFT OFF HERE gotta get items working
 
 
             --if (sFQXN == "class")
 
+            print()
             --set the call to get the content
             setmetatable(tActive, {
                 __call = function(t)
-                    return sContent..[[</div>]];
+                    return tContent[tActive];
                 end,
             })
+        end
+    end,
+    
+    refresh = function(this, cdat)
+        local pri = cdat.pri;
+        local tBlocks = {};
+
+        --reset the finalized data table
+        pri.finalized   = {};
+        local tContent  = {};
+        local x = 0;
+        --inject all block strings into finalized data table
+        for sRawBlock, _ in pairs(pri.blockStrings) do
+
 
         end
 
-        --print(cdat.pri.finalized.LuaEx())
     end,
     [eOutputType.HTML.name] = {
         build = function(this, cdat)
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
-            local sTitle     = pri.title;--TODO FINISH use correct seperator
-            --local pSource    = source.getpath();--TODO trim ending dir sep and dups
-            --local pSource    = _pDoxSource;
-            --Dialog.Message("Source of DOX", pSource)
-            --local pCSS       = pSource.."\\Data\\Dox.css";
-            --local pBanner    = pSource.."\\Data\\Banner.txt";
-            --local pJS        = pSource.."\\Data\\Dox.js";
-            --local pHTML      = pSource.."\\Data\\Dox.html";
+            local sTitle     = pri.title;
+            local pSource    = source.getpath();--TODO trim ending dir sep and dups
+            local pCSS       = pSource.."\\Data\\Dox.css";
+            local pBanner    = pSource.."\\Data\\Banner.txt";
+            local pJS        = pSource.."\\Data\\Dox.js";
+            local pHTML      = pSource.."\\Data\\Dox.html";
             local pHTMLOut   = cdat.pri.OutputPath.."\\"..sTitle..".html";--TODO use proper directory separator
             local pJSOut     = cdat.pri.OutputPath.."\\"..sTitle..".js";
---[[
+
             local function readFile(pFile)
                 local hFile = io.open(pFile, "r");
                 if not hFile then
@@ -412,7 +376,7 @@ return class("Dox",
                 hFile:close();
                 return sRet;
             end
-]]
+
             local function writeFile(pFile, sContent)
                 local hFile = io.open(pFile, "w");
                 if not hFile then
@@ -423,14 +387,14 @@ return class("Dox",
             end
 
             --read the html and helper files
-            --local sCSS      = readFile(pCSS);
-            --local sBanner   = readFile(pBanner);
-            --local sHTML     = readFile(pHTML);
+            local sCSS      = readFile(pCSS);
+            local sBanner   = readFile(pBanner);
+            local sHTML     = readFile(pHTML);
 
             --update and write the html
-            sHTML = _sDoxHTML % {css = _sDoxCSS};
+            sHTML = sHTML % {css = sCSS};
             sHTML = sHTML % {
-                bannerURL   = _sDoxBanner:gsub("\n", ''), --TODO allow custom banner
+                bannerURL   = sBanner:gsub("\n", ''), --TODO allow custom banner
                 title       = sTitle
             };
 
@@ -446,12 +410,11 @@ return class("Dox",
             local sRet       = "";
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
-            --local pSource    = source.getpath();--TODO trim ending dir sep and dups
-            --local pSource    =_pDoxSource;--TODO trim ending dir sep and dups
-            --local pJS        = pSource.."\\Data\\Dox.js";
+            local pSource    = source.getpath();--TODO trim ending dir sep and dups
+            local pJS        = pSource.."\\Data\\Dox.js";
 
             -- Open the input file in read mode
-            --[[local hFile = io.open(pJS, "r")
+            local hFile = io.open(pJS, "r")
             if not hFile then
                 return nil, "Input file not found"--TODO error messages
             end
@@ -474,35 +437,16 @@ return class("Dox",
 
             if not bFound then
                 return nil, "String not found in the input file"
-            end]]
-
-            local lineNumber = 0
-            local bFound = false
-
-            -- Read the input text line by line (split by newline character)
-            for line in _sDoxJS:gmatch("[^\r\n]+") do
-                lineNumber = lineNumber + 1
-
-                -- Check if the search string is in the current line
-                if bFound then
-                    sRet = sRet .. line .. "\n"
-                elseif string.find(line, "//—©_END_DOX_TESTDATA_©—", 1, true) then
-                    bFound = true
-                end
-            end
-
-            if not bFound then
-                return nil, "String not found in the input"
             end
 
             local sJSON = tFunctions.buildJSONTable(this, cdat);
-            --Dialog.Message("", sJSON)
+
             return sJSON.."\n\n"..sRet;
         end,
         buildJSONTable = function(this, cdat) --TODO clean up
             --TODO base64!
             -- Function to escape special characters for JSON
-            local function escapeStrOLD(s)
+            local function escapeStr(s)
                 if type(s) ~= "string" then
                     return ""
                 end
@@ -513,21 +457,6 @@ return class("Dox",
                 s = s:gsub("\n", "\\n")
                 s = s:gsub("\r", "\\r")
                 s = s:gsub("\t", "\\t")
-                return s
-            end
-
-            local function escapeStr(s)
-                if type(s) ~= "string" then
-                    return ""
-                end
-                s = s:gsub("\\", "\\\\")
-                --s = s:gsub('"', '\\"')
-                s = s:gsub("'", "\\'");
-                --s = s:gsub("\b", "\\b")
-                s = s:gsub("\f", "<br>")
-                s = s:gsub("\n", "<br>")
-                s = s:gsub("\r", "<br>")
-                s = s:gsub("\t", "    ")                
                 return s
             end
 
@@ -548,8 +477,8 @@ return class("Dox",
                         local subtable = t[key]
                         local value = subtable()
                         local subtableResult = processTable(subtable, indent .. "    ")
-                        table.insert(result, string.format(--TODO issue with HTML is here!
-                            '%s"%s": {\n%s    "value": \'%s\',\n%s    "subtable": %s\n%s}',
+                        table.insert(result, string.format(
+                            '%s"%s": {\n%s    "value": "%s",\n%s    "subtable": %s\n%s}',
                             indent, key, indent, escapeStr(value), indent, next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null", indent
                         ))
                     end
@@ -667,43 +596,31 @@ return class("Dox",
             bRecurse = false;
         end
         --TODO rewrite this to check for .doxignore files
-        --local tFiles, tRel = io.dir(pDir, bRecurse, 0, cdat.pri.fileTypes);--TODO BUG FIX CHANGE this to use new mime table
-        local tFiles, tRel = io.dir(pDir, bRecurse, 0);--TODO BUG FIX CHANGE this to use new mime table
-
+        local tFiles, tRel = io.dir(pDir, bRecurse, 0, cdat.pri.fileTypes);--TODO BUG FIX CHANGE this to use new mime table
         --TODO THROW ERROR FOR FAILURE
-        for _, pFile in pairs(tFiles) do
-            cdat.pub.importFile(pFile, true);
+        for k, v in pairs(tFiles) do
+            cdat.pub.importFile(v);
         end
 
-        cdat.pri.refresh();
     end,
-    importFile_FNL = function(this, cdat, pFile, bSkipRefresh)
+    importFile_FNL = function(this, cdat, pFile)
         type.assert.string(pFile, "%S+");
         local hFile = io.open(pFile, "r");
 
         if not (hFile) then
             error("Error importing file to Dox.\nCould not open file: "..pFile);
         else
-
             local sContent = hFile:read("*all");
-            cdat.pub.importString(sContent, false);
+            cdat.pub.importString(sContent);
             --cdat.pri.extractBlockStrings(sContent);
             hFile:close();
-
-            if not (bSkipRefresh) then
-                cdat.pri.refresh();
-            end
-
         end
 
     end,
-    importString_FNL = function(this, cdat, sInput, bSkipRefresh)
+    importString_FNL = function(this, cdat, sInput)
         type.assert.string(sInput);
         cdat.pri.extractBlockStrings(sInput);
-
-        if not (bSkipRefresh) then
-            cdat.pri.refresh();
-        end
+        cdat.pri.refresh();
 
         --print(serialize(cdat.pri.finalized))
         --for sIndex, tItem in pairs(cdat.pri.finalized) do

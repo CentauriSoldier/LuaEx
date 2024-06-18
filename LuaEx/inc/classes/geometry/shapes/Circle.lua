@@ -66,9 +66,8 @@ return class("Circle",
 },
 {--public
     --[[
+    @fqxn LuaEx.Classes.Geometry.circle
     @desc The constructor for the circle class.
-    @func circle
-    @mod circle
     @ret oCircle circle A circle object. Public properties are center and radius.
     ]]
     Circle = function(this, cdat, super, pCenter, nRadius)
@@ -112,27 +111,6 @@ return class("Circle",
         this.radius = this.radius:deserialize(tData.radius);
 
         return this;
-    end,
-
-    --TODO FINISH
-    --[[!
-        @desc Serializes the object's data.
-        @func circle.serialize
-        @module circle
-        @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
-        @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
-    !]]
-    serialize = function(this, cdat, bDefer)
-        local tData = {
-            center = this.center.seralize(),
-            radius = this.radius,
-        };
-
-        if (not bDefer) then
-            tData = serialize.table(tData);
-        end
-
-        return tData;
     end,
 
     setArea = function(this, cdat)

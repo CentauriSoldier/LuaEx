@@ -273,8 +273,7 @@ local function updateAngles(tFields)
 end
 
 --[[!
-    @mod polygon
-    @func polygon
+    @fqxn LuaEx.Classes.Geometry.Polygon
     @desc Used for creating various polygons and handling Point
     detection and detector properties. The child class is responsible
     for creating vertices (upon construction) and storing them

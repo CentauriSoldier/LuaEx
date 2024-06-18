@@ -10,11 +10,12 @@ end
 
 local tPure = {
     ["boolean"]  = returnPure,
+    ["function"] = returnPure,
     ["functionOLD"] = function(fItem)
         local sFunction = string.dump(fItem);
         return loader(sFunction);
     end,
-    ["function"] = function(fItem)
+    ["functionTEST"] = function(fItem)
         local dump = string.dump(fItem)  -- Serialize the function into bytecode
 
         local function loadWithUpvalues(dump, upvalues)
@@ -191,10 +192,7 @@ local function clone(vItem, bIgnoreMetaTable)
     local bFoundCloner = false;
 
     if (tPure[sType]) then
-        vRet = tPure[sType](vItem, bIgnoreMetaTable);
-        --if sType == "table" then
-            --print(sType, serialize(vRet), serialize(vItem))
-        --end
+        vRet = tPure[sType](vItem, bIgnoreMetaTable);    
         bFoundCloner = true;
 
     elseif (tSynth[sType]) then
@@ -238,7 +236,7 @@ local tClonerMeta   = {
     end,
     __newindex = function(t, k, v)
         error("Error: attempting to modify read-only cloner at index ${index} with ${value} (${type})." % {index = tostring(k), value = tostring(v), type = type(v)}, 2);
-    end,
+    end,--TODO remove the tostring as it sometimes fails if the item is a table without a __tostring metamethod
 };
 
 setmetatable(tClonerDecoy, tClonerMeta);

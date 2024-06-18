@@ -1,19 +1,17 @@
---TODO add tostring/ser/des methods/clone
+--TODO add tostring/ser/des methods
 --TODO localization
 -- Function to compare keys for sorting
 local function defaultSorter(a, b)
     return a < b;
 end
-local last = null;
+
 local function addOLD(this, cdat, vKey, vValue)
     local pri           = cdat.pri;
     local fSorter       = pri.sorter;
     local tActual       = pri.actual;
     local tKeys         = pri.keys;
     local sTypeKey      = rawtype(vKey);
-    local sValueType    = rawtype(vValue);
-    print(last == tKeys)
-    last = tKeys
+
     if (sTypeKey ~= "string") then
         error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
     end
@@ -45,10 +43,13 @@ return class("SortedDictionary",
         local pri     = cdat.pri;
         local oNew    = SortedDictionary();
         local newcdat = cdat.ins[oNew];
+        local newpri  = newcdat.pri;
 
-        newcdat.actual  = clone(pri.actual);
-        newcdat.keys    = clone(pri.keys);
-        newcdat.sorter  = pri.sorter; --don't clone the sorter function
+        newpri.actual  = clone(pri.actual);
+        newpri.keys    = clone(pri.keys);
+        newpri.sorter  = pri.sorter; --don't clone the sorter function
+
+        return oNew;
     end,
     __pairs = function(this, cdat)
         local nIndex    = 0;
@@ -89,8 +90,7 @@ return class("SortedDictionary",
         local tKeys         = pri.keys;
         local sTypeKey      = rawtype(vKey);
         local sValueType    = rawtype(vValue);
-        print(last == tKeys)
-        last = tKeys
+
         if (sTypeKey ~= "string") then
             error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
         end
@@ -197,8 +197,7 @@ return class("SortedDictionary",
         local tKeys         = pri.keys;
         local sTypeKey      = rawtype(vKey);
         local sValueType    = rawtype(vValue);
-        print(last == tKeys)
-        last = tKeys
+
         if (sTypeKey ~= "string") then
             error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
         end

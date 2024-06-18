@@ -11,8 +11,7 @@ return class("Stack",
 {--metamethods
 
     --[[!
-    @module Stack
-    @func __call
+    @fqxn LuaEx.Classes.Stack.Metamethods.__call
     @scope public
     @desc Creates an iterator function to iterate over the elements of the Stack.
     @ret function An iterator function that returns each element of the Stack.
@@ -34,8 +33,7 @@ return class("Stack",
 
 
     --[[!
-    @module Stack
-    @func __len
+    @fqxn LuaEx.Classes.Stack.Metamethods.__len
     @scope public
     @desc Returns the number of elements currently in the Stack.
     @ret number The number of elements in the Stack.
@@ -46,8 +44,7 @@ return class("Stack",
 
 
     --[[!
-    @module Stack
-    @func __tostring
+    @fqxn LuaEx.Classes.Stack.Metamethods.__tostring
     @scope public
     @desc Returns a string representing the items in the Stack.
     @ret string A string representing the items in the Stack.
@@ -70,8 +67,7 @@ return class("Stack",
 {},--protected
 {--public
     --[[!
-    @mod Stack
-    @func Stack
+    @fqxn LuaEx.Classes.Stack.Methods.Stack
     @scope public
     @desc Constructs a new Stack object.
     @param table|nil A numerically-indexed table of items to push onto the Stack (optional).
@@ -96,8 +92,7 @@ return class("Stack",
 
 
     --[[!
-    @mod Stack
-    @func Stack.clear
+    @fqxn LuaEx.Classes.Stack.Methods.clear
     @scope public
     @desc Removes all elements from the Stack.
     @ret Stack The Stack object after clearing all items.
@@ -124,8 +119,7 @@ return class("Stack",
 
 
     --[[!
-    @mod Stack
-    @func Stack.deserialize
+    @fqxn LuaEx.Classes.Stack.Methods.deserialize
     @scope public
     @desc Deserializes the Stack object from a string.
     !]]
@@ -136,8 +130,7 @@ return class("Stack",
 
 
     --[[!
-    @module Stack
-    @func Stack.peek
+    @fqxn LuaEx.Classes.Stack.Methods.peek
     @scope public
     @param table cdat The class data table.
     @desc Retrieves the next-in-line element from the Stack without removing it.
@@ -149,8 +142,7 @@ return class("Stack",
 
 
     --[[!
-    @mod Stack
-    @func Stack.pop
+    @fqxn LuaEx.Classes.Stack.Methods.pop
     @scope public
     @desc Removes and returns the top element of the Stack.
     @ret any The removed element from the Stack.
@@ -167,8 +159,7 @@ return class("Stack",
 
 
     --[[!
-    @mod Stack
-    @func Stack.push
+    @fqxn LuaEx.Classes.Stack.Methods.push
     @scope public
     @desc Adds a new element to the top of the Stack.
     @param any vValue The value to be added to the Stack.
@@ -186,8 +177,7 @@ return class("Stack",
 
 
     --[[!
-    @mod Stack
-    @func Stack.reverse
+    @fqxn LuaEx.Classes.Stack.Methods.reverse
     @scope public
     @desc Reverses the order of elements in the Stack.
     @ret Stack The Stack object after reversing the elements.
@@ -205,8 +195,7 @@ return class("Stack",
 
 
     --[[!
-    @mod Stack
-    @func Stack.serialize
+    @fqxn LuaEx.Classes.Stack.Methods.serialize
     @scope public
     @desc Serializes the Stack object to a string.
     @ret string A string representing the Stack object which can be stored and later deserialized.
@@ -217,8 +206,7 @@ return class("Stack",
 
 
     --[[!
-    @mod Stack
-    @func Stack.size
+    @fqxn LuaEx.Classes.Stack.Methods.size
     @scope public
     @desc Returns the number of elements in the Stack.
     @ret number The number of elements in the Stack.

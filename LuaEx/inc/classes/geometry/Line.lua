@@ -375,28 +375,6 @@ return class("Line",
                );
     end,
 
-    --[[!
-        @desc Serializes the object's data.
-        @func line.serialize
-        @module line
-        @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
-        @ret sData StringOrTable The data, returned as a serialized table (string) or a table is the defer option is set to true.
-    !]]
-    serialize = function(this, cdat, bDefer)
-        local pri = cdat.pri;
-        --[[local tData = {
-            start     = pri.start:seralize(),
-            stop     = pri.stop:serialize(),
-        };
-
-        if (not bDefer) then
-            tData = serialize.table(tData);
-        end
-
-        return tData;]]
-        return serialize.table(pri);
-    end,
-
     setEnd = function(this, cdat, oPoint, bSkipUpdate)
         local pri = cdat.pri;
         pri.stop.setX(oPoint.getX());

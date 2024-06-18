@@ -38,10 +38,10 @@ local tClassLoadValues = {
 
 --🅴🅽🅳 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂---------------------------------------------------
 
---[[
-@fqxn LuaEx stuff
+--[[!
+@fqxn LuaEx
 @desc Put info about LuaEx here...
-]]
+!]]
 
 --🅼🅾🅳🅸🅵🆈 🆅🅰🅻🆄🅴🆂 🅱🅴🅻🅾🆆 🅰🆃 🆈🅾🆄🆁 🅾🆆🅽 🆁🅸🆂🅺
 --for backward compatibility
@@ -110,6 +110,7 @@ local tLuaEx = {
         }),
         __KEYWORDS_COUNT__ = #tKeyWords,
         _VERSION = "LuaEx 0.81",
+        --_SOURCE_PATH = getsourcepath(),
 };
 
 _G.luaex = setmetatable({},

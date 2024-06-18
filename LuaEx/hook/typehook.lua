@@ -58,7 +58,7 @@ local tNewBooleanMetamethods = {
     end,
 
     -- Logical XNOR (equivalence)
-    __eq = function(bLeft, bRight);
+    __eq = function(bLeft, bRight)
         return bLeft == bRight
     end,
 
