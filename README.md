@@ -31,8 +31,8 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Bugfix:  error in **SortedDictionary** causing malformed returns.
 - Bugfix:  fatal bug in cloner preventing the cloning of items.
 - Change:  rewrote and completed the interface system for classes.
-- Feature: added support for code snippets using prism.js in **Dox** module.
-- Feature: added several new features to **Dox** prepped it for major updates in future releases.
+- Feature: added support for code html tags using **prism.js** in **Dox** module.
+- Feature: added several new features to **Dox** and prepped it for major updates in future releases.
 - Feature: added ***type.assert.function***.
 - Feature: all items in tables are now properly cloned.
 - Feature: class tables are now cloned so class instances may now start with clonable objects as default properties.
