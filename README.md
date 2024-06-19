@@ -21,17 +21,28 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗
 
-#### Current Version: Alpha v0.82
+#### Current Version: Beta v0.90
 <details>
 <summary>🆅🅸🅴🆆 🅲🅷🅰🅽🅶🅴🅻🅾🅶</summary>
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
-**v0.83**   IN PROGRESS — NOT ALL ITEMS LISTED in v0.83 CHANGELOG ARE COMPLETE (Coming Soon)
-- ☑️ Bugfix:  various, minor bugs.
-- ☑️Bugfix:   major bug in class auto directive causing malformed classes.
-- ☑️Feature:  reorganized and added sections and examples to README.
-- 🔲Feature:  integrated and rewrote Dox documentation module and added support for other languages.
-- ☑️Refactor: restructured module layout and added more examples to the **examples** directory.
+**v0.90**
+- Bugfix:  error in ***type.assert.table*** where value type was showing as index type, resulting in false negatives.
+- Bugfix:  error in **SortedDictionary** causing malformed returns.
+- Bugfix:  fatal bug in cloner preventing the cloning of items.
+- Change:  rewrote and completed the interface system for classes.
+- Feature: added support for code snippets using prism.js in **Dox** module.
+- Feature: added several new features to **Dox** prepped it for major updates in future releases.
+- Feature: added ***type.assert.function***.
+- Feature: all items in tables are now properly cloned.
+- Feature: class tables are now cloned so class instances may now start with clonable objects as default properties.
+
+**v0.83**
+- Bugfix:   various, minor bugs.
+- Bugfix:   major bug in class auto directive causing malformed classes.
+- Feature:  reorganized and added sections and examples to README.
+- Feature:  integrated and rewrote Dox documentation module and added support for other languages.
+- Refactor: restructured module layout and added more examples to the **examples** directory.
 
 **v0.82**
 - Bugfix:   various, minor bugs.
@@ -769,7 +780,33 @@ print("After serialization:\n"..tostring(oMonster));
 ```
 </details>
 
+---
+
 ## 🅲🅻🅾🅽🅴🆁 🐝➡️🐝
+#### Info coming soon...
+
+<details>
+<summary>🆅🅸🅴🆆 🅴🆇🅰🅼🅿🅻🅴</summary>
+
+```lua
+
+```
+</details>
+
+---
+
+## 🅳🅾🆇 - 🅳🅾🅲🆄🅼🅴🅽🆃🅰🆃🅸🅾🅽 🆂🆈🆂🆃🅴🅼 📚
+#### Info coming soon...
+
+<details>
+<summary>🆅🅸🅴🆆 🅴🆇🅰🅼🅿🅻🅴</summary>
+
+```lua
+
+```
+</details>
+
+---
 
 ## 🅼🅾🅳🆄🅻🅴🆂 ⚙
 Below is the complete list of modules in **LuaEx**.

@@ -16,6 +16,25 @@ return [[
             }
         }
 
+        /* CSS to style the "Copy to Clipboard" button */
+        .copy-to-clipboard-button {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            padding: 8px 12px; /* Padding */
+            border: none; /* No border */
+            cursor: pointer; /* Pointer cursor */
+            border-radius: 4px; /* Rounded corners */
+            margin-left: 8px; /* Margin for spacing */
+        }
+
+        .copy-to-clipboard-button:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        .copy-to-clipboard-button:active {
+            background-color: #3e8e41; /* Even darker green on click */
+        }
+
         body, html {
             margin: 0;
             padding: 0;
@@ -99,7 +118,7 @@ return [[
         }
 
         #banner {
-            background-image: url('${bannerURL}');
+            background-image: url('${__DOX_BANNER__URL__}');
             background-repeat: repeat; /* Repeat the background image */
             background-size: auto; /* Use original image size */
             padding: 10px; /* Add padding for spacing */

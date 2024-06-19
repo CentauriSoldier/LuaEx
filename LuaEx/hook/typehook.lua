@@ -190,6 +190,11 @@ local type = {
                 error("Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)}, 2);
             end
         end,
+        ["function"] = function(vInput)--TODO custom message
+            if (type(vInput) ~= sType) then
+                error("Error in parameter input.\nExpected type is function. Type given: ${given}." % {given = type(vInput)}, 2);
+            end
+        end,
         number = function (vInput, bErrorNegative, bErrorZero, bErrorPositive, bErrorFloat, bErrorInteger, nMin, nMax)
             local sType  = rawtype(vInput);
             local sError = "Error in parameter input.";
@@ -282,14 +287,14 @@ local type = {
                     nItems = nItems + 1;
 
                     --check the index type
-                    if (sIndexType and rawtype(k) ~= sIndexType) then
-                        sError = sError.."\nIndices must be of type "..sIndexType..". Type given: "..rawtype(k)..".";
+                    if (sIndexType and type(k) ~= sIndexType) then
+                        sError = sError.."\nIndices must be of type "..sIndexType..". Type given: "..type(k)..".";
                         bConditionMet = false;
                     end
 
                     --check the value type
-                    if (sValueType and rawtype(v) ~= sValueType) then
-                        sError = sError.."\nValues must be of type "..sIndexType..". Type given: "..rawtype(v)..".";
+                    if (sValueType and type(v) ~= sValueType) then
+                        sError = sError.."\nValues must be of type "..sValueType..". Type given: "..type(v)..".";
                         bConditionMet = false;
                     end
 
@@ -305,7 +310,7 @@ local type = {
 
                 --max items
                 if (nMaxItems and nItems > nMaxItems) then
-                    sError = sError.."\nTable must contain no more than "..nMinItems.." "..sItems..". Item count: "..nItems..'.';
+                    sError = sError.."\nTable must contain no more than "..nMaxItems.." "..sItems..". Item count: "..nItems..'.';
                     bConditionMet = false;
                 end
 

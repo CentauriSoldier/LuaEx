@@ -1,127 +1,347 @@
 --load in Dox's required files
-local pDoxRequirePath   = "LuaEx.inc.classes.util.Dox.Data"
-local _sDoxBanner       = require(pDoxRequirePath..".DoxBanner");
-local _sDoxCSS          = require(pDoxRequirePath..".DoxCSS");
-local _sDoxHTML         = require(pDoxRequirePath..".DoxHTML")
-local _sDoxJS           = require(pDoxRequirePath..".DoxJS");
+local _pDoxRequirePath  = "LuaEx.inc.classes.util.Dox"
+local _sDoxBanner       = require(_pDoxRequirePath..".Data.DoxBanner");
+local _sDoxCSS          = require(_pDoxRequirePath..".Data.DoxCSS");
+local _sDoxHTML         = require(_pDoxRequirePath..".Data.DoxHTML")
+local _sDoxJS           = require(_pDoxRequirePath..".Data.DoxJS");
 
---TODO add option to get and print TODO, BUG, etc.
+local _sPrismStable     = "1.29.0"; --TODO allow theme change
+--local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />'; --TODO CEntralize this stuff here...
+--local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' & {stable};
 
---[[if PATH then
-    print(PATH)
-    local filename = "inc/classes/util/Dox/Data/Banner.txt"
-    local file_path = PATH .. "/" .. filename
+local tPrismLanguages = {
+"markup",
+"css",
+"clike",
+"javascript",
+"abap",
+"actionscript",
+"ada",
+"apacheconf",
+"apl",
+"applescript",
+"arduino",
+"arff",
+"asciidoc",
+"asm6502",
+"aspnet",
+"autohotkey",
+"autoit",
+"bash",
+"basic",
+"batch",
+"bison",
+"brainfuck",
+"bro",
+"c",
+"csharp",
+"cpp",
+"coffeescript",
+"clojure",
+"crystal",
+"csp",
+"css-extras",
+"d",
+"dart",
+"diff",
+"django",
+"docker",
+"eiffel",
+"elixir",
+"elm",
+"erb",
+"erlang",
+"fsharp",
+"flow",
+"fortran",
+"gedcom",
+"gherkin",
+"git",
+"glsl",
+"gml",
+"go",
+"graphql",
+"groovy",
+"haml",
+"handlebars",
+"haskell",
+"haxe",
+"http",
+"hpkp",
+"hsts",
+"ichigojam",
+"icon",
+"inform7",
+"ini",
+"io",
+"j",
+"java",
+"jolie",
+"json",
+"julia",
+"keyman",
+"kotlin",
+"latex",
+"less",
+"liquid",
+"lisp",
+"livescript",
+"lolcode",
+"lua",
+"makefile",
+"markdown",
+"markup-templating",
+"matlab",
+"mel",
+"mizar",
+"monkey",
+"n4js",
+"nasm",
+"nginx",
+"nim",
+"nix",
+"nsis",
+"objectivec",
+"ocaml",
+"opencl",
+"oz",
+"parigp",
+"parser",
+"pascal",
+"perl",
+"php",
+"php-extras",
+"plsql",
+"powershell",
+"processing",
+"prolog",
+"properties",
+"protobuf",
+"pug",
+"puppet",
+"pure",
+"python",
+"q",
+"qore",
+"r",
+"jsx",
+"tsx",
+"renpy",
+"reason",
+"rest",
+"rip",
+"roboconf",
+"ruby",
+"rust",
+"sas",
+"sass",
+"scss",
+"scala",
+"scheme",
+"smalltalk",
+"smarty",
+"sql",
+"soy",
+"stylus",
+"swift",
+"tap",
+"tcl",
+"textile",
+"tt2",
+"twig",
+"typescript",
+"vbnet",
+"velocity",
+"verilog",
+"vhdl",
+"vim",
+"visual-basic",
+"wasm",
+"wiki",
+"xeora",
+"xojo",
+"xquery",
+"yaml"
+};
 
-    local file = io.open(file_path, "r")
-    if file then
-        local content = file:read("*all")
-        file:close()
-        print("File content:")
-        print(content)
-    else
-        print("Error: File not found or could not be opened")
-    end
-else
-    print("Error: Could not determine script directory")
-end]]
+local tLangName = {
+"Markup",
+"CSS",
+"C_like",
+"JavaScript",
+"ABAP",
+"ActionScript",
+"Ada",
+"Apache_Configuration",
+"APL",
+"AppleScript",
+"Arduino",
+"ARFF",
+"AsciiDoc",
+"6502_Assembly",
+"ASP.NET_C_SHARP",
+"AutoHotkey",
+"AutoIt",
+"Bash",
+"BASIC",
+"Batch",
+"Bison",
+"Brainfuck",
+"Bro",
+"C",
+"C_SHARP",
+"C_PLUS_PLUS",
+"CoffeeScript",
+"Clojure",
+"Crystal",
+"Content_Security_Policy",
+"CSS_Extras",
+"D",
+"Dart",
+"Diff",
+"DjangoJinja2",
+"Docker",
+"Eiffel",
+"Elixir",
+"Elm",
+"ERB",
+"Erlang",
+"F_SHARP",
+"Flow",
+"Fortran",
+"GEDCOM",
+"Gherkin",
+"Git",
+"GLSL",
+"GameMaker_Language",
+"Go",
+"GraphQL",
+"Groovy",
+"Haml",
+"Handlebars",
+"Haskell",
+"Haxe",
+"HTTP",
+"HTTP_Public_Key_Pins",
+"HTTP_Strict_Transport_Security",
+"IchigoJam",
+"Icon",
+"Inform_7",
+"Ini",
+"Io",
+"J",
+"Java",
+"Jolie",
+"JSON",
+"Julia",
+"Keyman",
+"Kotlin",
+"LaTeX",
+"Less",
+"Liquid",
+"Lisp",
+"LiveScript",
+"LOLCODE",
+"Lua",
+"Makefile",
+"Markdown",
+"Markup_templating",
+"MATLAB",
+"MEL",
+"Mizar",
+"Monkey",
+"N4JS",
+"NASM",
+"nginx",
+"Nim",
+"Nix",
+"NSIS",
+"Objective_C",
+"OCaml",
+"OpenCL",
+"Oz",
+"PARIGP",
+"Parser",
+"Pascal",
+"Perl",
+"PHP",
+"PHP_Extras",
+"PLSQL",
+"PowerShell",
+"Processing",
+"Prolog",
+"properties",
+"Protocol_Buffers",
+"Pug",
+"Puppet",
+"Pure",
+"Python",
+"Q_kdb_database",
+"Qore",
+"R",
+"React_JSX",
+"React_TSX",
+"Ren'py",
+"Reason",
+"reST_reStructuredText",
+"Rip",
+"Roboconf",
+"Ruby",
+"Rust",
+"SAS",
+"Sass_Sass",
+"Sass_Scss",
+"Scala",
+"Scheme",
+"Smalltalk",
+"Smarty",
+"SQL",
+"Soy_Closure_Template",
+"Stylus",
+"Swift",
+"TAP",
+"Tcl",
+"Textile",
+"Template_Toolkit_2",
+"Twig",
+"TypeScript",
+"VB.Net",
+"Velocity",
+"Verilog",
+"VHDL",
+"vim",
+"Visual_Basic",
+"WebAssembly",
+"Wiki_markup",
+"Xeora",
+"Xojo_REALbasic",
+"XQuery",
+"YAML",
+};
 
 
-
-
---[[
-local function splitStringBySpace(inputString, number)
-    local result = {}
-    local currentNumber = 1
-    local currentIndex = 1
-
-    while currentNumber <= number do
-        local endIndex = inputString:find(" ", currentIndex)
-        if not endIndex then
-            result[currentNumber] = inputString:sub(currentIndex)
-            currentIndex = #inputString + 2 -- Move currentIndex beyond the string length to break the loop
-        else
-            result[currentNumber] = inputString:sub(currentIndex, endIndex - 1)
-            currentIndex = endIndex + 1
-        end
-        currentNumber = currentNumber + 1
-    end
-
-    -- Fill remaining indices with empty strings
-    for i = currentNumber, number do
-        result[i] = ""
-    end
-
-    return result
+local sEnum = [[enum("Dox.PRISM_LANGUAGE", ]]
+local sNames = "{\n"
+local sValues = "{\n"
+for _, sLang in ipairs(tPrismLanguages) do
+    sNames = sNames.."\""..tPrismLanguages[_]:upper().."\"\n";
+    sValues = sValues.."\""..tLangName[_]:lower().."\"\n";
 end
-]]
+sNames = sNames.."}";
+sValues = sValues.."}";
+sEnum = sEnum.."\n"..sNames..",\n"..sValues.."\n);"
 
---TODO move this out
-local tMarkdownToHTML = {
-    ["*"]       = {"<em>", "</em>"},                    -- Emphasis
-    ["_"]       = {"<em>", "</em>"},                    -- Emphasis
-    ["**"]      = {"<strong>", "</strong>"},            -- Strong emphasis
-    ["***"]     = {"<strong><em>", "</em></strong>"},   -- Strong emphasis
-    --["__"]      = {"<strong>", "</strong>"},            -- Strong emphasis
-    ["#"]       = {"<h1>", "</h1>"},                    -- Header 1
-    ["##"]      = {"<h2>", "</h2>"},                    -- Header 2
-    ["###"]     = {"<h3>", "</h3>"},                    -- Header 3
-    ["####"]    = {"<h4>", "</h4>"},                    -- Header 4
-    ["#####"]   = {"<h5>", "</h5>"},                    -- Header 5
-    ["######"]  = {"<h6>", "</h6>"},                    -- Header 6
-    ["```"]     = {"<code>", "</code>"},                -- Code block
-    ["---"]     = {"<hr>", ""},                         -- Horizontal rule
-    --["-"] = {"<ul><li>", "</li></ul>"}, -- Unordered list item
-    --["+"] = {"<ul><li>", "</li></ul>"}, -- Unordered list item
-    --["*"] = {"<ul><li>", "</li></ul>"}, -- Unordered list item
-    --["1."] = {"<ol><li>", "</li></ol>"}, -- Ordered list item
-}
+local pPL = "C:\\Users\\x\\DoxPrismLanguagesEnum.lua";
+--local hFile = io.open(pPL, "r");
+--hFile:write(sEnum);
+--hFile:close();
+--print(sEnum)
+--enum("PRISM_LANGUAGE", {}, {})
 
-local function markdownToHTML(sInput)
-    local sRet = sInput;
---[[
-    for sPattern, tTags in pairs(tMarkdownToHTML) do
-        local sStartTag, sEndTag = tags[1], tags[2];
+--TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
 
-        local nIndex = 1;
-        local nStart1, nEnd1, nStart2, nEnd2 = 1, 1, 1, 1;
-
-        while (nStart1 and nEnd1 and nStart2 and nEnd2) do
-             nStart1, nEnd1 = sInput:find(sPattern, nIndex);
-
-             if (nStart1 and nEnd1) then
-                 nIndex1 = 0;
-                 nStart1, nEnd1 = sInput:find(sPattern, nIndex);
-
-             end
-
-        end
-
-]]
-        --sRet = sRet:gsub(escapedPattern, function(match)
-            -- If not in a list item, apply markdown tags
-        --    return startTag .. match:gsub(escapedPattern, "") .. endTag
-        --end)
-        --sRet = sRet:gsub(sPattern, )
-    --end
-
-    return sRet;
-end
-
-
-
-
-
-
-
-
-
-
---[[TODO
-    Use MD for text
-    Allow internal anchor links
-    Allow external links
-]]
-
+--TODO Allow internal anchor links
+--TODO allow MoTD, custom banners etc.
 
 local assert    = assert;
 local class     = class;
@@ -132,79 +352,36 @@ local type      = type;
 
 local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
---TODO consider moving this to its own file and creating the enum using a static initializer
-eDoxLanguage = enum("DoxLanguage",
-{
-"ADA",          "ASSEMBLY_NASM",    "C",        "C_SHARP",      "C_PLUS_PLUS",
-"CSS",          "DART",             "ELM",      "F_SHARP",      "FORTRAN",
-"GO",           "GROOVY",           "HASKELL",  "HTML",         "JAVA",
-"JAVASCRIPT",   "JULIA",            "KOTLIN",   "LUA",          "MATLAB",
-"OBJECTIVE_C",  "PERL",             "PHP",      "PYTHON",       "RUBY",
-"RUST",         "SCALA",            "SWIFT",    "TYPESCRIPT",   "XML"
-},
-{
-DoxLanguage("Ada",              {".adb", ".ads"},                               "--",       "--",   "\\"),
-DoxLanguage("Assembly (NASM)",  {".asm", ".s"},                                 "%{",       "%}",   "\\"),
-DoxLanguage("C",                {".c", ".h"},                                   "/*",       "*/",   "\\"),
-DoxLanguage("C#",               {".cs"},                                        "/*",       "*/",   "\\"),
-DoxLanguage("C++",              {".cpp", ".cxx", ".cc", ".h", ".hh", ".hpp"},   "/*",       "*/",   "\\"),
-DoxLanguage("CSS",              {".css"},                                       "/*",       "*/",   "\\"),
-DoxLanguage("Dart",             {".dart"},                                      "/*",       "*/",   "\\"),
-DoxLanguage("Elm",              {".elm"},                                       "{-",       "-}",   "\\"),
-DoxLanguage("F#",               {".fs"},                                        "(*",       "*)",   "\\"),
-DoxLanguage("Fortran",          {".f90"},                                       "!",        "\\n",  "\\"),
-DoxLanguage("Go",               {".go"},                                        "/*",       "*/",   "\\"),
-DoxLanguage("Groovy",           {".groovy"},                                    "/*",       "*/",   "\\"),
-DoxLanguage("Haskell",          {".hs"},                                        "{-",       "-}",   "\\"),
-DoxLanguage("HTML",             {".html"},                                      "<!--",     "-->",  "\\"),
-DoxLanguage("Java",             {".java"},                                      "/*",       "*/",   "\\"),
-DoxLanguage("JavaScript",       {".js"},                                        "/*",       "*/",   "\\"),
-DoxLanguage("Julia",            {".jl"},                                        "#=",       "=#",   "\\"),
-DoxLanguage("Kotlin",           {".kt", ".kts"},                                "/*",       "*/",   "\\"),
-DoxLanguage("Lua",              {".lua"},                                       "--[[",     "]]",   "\\"),
-DoxLanguage("Matlab",           {".m"},                                         "%{",       "%}",   "\\"),
-DoxLanguage("Objective-C",      {".m", ".h"},                                   "/*",       "*/",   "\\"),
-DoxLanguage("Perl",             {".pl", ".pm"},                                 "=pod",     "=cut", "\\"),
-DoxLanguage("PHP",              {".php"},                                       "/*",       "*/",   "\\"),
-DoxLanguage("Python",           {".py"},                                        '"""',      '"""',  "\\"),
-DoxLanguage("Ruby",             {".rb"},                                        "=begin",   "=end", "\\"),
-DoxLanguage("Rust",             {".rs"},                                        "/*",       "*/",   "\\"),
-DoxLanguage("Scala",            {".scala"},                                     "/*",       "*/",   "\\"),
-DoxLanguage("Swift",            {".swift"},                                     "/*",       "*/",   "\\"),
-DoxLanguage("TypeScript",       {".ts"},                                        "/*",       "*/",   "\\"),
-DoxLanguage("XML",              {".xml"},                                       "<!--",     "-->",  "\\"),
-},
-true);
+
 
 --these block tags are built-in to each Dox class
 local _bRequired        = true;
 local _bMultipleAllowed = true;
 local _tBuiltInBlockTags = {--TODO allow modification and ordering --TODO add a bCombine Variable for block tags with (or using) plural form
     DoxBlockTag({"fqxn"},                               "FQXN",                 _bRequired,     -_bMultipleAllowed),
+    DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -_bMultipleAllowed,   0,  {"<em>", "</em>"}),
     DoxBlockTag({"des", "desc", "description"},         "Description",          -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag({"return", "ret",},                     "Return",               -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
-    DoxBlockTag({"ex", "example"},                      "Example",              -_bRequired,    _bMultipleAllowed,        {"<code>", "</code>"}),
-    DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -bMultipleAllowed,    0,  {"<em>", "</em>"}),--TODO is this correct? 0?
-    DoxBlockTag({"features"},                           "Features",             -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    bMultipleAllowed),
-    DoxBlockTag({"depend", "dependency"},               "Dependency",           -_bRequired,    bMultipleAllowed),
-    DoxBlockTag({"planned"},                            "Planned Features",     -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"todo"},                               "TODO",                 -_bRequired,    bMultipleAllowed),
-    DoxBlockTag({"issue"},                              "TODO",                 -_bRequired,    bMultipleAllowed),
-    DoxBlockTag({"changelog", "versionhistory"},        "Changelog",            -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"version", "ver"},                     "Version",              -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"author"},                             "Author",               -_bRequired,    bMultipleAllowed),
-    DoxBlockTag({"email"},                              "Email",                -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"license"},                            "License",              -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"www", "web", "website"},              "Website",              -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"github"},                             "GitHub",               -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"fb", "facebook"},                     "Facebook",             -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"x", "twitter"},                       "X (Twitter)",          -_bRequired,    -bMultipleAllowed),
-    DoxBlockTag({"copy", "copyright"},                  "Copyright",            -_bRequired,    -bMultipleAllowed),
+    DoxBlockTag({"ex", "example"},                      "Example",              -_bRequired,    _bMultipleAllowed,    0,    {"<pre><code class=\"language-lua\">", "</code></pre>"}),
+    DoxBlockTag({"features"},                           "Features",             -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"depend", "dependency"},               "Dependency",           -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"planned"},                            "Planned Features",     -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"todo"},                               "TODO",                 -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"issue"},                              "TODO",                 -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"changelog", "versionhistory"},        "Changelog",            -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"version", "ver"},                     "Version",              -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"author"},                             "Author",               -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"email"},                              "Email",                -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"license"},                            "License",              -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"www", "web", "website"},              "Website",              -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"github"},                             "GitHub",               -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"fb", "facebook"},                     "Facebook",             -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"x", "twitter"},                       "X (Twitter)",          -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"copy", "copyright"},                  "Copyright",            -_bRequired,    -_bMultipleAllowed),
 };
-
 
 
 --[[f!
@@ -243,9 +420,9 @@ return class("Dox",
     end,
 },
 {--static public
-    MIME         = enum("MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
-    LANGUAGE     = eDoxLanguage,
-    OUTPUT       = eOutputType,
+    MIME   = enum("MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
+    SYNTAX = require(_pDoxRequirePath..".DoxSyntaxEnum"),
+    OUTPUT = eOutputType,
 },
 {--private
     blockOpen           = "",
@@ -253,15 +430,17 @@ return class("Dox",
     blockTags           = {},
     blockStrings        = {};
     finalized           = {}; --this is the final, processed data (updated using the refresh() method)
-    language            = null,
-    modules             = SortedDictionary(), --module objects indexed (and sorted) by name
+    mimeTypes           = SortedDictionary(), --TODO throw error on removal of last item
     name                = "",
     OutputPath_AUTO     = "",
+    prismCSS            = "",
+    prismScripts        = {},
     requiredBlockTags   = {},
     snippetClose        = "",
     snippetOpen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
-    --Start 	= "##### START DOX [SUBCLASS NAME] SNIPPETS -->>> ID: ",
-    --End 	= "#####   <<<-- END DOX [SUBCLASS NAME] SNIPPETS ID: ",
+    syntax              = null,
+    --Start 	        = "##### START DOX [SUBCLASS NAME] SNIPPETS -->>> ID: ",
+    --End 	            = "#####   <<<-- END DOX [SUBCLASS NAME] SNIPPETS ID: ",
     tagOpen             = "",
     title               = "",
     --[[!
@@ -269,19 +448,21 @@ return class("Dox",
     @desc Extracts Dox comment blocks from a string input and stores them for later processing.
     @par string sInput The string from which the comment blocks should be extracted.
     !]]
-    extractBlockStrings = function(this, cdat, sInput)
+    extractBlockStrings = function(this, cdat, sInput, oDoxMime)
         --local tBlockStrings         = {};
-        local pri                   = cdat.pri;
-        local fTrim                 = string.trim;
-        local oDoxLanguage          = pri.language.value;
-        local sOpenPrefix           = oDoxLanguage.getCommentOpen();
-        local sCloseSuffix          = oDoxLanguage.getCommentClose();
-        local sBlockOpen            = pri.blockOpen;
-        local sBlockClose           = pri.blockClose;
+        local pri           = cdat.pri;
+        local fTrim         = string.trim;
+        local oDoxSyntax    = pri.syntax.value;
+        local sOpenPrefix   = oDoxSyntax.getCommentOpen();
+        local sCloseSuffix  = oDoxSyntax.getCommentClose();
+        local sBlockOpen    = pri.blockOpen;
+        local sBlockClose   = pri.blockClose;
 
         local sPattern = escapePattern(sOpenPrefix..sBlockOpen).."(.-)"..escapePattern(sBlockClose..sCloseSuffix);
         for sMatch in sInput:gmatch(sPattern) do
-            local sBlock = fTrim(sMatch);
+            local fPreProcessor = oDoxMime.getPreProcessor();
+            local sUnprocessedBlock = fTrim(sMatch);
+            local sBlock = fPreProcessor(sUnprocessedBlock);
 
             if not (pri.blockStrings[sBlock]) then
                 pri.blockStrings[sBlock] = true;
@@ -318,7 +499,6 @@ return class("Dox",
         -- Add the remaining part of sCurrent as the last content item
         tContent[nColumnCount] = sCurrent;
 
-
         for x = 1, #tContent do
             local tWrapper   = oBlockTag.getcolumnWrapper(x);
             local sWrapFront = tWrapper[1];
@@ -348,12 +528,8 @@ return class("Dox",
 
         --inject all block strings into finalized data table
         for sRawBlock, _ in pairs(pri.blockStrings) do
-            --pri.processBlockString(sRawBlock)
-            --x = x + 1;
-            --writeToFile("\\Sync\\Projects\\ZZZ Test\\"..x..".txt", sRawBlock)
-
             --create the DoxBlock
-            local oBlock = DoxBlock(sRawBlock, pri.language, pri.tagOpen,
+            local oBlock = DoxBlock(sRawBlock, pri.syntax, pri.tagOpen,
                                     pri.blockTags, pri.requiredBlockTags);
 
             local tActive = pri.finalized;
@@ -375,7 +551,6 @@ return class("Dox",
 
 
             --create the content string
-            --local sOuterContent = [[<div class="container-fluid table-container"><table class="table table-striped"><tbody>]];
             local sContent = [[<div class="container-fluid">]];
 
             --build the row (block item)
@@ -383,22 +558,6 @@ return class("Dox",
                 local sInnerContent = pri.processBlockItem(oBlockTag, sRawInnerContent);
                 sContent = sContent..sInnerContent;
             end
-
-            --local sOuterContent = sOuterContent..[[</tbody></table></div>]];
-            --tContent[tActive] = sContent..[[</div>]];
-
-            --parse the final string for markdown
-            --sOuterContent = markdownToHTML(sOuterContent);
-            --print(sOuterContent)
-            --TODO gsub last newline
-
-            --store the iterator for the items if last item or false
-            --tContent[tActive] = bLastItem and oBlock.items or false;
-            --tContent[tActive] = sOuterContent;
-            --TODO LEFT OFF HERE gotta get items working
-
-
-            --if (sFQXN == "class")
 
             --set the call to get the content
             setmetatable(tActive, {
@@ -409,33 +568,15 @@ return class("Dox",
 
         end
 
-        --print(cdat.pri.finalized.LuaEx())
     end,
     [eOutputType.HTML.name] = {
         build = function(this, cdat)
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
             local sTitle     = pri.title;--TODO FINISH use correct seperator
-            --local pSource    = source.getpath();--TODO trim ending dir sep and dups
-            --local pSource    = _pDoxSource;
-            --Dialog.Message("Source of DOX", pSource)
-            --local pCSS       = pSource.."\\Data\\Dox.css";
-            --local pBanner    = pSource.."\\Data\\Banner.txt";
-            --local pJS        = pSource.."\\Data\\Dox.js";
-            --local pHTML      = pSource.."\\Data\\Dox.html";
             local pHTMLOut   = cdat.pri.OutputPath.."\\"..sTitle..".html";--TODO use proper directory separator
             local pJSOut     = cdat.pri.OutputPath.."\\"..sTitle..".js";
---[[
-            local function readFile(pFile)
-                local hFile = io.open(pFile, "r");
-                if not hFile then
-                    error("Error outputting Dox: File '"..pFile.."' not found.", 3)--TODO nice error message
-                end
-                local sRet = hFile:read("*all");
-                hFile:close();
-                return sRet;
-            end
-]]
+
             local function writeFile(pFile, sContent)
                 local hFile = io.open(pFile, "w");
                 if not hFile then
@@ -445,16 +586,21 @@ return class("Dox",
                 hFile:close();
             end
 
-            --read the html and helper files
-            --local sCSS      = readFile(pCSS);
-            --local sBanner   = readFile(pBanner);
-            --local sHTML     = readFile(pHTML);
+            local sPrismScripts = "";
+            local nMaxScripts   = pri.prismScripts;
+
+            for nIndex, sScript in ipairs(pri.prismScripts) do
+                local sNewLine = nIndex == nMaxScripts and "" or "\n";
+                sPrismScripts = sPrismScripts..sScript..sNewLine;
+            end
 
             --update and write the html
-            sHTML = _sDoxHTML % {css = _sDoxCSS};
+            sHTML = _sDoxHTML % {__DOX__CSS__ = _sDoxCSS};
             sHTML = sHTML % {
-                bannerURL   = _sDoxBanner:gsub("\n", ''), --TODO allow custom banner
-                title       = sTitle
+                __DOX_BANNER__URL__     = _sDoxBanner:gsub("\n", ''), --TODO allow custom banner
+                __DOX__TITLE__          = sTitle,
+                __DOX__PRISM_CSS__      = pri.prismCSS,
+                __DOX__PRISM__SCRIPTS__ = sPrismScripts,
             };
 
             --write the html file
@@ -469,36 +615,6 @@ return class("Dox",
             local sRet       = "";
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
-            --local pSource    = source.getpath();--TODO trim ending dir sep and dups
-            --local pSource    =_pDoxSource;--TODO trim ending dir sep and dups
-            --local pJS        = pSource.."\\Data\\Dox.js";
-
-            -- Open the input file in read mode
-            --[[local hFile = io.open(pJS, "r")
-            if not hFile then
-                return nil, "Input file not found"--TODO error messages
-            end
-
-            local lineNumber    = 0;
-            local bFound        = false;
-
-            -- Read the input file line by line
-            for line in hFile:lines() do
-                lineNumber = lineNumber + 1
-                -- Check if the search string is in the current line
-                if bFound then
-                    sRet = sRet .. line .. "\n"
-                elseif string.find(line, "//—©_END_DOX_TESTDATA_©—", 1, true) then --TODO make this a module global var
-                    bFound = true
-                end
-            end
-
-            hFile:close()
-
-            if not bFound then
-                return nil, "String not found in the input file"
-            end]]
-
             local lineNumber = 0
             local bFound = false
 
@@ -519,40 +635,11 @@ return class("Dox",
             end
 
             local sJSON = tFunctions.buildJSONTable(this, cdat);
-            --Dialog.Message("", sJSON)
             return sJSON.."\n\n"..sRet;
         end,
         buildJSONTable = function(this, cdat) --TODO clean up
-            --TODO base64!
-            -- Function to escape special characters for JSON
-            local function escapeStrOLD(s)
-                if type(s) ~= "string" then
-                    return ""
-                end
-                s = s:gsub("\\", "\\\\")
-                s = s:gsub('"', '\\"')
-                s = s:gsub("\b", "\\b")
-                s = s:gsub("\f", "\\f")
-                s = s:gsub("\n", "\\n")
-                s = s:gsub("\r", "\\r")
-                s = s:gsub("\t", "\\t")
-                return s
-            end
-
-            local function escapeStr(s)
-                if type(s) ~= "string" then
-                    return ""
-                end
-                s = s:gsub("\\", "\\\\")
-                s = s:gsub('"', '\\"')
-                s = s:gsub("'", "\\'");
-                --s = s:gsub("\b", "\\b")
-                --s = s:gsub("\f", "<br>")
-                s = s:gsub("\n", "<br>")
-                --s = s:gsub("\r", "<br>")
-                s = s:gsub("\t", "    ")
-                return s
-            end
+            local pri        = cdat.pri;
+            local tFunctions = pri[eOutputType.HTML.name];
 
             local function luaTableToJson(tbl, startIndent)
                 startIndent = startIndent or 0
@@ -569,13 +656,13 @@ return class("Dox",
 
                     for _, key in ipairs(sortedKeys) do
                         local subtable = t[key]
-                        local value = subtable()
+                        local value = subtable();
                         local subtableResult = processTable(subtable, indent .. "    ")
-                        local newstring = string.format(--TODO issue with HTML is here!
-                            '%s"%s": {\n%s    "value": "%s",\n%s    "subtable": %s\n%s}',
-                            indent, key, indent, escapeStr(value), indent, next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null", indent
-                        )
-                        table.insert(result, newstring);
+                        local newstring = indent .. '"' .. key .. '": {\n' ..
+                                          indent .. '    "value": "' .. tFunctions.prepJSONString(value) .. '",\n' ..
+                                          indent .. '    "subtable": ' .. (next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null") .. '\n' ..
+                                          indent .. '}'
+                        table.insert(result, newstring)
                     end
 
                     return result
@@ -586,32 +673,50 @@ return class("Dox",
             end
 
             -- Convert the Lua table to JSON format
-            local nIndentSpaces = 4;
-            return luaTableToJson(cdat.pri.finalized, nIndentSpaces);
+            local nIndentSpaces = 4
+            return luaTableToJson(cdat.pri.finalized, nIndentSpaces)
+        end,
+        prepJSONString = function (s)
+            if type(s) ~= "string" then
+                return ""
+            end
+            s = s:gsub("\\", "\\\\")
+            s = s:gsub('"', '\\"')
+            s = s:gsub("\b", "\\b")
+            s = s:gsub("\f", "\\f")
+            s = s:gsub("\n", "\\n")
+            s = s:gsub("\r", "\\r")
+            s = s:gsub("\t", "\\t")
+            return s
         end,
     },
 },
 {},--protected
 {--public
-    Dox = function(this, cdat, sName, sTitle, sBlockOpen, sBlockClose, sTagOpen, eLanguage, ...)
-        type.assert.string(sName,       "%S+", "Dox subclass name must not be blank.");
-        type.assert.string(sTitle,      "%S+", "Dox documentation title name must not be blank.");
-        type.assert.string(sBlockOpen,  "%S+", "Block Open symbol must not be blank.");
-        type.assert.string(sBlockClose, "%S+", "Block Close symbol must not be blank.");
-        type.assert.string(sTagOpen,    "%S+", "Tag Open symbol must not be blank.");
-        type.assert.custom(eLanguage,   "DoxLanguage");
-        --type.assert.table(tfileTypes, "number", "string", 1);
---"DoxLua", "!", "!", "@", eLanguage,
+    Dox = function(this, cdat, sName, sTitle, sBlockOpen, sBlockClose, sTagOpen, eSyntax, tMimeTypes, sPrismCSS, tPrismScripts, ...)
+        type.assert.string(sName,       "%S+",      "Dox subclass name must not be blank.");
+        type.assert.string(sTitle,      "%S+",      "Dox documentation title name must not be blank.");
+        type.assert.string(sBlockOpen,  "%S+",      "Block Open symbol must not be blank.");
+        type.assert.string(sBlockClose, "%S+",      "Block Close symbol must not be blank.");
+        type.assert.string(sTagOpen,    "%S+",      "Tag Open symbol must not be blank.");
+        type.assert.custom(eSyntax,     "Dox.SYNTAX");
+        type.assert.table(tMimeTypes,   "number",   "DoxMime", 1);
+        type.assert.string(sPrismCSS,   "%S+",      "Prism css link must not be blank.");
+        type.assert.table(tPrismScripts,"number",   "string", 1);
+
         local pri               = cdat.pri;
         pri.blockOpen           = sBlockOpen;
         pri.blockClose          = sBlockClose;
-        --pri.fileTypes           = Set();
-        --TODO add mime types from language
-        pri.language            = eLanguage;
         pri.name                = sName;
+        pri.syntax              = eSyntax;
         pri.title               = sTitle;
         pri.tagOpen             = sTagOpen;
+        pri.prismCSS            = sPrismCSS % {stable = _sPrismStable};
         pri.requiredBlockTags   = {};
+
+        for _, oDoxMime in pairs(tMimeTypes) do
+            pri.mimeTypes.add(oDoxMime.getName(), oDoxMime);
+        end
 
         --import all built-in BlockTags
         for _, oBlockTag in ipairs(_tBuiltInBlockTags) do
@@ -658,7 +763,30 @@ return class("Dox",
 
         end
 
+        for _, sPrismScript in ipairs(tPrismScripts) do
+            table.insert(pri.prismScripts, sPrismScript % {stable = _sPrismStable});
+        end
+
         --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
+
+    end,
+    addMimeType = function(this, cdat, oDoxMime)
+        type.assert.custom(oDoxMime, "DoxMime");
+        pri.mimeTypes.add(oDoxMime.getName(), oDoxMime);
+    end,
+    blockTags = function(this, cdat)
+        local tBlockTags    = cdat.pri.blockTags;
+        local nIndex        = 0;
+        local nMax          = #tBlockTags;
+
+        return function()
+            nIndex = nIndex + 1;
+
+            if (nIndex < nMax) then
+                return clone(tBlockTags[nIndex]);
+            end
+
+        end
 
     end,
     export_FNL = function(this, cdat, eOutputType, bPulsar)
@@ -669,7 +797,11 @@ return class("Dox",
         cdat.pri[eOutputType.name].build(this, cdat);
     end,
     getLanguage_FNL = function(this, cdat)
-        return cdat.pri.language;
+        return cdat.pri.syntax;
+    end,
+    getMimeTypes = function(this, cdat)
+        --return clone(cdat.pri.mimeTypes);--TODO this must return an iterator
+        return cdat.pri.mimeTypes;
     end,
     getName_FNL = function(this, cdat)
         return cdat.pri.name;
@@ -703,38 +835,53 @@ return class("Dox",
     end,
     importFile_FNL = function(this, cdat, pFile, bSkipRefresh)
         type.assert.string(pFile, "%S+");
-        local hFile = io.open(pFile, "r");
 
-        if not (hFile) then
-            error("Error importing file to Dox.\nCould not open file: "..pFile);
-        else
+        --get the path parts (to find the filetype)
+        local tParts    = io.splitpath(pFile);
+        --TODO THROW ERROR ON tParts Fail
+        local sExt = tParts.extension:lower();
+        local oActiveDoxMime;
 
-            local sContent = hFile:read("*all");
-            cdat.pub.importString(sContent, false);
-            --cdat.pri.extractBlockStrings(sContent);
-            hFile:close();
+        for sExt, oDoxMime in cdat.pri.mimeTypes() do
 
-            if not (bSkipRefresh) then
-                cdat.pri.refresh();
+            if (sExt == oDoxMime.getName()) then
+                oActiveDoxMime = oDoxMime;
+                break;
+            end
+
+        end
+
+        if (oActiveDoxMime) then
+            local hFile = io.open(pFile, "r");
+
+            if not (hFile) then
+                error("Error importing file to Dox.\nCould not open file: '"..pFile.."'.");
+            else
+
+                local sContent = hFile:read("*all");
+                cdat.pub.importString(sContent, oActiveDoxMime, true);
+                --cdat.pri.extractBlockStrings(sContent);
+                hFile:close();
+
+                if not (bSkipRefresh) then
+                    cdat.pri.refresh();
+                end
+
             end
 
         end
 
     end,
-    importString_FNL = function(this, cdat, sInput, bSkipRefresh)
+    importString_FNL = function(this, cdat, sInput, oDoxMime, bSkipRefresh)
+        --TODO assert mime object
         type.assert.string(sInput);
-        cdat.pri.extractBlockStrings(sInput);
+        local sWorking = sInput;
+
+        cdat.pri.extractBlockStrings(sWorking, oDoxMime);
 
         if not (bSkipRefresh) then
             cdat.pri.refresh();
         end
-
-        --print(serialize(cdat.pri.finalized))
-        --for sIndex, tItem in pairs(cdat.pri.finalized) do
-        --end
-
-        --generate_full_html(cdat.pri.finalized, os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\DoxTest.html")
-
 
     end,
 },

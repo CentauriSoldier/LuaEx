@@ -10,7 +10,7 @@ local function addOLD(this, cdat, vKey, vValue)
     local fSorter       = pri.sorter;
     local tActual       = pri.actual;
     local tKeys         = pri.keys;
-    local sTypeKey      = rawtype(vKey);
+    local sTypeKey      = type(vKey);
 
     if (sTypeKey ~= "string") then
         error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
@@ -51,7 +51,7 @@ return class("SortedDictionary",
 
         return oNew;
     end,
-    __pairs = function(this, cdat)
+    __call = function(this, cdat) --NOTE: 5.1 compat
         local nIndex    = 0;
         local tActual   = cdat.pri.actual;
         local tKeys     = cdat.pri.keys;
@@ -66,6 +66,9 @@ return class("SortedDictionary",
         end
 
         return iterator, tActual, nil;
+    end,
+    __pairs = function(this, cdat)
+        return cdat.met.__call();
     end,
 },
 {--STATIC PUBLIC
@@ -88,8 +91,8 @@ return class("SortedDictionary",
         local fSorter       = pri.sorter;
         local tActual       = pri.actual;
         local tKeys         = pri.keys;
-        local sTypeKey      = rawtype(vKey);
-        local sValueType    = rawtype(vValue);
+        local sTypeKey      = type(vKey);
+        local sValueType    = type(vValue);
 
         if (sTypeKey ~= "string") then
             error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
@@ -118,7 +121,7 @@ return class("SortedDictionary",
     containsKey = function(this, cdat, vKey)
         local bRet = false;
 
-        local sTypeKey = rawtype(vKey);
+        local sTypeKey = type(vKey);
 
         if (sTypeKey ~= "string") then
             error("Error ascertaining existence of key in SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
@@ -139,7 +142,7 @@ return class("SortedDictionary",
         --TODO FINISH
     end,
     get = function(this, cdat, vKey)
-        local sTypeKey = rawtype(vKey);
+        local sTypeKey = type(vKey);
 
         if (sTypeKey ~= "string") then
             error("Error getting value from SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
@@ -164,7 +167,7 @@ return class("SortedDictionary",
     remove = function(this, cdat, vKey)
         local pri       = cdat.pri;
         local tKeys     = pri.keys;
-        local sTypeKey  = rawtype(vKey);
+        local sTypeKey  = type(vKey);
 
         if (sTypeKey ~= "string") then
             error("Error removing item from SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
@@ -195,8 +198,8 @@ return class("SortedDictionary",
         local fSorter       = pri.sorter;
         local tActual       = pri.actual;
         local tKeys         = pri.keys;
-        local sTypeKey      = rawtype(vKey);
-        local sValueType    = rawtype(vValue);
+        local sTypeKey      = type(vKey);
+        local sValueType    = type(vValue);
 
         if (sTypeKey ~= "string") then
             error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
@@ -223,7 +226,7 @@ return class("SortedDictionary",
         return this;
     end,
     setSortFunction = function(this, cdat, fSorter)
-        local sSorterType = rawtype(fSorter);
+        local sSorterType = type(fSorter);
 
         if (sSorterType == "function") then
             --set the new sorter function
@@ -234,7 +237,7 @@ return class("SortedDictionary",
                 --set the sorter back to default
                 cdat.pri.sorter = defaultSorter;
             else
-                error("Error setting sort method for SortedDictionary. Type given: "..rawtype(fSorter)..'.', 2);
+                error("Error setting sort method for SortedDictionary. Type given: "..type(fSorter)..'.', 2);
             end
 
         end
@@ -251,6 +254,9 @@ return class("SortedDictionary",
         end
 
         return this;
+    end,
+    size = function(this, cdat)
+        return #cdat.pri.keys;
     end,
 },
 nil,        --extending class

@@ -1,3 +1,15 @@
+--[[!
+    @fqxn LuaEx.Classes.Dox.DoxBlockTag
+    @des Used to create BlockTags used in a Dox parser.<br>While Dox ships with many pre-made BlockTags, users may also create and add their own by subclassing Dox.
+    @ex
+    local bRequired         = true;
+    local bMultipleAllowed  = true;
+    local oFQXN = DoxBlockTag({"fqxn"}, "FQXN", bRequired, -bMultipleAllowed);
+
+    @author <a href="https://github.com/CentauriSoldier" target="_blank">Centauri Soldier</a>
+    @github <a href="https://github.com/CentauriSoldier/LuaEx" target="_blank">Visit the LuaEx Github</a>
+!]]
+
 --TODO localization
 local math = math;
 

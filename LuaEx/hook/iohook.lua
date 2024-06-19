@@ -79,7 +79,7 @@ end
 --TODO BUG FIX nil items are getting added to the return
 --TODO trim trailing directory separator before processing path
 -- Function to list files and directories
-function io.list(sPath, bRecursive, nType, tFileTypes)
+function io.listOLD(sPath, bRecursive, nType, tFileTypes)
     local sCommand;
     local tFilters;
     local bFilters       = false;
@@ -205,6 +205,107 @@ function io.list(sPath, bRecursive, nType, tFileTypes)
     end
 
     return tFullPaths, tRelativePaths;
+end
+
+
+function io.list(sPath, bRecursive, nType, tFileTypes)
+    local sCommand;
+    local tFilters;
+    local bFilters       = false;
+    local nItemType      = 3;
+    local tFullPaths     = {};
+    local tRelativePaths = {};
+
+    if type(nType) == "number" then
+        nItemType = nType;
+    end
+
+    if type(tFileTypes) == "table" then
+        local nTypeCount = 0;
+        tFilters = {};
+
+        for _, sType in pairs(tFileTypes) do
+            if type(sType) == "string" and sType:gsub("%s+", "") ~= "" and sType:find("^[^.]+$") and not sType:find("[^%w._-]") then
+                nTypeCount = nTypeCount + 1;
+                tFilters[nTypeCount] = sType:lower();
+                bFilters = true;
+            end
+        end
+    end
+
+    if bIsWindows then
+        if nItemType == 0 then
+            sCommand = 'dir "'..sPath..'\\*.*" /b /a-d'..(bRecursive and ' /s' or '')..' 2>nul'
+        elseif nItemType == 1 then
+            sCommand = 'dir "'..sPath..'\\*.*" /b /ad'..(bRecursive and ' /s' or '')..' 2>nul'
+        else
+            sCommand = 'dir "'..sPath..'\\*.*" /b'..(bRecursive and ' /s' or '')..' 2>nul'
+        end
+    elseif bIsUnix then
+        if nItemType == 0 then
+            sCommand = 'find "'..sPath..'" -type f'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null'
+        elseif nItemType == 1 then
+            sCommand = 'find "'..sPath..'" -type d'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null'
+        else
+            sCommand = 'find "'..sPath..'"'..(bRecursive and '' or ' -maxdepth 1')..' 2>/dev/null'
+        end
+    else
+        error("Unsupported operating system")
+    end
+
+    local sOutput = io.popen(sCommand):read("*a")
+
+    local pBase = sPath:gsub("[/\\]$", "")
+    pBase = bIsWindows and pBase:gsub("/", "\\") or pBase:gsub("\\", "/")
+
+    local nLineCount = 0
+    for sLine in sOutput:gmatch("[^\r\n]+") do
+        nLineCount = nLineCount + 1
+
+        local pFull = bIsWindows and sLine:gsub("/", "\\") or sLine:gsub("\\", "/")
+
+        if not sLine:match("^"..pBase) then
+            pFull = pBase .. (bIsWindows and "\\" or "/") .. pFull
+        end
+
+        local bIncludeItem  = false
+        local tPathParts    = splitpath(pFull)
+        local sExtension    = tPathParts.extension:lower()
+
+        if sExtension == "" and nItemType ~= 0 then
+            bIncludeItem = true
+        else
+            if nType ~= 1 then
+                bIncludeItem = not bFilters
+                if bFilters then
+                    for _, sType in ipairs(tFilters) do
+                        if sExtension == sType then
+                            bIncludeItem = true
+                            break
+                        end
+                    end
+                end
+            end
+        end
+
+        if nItemType == 0 and tFilters and #tFilters > 0 then
+            for _, sType in ipairs(tFilters) do
+                if sExtension == sType then
+                    bIncludeItem = true
+                    break
+                end
+            end
+        end
+
+        if bIncludeItem then
+            tFullPaths[nLineCount] = pFull
+
+            local pRelative = pFull:gsub("^"..pBase.."[\\/]*", "")
+            tRelativePaths[nLineCount] = pRelative
+        end
+    end
+
+    return tFullPaths, tRelativePaths
 end
 
 
