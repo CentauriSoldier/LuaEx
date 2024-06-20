@@ -252,7 +252,7 @@ return class("Dox",
             local sTitle     = pri.title;
 
             --update and write the html
-            sHTML = _sDoxHTML % {__DOX__CSS__ = _sDoxCSS};
+            local sHTML = _sDoxHTML % {__DOX__CSS__ = _sDoxCSS};
             sHTML = sHTML % {
                 __DOX_BANNER__URL__     = _sDoxBanner:gsub("\n", ''), --TODO allow custom banner
                 __DOX__TITLE__          = sTitle,
@@ -528,11 +528,12 @@ return class("Dox",
             if not hFile then
                 error("Error outputting Dox: Can't write to file, '"..pFile.."'.", 3)--TODO nice error message
             end
+
             hFile:write(sContent)
             hFile:close();
         end
 
-        writeFile(pHTMLOut, sHTML);
+        writeFile(pHTMLOut, pri.html);
     end,
     getHTML = function(this, cdat)
         return cdat.pri.html;
