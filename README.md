@@ -29,6 +29,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 **v0.91** ***(IN PROGRESS)***
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
 - Feature: Dox now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
+- Feature: added a "Copy" (to clipboard) button to all user-created code blocks.
 - Feature: added a **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
 - Feature: **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the Dox subclass being used.
 - Feature: **prism.js** scripts are automatically added to Dox's finalized HTML output based on the languages used in the documentation.
