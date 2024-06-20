@@ -26,6 +26,14 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 <summary>🆅🅸🅴🆆 🅲🅷🅰🅽🅶🅴🅻🅾🅶</summary>
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
+**v0.91** ***(IN PROGRESS)***
+- Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
+- Feature: Dox now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
+- Feature: added a **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
+- Feature: **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the Dox subclass being used.
+- Feature: **prism.js** scripts are automatically added to Dox's finalized HTML output based on the languages used in the documentation.
+- Feature: added Dox parsers (subclasses) for several new languages.
+
 **v0.90**
 - Bugfix:  error in ***type.assert.table*** where value type was showing as index type, resulting in false negatives.
 - Bugfix:  error in **SortedDictionary** causing malformed returns.
@@ -563,7 +571,7 @@ print("\n\nBullet #1 Deerialized:\n", "type: "..type(oBullet1Deserialized).."\n"
 - The **array** object behaves like traditional arrays in as many ways as is possible in **Lua**.
 - Are type-safe, meaning only one type may be put into an **array**.
 - Have a fixed length.
-- Are numerically indexed
+- Are numerically indexed.
 - Have the option to initialize with a numerically-indexed table of values or a number.
 - Initializing with a number—e,g., aMyArray = **array**(*nLength*)—all values are set to **null** and the **array** type is set upon the first value assignment.
 - Strict bounds checking upon assignment/retrieval.

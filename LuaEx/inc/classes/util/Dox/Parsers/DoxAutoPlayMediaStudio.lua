@@ -29,14 +29,7 @@ end
             DoxMime("lua"),
             DoxMime("autoplay", cdat.pri.unescapeHTMLEntities),
         };
-        local sPrismCSS = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />';
-        local tPrismScripts = {
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>',
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/components/prism-lua.min.js"></script>',
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/plugins/toolbar/prism-toolbar.min.js"></script>',
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>',
-        };
-        super("DoxAutoPlayMediaStudio", sTitle, "!", "!", "@", eSyntax, tMimeTypes, sPrismCSS, tPrismScripts);
+        super("DoxAutoPlayMediaStudio", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
     end,
     --TODO ability to get sort order
 },

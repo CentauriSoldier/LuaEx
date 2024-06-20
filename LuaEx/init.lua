@@ -263,8 +263,36 @@ if (tClassLoadValues[_nClassSystem]) then
                 Dox         = require("LuaEx.inc.classes.util.Dox.Dox");
 
                 --require Dox Parsers
-                DoxLua                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxLua");
-                DoxAutoPlayMediaStudio = require("LuaEx.inc.classes.util.Dox.Parsers.DoxAutoPlayMediaStudio");
+                DoxAssemblyNASM         = require("LuaEx.inc.classes.util.Dox.Parsers.DoxAssemblyNASM")
+                DoxAutoPlayMediaStudio  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxAutoPlayMediaStudio");
+                DoxC                    = require("LuaEx.inc.classes.util.Dox.Parsers.DoxC")
+                DoxCSharp               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxCSharp")
+                DoxCPlusPlus            = require("LuaEx.inc.classes.util.Dox.Parsers.DoxCPlusPlus")
+                DoxCSS                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxCSS")
+                DoxDart                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxDart")
+                DoxElm                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxElm")
+                DoxFSharp               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxFSharp")
+                DoxFortran              = require("LuaEx.inc.classes.util.Dox.Parsers.DoxFortran")
+                DoxGo                   = require("LuaEx.inc.classes.util.Dox.Parsers.DoxGo")
+                DoxGroovy               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxGroovy")
+                DoxHaskell              = require("LuaEx.inc.classes.util.Dox.Parsers.DoxHaskell")
+                DoxHTML                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxHTML")
+                DoxJava                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxJava")
+                DoxJavaScript           = require("LuaEx.inc.classes.util.Dox.Parsers.DoxJavaScript")
+                DoxJulia                = require("LuaEx.inc.classes.util.Dox.Parsers.DoxJulia")
+                DoxKotlin               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxKotlin")
+                DoxLua                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxLua");
+                DoxMatlab               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxMatlab")
+                DoxObjectiveC           = require("LuaEx.inc.classes.util.Dox.Parsers.DoxObjectiveC")
+                DoxPerl                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxPerl")
+                DoxPHP                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxPHP")
+                DoxPython               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxPython")
+                DoxRuby                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxRuby")
+                DoxRust                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxRust")
+                DoxScala                = require("LuaEx.inc.classes.util.Dox.Parsers.DoxScala")
+                DoxSwift                = require("LuaEx.inc.classes.util.Dox.Parsers.DoxSwift")
+                DoxTypeScript           = require("LuaEx.inc.classes.util.Dox.Parsers.DoxTypeScript")
+                DoxXML                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxXML")
 
                 --ini
                 Ini    = require("LuaEx.inc.classes.util.Ini"); --TODO need to finish OrderedSet first

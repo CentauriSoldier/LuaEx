@@ -1,4 +1,4 @@
-return class("DoxLua",
+return class("DoxDart",
 {--metamethods
 
 },
@@ -12,14 +12,14 @@ return class("DoxLua",
 
 },
 {--public
-    DoxLua = function(this, cdat, super, sTitle)
+    DoxDart = function(this, cdat, super, sTitle)
         type.assert.string(sTitle, "%S+", "Dox Parser title name must not be blank.");
-        local eSyntax = Dox.SYNTAX.LUA;
+        local eSyntax = Dox.SYNTAX.DART;
         local tMimeTypes = {
-            DoxMime("lua"),
+            DoxMime("dart"),
         };
 
-        super("DoxLua", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
+        super("DoxDart", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
     end,
     --TODO ability to get sort order
 },

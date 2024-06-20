@@ -1,4 +1,4 @@
-return class("DoxLua",
+return class("DoxFortran",
 {--metamethods
 
 },
@@ -12,14 +12,14 @@ return class("DoxLua",
 
 },
 {--public
-    DoxLua = function(this, cdat, super, sTitle)
+    DoxFortran = function(this, cdat, super, sTitle)
         type.assert.string(sTitle, "%S+", "Dox Parser title name must not be blank.");
-        local eSyntax = Dox.SYNTAX.LUA;
+        local eSyntax = Dox.SYNTAX.FORTRAN;
         local tMimeTypes = {
-            DoxMime("lua"),
+            DoxMime("f90"), -- Assuming "f90" as an example mime type
         };
 
-        super("DoxLua", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
+        super("DoxFortran", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
     end,
     --TODO ability to get sort order
 },

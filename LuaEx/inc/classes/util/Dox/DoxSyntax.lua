@@ -17,16 +17,18 @@ return class("DoxSyntax",
     commentOpen     = "",
     commentClose    = "",
     escapeCharacter = "",
+    prismName       = "",
 },
 {--protected
 
 },
 {--public
-    DoxSyntax = function(this, cdat, sName, sCommentOpen, sCommentClose, sEscapeCharacter)
+    DoxSyntax = function(this, cdat, sName, sCommentOpen, sCommentClose, sEscapeCharacter, sPrismName)
         type.assert.string(sName,               "%S+");
         type.assert.string(sCommentOpen,        "%S+");
         type.assert.string(sCommentClose,       "[^\n]+");
         type.assert.string(sEscapeCharacter,    "%S+");
+        type.assert.string(sPrismName,          "%S+");
 
         local pri           = cdat.pri;
         pri.name            = sName;
@@ -34,6 +36,7 @@ return class("DoxSyntax",
         pri.commentOpen     = sCommentOpen;
         pri.commentClose    = sCommentClose;
         pri.escapeCharacter = sEscapeCharacter;
+        pri.prismName       = sPrismName;
     end,
     getCommentClose = function(this, cdat)
         return cdat.pri.commentClose;
@@ -46,6 +49,9 @@ return class("DoxSyntax",
     end,
     getName = function(this, cdat)
         return cdat.pri.name;
+    end,
+    getPrismName = function(this, cdat)
+        return cdat.pri.prismName;
     end,
 },
 nil,    --extending class

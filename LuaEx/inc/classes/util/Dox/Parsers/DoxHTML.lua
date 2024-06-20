@@ -1,4 +1,4 @@
-return class("DoxLua",
+return class("DoxHTML",
 {--metamethods
 
 },
@@ -6,20 +6,21 @@ return class("DoxLua",
 
 },
 {--private
-
+--TODO probably needs a preprocessor
 },
 {--protected
 
 },
 {--public
-    DoxLua = function(this, cdat, super, sTitle)
+    DoxHTML = function(this, cdat, super, sTitle)
         type.assert.string(sTitle, "%S+", "Dox Parser title name must not be blank.");
-        local eSyntax = Dox.SYNTAX.LUA;
+        local eSyntax = Dox.SYNTAX.HTML;
         local tMimeTypes = {
-            DoxMime("lua"),
+            DoxMime("html"),
+            DoxMime("htm"), -- Adding "htm" as an example mime type
         };
 
-        super("DoxLua", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
+        super("DoxHTML", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
     end,
     --TODO ability to get sort order
 },

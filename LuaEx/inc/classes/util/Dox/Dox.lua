@@ -6,337 +6,10 @@ local _sDoxHTML         = require(_pDoxRequirePath..".Data.DoxHTML")
 local _sDoxJS           = require(_pDoxRequirePath..".Data.DoxJS");
 
 local _sPrismStable     = "1.29.0"; --TODO allow theme change
---local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />'; --TODO CEntralize this stuff here...
---local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' & {stable};
-
-local tPrismLanguages = {
-"markup",
-"css",
-"clike",
-"javascript",
-"abap",
-"actionscript",
-"ada",
-"apacheconf",
-"apl",
-"applescript",
-"arduino",
-"arff",
-"asciidoc",
-"asm6502",
-"aspnet",
-"autohotkey",
-"autoit",
-"bash",
-"basic",
-"batch",
-"bison",
-"brainfuck",
-"bro",
-"c",
-"csharp",
-"cpp",
-"coffeescript",
-"clojure",
-"crystal",
-"csp",
-"css-extras",
-"d",
-"dart",
-"diff",
-"django",
-"docker",
-"eiffel",
-"elixir",
-"elm",
-"erb",
-"erlang",
-"fsharp",
-"flow",
-"fortran",
-"gedcom",
-"gherkin",
-"git",
-"glsl",
-"gml",
-"go",
-"graphql",
-"groovy",
-"haml",
-"handlebars",
-"haskell",
-"haxe",
-"http",
-"hpkp",
-"hsts",
-"ichigojam",
-"icon",
-"inform7",
-"ini",
-"io",
-"j",
-"java",
-"jolie",
-"json",
-"julia",
-"keyman",
-"kotlin",
-"latex",
-"less",
-"liquid",
-"lisp",
-"livescript",
-"lolcode",
-"lua",
-"makefile",
-"markdown",
-"markup-templating",
-"matlab",
-"mel",
-"mizar",
-"monkey",
-"n4js",
-"nasm",
-"nginx",
-"nim",
-"nix",
-"nsis",
-"objectivec",
-"ocaml",
-"opencl",
-"oz",
-"parigp",
-"parser",
-"pascal",
-"perl",
-"php",
-"php-extras",
-"plsql",
-"powershell",
-"processing",
-"prolog",
-"properties",
-"protobuf",
-"pug",
-"puppet",
-"pure",
-"python",
-"q",
-"qore",
-"r",
-"jsx",
-"tsx",
-"renpy",
-"reason",
-"rest",
-"rip",
-"roboconf",
-"ruby",
-"rust",
-"sas",
-"sass",
-"scss",
-"scala",
-"scheme",
-"smalltalk",
-"smarty",
-"sql",
-"soy",
-"stylus",
-"swift",
-"tap",
-"tcl",
-"textile",
-"tt2",
-"twig",
-"typescript",
-"vbnet",
-"velocity",
-"verilog",
-"vhdl",
-"vim",
-"visual-basic",
-"wasm",
-"wiki",
-"xeora",
-"xojo",
-"xquery",
-"yaml"
-};
-
-local tLangName = {
-"Markup",
-"CSS",
-"C_like",
-"JavaScript",
-"ABAP",
-"ActionScript",
-"Ada",
-"Apache_Configuration",
-"APL",
-"AppleScript",
-"Arduino",
-"ARFF",
-"AsciiDoc",
-"6502_Assembly",
-"ASP.NET_C_SHARP",
-"AutoHotkey",
-"AutoIt",
-"Bash",
-"BASIC",
-"Batch",
-"Bison",
-"Brainfuck",
-"Bro",
-"C",
-"C_SHARP",
-"C_PLUS_PLUS",
-"CoffeeScript",
-"Clojure",
-"Crystal",
-"Content_Security_Policy",
-"CSS_Extras",
-"D",
-"Dart",
-"Diff",
-"DjangoJinja2",
-"Docker",
-"Eiffel",
-"Elixir",
-"Elm",
-"ERB",
-"Erlang",
-"F_SHARP",
-"Flow",
-"Fortran",
-"GEDCOM",
-"Gherkin",
-"Git",
-"GLSL",
-"GameMaker_Language",
-"Go",
-"GraphQL",
-"Groovy",
-"Haml",
-"Handlebars",
-"Haskell",
-"Haxe",
-"HTTP",
-"HTTP_Public_Key_Pins",
-"HTTP_Strict_Transport_Security",
-"IchigoJam",
-"Icon",
-"Inform_7",
-"Ini",
-"Io",
-"J",
-"Java",
-"Jolie",
-"JSON",
-"Julia",
-"Keyman",
-"Kotlin",
-"LaTeX",
-"Less",
-"Liquid",
-"Lisp",
-"LiveScript",
-"LOLCODE",
-"Lua",
-"Makefile",
-"Markdown",
-"Markup_templating",
-"MATLAB",
-"MEL",
-"Mizar",
-"Monkey",
-"N4JS",
-"NASM",
-"nginx",
-"Nim",
-"Nix",
-"NSIS",
-"Objective_C",
-"OCaml",
-"OpenCL",
-"Oz",
-"PARIGP",
-"Parser",
-"Pascal",
-"Perl",
-"PHP",
-"PHP_Extras",
-"PLSQL",
-"PowerShell",
-"Processing",
-"Prolog",
-"properties",
-"Protocol_Buffers",
-"Pug",
-"Puppet",
-"Pure",
-"Python",
-"Q_kdb_database",
-"Qore",
-"R",
-"React_JSX",
-"React_TSX",
-"Ren'py",
-"Reason",
-"reST_reStructuredText",
-"Rip",
-"Roboconf",
-"Ruby",
-"Rust",
-"SAS",
-"Sass_Sass",
-"Sass_Scss",
-"Scala",
-"Scheme",
-"Smalltalk",
-"Smarty",
-"SQL",
-"Soy_Closure_Template",
-"Stylus",
-"Swift",
-"TAP",
-"Tcl",
-"Textile",
-"Template_Toolkit_2",
-"Twig",
-"TypeScript",
-"VB.Net",
-"Velocity",
-"Verilog",
-"VHDL",
-"vim",
-"Visual_Basic",
-"WebAssembly",
-"Wiki_markup",
-"Xeora",
-"Xojo_REALbasic",
-"XQuery",
-"YAML",
-};
+local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
+local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};
 
 
-local sEnum = [[enum("Dox.PRISM_LANGUAGE", ]]
-local sNames = "{\n"
-local sValues = "{\n"
-for _, sLang in ipairs(tPrismLanguages) do
-    sNames = sNames.."\""..tPrismLanguages[_]:upper().."\"\n";
-    sValues = sValues.."\""..tLangName[_]:lower().."\"\n";
-end
-sNames = sNames.."}";
-sValues = sValues.."}";
-sEnum = sEnum.."\n"..sNames..",\n"..sValues.."\n);"
-
-local pPL = "C:\\Users\\x\\DoxPrismLanguagesEnum.lua";
---local hFile = io.open(pPL, "r");
---hFile:write(sEnum);
---hFile:close();
---print(sEnum)
---enum("PRISM_LANGUAGE", {}, {})
 
 --TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
 
@@ -355,15 +28,17 @@ local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
 
 --these block tags are built-in to each Dox class
-local _bRequired        = true;
-local _bMultipleAllowed = true;
-local _tBuiltInBlockTags = {--TODO allow modification and ordering --TODO add a bCombine Variable for block tags with (or using) plural form
+local _bRequired            = true;
+local _bMultipleAllowed     = true;
+local _nExampleInsertPoint  = 6; --where in the table to put the Example BlockTag
+local _tBuiltInBlockTags    = {--TODO allow modification and ordering --TODO add a bCombine Variable for block tags with (or using) plural form
     DoxBlockTag({"fqxn"},                               "FQXN",                 _bRequired,     -_bMultipleAllowed),
     DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -_bMultipleAllowed,   0,  {"<em>", "</em>"}),
     DoxBlockTag({"des", "desc", "description"},         "Description",          -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag({"return", "ret",},                     "Return",               -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
-    DoxBlockTag({"ex", "example"},                      "Example",              -_bRequired,    _bMultipleAllowed,    0,    {"<pre><code class=\"language-lua\">", "</code></pre>"}),
+    --RESERVED FOR Example Block Tag (inserted during class contruction)
+    DoxBlockTag({"code"},                               "Code",                 -_bRequired,    _bMultipleAllowed,    0,  {"<pre>", "</pre>"}),
     DoxBlockTag({"features"},                           "Features",             -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    _bMultipleAllowed),
@@ -430,11 +105,12 @@ return class("Dox",
     blockTags           = {},
     blockStrings        = {};
     finalized           = {}; --this is the final, processed data (updated using the refresh() method)
+    html                = "", --this is updated on refresh
     mimeTypes           = SortedDictionary(), --TODO throw error on removal of last item
     name                = "",
     OutputPath_AUTO     = "",
     prismCSS            = "",
-    prismScripts        = {},
+    --prismScripts        = {},
     requiredBlockTags   = {},
     snippetClose        = "",
     snippetOpen         = "", --TODO add snippet info DO NOT ALLOW USER TO SET/GET THIS
@@ -573,43 +249,24 @@ return class("Dox",
         build = function(this, cdat)
             local pri        = cdat.pri;
             local tFunctions = pri[eOutputType.HTML.name];
-            local sTitle     = pri.title;--TODO FINISH use correct seperator
-            local pHTMLOut   = cdat.pri.OutputPath.."\\"..sTitle..".html";--TODO use proper directory separator
-            local pJSOut     = cdat.pri.OutputPath.."\\"..sTitle..".js";
-
-            local function writeFile(pFile, sContent)
-                local hFile = io.open(pFile, "w");
-                if not hFile then
-                    error("Error outputting Dox: Can't write to file, '"..pFile.."'.", 3)--TODO nice error message
-                end
-                hFile:write(sContent)
-                hFile:close();
-            end
-
-            local sPrismScripts = "";
-            local nMaxScripts   = pri.prismScripts;
-
-            for nIndex, sScript in ipairs(pri.prismScripts) do
-                local sNewLine = nIndex == nMaxScripts and "" or "\n";
-                sPrismScripts = sPrismScripts..sScript..sNewLine;
-            end
+            local sTitle     = pri.title;
 
             --update and write the html
             sHTML = _sDoxHTML % {__DOX__CSS__ = _sDoxCSS};
             sHTML = sHTML % {
                 __DOX_BANNER__URL__     = _sDoxBanner:gsub("\n", ''), --TODO allow custom banner
                 __DOX__TITLE__          = sTitle,
-                __DOX__PRISM_CSS__      = pri.prismCSS,
-                __DOX__PRISM__SCRIPTS__ = sPrismScripts,
+                __DOX__PRISM_CSS__      = _sPrismCSS,
             };
 
-            --write the html file
-            writeFile(pHTMLOut, sHTML);
+            --inject the javascript
+            sHTML = sHTML % {__DOX__INTERNAL_JS__ = "const userData = "..tFunctions.buildJS(this, cdat)};
 
-            --build and write js to file
-            local sJS = tFunctions.buildJS(this, cdat);
-            writeFile(pJSOut, "const userData = "..sJS);--TODO local global var this string
+            --insert the prism scripts for the found languages
+            local sPrismScripts = tFunctions.generatePrismScripts(sHTML);
+            sHTML = sHTML % {__DOX__PRISM__SCRIPTS__ = sPrismScripts};
 
+            pri.html = sHTML;
         end,
         buildJS = function(this, cdat)
             local sRet       = "";
@@ -676,6 +333,71 @@ return class("Dox",
             local nIndentSpaces = 4
             return luaTableToJson(cdat.pri.finalized, nIndentSpaces)
         end,
+        generatePrismScripts = function(sHTML)
+            -- Define the mapping between language tags and script URLs
+            local prismBaseURL = "https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/components/prism-" % {stable = _sPrismStable};
+            local languages = {
+                abap = "abap", abnf = "abnf", actionscript = "actionscript", ada = "ada", apacheconf = "apacheconf",
+                apl = "apl", applescript = "applescript", aql = "aql", arduino = "arduino", arff = "arff",
+                asciidoc = "asciidoc", asm6502 = "asm6502", aspnet = "aspnet", autohotkey = "autohotkey",
+                autoit = "autoit", bash = "bash", basic = "basic", batch = "batch", bbcode = "bbcode",
+                bison = "bison", brainfuck = "brainfuck", bro = "bro", c = "c", cil = "cil", clike = "clike",
+                clojure = "clojure", cmake = "cmake", coffeescript = "coffeescript", core = "core", cpp = "cpp",
+                crystal = "crystal", csharp = "csharp", csp = "csp", css = "css", cssExtras = "css-extras",
+                d = "d", dart = "dart", diff = "diff", django = "django", docker = "docker", eiffel = "eiffel",
+                elixir = "elixir", elm = "elm", erb = "erb", erlang = "erlang", flow = "flow", fortran = "fortran",
+                fsharp = "fsharp", gcode = "gcode", gdscript = "gdscript", gedcom = "gedcom", gherkin = "gherkin",
+                git = "git", glsl = "glsl", gml = "gml", go = "go", graphql = "graphql", groovy = "groovy",
+                haml = "haml", handlebars = "handlebars", haskell = "haskell", haxe = "haxe", hcl = "hcl", hlsl = "hlsl",
+                http = "http", ichigojam = "ichigojam", icon = "icon", inform7 = "inform7", ini = "ini", io = "io",
+                j = "j", java = "java", javadoc = "javadoc", javastacktrace = "javastacktrace", jexl = "jexl",
+                jolie = "jolie", jq = "jq", javascript = "javascript", jsExtras = "js-extras", jsTemplates = "js-templates",
+                json = "json", json5 = "json5", jsonp = "jsonp", jsdoc = "jsdoc", jsx = "jsx", julia = "julia",
+                keyman = "keyman", kotlin = "kotlin", latex = "latex", less = "less", lilypond = "lilypond", liquid = "liquid",
+                lisp = "lisp", livescript = "livescript", llvm = "llvm", log = "log", lolcode = "lolcode", lua = "lua",
+                makefile = "makefile", markdown = "markdown", markup = "markup", matlab = "matlab", mel = "mel",
+                mizar = "mizar", mongodb = "mongodb", monkey = "monkey", moonscript = "moonscript", n1ql = "n1ql",
+                nginx = "nginx", nim = "nim", nix = "nix", nsis = "nsis", objectivec = "objectivec", ocaml = "ocaml",
+                opencl = "opencl", oz = "oz", parigp = "parigp", parser = "parser", pascal = "pascal", perl = "perl",
+                php = "php", phpdoc = "phpdoc", phpExtras = "php-extras", plsql = "plsql", powershell = "powershell",
+                processing = "processing", prolog = "prolog", properties = "properties", protobuf = "protobuf", pug = "pug",
+                puppet = "puppet", pure = "pure", python = "python", q = "q", qml = "qml", qore = "qore", r = "r",
+                reason = "reason", regex = "regex", renpy = "renpy", rest = "rest", rip = "rip", roboconf = "roboconf",
+                ruby = "ruby", rust = "rust", sas = "sas", sass = "sass", scss = "scss", scala = "scala", scheme = "scheme",
+                shell = "shell", smali = "smali", smalltalk = "smalltalk", smarty = "smarty", solidity = "solidity",
+                solutionfile = "solutionfile", soy = "soy", sparql = "sparql", splunkSpl = "splunk-spl", sql = "sql",
+                stylus = "stylus", swift = "swift", t4 = "t4", t4Cs = "t4-cs", t4Templating = "t4-templating",
+                t4Vb = "t4-vb", tap = "tap", tcl = "tcl", textile = "textile", toml = "toml", tsx = "tsx",
+                tt2 = "tt2", turtle = "turtle", twig = "twig", typescript = "typescript", vala = "vala", vbnet = "vbnet",
+                velocity = "velocity", verilog = "verilog", vhdl = "vhdl", vim = "vim", visualBasic = "visual-basic",
+                wasm = "wasm", wiki = "wiki", xeora = "xeora", xmlDoc = "xml-doc", xojo = "xojo", xquery = "xquery",
+                yaml = "yaml", zig = "zig",
+            }
+
+            -- Set to store found languages to avoid duplicates
+            local foundLanguages = {}
+
+            -- Pattern to match the code blocks with language tags
+            for lang in sHTML:gmatch('class=\\"language%-(%w+)\\"') do
+            --for lang in sHTML:gmatch('class="language-lua"') do
+
+                -- Check if the language is supported and add it to the set
+                if languages[lang] then
+                    foundLanguages[languages[lang]] = true
+                else
+                    foundLanguages[lang] = true
+                end
+            end
+
+            -- Generate the script tags
+            local scripts = {}
+            table.insert(scripts, '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable});
+            for lang, _ in pairs(foundLanguages) do
+                table.insert(scripts, string.format('<script src="%s%s.min.js"></script>', prismBaseURL, lang))
+            end
+
+            return table.concat(scripts, "\n")
+        end,
         prepJSONString = function (s)
             if type(s) ~= "string" then
                 return ""
@@ -693,7 +415,7 @@ return class("Dox",
 },
 {},--protected
 {--public
-    Dox = function(this, cdat, sName, sTitle, sBlockOpen, sBlockClose, sTagOpen, eSyntax, tMimeTypes, sPrismCSS, tPrismScripts, ...)
+    Dox = function(this, cdat, sName, sTitle, sBlockOpen, sBlockClose, sTagOpen, eSyntax, tMimeTypes, ...)
         type.assert.string(sName,       "%S+",      "Dox subclass name must not be blank.");
         type.assert.string(sTitle,      "%S+",      "Dox documentation title name must not be blank.");
         type.assert.string(sBlockOpen,  "%S+",      "Block Open symbol must not be blank.");
@@ -701,8 +423,6 @@ return class("Dox",
         type.assert.string(sTagOpen,    "%S+",      "Tag Open symbol must not be blank.");
         type.assert.custom(eSyntax,     "Dox.SYNTAX");
         type.assert.table(tMimeTypes,   "number",   "DoxMime", 1);
-        type.assert.string(sPrismCSS,   "%S+",      "Prism css link must not be blank.");
-        type.assert.table(tPrismScripts,"number",   "string", 1);
 
         local pri               = cdat.pri;
         pri.blockOpen           = sBlockOpen;
@@ -711,7 +431,6 @@ return class("Dox",
         pri.syntax              = eSyntax;
         pri.title               = sTitle;
         pri.tagOpen             = sTagOpen;
-        pri.prismCSS            = sPrismCSS % {stable = _sPrismStable};
         pri.requiredBlockTags   = {};
 
         for _, oDoxMime in pairs(tMimeTypes) do
@@ -728,6 +447,12 @@ return class("Dox",
             end
 
         end
+
+        --create and inject the example block tag (language-specific)
+        table.insert(pri.blockTags, _nExampleInsertPoint,
+        DoxBlockTag({"ex", "example"}, "Example", -_bRequired, _bMultipleAllowed, 0,
+                    {"<pre><code class=\"language-"..eSyntax.value.getPrismName().."\">",
+                     "</code></pre>"}));
 
         --store all input BlockTags and log required ones found
         for nIndex, oBlockTag in ipairs({...} or arg) do
@@ -763,9 +488,9 @@ return class("Dox",
 
         end
 
-        for _, sPrismScript in ipairs(tPrismScripts) do
-            table.insert(pri.prismScripts, sPrismScript % {stable = _sPrismStable});
-        end
+        --for _, sPrismScript in ipairs(tPrismScripts) do
+            --table.insert(pri.prismScripts, sPrismScript % {stable = _sPrismStable});
+        --end
 
         --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
 
@@ -789,12 +514,28 @@ return class("Dox",
         end
 
     end,
-    export_FNL = function(this, cdat, eOutputType, bPulsar)
+    export_FNL = function(this, cdat, eOutputType, bPulsar) --TODO puslar snippets
         --type.assert.custom(eOutputType, "DoxOutput");
+        local pri = cdat.pri;
         eOutputType = Dox.OUTPUT.HTML -- TODO allow supporting other output types
-        --TODO puslar snippets
-        --print(type.isDoxOutput(cDoxOutput))
-        cdat.pri[eOutputType.name].build(this, cdat);
+
+        --TODO use proper directory separator
+        local pHTMLOut = pri.OutputPath.."\\"..pri.title..".html";
+        pri[eOutputType.name].build(this, cdat);
+
+        local function writeFile(pFile, sContent)
+            local hFile = io.open(pFile, "w");
+            if not hFile then
+                error("Error outputting Dox: Can't write to file, '"..pFile.."'.", 3)--TODO nice error message
+            end
+            hFile:write(sContent)
+            hFile:close();
+        end
+
+        writeFile(pHTMLOut, sHTML);
+    end,
+    getHTML = function(this, cdat)
+        return cdat.pri.html;
     end,
     getLanguage_FNL = function(this, cdat)
         return cdat.pri.syntax;
@@ -883,6 +624,9 @@ return class("Dox",
             cdat.pri.refresh();
         end
 
+    end,
+    refresh = function(this, cdat)
+        dat.pri.refresh();
     end,
 },
 nil,    --extending class

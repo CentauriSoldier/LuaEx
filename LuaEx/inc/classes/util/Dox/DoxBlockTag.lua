@@ -4,8 +4,7 @@
     @ex
     local bRequired         = true;
     local bMultipleAllowed  = true;
-    local oFQXN = DoxBlockTag({"fqxn"}, "FQXN", bRequired, -bMultipleAllowed);
-
+    local oFQXN = DoxBlockTag({"fqxn"}, "FQXN", bRequired, -bMultipleAllowed);    
     @author <a href="https://github.com/CentauriSoldier" target="_blank">Centauri Soldier</a>
     @github <a href="https://github.com/CentauriSoldier/LuaEx" target="_blank">Visit the LuaEx Github</a>
 !]]

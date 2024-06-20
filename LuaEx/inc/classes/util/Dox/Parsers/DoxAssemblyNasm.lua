@@ -1,4 +1,4 @@
-return class("DoxLua",
+return class("DoxAssemblyNasm",
 {--metamethods
 
 },
@@ -12,14 +12,14 @@ return class("DoxLua",
 
 },
 {--public
-    DoxLua = function(this, cdat, super, sTitle)
+    DoxAssemblyNasm = function(this, cdat, super, sTitle)
         type.assert.string(sTitle, "%S+", "Dox Parser title name must not be blank.");
-        local eSyntax = Dox.SYNTAX.LUA;
+        local eSyntax = Dox.SYNTAX.ASSEMBLY_NASM;
         local tMimeTypes = {
-            DoxMime("lua"),
+            DoxMime("asm"),
         };
 
-        super("DoxLua", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
+        super("DoxAssemblyNasm", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
     end,
     --TODO ability to get sort order
 },

@@ -191,7 +191,7 @@ local type = {
             end
         end,
         ["function"] = function(vInput)--TODO custom message
-            if (type(vInput) ~= sType) then
+            if (type(vInput) ~= "function") then
                 error("Error in parameter input.\nExpected type is function. Type given: ${given}." % {given = type(vInput)}, 2);
             end
         end,
