@@ -8,11 +8,11 @@ local _sDoxJS           = require(_pDoxRequirePath..".Data.DoxJS");
 local _sPrismStable     = "1.29.0"; --TODO allow theme change
 local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
 local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};
-
-
-
+--FIX copy button missing!
+--TODO remove <p> surrounding block items...
+--TODO color dead anchor links
 --TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
-
+--TODO parse sinlge-line comments too
 --TODO Allow internal anchor links
 --TODO allow MoTD, custom banners etc.
 
@@ -28,16 +28,49 @@ local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
 
 --these block tags are built-in to each Dox class
+--[[!
+    @fqxn Classes.Utility.Dox.BlockTags
+    @desc This is a list of all built-in <a href="#Classes.Utility.Dox.BlockTag">BlockTags</a>.
+    <br>While subclasses (parsers) <i>may</i> provide their own, additional BlockTags, these are always guaranteed to be available.
+!]]
 local _bRequired            = true;
 local _bMultipleAllowed     = true;
 local _nExampleInsertPoint  = 6; --where in the table to put the Example BlockTag
 local _tBuiltInBlockTags    = {--TODO allow modification and ordering --TODO add a bCombine Variable for block tags with (or using) plural form
+    --[[!@fqxn Classes.Utility.Dox.BlockTags.FQXN
+        @desc   Display: FQXN<br>
+                Aliases:<br><ul><li>fqxn</li></ul>
+                Required: <b>true</b><br>
+                Multiple Allowed: <b>false</b><br>
+                #Items: <b>1</b>
+                <br><br>
+                The <b>Fully</b> <b>Q</b>ualified Do<b>x</b> <b>N</b>ame (FQXN) is a required BlockTag that tells Dox how to organize the block in the final html.<br>
+                It can be thought of as a unique web address, providing a unique landing page for all items within a block.<br>
+                In addition, FQXNs can be used to create anchor links.
+        @ex
+        --create an anchor link in a comment block to another item.
+        --\[\[!
+            \@fqxn MyProject.MyClass.MyMethods.Method1
+            \@desc This method does neat stuff then calls &lt;a href="MyProject.MyClass.MyMethods.Method2"&gt;Method2&lt;/a&gt;
+        !\]\]
+    !]]
     DoxBlockTag({"fqxn"},                               "FQXN",                 _bRequired,     -_bMultipleAllowed),
+    --[[!@fqxn Classes.Utility.Dox.BlockTags.Scope
+         @desc  Display: Scope<br>
+                Aliases:<br><ul><li>scope</li></ul>
+                Required: <b>false</b><br>
+                Multiple Allowed: <b>false</b><br>
+                #Items: <b>1</b>
+    !]]
     DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -_bMultipleAllowed,   0,  {"<em>", "</em>"}),
+    --[[!@fqxn Classes.Utility.Dox.BlockTags.Visibility @desc Display: Visibility<br>Aliases:<br><ul><li>vis</li>visi<li>visibility</li></ul>Required: <b>false</b><br>Multiple Allowed: <b>false</b><br>#Items: <b>1</b>!]]
+    DoxBlockTag({"vis", "visi", "visibility"},          "Visibility",           -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"des", "desc", "description"},         "Description",          -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
-    DoxBlockTag({"return", "ret",},                     "Return",               -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
-    --RESERVED FOR Example Block Tag (inserted during class contruction)
+    DoxBlockTag({"field"},                              "Field",                -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"prop", "property"},                   "Property",             -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"return", "ret"},                      "Return",               -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
+    --NOTE: RESERVED FOR Example Block Tag (inserted during class contruction)
     DoxBlockTag({"code"},                               "Code",                 -_bRequired,    _bMultipleAllowed,    0,  {"<pre>", "</pre>"}),
     DoxBlockTag({"features"},                           "Features",             -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -_bMultipleAllowed),
@@ -59,17 +92,14 @@ local _tBuiltInBlockTags    = {--TODO allow modification and ordering --TODO add
 };
 
 
---[[f!
-    @mod dox
-    @func escapePattern
+--[[!
+    @fqxn Classes.Utility.Dox.Functions.escapePattern
     @desc Escapes special characters in a string so it can be used in a Lua pattern match.
-    @param pattern A string containing the pattern to be escaped.
+    <br>Used by the <a href="#Classes.Utility.Dox.Methods.extractBlockStrings">extractBlockStrings</a> method.
+    @vis local
+    @param string pattern A string containing the pattern to be escaped.
     @ret Returns the escaped string with special characters prefixed by a `%`.
-!f]]
-local function escapePatternOLD(pattern)
-    return pattern:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
-end
-
+!]]
 local function escapePattern(pattern)
     -- Escape special characters in the pattern
     local escapedPattern = pattern:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
@@ -80,7 +110,6 @@ local function escapePattern(pattern)
     return escapedPattern
 end
 
-
 --[[
 ██████╗  ██████╗ ██╗  ██╗
 ██╔══██╗██╔═══██╗╚██╗██╔╝
@@ -88,6 +117,42 @@ end
 ██║  ██║██║   ██║ ██╔██╗
 ██████╔╝╚██████╔╝██╔╝ ██╗
 ╚═════╝  ╚═════╝ ╚═╝  ╚═╝]]
+--[[!
+@fqxn Classes.Utility.Dox
+@desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
+<br><br>
+<strong>Note</strong>: Dox is intended only to be used by being subclassed.
+<br>Subclasses of Dox (called parsers), provide the required parameters to
+<br>properly parse comments blocks for specific languages.
+<br>Running Dox stand-alone without subclassing it will yield unpredictable results.
+--...Meta End
+@ex
+    --\[\[!
+        \@fqxn Classes.Utility.Dox
+        \@desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
+        <br>
+        <br>Note: Dox is intended only to be used by being subclassed.
+        <br>Subclasses of Dox (called parsers), provide the required parameters to
+        <br>properly parse comments blocks for specific languages.
+        <br>Running Dox stand-alone without subclassing it will yield unpredictable results.
+        \@ex --Many Wow! How Yay! Much Meta!
+        --...Meta End
+    !\]\]
+@ex
+--for this example, we're using Lua
+
+--create the Lua language object (with the project name)
+local oDoxLua = DoxLua("MyProject");
+
+--import a directory recursively (read & parse files)
+local pImport = (pPathToMyProject, true);
+
+--set the output path
+oDoxLua.setOutputPath("C:\\Users\\MyUsername\\MyProject");
+
+--export html help file.
+oDoxLua.export(); --profit!
+!]]
 return class("Dox",
 {--metamethods
     __tostring = function()
@@ -100,6 +165,7 @@ return class("Dox",
     OUTPUT = eOutputType,
 },
 {--private
+    --[[@qxn Classes.Utility.Dox.Properties]]
     blockOpen           = "",
     blockClose          = "",
     blockTags           = {},
@@ -120,7 +186,8 @@ return class("Dox",
     tagOpen             = "",
     title               = "",
     --[[!
-    @fqxn LuaEx.Classes.Dox.Methods.extractBlockStrings
+    @fqxn Classes.Utility.Dox.Methods.extractBlockStrings
+    @vis private
     @desc Extracts Dox comment blocks from a string input and stores them for later processing.
     @par string sInput The string from which the comment blocks should be extracted.
     !]]
@@ -193,7 +260,7 @@ return class("Dox",
         local pri = cdat.pri;
     end,
     --[[!
-    @fqxn LuaEx.Classes.Dox.Methods.refresh
+    @fqxn Classes.Utility.Dox.Methods.refresh
     @desc Refreshes the finalized data
     !]]
     refresh = function(this, cdat)

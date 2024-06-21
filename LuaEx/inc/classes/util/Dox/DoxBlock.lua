@@ -119,7 +119,7 @@ return class("DoxBlock",
 
             --split the string into tag and contents
             local sTag, sContent = sRawItem:match("([^%s]*)%s(.*)");
-            type.assert.string(sContent, "%S+", "Dox BlockTag content cannot be blank must not be blank.\n"..tostring(oItemBlockTag).."\n\nIn Block:\n"..sRawBlock);
+            type.assert.string(sContent, "%S+", "Dox BlockTag content must not be blank.\n"..tostring(oItemBlockTag).."\n\nIn Block:\n"..sRawBlock);
 
             --store the content
             if (oItemBlockTag.getDisplay() == "FQXN") then

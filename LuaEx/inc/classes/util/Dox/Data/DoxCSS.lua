@@ -16,6 +16,10 @@ return [[
             }
         }
 
+        pre {
+            white-space: pre-wrap; !important
+        }
+
         /* CSS to style the "Copy to Clipboard" button */
         .copy-to-clipboard-button {
             background-color: #4CAF50; /* Green background */

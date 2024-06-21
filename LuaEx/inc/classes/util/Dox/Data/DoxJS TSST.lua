@@ -122,49 +122,47 @@ const doxData = {
     }
 };
 
-
 class Dox {
-
-
     constructor() {
         if (!Dox.instance) {
             Dox.instance = this;
             this.data = doxData;
             this.activeFQXN = "Modules";
-            this.previousFQXN = "";
-            // Initialize link click event listener (for handling anchor links)
+            this.previousFQXN = "Modules";
+            this.nextFQXN = "Modules"; // Gets set on back button
+
+            // Initialize link click event listener
             document.body.addEventListener('click', (event) => {
                 const target = event.target;
-
-                if (target && target.tagName === 'A') {
-                    // Check if the target has an href property and starts with the specified protocols
-                    if (target.href && (
-                        target.href.startsWith('file:///') ||
-                        target.href.startsWith('http://')  ||
-                        target.href.startsWith('https://') ||
-                        target.href.startsWith('www')
-                    )) {
-                        event.preventDefault(); // Prevent default link behavior
-                        const anchorIndex = target.href.indexOf('#');
-                        const strippedString = target.href.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
-
-                        if (strippedString !== '') {
-                            const sFQXN = "Modules." + strippedString;
-
-                            if (this.setActiveFQXN(sFQXN)) {                                
-                                this.updatePage();
-                            }
+                if (target.tagName === 'A' && target.href.startsWith('file:///')) {
+                    event.preventDefault(); // Prevent default link behavior
+                    const anchorIndex = target.href.indexOf('#');
+                    const strippedString = target.href.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
+                    if (strippedString !== '') {
+                        const sFQXN = "Modules." + strippedString;
+                        if (this.setActiveFQXN(sFQXN)) {
+                            this.updatePage();                            
                         }
                     }
                 }
             });
 
-
             // Listen for the popstate event
-            window.addEventListener('popstate', () => {
-                // When the user navigates back or forward, retrieve the stored FQXN from the history state
-                const fqxn = history.state && history.state.activeFQXN;
-                if (fqxn && this.setActiveFQXN(fqxn)) {
+            window.addEventListener('popstate', (event) => {
+                const currentState = event.state.activeFQXN;
+                const previousState = this.previousFQXN; // Function to get the previous state
+                console.log(currentState, previousState)
+                if (previousState && currentState) {
+                    if (currentState === previousState.previousFQXN) {
+                        // It's a "back" navigation
+                        // Handle back navigation logic here
+                        this.setActiveFQXN(previousState.previousFQXN);
+                    } else if (currentState === previousState.nextFQXN) {
+                        // It's a "forward" navigation
+                        // Handle forward navigation logic here
+                        this.setActiveFQXN(previousState.nextFQXN);
+                    }
+
                     // Update your application with the retrieved FQXN
                     this.updatePage();
                 }
@@ -178,14 +176,12 @@ class Dox {
         return document.getElementById(sID);
     }
 
-
     getPropertyByPath(obj, path, property) {
         const parts = path.split('.');
         let current = obj;
 
         for (let part of parts) {
             if (current[part]) {
-                //current = current[part].subtable !== null ? current[part].subtable : current[part];
                 current = current[part][property] !== null ? current[part][property] : current[part];
             } else {
                 return undefined;
@@ -193,7 +189,6 @@ class Dox {
         }
         return current;
     }
-
 
     fqxnIsValid(sFQXN) {
         let tRet = false;
@@ -203,11 +198,9 @@ class Dox {
             const tParts = sFQXN.split('.');
 
             for (const sPart of tParts) {
-
                 if (tCurrent[sPart]) {
                     tRet = true;
                     tCurrent = tCurrent[sPart];
-
                     if (tCurrent.subtable) {
                         tCurrent = tCurrent.subtable;
                     }
@@ -216,10 +209,8 @@ class Dox {
                 }
             }
         }
-
         return tRet;
     }
-
 
     getDataByFQDN(fqxn) {
         let tRet = null;
@@ -229,11 +220,9 @@ class Dox {
             const tParts = fqxn.split('.');
 
             for (const sPart of tParts) {
-
                 if (tCurrent[sPart]) {
                     tRet = tCurrent[sPart];
                     tCurrent = tCurrent[sPart];
-
                     if (tCurrent.subtable) {
                         tCurrent = tCurrent.subtable;
                     }
@@ -242,26 +231,22 @@ class Dox {
                 }
             }
         }
-
         return tRet;
     }
-
 
     getActiveFQXN() {
         return this.activeFQXN;
     }
 
-
     setActiveFQXN(sFQXN) {
         let bRet = this.fqxnIsValid(sFQXN);
 
         if (bRet) {
+            history.pushState({ previousFQXN: this.activeFQXN }, ''); // Update history state
             this.activeFQXN = sFQXN;
         }
-
         return bRet;
     }
-
 
     updateContent() {
         const sActiveFQXN   = this.getActiveFQXN();
@@ -269,7 +254,7 @@ class Dox {
 
         if (tData) {
             const value     = tData["value"];
-            const content   = this.byID('DOX_content'); //TODO rename these to avoid user id collision
+            const content   = this.byID('DOX_content');
             content.innerHTML  = '';
 
             if (value) {
@@ -277,16 +262,14 @@ class Dox {
             } else {
                 content.innerHTML = '';
             }
-
         }
-
     }
 
     updateBreadcrumb() {
         const breadcrumb = this.byID('DOX_breadcrumb');
-        breadcrumb.innerHTML = ''; // Clear previous breadcrumb items
+        breadcrumb.innerHTML = '';
 
-        const tParts = this.getActiveFQXN().split('.'); // Split the activeFQXN into parts
+        const tParts = this.getActiveFQXN().split('.');
 
         tParts.forEach((part, nIndex) => {
             const li = document.createElement('li');
@@ -314,19 +297,17 @@ class Dox {
         });
     }
 
-
     updateNavMenu() {
         const sActiveFQXN = this.getActiveFQXN();
         const tData = this.getDataByFQDN(sActiveFQXN);
 
         if (tData) {
             const menu = this.byID('DOX_navmenu');
-            menu.innerHTML = ''; // Clear the current HTML from the menu
+            menu.innerHTML = '';
 
             if (tData.subtable) {
                 const subtable = tData.subtable;
 
-                // Create the list items for subtable items
                 Object.keys(subtable).forEach(key => {
                     const li = document.createElement('li');
                     li.className = 'nav-item';
@@ -355,7 +336,6 @@ class Dox {
                     menu.appendChild(li);
                 });
             } else {
-                // Load menu with elements from the table above it
                 const parentData = this.getDataByFQDN(sActiveFQXN.split('.').slice(0, -1).join('.'));
                 if (parentData && parentData.subtable) {
                     Object.keys(parentData.subtable).forEach(key => {
@@ -384,15 +364,13 @@ class Dox {
         }
     }
 
-
     updatePage() {
         this.updateNavMenu();
         this.updateBreadcrumb();
         this.updateContent();
         Prism.highlightAll();
-        history.pushState({ activeFQXN: this.getActiveFQXN() }, '');
     }
-
-
 }
+
+
 ]];
