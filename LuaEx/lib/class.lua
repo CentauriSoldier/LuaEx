@@ -513,7 +513,7 @@ function instance.prepClassData(tInstance)
                     sIndices = sIndices .. "'"..tostring(vIndex).."', ";
                 end
                 sIndices = sIndices:sub(1, #sIndices - 2);
-                error("Error in class, '${class}'. Attempt to access non-existent class data index, '${index}'.\nValid indices are ${indices}." % {class = tKit.name, index = tostring(k), indices = sIndices});
+                error("Error in class, '${class}'. Attempt to access non-existent class data index, '${index}'.\nValid indices are ${indices}." % {class = tKit.name, index = tostring(k), indices = sIndices}, 3);
             end
 
             return vRet;
@@ -845,7 +845,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         pro 		    = clone(tProtected, 	true),
         pub      	    = clone(tPublic, 		true),
     };
-    
+
     --note and rename final methods
     kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
 

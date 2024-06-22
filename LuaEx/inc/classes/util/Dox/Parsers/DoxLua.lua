@@ -43,7 +43,7 @@ return class("DoxLua",
 
 },
 {--public
-    DoxLua = function(this, cdat, super, sTitle)
+    DoxLua = function(this, cdat, super, sTitle)        
         type.assert.string(sTitle, "%S+", "Dox Parser title name must not be blank.");
         local eSyntax = Dox.SYNTAX.LUA;
         local tMimeTypes = {

@@ -1,20 +1,17 @@
---load in Dox's required files
-local _pDoxRequirePath  = "LuaEx.inc.classes.util.Dox"
-local _sDoxBanner       = require(_pDoxRequirePath..".Data.DoxBanner");
-local _sDoxCSS          = require(_pDoxRequirePath..".Data.DoxCSS");
-local _sDoxHTML         = require(_pDoxRequirePath..".Data.DoxHTML")
-local _sDoxJS           = require(_pDoxRequirePath..".Data.DoxJS");
+local _nExampleInsertPoint  = 6; --where in the _tBuiltInBlockTags table to put the Example BlockTag
+local _pStaticsRequirePath  = "LuaEx.inc.classes.util.Dox.Statics";
+local _eSyntax              = require(_pStaticsRequirePath..".DoxSyntaxEnum");
+local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags");
 
-local _sPrismStable     = "1.29.0"; --TODO allow theme change
-local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
-local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};
 --FIX copy button missing!
---TODO remove <p> surrounding block items...
+--TODO @inheritdoc if possible...
+--TODO allow user to suround content block with (optional tags) tags...
 --TODO color dead anchor links
 --TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
 --TODO parse sinlge-line comments too
 --TODO Allow internal anchor links
 --TODO allow MoTD, custom banners etc.
+--TODO ad dtooltip with @des info (if available) in sidemenu items
 
 local assert    = assert;
 local class     = class;
@@ -25,71 +22,6 @@ local type      = type;
 
 local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
-
-
---these block tags are built-in to each Dox class
---[[!
-    @fqxn Classes.Utility.Dox.BlockTags
-    @desc This is a list of all built-in <a href="#Classes.Utility.Dox.BlockTag">BlockTags</a>.
-    <br>While subclasses (parsers) <i>may</i> provide their own, additional BlockTags, these are always guaranteed to be available.
-!]]
-local _bRequired            = true;
-local _bMultipleAllowed     = true;
-local _nExampleInsertPoint  = 6; --where in the table to put the Example BlockTag
-local _tBuiltInBlockTags    = {--TODO allow modification and ordering --TODO add a bCombine Variable for block tags with (or using) plural form
-    --[[!@fqxn Classes.Utility.Dox.BlockTags.FQXN
-        @desc   Display: FQXN<br>
-                Aliases:<br><ul><li>fqxn</li></ul>
-                Required: <b>true</b><br>
-                Multiple Allowed: <b>false</b><br>
-                #Items: <b>1</b>
-                <br><br>
-                The <b>Fully</b> <b>Q</b>ualified Do<b>x</b> <b>N</b>ame (FQXN) is a required BlockTag that tells Dox how to organize the block in the final html.<br>
-                It can be thought of as a unique web address, providing a unique landing page for all items within a block.<br>
-                In addition, FQXNs can be used to create anchor links.
-        @ex
-        --create an anchor link in a comment block to another item.
-        --\[\[!
-            \@fqxn MyProject.MyClass.MyMethods.Method1
-            \@desc This method does neat stuff then calls &lt;a href="MyProject.MyClass.MyMethods.Method2"&gt;Method2&lt;/a&gt;
-        !\]\]
-    !]]
-    DoxBlockTag({"fqxn"},                               "FQXN",                 _bRequired,     -_bMultipleAllowed),
-    --[[!@fqxn Classes.Utility.Dox.BlockTags.Scope
-         @desc  Display: Scope<br>
-                Aliases:<br><ul><li>scope</li></ul>
-                Required: <b>false</b><br>
-                Multiple Allowed: <b>false</b><br>
-                #Items: <b>1</b>
-    !]]
-    DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -_bMultipleAllowed,   0,  {"<em>", "</em>"}),
-    --[[!@fqxn Classes.Utility.Dox.BlockTags.Visibility @desc Display: Visibility<br>Aliases:<br><ul><li>vis</li>visi<li>visibility</li></ul>Required: <b>false</b><br>Multiple Allowed: <b>false</b><br>#Items: <b>1</b>!]]
-    DoxBlockTag({"vis", "visi", "visibility"},          "Visibility",           -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"des", "desc", "description"},         "Description",          -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
-    DoxBlockTag({"field"},                              "Field",                -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"prop", "property"},                   "Property",             -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"return", "ret"},                      "Return",               -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
-    --NOTE: RESERVED FOR Example Block Tag (inserted during class contruction)
-    DoxBlockTag({"code"},                               "Code",                 -_bRequired,    _bMultipleAllowed,    0,  {"<pre>", "</pre>"}),
-    DoxBlockTag({"features"},                           "Features",             -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"depend", "dependency"},               "Dependency",           -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"planned"},                            "Planned Features",     -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"todo"},                               "TODO",                 -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"issue"},                              "TODO",                 -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"changelog", "versionhistory"},        "Changelog",            -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"version", "ver"},                     "Version",              -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"author"},                             "Author",               -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"email"},                              "Email",                -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"license"},                            "License",              -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"www", "web", "website"},              "Website",              -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"github"},                             "GitHub",               -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"fb", "facebook"},                     "Facebook",             -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"x", "twitter"},                       "X (Twitter)",          -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"copy", "copyright"},                  "Copyright",            -_bRequired,    -_bMultipleAllowed),
-};
 
 
 --[[!
@@ -129,26 +61,29 @@ end
 @ex
     --\[\[!
         \@fqxn Classes.Utility.Dox
-        \@desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
-        <br>
-        <br>Note: Dox is intended only to be used by being subclassed.
-        <br>Subclasses of Dox (called parsers), provide the required parameters to
-        <br>properly parse comments blocks for specific languages.
-        <br>Running Dox stand-alone without subclassing it will yield unpredictable results.
+        \@desc &lt;strong&gt;Dox&lt;/strong&gt; auto-generates documentation for code by reading and parsing comment blocks.
+        <br>&lt;br&gt;
+        <br>&lt;br&gt;&lt;strong&gt;Note&lt;/strong&gt;: Dox is intended only to be used by being subclassed.
+        <br>&lt;br&gt;Subclasses of Dox (called parsers), provide the required parameters to
+        <br>&lt;br&gt;properly parse comments blocks for specific languages.
+        <br>&lt;br&gt;Running Dox stand-alone without subclassing it will yield unpredictable results.
         \@ex --Many Wow! How Yay! Much Meta!
         --...Meta End
     !\]\]
 @ex
 --for this example, we're using Lua
 
---create the Lua language object (with the project name)
+--create the Lua language parser object (with the project name)
 local oDoxLua = DoxLua("MyProject");
 
 --import a directory recursively (read & parse files)
-local pImport = (pPathToMyProject, true);
+oDoxLua.importDirectory(pPathToMyProject, true);
 
 --set the output path
 oDoxLua.setOutputPath("C:\\Users\\MyUsername\\MyProject");
+
+--[[we don't need to set a Dox.BUILDER since it defaults
+    to Dox.BUILDER.HTML and that's what we want\]\]
 
 --export html help file.
 oDoxLua.export(); --profit!
@@ -160,9 +95,10 @@ return class("Dox",
     end,
 },
 {--static public
-    MIME   = enum("MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
-    SYNTAX = require(_pDoxRequirePath..".DoxSyntaxEnum"),
-    OUTPUT = eOutputType,
+    --TODO move this out to the builder section and call it in
+    BUILDER = enum("Dox.BUILDER", {"HTML"}, {DoxBuilderHTML()}, true),
+    OUTPUT  = eOutputType,
+    SYNTAX  = _eSyntax,
 },
 {--private
     --[[@qxn Classes.Utility.Dox.Properties]]
@@ -170,10 +106,13 @@ return class("Dox",
     blockClose          = "",
     blockTags           = {},
     blockStrings        = {};
+    builder             = null,
+    --[[!@fqxn Classes.Utility.Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
     finalized           = {}; --this is the final, processed data (updated using the refresh() method)
     html                = "", --this is updated on refresh
     mimeTypes           = SortedDictionary(), --TODO throw error on removal of last item
     name                = "",
+    output              = "",
     OutputPath_AUTO     = "",
     prismCSS            = "",
     --prismScripts        = {},
@@ -250,7 +189,8 @@ return class("Dox",
             sTableDataItems = sTableDataItems.."   "..sWrapFront..tContent[x]..sWrapBack.."";
         end
 
-        return [[<div class="custom-section"><div class="section-title">${display}</div><div class="section-content"><p>${content}</p></div></div>]] %
+        --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder
+        return [[<div class="custom-section"><div class="section-title">${display}</div><div class="section-content">${content}</div></div>]] %
         {
             display = oBlockTag.getDisplay(),
             content = sTableDataItems,--TODO break up content into columns as needed
@@ -292,7 +232,7 @@ return class("Dox",
             end
 
 
-
+            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder
             --create the content string
             local sContent = [[<div class="container-fluid">]];
 
@@ -302,6 +242,7 @@ return class("Dox",
                 sContent = sContent..sInnerContent;
             end
 
+            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder
             --set the call to get the content
             setmetatable(tActive, {
                 __call = function(t)
@@ -312,173 +253,6 @@ return class("Dox",
         end
 
     end,
-    [eOutputType.HTML.name] = {
-        build = function(this, cdat)
-            local pri        = cdat.pri;
-            local tFunctions = pri[eOutputType.HTML.name];
-            local sTitle     = pri.title;
-
-            --update and write the html
-            local sHTML = _sDoxHTML % {__DOX__CSS__ = _sDoxCSS};
-            sHTML = sHTML % {
-                __DOX_BANNER__URL__     = _sDoxBanner:gsub("\n", ''), --TODO allow custom banner
-                __DOX__TITLE__          = sTitle,
-                __DOX__PRISM_CSS__      = _sPrismCSS,
-            };
-
-            --inject the javascript
-            sHTML = sHTML % {__DOX__INTERNAL_JS__ = "const userData = "..tFunctions.buildJS(this, cdat)};
-
-            --insert the prism scripts for the found languages
-            local sPrismScripts = tFunctions.generatePrismScripts(sHTML);
-            sHTML = sHTML % {__DOX__PRISM__SCRIPTS__ = sPrismScripts};
-
-            pri.html = sHTML;
-        end,
-        buildJS = function(this, cdat)
-            local sRet       = "";
-            local pri        = cdat.pri;
-            local tFunctions = pri[eOutputType.HTML.name];
-            local lineNumber = 0
-            local bFound = false
-
-            -- Read the input text line by line (split by newline character)
-            for line in _sDoxJS:gmatch("[^\r\n]+") do
-                lineNumber = lineNumber + 1
-
-                -- Check if the search string is in the current line
-                if bFound then
-                    sRet = sRet .. line .. "\n"
-                elseif string.find(line, "//—©_END_DOX_TESTDATA_©—", 1, true) then
-                    bFound = true
-                end
-            end
-
-            if not bFound then
-                return nil, "String not found in the input"
-            end
-
-            local sJSON = tFunctions.buildJSONTable(this, cdat);
-            return sJSON.."\n\n"..sRet;
-        end,
-        buildJSONTable = function(this, cdat) --TODO clean up
-            local pri        = cdat.pri;
-            local tFunctions = pri[eOutputType.HTML.name];
-
-            local function luaTableToJson(tbl, startIndent)
-                startIndent = startIndent or 0
-                local indentSpace = string.rep(" ", startIndent)
-
-                local function processTable(t, indent)
-                    local result = {}
-                    local sortedKeys = {}
-
-                    for key in pairs(t) do
-                        table.insert(sortedKeys, key)
-                    end
-                    table.sort(sortedKeys)
-
-                    for _, key in ipairs(sortedKeys) do
-                        local subtable = t[key]
-                        local value = subtable();
-                        local subtableResult = processTable(subtable, indent .. "    ")
-                        local newstring = indent .. '"' .. key .. '": {\n' ..
-                                          indent .. '    "value": "' .. tFunctions.prepJSONString(value) .. '",\n' ..
-                                          indent .. '    "subtable": ' .. (next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null") .. '\n' ..
-                                          indent .. '}'
-                        table.insert(result, newstring)
-                    end
-
-                    return result
-                end
-
-                local jsonResult = processTable(tbl, indentSpace)
-                return "{\n" .. table.concat(jsonResult, ",\n") .. "\n" .. indentSpace .. "}"
-            end
-
-            -- Convert the Lua table to JSON format
-            local nIndentSpaces = 4
-            return luaTableToJson(cdat.pri.finalized, nIndentSpaces)
-        end,
-        generatePrismScripts = function(sHTML)
-            -- Define the mapping between language tags and script URLs
-            local prismBaseURL = "https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/components/prism-" % {stable = _sPrismStable};
-            local languages = {
-                abap = "abap", abnf = "abnf", actionscript = "actionscript", ada = "ada", apacheconf = "apacheconf",
-                apl = "apl", applescript = "applescript", aql = "aql", arduino = "arduino", arff = "arff",
-                asciidoc = "asciidoc", asm6502 = "asm6502", aspnet = "aspnet", autohotkey = "autohotkey",
-                autoit = "autoit", bash = "bash", basic = "basic", batch = "batch", bbcode = "bbcode",
-                bison = "bison", brainfuck = "brainfuck", bro = "bro", c = "c", cil = "cil", clike = "clike",
-                clojure = "clojure", cmake = "cmake", coffeescript = "coffeescript", core = "core", cpp = "cpp",
-                crystal = "crystal", csharp = "csharp", csp = "csp", css = "css", cssExtras = "css-extras",
-                d = "d", dart = "dart", diff = "diff", django = "django", docker = "docker", eiffel = "eiffel",
-                elixir = "elixir", elm = "elm", erb = "erb", erlang = "erlang", flow = "flow", fortran = "fortran",
-                fsharp = "fsharp", gcode = "gcode", gdscript = "gdscript", gedcom = "gedcom", gherkin = "gherkin",
-                git = "git", glsl = "glsl", gml = "gml", go = "go", graphql = "graphql", groovy = "groovy",
-                haml = "haml", handlebars = "handlebars", haskell = "haskell", haxe = "haxe", hcl = "hcl", hlsl = "hlsl",
-                http = "http", ichigojam = "ichigojam", icon = "icon", inform7 = "inform7", ini = "ini", io = "io",
-                j = "j", java = "java", javadoc = "javadoc", javastacktrace = "javastacktrace", jexl = "jexl",
-                jolie = "jolie", jq = "jq", javascript = "javascript", jsExtras = "js-extras", jsTemplates = "js-templates",
-                json = "json", json5 = "json5", jsonp = "jsonp", jsdoc = "jsdoc", jsx = "jsx", julia = "julia",
-                keyman = "keyman", kotlin = "kotlin", latex = "latex", less = "less", lilypond = "lilypond", liquid = "liquid",
-                lisp = "lisp", livescript = "livescript", llvm = "llvm", log = "log", lolcode = "lolcode", lua = "lua",
-                makefile = "makefile", markdown = "markdown", markup = "markup", matlab = "matlab", mel = "mel",
-                mizar = "mizar", mongodb = "mongodb", monkey = "monkey", moonscript = "moonscript", n1ql = "n1ql",
-                nginx = "nginx", nim = "nim", nix = "nix", nsis = "nsis", objectivec = "objectivec", ocaml = "ocaml",
-                opencl = "opencl", oz = "oz", parigp = "parigp", parser = "parser", pascal = "pascal", perl = "perl",
-                php = "php", phpdoc = "phpdoc", phpExtras = "php-extras", plsql = "plsql", powershell = "powershell",
-                processing = "processing", prolog = "prolog", properties = "properties", protobuf = "protobuf", pug = "pug",
-                puppet = "puppet", pure = "pure", python = "python", q = "q", qml = "qml", qore = "qore", r = "r",
-                reason = "reason", regex = "regex", renpy = "renpy", rest = "rest", rip = "rip", roboconf = "roboconf",
-                ruby = "ruby", rust = "rust", sas = "sas", sass = "sass", scss = "scss", scala = "scala", scheme = "scheme",
-                shell = "shell", smali = "smali", smalltalk = "smalltalk", smarty = "smarty", solidity = "solidity",
-                solutionfile = "solutionfile", soy = "soy", sparql = "sparql", splunkSpl = "splunk-spl", sql = "sql",
-                stylus = "stylus", swift = "swift", t4 = "t4", t4Cs = "t4-cs", t4Templating = "t4-templating",
-                t4Vb = "t4-vb", tap = "tap", tcl = "tcl", textile = "textile", toml = "toml", tsx = "tsx",
-                tt2 = "tt2", turtle = "turtle", twig = "twig", typescript = "typescript", vala = "vala", vbnet = "vbnet",
-                velocity = "velocity", verilog = "verilog", vhdl = "vhdl", vim = "vim", visualBasic = "visual-basic",
-                wasm = "wasm", wiki = "wiki", xeora = "xeora", xmlDoc = "xml-doc", xojo = "xojo", xquery = "xquery",
-                yaml = "yaml", zig = "zig",
-            }
-
-            -- Set to store found languages to avoid duplicates
-            local foundLanguages = {}
-
-            -- Pattern to match the code blocks with language tags
-            for lang in sHTML:gmatch('class=\\"language%-(%w+)\\"') do
-            --for lang in sHTML:gmatch('class="language-lua"') do
-
-                -- Check if the language is supported and add it to the set
-                if languages[lang] then
-                    foundLanguages[languages[lang]] = true
-                else
-                    foundLanguages[lang] = true
-                end
-            end
-
-            -- Generate the script tags
-            local scripts = {}
-            table.insert(scripts, '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable});
-            for lang, _ in pairs(foundLanguages) do
-                table.insert(scripts, string.format('<script src="%s%s.min.js"></script>', prismBaseURL, lang))
-            end
-
-            return table.concat(scripts, "\n")
-        end,
-        prepJSONString = function (s)
-            if type(s) ~= "string" then
-                return ""
-            end
-            s = s:gsub("\\", "\\\\")
-            s = s:gsub('"', '\\"')
-            s = s:gsub("\b", "\\b")
-            s = s:gsub("\f", "\\f")
-            s = s:gsub("\n", "\\n")
-            s = s:gsub("\r", "\\r")
-            s = s:gsub("\t", "\\t")
-            return s
-        end,
-    },
 },
 {},--protected
 {--public
@@ -492,6 +266,7 @@ return class("Dox",
         type.assert.table(tMimeTypes,   "number",   "DoxMime", 1);
 
         local pri               = cdat.pri;
+        pri.builder             = Dox.BUILDER.HTML; --default builder
         pri.blockOpen           = sBlockOpen;
         pri.blockClose          = sBlockClose;
         pri.name                = sName;
@@ -516,8 +291,9 @@ return class("Dox",
         end
 
         --create and inject the example block tag (language-specific)
+        --TODO BUG FIX This HTML CANNOT be here...wrapper has to be gotten from the DoxBuilder
         table.insert(pri.blockTags, _nExampleInsertPoint,
-        DoxBlockTag({"ex", "example"}, "Example", -_bRequired, _bMultipleAllowed, 0,
+        DoxBlockTag({"ex", "example"}, "Example", false, true, 0,
                     {"<pre><code class=\"language-"..eSyntax.value.getPrismName().."\">",
                      "</code></pre>"}));
 
@@ -555,9 +331,6 @@ return class("Dox",
 
         end
 
-        --for _, sPrismScript in ipairs(tPrismScripts) do
-            --table.insert(pri.prismScripts, sPrismScript % {stable = _sPrismStable});
-        --end
 
         --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
 
@@ -581,14 +354,15 @@ return class("Dox",
         end
 
     end,
-    export_FNL = function(this, cdat, eOutputType, bPulsar) --TODO puslar snippets
-        --type.assert.custom(eOutputType, "DoxOutput");
-        local pri = cdat.pri;
-        eOutputType = Dox.OUTPUT.HTML -- TODO allow supporting other output types
+    export_FNL = function(this, cdat, bPulsar) --TODO puslar snippets
+        local pri           = cdat.pri;
+        local eBuilder      = pri.builder;
+        local cBuilder      = pri.builder.value;
+        local eBuilderMime  = cBuilder.getMime();
 
         --TODO use proper directory separator
-        local pHTMLOut = pri.OutputPath.."\\"..pri.title..".html";
-        pri[eOutputType.name].build(this, cdat);
+        local pOut = pri.OutputPath.."\\"..pri.title.."."..eBuilderMime.value;
+        pri.output = cBuilder.build(pri.title, pri.finalized);--TODO clone table?
 
         local function writeFile(pFile, sContent)
             local hFile = io.open(pFile, "w");
@@ -600,10 +374,10 @@ return class("Dox",
             hFile:close();
         end
 
-        writeFile(pHTMLOut, pri.html);
+        writeFile(pOut, pri.output);
     end,
-    getHTML = function(this, cdat)
-        return cdat.pri.html;
+    getOutput = function(this, cdat)
+        return cdat.pri.output;
     end,
     getLanguage_FNL = function(this, cdat)
         return cdat.pri.syntax;
@@ -695,6 +469,10 @@ return class("Dox",
     end,
     refresh = function(this, cdat)
         dat.pri.refresh();
+    end,
+    setBuilder = function(this, cdat, eBuilder)
+        assert(type.isa(eBuilder, Dox.BUILDER), "Error setting Dox Builder.\nExpected type DoxBuilder (subclass). Got type "..type(eBuilder)..'.');
+        cdat.pri.builder = eBuilder;
     end,
 },
 nil,    --extending class

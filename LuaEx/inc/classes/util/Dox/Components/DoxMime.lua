@@ -6,8 +6,8 @@ return class("DoxMime",
 
 },
 {--PRIVATE
-    name        = "",
-    preProcessor  = null,
+    name         = "",
+    preProcessor = null,
 },
 {--PROTECTED
 
@@ -16,10 +16,10 @@ return class("DoxMime",
     DoxMime = function(this, cdat, sName, fPreProcessor)
         type.assert.string(sName, "%S+");
         local pri = cdat.pri;
-        
+
         pri.preProcessor = type(fPreProcessor) == "function" and fPreProcessor or
                          function(sInput) return sInput end;
-        pri.name       = sName:gsub("^%.", ""):lower();
+        pri.name         = sName:gsub("^%.", ""):lower();
     end,
     getName = function(this, cdat)
         return cdat.pri.name;

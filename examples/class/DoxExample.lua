@@ -56,6 +56,7 @@ local oDoxLua = DoxLua("LuaEx");
 local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx");
 local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects"
 oDoxLua.importDirectory(pImport, true);
+--oDoxLua.setBuilder();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export();
 

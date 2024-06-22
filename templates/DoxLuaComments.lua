@@ -1,19 +1,33 @@
 --[[!
     @fqxn
-    @des
-    @parameter
-    @return
-    @ex
     @scope
+    @vis
+    @note
+    @summary
+    @des
+    @param
+    @field
+    @prop
+    @throws
+    @ret
+    @ex
+    @code
+    @requires
+    @uses
     @features
     @parent
     @interface
-    @depend
+    @security
+    @perfomance
     @planned
     @todo
     @issue
+    @bug
+    @since
+    @deprecated
     @changelog
-    @version
+    @ver
+    @see
     @author
     @email
     @license
@@ -21,4 +35,5 @@
     @github
     @fb
     @x
+    @copy
 !]]

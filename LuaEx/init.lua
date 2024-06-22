@@ -227,75 +227,88 @@ if (tClassLoadValues[_nClassSystem]) then
 
     --🅸🅼🅿🅾🆁🆃 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂
     iCloneable 		= require("LuaEx.inc.interfaces.iCloneable");
-    iSerializable 	= require("LuaEx.inc..interfaces.iSerializable");
-    iShape 	        = require("LuaEx.inc..interfaces.iShape");
+    iSerializable 	= require("LuaEx.inc.interfaces.iSerializable");
+    iShape 	        = require("LuaEx.inc.interfaces.iShape");
 
     --🅸🅼🅿🅾🆁🆃 🅲🅻🅰🆂🆂🅴🆂
 
     if (tClassLoadValues[_nBasicClasses]) then
+        local pClasses = "LuaEx.inc.classes";
+
         --dependency class
-        Queue               = require("LuaEx.inc.classes.Queue");
-        Stack               = require("LuaEx.inc.classes.Stack");
-        Set                 = require("LuaEx.inc.classes.Set");
-        SortedDictionary    = require("LuaEx.inc.classes.SortedDictionary");
+        Queue               = require(pClasses..".Queue");
+        Stack               = require(pClasses..".Stack");
+        Set                 = require(pClasses..".Set");
+        SortedDictionary    = require(pClasses..".SortedDictionary");
 
         if (tClassLoadValues[_nComponentClasses]) then
             --component classes
-            Potentiometer = require("LuaEx.inc.classes.component.Potentiometer");
+            Potentiometer = require(pClasses..".component.Potentiometer");
 
 
             if (tClassLoadValues[_nGeometryClasses]) then
                 --geometry classes
-                Point   = require("LuaEx.inc.classes.geometry.Point");
-                Line    = require("LuaEx.inc.classes.geometry.Line");
+                Point   = require(pClasses..".geometry.Point");
+                Line    = require(pClasses..".geometry.Line");
                 --shapes
-                Shape   = require("LuaEx.inc.classes.geometry.shapes.Shape");
-                Circle  = require("LuaEx.inc.classes.geometry.shapes.Circle");
-                Polygon = require("LuaEx.inc.classes.geometry.shapes.Polygon");
+                Shape   = require(pClasses..".geometry.shapes.Shape");
+                Circle  = require(pClasses..".geometry.shapes.Circle");
+                Polygon = require(pClasses..".geometry.shapes.Polygon");
             end
 
             if (tClassLoadValues[_nUtilClasses]) then
-                --dox and included support classes
-                DoxMime     = require("LuaEx.inc.classes.util.Dox.DoxMime");
-                DoxSyntax   = require("LuaEx.inc.classes.util.Dox.DoxSyntax");
-                DoxBlockTag = require("LuaEx.inc.classes.util.Dox.DoxBlockTag");
-                DoxBlock    = require("LuaEx.inc.classes.util.Dox.DoxBlock");
-                Dox         = require("LuaEx.inc.classes.util.Dox.Dox");
+                pDox                    = pClasses..".util.Dox";
+                local pDoxBuilders  = pDox..".Builders";
+                local pDoxComponents    = pDox..".Components";
+                local pDoxParsers       = pDox..".Parsers";
 
-                --require Dox Parsers
-                DoxAssemblyNASM         = require("LuaEx.inc.classes.util.Dox.Parsers.DoxAssemblyNASM")
-                DoxAutoPlayMediaStudio  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxAutoPlayMediaStudio");
-                DoxC                    = require("LuaEx.inc.classes.util.Dox.Parsers.DoxC")
-                DoxCSharp               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxCSharp")
-                DoxCPlusPlus            = require("LuaEx.inc.classes.util.Dox.Parsers.DoxCPlusPlus")
-                DoxCSS                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxCSS")
-                DoxDart                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxDart")
-                DoxElm                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxElm")
-                DoxFSharp               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxFSharp")
-                DoxFortran              = require("LuaEx.inc.classes.util.Dox.Parsers.DoxFortran")
-                DoxGo                   = require("LuaEx.inc.classes.util.Dox.Parsers.DoxGo")
-                DoxGroovy               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxGroovy")
-                DoxHaskell              = require("LuaEx.inc.classes.util.Dox.Parsers.DoxHaskell")
-                DoxHTML                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxHTML")
-                DoxJava                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxJava")
-                DoxJavaScript           = require("LuaEx.inc.classes.util.Dox.Parsers.DoxJavaScript")
-                DoxJulia                = require("LuaEx.inc.classes.util.Dox.Parsers.DoxJulia")
-                DoxKotlin               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxKotlin")
-                DoxLua                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxLua");
-                DoxMatlab               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxMatlab")
-                DoxObjectiveC           = require("LuaEx.inc.classes.util.Dox.Parsers.DoxObjectiveC")
-                DoxPerl                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxPerl")
-                DoxPHP                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxPHP")
-                DoxPython               = require("LuaEx.inc.classes.util.Dox.Parsers.DoxPython")
-                DoxRuby                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxRuby")
-                DoxRust                 = require("LuaEx.inc.classes.util.Dox.Parsers.DoxRust")
-                DoxScala                = require("LuaEx.inc.classes.util.Dox.Parsers.DoxScala")
-                DoxSwift                = require("LuaEx.inc.classes.util.Dox.Parsers.DoxSwift")
-                DoxTypeScript           = require("LuaEx.inc.classes.util.Dox.Parsers.DoxTypeScript")
-                DoxXML                  = require("LuaEx.inc.classes.util.Dox.Parsers.DoxXML")
+                --dox and dox component classes
+                DoxMime         = require(pDoxComponents..".DoxMime"); --TODO rename to Parser
+                DoxSyntax       = require(pDoxComponents..".DoxSyntax");
+                DoxBlockTag     = require(pDoxComponents..".DoxBlockTag");
+                DoxBlock        = require(pDoxComponents..".DoxBlock");
+                DoxBuilder      = require(pDoxComponents..".DoxBuilder");
+
+                --require Dox Builders
+                DoxBuilderHTML  = require(pDoxBuilders..".HTML.DoxBuilderHTML");
+
+                --require Dox and Dox parsers (subclasses)
+                Dox                     = require(pDox..".Dox");
+                DoxAssemblyNASM         = require(pDoxParsers..".DoxAssemblyNASM")
+                DoxAutoPlayMediaStudio  = require(pDoxParsers..".DoxAutoPlayMediaStudio");
+                DoxC                    = require(pDoxParsers..".DoxC")
+                DoxCSharp               = require(pDoxParsers..".DoxCSharp")
+                DoxCPlusPlus            = require(pDoxParsers..".DoxCPlusPlus")
+                DoxCSS                  = require(pDoxParsers..".DoxCSS")
+                DoxDart                 = require(pDoxParsers..".DoxDart")
+                DoxElm                  = require(pDoxParsers..".DoxElm")
+                DoxFSharp               = require(pDoxParsers..".DoxFSharp")
+                DoxFortran              = require(pDoxParsers..".DoxFortran")
+                DoxGo                   = require(pDoxParsers..".DoxGo")
+                DoxGroovy               = require(pDoxParsers..".DoxGroovy")
+                DoxHaskell              = require(pDoxParsers..".DoxHaskell")
+                DoxHTML                 = require(pDoxParsers..".DoxHTML")
+                DoxJava                 = require(pDoxParsers..".DoxJava")
+                DoxJavaScript           = require(pDoxParsers..".DoxJavaScript")
+                DoxJulia                = require(pDoxParsers..".DoxJulia")
+                DoxKotlin               = require(pDoxParsers..".DoxKotlin")
+                DoxLua                  = require(pDoxParsers..".DoxLua");
+                DoxMatlab               = require(pDoxParsers..".DoxMatlab")
+                DoxObjectiveC           = require(pDoxParsers..".DoxObjectiveC")
+                DoxPerl                 = require(pDoxParsers..".DoxPerl")
+                DoxPHP                  = require(pDoxParsers..".DoxPHP")
+                DoxPython               = require(pDoxParsers..".DoxPython")
+                DoxRuby                 = require(pDoxParsers..".DoxRuby")
+                DoxRust                 = require(pDoxParsers..".DoxRust")
+                DoxScala                = require(pDoxParsers..".DoxScala")
+                DoxSwift                = require(pDoxParsers..".DoxSwift")
+                DoxTypeScript           = require(pDoxParsers..".DoxTypeScript")
+                DoxXML                  = require(pDoxParsers..".DoxXML")
+
+
 
                 --ini
-                Ini    = require("LuaEx.inc.classes.util.Ini"); --TODO need to finish OrderedSet first
+                Ini    = require(pClasses..".util.Ini"); --TODO need to finish OrderedSet first
             end
 
         end
