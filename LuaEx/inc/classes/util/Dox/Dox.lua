@@ -82,7 +82,7 @@ oDoxLua.importDirectory(pPathToMyProject, true);
 --set the output path
 oDoxLua.setOutputPath("C:\\Users\\MyUsername\\MyProject");
 
---[[we don't need to set a Dox.BUILDER since it defaults
+--\[\[we don't need to set a Dox.BUILDER since it defaults
     to Dox.BUILDER.HTML and that's what we want\]\]
 
 --export html help file.
