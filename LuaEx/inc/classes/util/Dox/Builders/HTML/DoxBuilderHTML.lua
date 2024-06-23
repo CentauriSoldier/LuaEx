@@ -128,6 +128,12 @@ return class("DoxBuilderHTML",
 {--PUBLIC
     DoxBuilderHTML = function(this, cdat, super)
         super(DoxBuilder.MIME.HTML);
+        local pro = cdat.pro;
+
+        pro.blockWrapper.open       = '<div class="container-fluid">';
+        pro.blockWrapper.close      = '</div>';
+        pro.exampleWrapper.open     = '<pre><code class=\"language-';
+        pro.exampleWrapper.close    = '</code></pre>';
     end,
     build = function(this, cdat, sTitle, tFinalizedData)
         type.assert.string(sTitle);
@@ -149,6 +155,12 @@ return class("DoxBuilderHTML",
         sHTML = sHTML % {__DOX__PRISM__SCRIPTS__ = sPrismScripts};
 
         return sHTML;
+    end,
+    getExampleWrapper = function(this, cdat, eSyntax)
+        type.assert.custom(eSyntax, "Dox.SYNTAX");
+        local tRet = clone(cdat.pro.exampleWrapper);
+        tRet.open = tRet.open..eSyntax.value.getPrismName()..'">';
+        return tRet;
     end,
 },
 DoxBuilder, --extending class

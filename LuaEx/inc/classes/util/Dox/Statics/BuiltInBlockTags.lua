@@ -48,7 +48,7 @@ return {
     DoxBlockTag({"des", "desc", "description"},         "Description",          -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"note"},                               "Note",                 -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"summary"},                            "Summary",              -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
+    DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),--TODO move this builder, add functionin blocktag to allow adding/changing 
     DoxBlockTag({"field"},                              "Field",                -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"prop", "property"},                   "Property",             -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"throws"},                             "Throws",               -_bRequired,    _bMultipleAllowed),
@@ -56,7 +56,7 @@ return {
     --NOTE: RESERVED FOR Example Block Tag (inserted during class contruction)
     DoxBlockTag({"code"},                               "Code",                 -_bRequired,    _bMultipleAllowed,    0,  {"<pre>", "</pre>"}),
     DoxBlockTag({"requires"},                           "Requires",             -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"uses"},                               "Uses",                 -_bRequired,    _bMultipleAllowed),    
+    DoxBlockTag({"uses"},                               "Uses",                 -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"features"},                           "Features",             -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    _bMultipleAllowed),

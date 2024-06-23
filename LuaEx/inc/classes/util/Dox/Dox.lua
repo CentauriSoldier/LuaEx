@@ -205,6 +205,7 @@ return class("Dox",
     !]]
     refresh = function(this, cdat)
         local pri = cdat.pri;
+        local tBlockWrapper = pri.builder.value.getBlockWrapper();
 
         --reset the finalized data table
         pri.finalized = {};
@@ -234,7 +235,7 @@ return class("Dox",
 
             --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder
             --create the content string
-            local sContent = [[<div class="container-fluid">]];
+            local sContent = tBlockWrapper.open;
 
             --build the row (block item)
             for oBlockTag, sRawInnerContent in oBlock.items() do
@@ -242,11 +243,10 @@ return class("Dox",
                 sContent = sContent..sInnerContent;
             end
 
-            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder
             --set the call to get the content
             setmetatable(tActive, {
                 __call = function(t)
-                    return sContent..[[</div>]];
+                    return sContent..tBlockWrapper.close;
                 end,
             })
 
@@ -291,11 +291,11 @@ return class("Dox",
         end
 
         --create and inject the example block tag (language-specific)
-        --TODO BUG FIX This HTML CANNOT be here...wrapper has to be gotten from the DoxBuilder
+        local tExampleWrapper = pri.builder.value.getExampleWrapper(eSyntax);
         table.insert(pri.blockTags, _nExampleInsertPoint,
-        DoxBlockTag({"ex", "example"}, "Example", false, true, 0,
-                    {"<pre><code class=\"language-"..eSyntax.value.getPrismName().."\">",
-                     "</code></pre>"}));
+            DoxBlockTag({"ex", "example"}, "Example", false, true, 0,
+                        {tExampleWrapper.open, tExampleWrapper.close})
+        );
 
         --store all input BlockTags and log required ones found
         for nIndex, oBlockTag in ipairs({...} or arg) do

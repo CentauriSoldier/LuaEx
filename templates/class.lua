@@ -12,7 +12,9 @@ return class("MyClass",
 
 },
 {--PUBLIC
+    MyClass = function(this, cdat)
 
+    end,
 },
 nil,   --extending class
 false, --if the class is final
