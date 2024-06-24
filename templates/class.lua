@@ -3,7 +3,8 @@ return class("MyClass",
 
 },
 {--STATIC PUBLIC
-
+    _INIT = function(stapub)
+    end,
 },
 {--PRIVATE
 

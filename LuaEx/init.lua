@@ -158,6 +158,7 @@ enum			        = 	require("LuaEx.lib.enum");
 local tStruct           = 	require("LuaEx.lib.struct");
 struct                  =   tStruct.struct;
 structfactory           =   tStruct.structfactory;
+--blueprint               =   require("LuaEx.lib.blueprint");
 --sorteddictionary        =   require("LuaEx.lib.sorteddictionary");
 source			        =	require("LuaEx.util.source");
 infusedhelp		        = 	require("LuaEx.lib.infusedhelp");
@@ -316,6 +317,10 @@ if (tClassLoadValues[_nClassSystem]) then
     end
 
 end
+
+Inventory       = require("LuaEx.test.Inventory.Inventory");
+InventoryItem   = require("LuaEx.test.Inventory.InventoryItem");
+InventorySlot   = require("LuaEx.test.Inventory.InventorySlot");
 
 
 --🅰🅻🅸🅰🆂🅴🆂

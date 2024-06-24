@@ -28,6 +28,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
+- Feature: Classes now have (*optional*) static initializers using the ***_INIT*** static public method.
 - Feature: Dox comment blocks can now use anchor links (*#*) to other FQXNs.
 - Feature: added Dox output back navigation.
 - Feature: Dox now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
@@ -408,7 +409,8 @@ print(ERROR_MARKER);            --> "err:"
 ##### Class System 💠
 - A fully-functional, (*pseudo*) [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
 - The class system also takes advantage of metatables and allows user to create, inherit and override these for class objects.
-- Auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.    
+- Optional **Properties**: auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.
+- Optional static initializer method (***_INIT***) called once during class creation.
 - Strongly typed values (although allowing initial ***null*** values).
 - Optional final methods (preventing subclass overrides).
 - Optional final classes.
@@ -422,12 +424,16 @@ Creature = class("Creature",
 {--metamethods
 },
 {--public static members
+    createCount = 0;
+    _INIT = function(stapub)
+        --DO static things here during class creation.
+    end,
 },
 {--private members
     DeathCount = 0,
     Allies = {},
 },
-{--protected members
+{--protected members --set up properties using the _AUTO directive
     HP_AUTO     = 10,
     HPMax_AUTO  = 100,
     Damage_AUTO = 5,
@@ -440,7 +446,7 @@ Creature = class("Creature",
         cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
         cdat.pro.HPMax  = nHPMax;
     end,
-    isDead = function(this, cdat)
+    isDead__FNL = function(this, cdat) --set this method as final
         return cdat.pro.HP <= 0;
     end,
     kill = function(this, cdat)

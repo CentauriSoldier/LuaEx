@@ -52,7 +52,9 @@ local oLine2 = Line(Point(1, 4), Point(4, 1));
 --print("\noLine2\n", oLine2);
 
 --test the lines' interactions
-print("Interection: ", oLine1.getPointOfIntersection(oLine2));
-print(oLine1.getR())
-print(oLine1.getTheta())
---TODO FINISH
+--print("Interection: ", oLine1.getPointOfIntersection(oLine2));
+--print(oLine1.getR())
+--print(oLine1.getTheta())
+
+local oRing = InventoryItem();
+local RHand = InventorySlot("Right Hand", {oRing})

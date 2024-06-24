@@ -6,13 +6,16 @@
     <h2>class</h2>
     <h3>Bringing (pseudo) Object Oriented Programming to Lua</h3>
     <p>The class module aims to bring a simple-to-use, fully functional, pseudo OOP class system to Lua.
-    <br>Among other things, It includes encapsulation, inheritence & polymorphism, final classes & methods, auto-setter/getter directives and interfaces.
+    <br>Among other things, It includes encapsulation, inheritence & polymorphism, final classes & methods, auto-setter/getter directives (<b><i>properties</i></b>) and interfaces.
     </p>
     @license <p>Same as LuaEx license.</p>
 @version 0.7
 @versionhistory
 <ul>
     <li>
+        <b>0.8</b>
+        <p>Feature: added a static initializer (<b>__INIT</b>) to classes.</p>
+        <p>Feature: updated type setting permissions to honor child class instances.</p>
         <b>0.7</b>
         <br>
         <p>Bugfix: editing kit visibility table during iteration in _AUTO directive was causing malformed classes.</p>
@@ -136,10 +139,14 @@ end
 
 --TODO make sure all these values are being updated or delete if not being used
 local class = {
-    count = 0,
-    repo  = { --updated on kit.build()
-        byKit     = {}, --indexed by kit
-        byName    = {}, --index by class/kit name
+    count       = 0,
+    --children    = {},
+    --parents     = {},
+    repo        = { --updated on kit.build()
+        byKit       = {}, --indexed by kit
+        byName      = {}, --index by class/kit name
+        byObject    = {}, --indexed by class, value is kit
+        isFunctions = {}, --indexed by class, value is class "is" function
     },
 };
 
@@ -163,6 +170,77 @@ local kit = {
         byObject 	= {}, --index by class object | updated when a class object is created
     },
 };
+
+
+                --[[
+                ██████╗ ███████╗██╗      █████╗ ████████╗██╗ ██████╗ ███╗   ██╗ █████╗ ██╗
+                ██╔══██╗██╔════╝██║     ██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║██╔══██╗██║
+                ██████╔╝█████╗  ██║     ███████║   ██║   ██║██║   ██║██╔██╗ ██║███████║██║
+                ██╔══██╗██╔══╝  ██║     ██╔══██║   ██║   ██║██║   ██║██║╚██╗██║██╔══██║██║
+                ██║  ██║███████╗███████╗██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║██║  ██║███████╗
+                ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
+
+                ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
+                ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
+                █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
+                ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
+                ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║]]
+
+--[[
+byName              = TODO,
+isbase              = TODO,
+isderived           = TODO,
+isderiveddirectly   = TODO,
+isinstanceof        = TODO,
+issibling           = TODO,--maybe not this one...
+getbase             = TODO,
+getName             = TODO]]
+
+
+local function derives(vChild, vParent)
+    --local bRet          = false;
+    local tChildKit     = rawtype(class.repo.byObject[vChild]) ~= "nil" and
+                            class.repo.byObject[vChild] or nil;
+    local tParentKit    = rawtype(class.repo.byObject[vParent]) ~= "nil" and
+                            class.repo.byObject[vParent] or nil;
+
+    return  ( (tChildKit and tParentKit)  and
+              (tChildKit ~= tParentKit)   and
+              (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil") );
+end
+
+local function derivesdirectly(vChild, vParent)
+    --local bRet          = false;
+    local tChildKit     = rawtype(class.repo.byObject[vChild]) ~= "nil" and
+                            class.repo.byObject[vChild] or nil;
+    local tParentKit    = rawtype(class.repo.byObject[vParent]) ~= "nil" and
+                            class.repo.byObject[vParent] or nil;
+
+    return  (tChildKit and tParentKit)  and
+            (tChildKit ~= tParentKit)   and
+            (rawtype(tParentKit.children.direct.byObject[vChild]) ~= "nil");
+end
+
+local function is(vClass)
+    return rawtype(class.repo.byObject[vClass]) ~= "nil";
+end
+
+local function isinstance(vInstance)
+    return rawtype(instance.repo.byObject[vInstance]) ~= "nil";
+end
+
+local function of(vInstance)
+    local cRet;
+
+    if (isinstance(vInstance)) then
+        cRet = instance.repo.byObject[vInstance].class;
+    end
+
+    return cRet;
+end
+
+
+
 --TODO go through and set error levels on every error (test each one)
 --TODO abstract classes?
 --TODO abstract methods (no static public allowed obviously, throw error in such case)
@@ -188,6 +266,11 @@ function class.build(tKit)
 
     --this is the actual, hidden class table referenced by the returned class object
     local tClass            = clone(tKit.stapub);   --create the static public members
+
+    if (rawtype(tClass._INIT) == "function") then
+        tClass._INIT(tClass);
+        rawset(tClass, "_INIT", nil);
+    end
 
     local tClassMeta = { --the decoy (returned class object) meta table
         __call      = function(t, ...) --instantiate the class
@@ -254,7 +337,7 @@ function class.build(tKit)
             return oInstance;
         end,
         __eq = function(left, right)--TODO COMPLETE
-            print(type(left), type(right))
+            --print(type(left), type(right))
             return "asdasd";
         end,
         __index     = function(t, k)
@@ -326,59 +409,35 @@ function class.build(tKit)
     --update the repos
     class.repo.byKit[tKit]          = oClass;
     class.repo.byName[tKit.name]    = oClass;
+    class.repo.byObject[oClass]     = tKit;
 
-    --create the 'is' function (e.g., isCreature(vVal))
-    rawset(type, "is" .. tKit.name,
-        function(vVal)
-            local sType         = type(vVal)
-            local sTargetType   = tKit.name;
-            local bIs           = sType == sTargetType;
-            local tRepo         = instance.repo.byObject[vVal] or nil;
+    local function classis(vVal)
+        local sType         = type(vVal)
+        local sTargetType   = tKit.name;
+        local bIs           = sType == sTargetType;
+        local tRepo         = instance.repo.byObject[vVal] or nil;
 
-            if (not(bIs) and tRepo) then
-                local tActiveKit = tRepo.kit or nil;
+        if (not(bIs) and tRepo) then
+            local tActiveKit = tRepo.kit or nil;
 
-                if ((not bIs) and tActiveKit) then
-                    local tParent = tActiveKit.parent or nil;
+            if ((not bIs) and tActiveKit) then
+                local tParent = tActiveKit.parent or nil;
 
-                    while ((not bIs) and tParent) do
-                        bIs     = tParent.name == sTargetType;
-                        tParent = tParent.parent or nil;
-                    end
-
+                while ((not bIs) and tParent) do
+                    bIs     = tParent.name == sTargetType;
+                    tParent = tParent.parent or nil;
                 end
+
             end
-
-            return bIs;
-        end
-    );
-
-    --[[this SECTION has been DEPRECATED due to the more efficient handling
-        in the serializer and cloner modules themselves. This efficiency
-        affects not only classes but all other objects which makes it much
-        more useful, more easily implemented/maintained and globally-accessible
-        for all object types.
-
-    --register this class with the serializer
-    serializer.registerType(sName, oClass);
-
-    --register this class with the cloner (if there's a clone method)
-    local bHasCloner = false;
-    local tCurrentKit = tKit;
-
-    while (tCurrentKit) do
-
-        for sIndexName, vItem in pairs(tKit.met) do--clone must be a public method
-
-            if (sIndexName == "clone" and rawtype(vItem) == "function") then
-                cloner.registerType(sName, oClass);
-                break;
-            end
-
         end
 
-        tCurrentKit = tCurrentKit.parent or nil;
-    end]]
+        return bIs;
+    end
+    --create the 'is' function (e.g., isCreature(vVal))
+    rawset(type, "is" .. tKit.name, classis);
+
+    --store the is function for later use in relational functions
+    class.repo.isFunctions[oClass] = classis;
 
     return oClass;
 end
@@ -407,9 +466,10 @@ function instance.build(tKit, tParentActual)
         pri = clone(tKit.pri), --create the private members
         pro = clone(tKit.pro), --etc.
         pub = clone(tKit.pub), --TODO should I use clone item or will this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
-        children            = {},    --TODO move to class level or to here? Is there any use for it here? IS THIS EVER USED AT ALL? Perhaps for class-level funtions?
+        --children            = {},    --TODO move to class level or to here? Is there any use for it here? IS THIS EVER USED AT ALL? Perhaps for class-level funtions?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
+        isAChecks           = clone(tKit.isAChecks),
         metadata            = {                     --info about the instance
             kit = tKit,
         },
@@ -437,7 +497,6 @@ function instance.build(tKit, tParentActual)
     --TODO I need to update the children field of each parent (OR do I?)
     --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
     --TODO move to kit.buildclass tKit.instances[oInstance] = tInstance; --store the instance reference (but not its recursively-created, parent instances)
-    --TODO static initializers for altering static fields ONCE at runtime
 
     --store the class data so it can be used interally by classes to access other object cdat.
     rawset(tKit.ins, oInstance, tClassData);
@@ -449,7 +508,7 @@ function instance.build(tKit, tParentActual)
     instance.repo.byObject[oInstance] = {
         actual  = tInstance,
         kit     = tKit,
-        class   = STUFF,--!TODO
+        class   = class.repo.byKit[tKit],
     };
 
     return oInstance, tInstance;
@@ -545,7 +604,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
         local bIsPrivate        = sCAI == pri;
         local bIsProteced       = sCAI == pro;
         local bIsPublic         = sCAI == pub;
-        local bAllowUpSearch = bIsProteced or bIsPublic;
+        local bAllowUpSearch    = bIsProteced or bIsPublic;
 
         rawsetmetatable(tClassData[sCAI], {
             __index = function(t, k)
@@ -608,9 +667,41 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                         name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
+                --update the isAChecks (if needed) if the initial value was null
+                if (not tInstance.isAChecks[sCAI][k] and isinstance(v)) then
+                    tInstance.isAChecks[sCAI][k] = {
+                        class   = of(v),
+                        type    = sTypeNew,
+                        value   = v,
+                    };
+                end
+
                 if (sTypeCurrent ~= "null" and sTypeCurrent ~= sTypeNew) then--TODO allow for null values (and keep track of previous type)
-                    error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
-                        name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 2);
+                    local bAllow = false;
+                    --TODO QUESTION Should I allow interfaces too? Check POLA on C#
+                    --allow type->type setting as well as polymorphism, otherwise throw an error
+                    if (tInstance.isAChecks[sCAI][k]) then
+                        local sNewClass = of(v);
+
+                        if (sNewClass) then
+                            local sOriginalClass = tInstance.isAChecks[sCAI][k].class;
+
+                            --allow if the class type is the same as the original
+                            bAllow = kit.repo.byObject[sOriginalClass].name == kit.repo.byObject[sNewClass].name;
+
+                            if not (bAllow) then--check for a derived class and allow if so
+                                bAllow = derives(sNewClass, sOriginalClass);
+                            end
+
+                        end
+
+                    end
+
+                    if not (bAllow) then
+                        error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
+                            name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 2);
+                    end
+
                 end
 
                 rawset(tTarget, k, v);
@@ -819,14 +910,21 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         --properties
         auto            = {}, --these are the auto getter/setter methods to build on instantiation
         children		= {
-            byName 		= {}, --updated on build
-            byObject 	= {}, --updated when a class object is created
+            all     = {
+                byName 		= {}, --updated on build
+                byObject 	= {}, --updated when a class object is created (during build)
+            },
+            direct  = {
+                byName 		= {}, --updated on build
+                byObject 	= {}, --updated when a class object is created (during build)
+            },
         },
         finalmethodnames= {   --this keeps track of methods marked as final to prevent overriding
             met = {},
             pro = {},
             pub = {},
         },
+        initializerCalled = false, --tracks whether the static inializer for this class kit has been called QUESTION do i need this since it executes only once anyway?
         ins		        = rawsetmetatable({},
             {
                 __newindex = function(t, k, v)
@@ -835,6 +933,11 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             }
         ),
         interfaces      = {},
+        isAChecks = { --used for respecting polymorphism during assignment    TODO FIX DO I NEED MORE subtables? What about the other items? Probably stapub but not met
+            pri = {},
+            pro = {},
+            pub = {},
+        },
         isFinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
         name 			= sName,
         parent			= kit.mayExtend(sName, cExtendor) and kit.repo.byObject[cExtendor] or nil, --note the parent kit
@@ -858,8 +961,12 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     --check for member shadowing
     kit.shadowCheck(tKit);
 
+    --log original values for later assignment checks in the instances
+    kit.processInitialIsAChecks(tKit);
+
     --enforce (any) implemented interfaces
     kit.processInterfaces(tKit, tInterfaces);
+
     --now that this class kit has been validated, imported & stored, build the class object
     local oClass = class.build(tKit);
 
@@ -871,14 +978,60 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.repo.byObject[oClass]   = tKit;
 
     --if this has a parent, update the parent kit's child table
-    if (tKit.parent) then
-        tKit.parent.children.byName[sName]      = tKit;
-        tKit.parent.children.byObject[oClass]   = tKit;
+    local tParent = tKit.parent;
+
+    if (tParent) then
+        local tAll      = tParent.children.all;
+        local tDirect   = tParent.children.direct;
+
+        tAll.byName[sName]          = tKit;
+        tAll.byObject[oClass]       = tKit;
+
+        tDirect.byName[sName]       = tKit;
+        tDirect.byObject[oClass]    = tKit;
+
+        tParent                     = tParent.parent;
+
+        while (tParent) do
+            tAll                    = tParent.children.all;
+            tAll.byName[sName]      = tKit;
+            tAll.byObject[oClass]   = tKit;
+
+            tParent                 = tParent.parent;
+        end
+
     end
 
     return oClass;--return the class object;
 end
 
+
+--[[!
+@fqxn LuaEx.class.kit.Functions.processInitialIsAChecks
+@param table tKit The kit to check.
+@scope local
+@desc Sets up the kit's isAChecks table with initial values (of potential class items)
+<br>which will be updated by the instance for initial null values.
+!]]
+function kit.processInitialIsAChecks(tKit)
+
+    for sCAI, tValues in pairs(tKit.isAChecks) do
+
+        for sKey, vValue in pairs(tKit[sCAI]) do
+
+            if (isinstance(vValue)) then
+                tKit.isAChecks[sCAI][sKey] = {
+                    class   = of(vValue),
+                    type    = type(vValue),
+                    value   = vValue,
+                };
+            end
+
+        end
+
+    end
+
+end
 
 --[[!
 @fqxn LuaEx.class.kit.Functions.mayExtend
@@ -1245,64 +1398,19 @@ _sSerializeSuffixLength = #_sSerializeSuffix;
 
 
 local tClassActual = {
-    isderived = function()
-        print("This is still in development.")
-    end,
-    --[[--DEPRECATED
-    -- Deserialization function TODO MOVE THESE UP and refernce them here for better oprganization
-    deserialize = function(sRawData)
-        --TODO type checks
-        -- Extract the class name from the serialized data
-        local sClass = sRawData:match(_sSerializePrefix .. "(.-)" .. _sSerializeSuffix)
-
-        if sClass then--TODO THROW if not valid
-            local sData = sRawData:sub(_sSerializePrefixLength + #sClass + _sSerializeSuffixLength + 1)
-            local oClass = class.repo.byName[sClass] or nil; --TODO THROW if not a class
-            local vError, fLoadData = serpent.load(sData); --TODO THROW if not a function
-            return oClass.deserialize(fLoadData);
-
-
-
-
-
-            -- Remove the serialization header and extract the serialized table data
-            --
-            -- Deserialize the table data recursively
-            --return deserializeItem(serializedTable)
-            --else
-            -- Invalid or missing class name
-            --return nil
-
-        end
-
-    end,]]
-    --[[--DEPRECATED
-    serialize = function(oInstance)
-
-        if not (instance.repo.byObject[oInstance]) then
-            error("Error serializing class instance.\nInput, of type ${type}, is not a class instance." % {type = type(oInstance)});
-        end
-
-        local tInstanceInfo     = instance.repo.byObject[oInstance];
-        local sClass            = tInstanceInfo.kit.name;
-        local sHeader           = _sSerializePrefix..sClass.._sSerializeSuffix; -- Serialization header
-        local tInstance         = tInstanceInfo.actual;
-        local tInstanceMeta     = getmetatable(oInstance);
-        local fSerialize        = tInstanceMeta.__serialize or nil;
-
-        if not (fSerialize) then --TODO just check for iSerializable first, then check for __serialize and deserialize if the interface isn't present
-            error("Error serializing class instance.\nInstance has no '__serialize' metamethod." % {type = type(oInstance)});
-        end
-
-        local tInstanceData = fSerialize();
-        --TODO use type.asserts (make new ones as needed) and add error level values
-        if not (type(tInstanceData) == "table") then
-            error("Error serializing class instance.\nThe '__serialize' metamethod must return a table value. Get type ${datatype}." % {type = type(oInstance), datatype = type(tInstanceData)});
-        end
-
-        return _sSerializePrefix..sClass.._sSerializeSuffix..serpent.dump(tInstanceData);
-    end]]
-
+    byName              = TODO,
+    derives             = derives,
+    derivesdirectly     = derivesdirectly,
+    is                  = is,
+    isbase              = TODO,
+    isderived           = TODO,
+    isderiveddirectly   = TODO,
+    isinstance          = isinstance,
+    isinstanceof        = TODO,
+    issibling           = TODO,--maybe not this one...
+    getbase             = TODO,
+    getName             = TODO,
+    of                  = of,
 };
 
 
