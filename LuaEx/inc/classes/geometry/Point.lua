@@ -61,15 +61,15 @@ return class("Point",
             local pri = cdat.pri;
             local otherpri = cdat.ins[other].pri;
 
-            return Point(pri.x + otherpri.x,
-                         pri.y + otherpri.y);
+            return Point(pri.X + otherpri.X,
+                         pri.Y + otherpri.Y);
         end
 
     end,
 
     __clone = function(this, cdat)
         local pri = cdat.pri;
-        return Point(pri.x, pri.y);
+        return Point(pri.X, pri.Y);
     end,
 
     __eq = function(this, other, cdat)
@@ -78,7 +78,7 @@ return class("Point",
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = cdat.ins[other].pri;
-            bRet = pri.x == otherpri.x and pri.y == otherpri.y;
+            bRet = pri.X == otherpri.X and pri.Y == otherpri.Y;
          end
 
         return bRet;
@@ -90,7 +90,7 @@ return class("Point",
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = cdat.ins[other].pri;
-            bRet = pri.x <= otherpri.x and pri.y <= otherpri.y;
+            bRet = pri.X <= otherpri.X and pri.Y <= otherpri.Y;
          end
 
         return bRet;
@@ -102,7 +102,7 @@ return class("Point",
         if (type(this) == "Point" and type(other) == "Point") then
             local pri = cdat.pri;
             local otherpri = cdat.ins[other].pri;
-            bRet = pri.x < otherpri.x and pri.y < otherpri.y;
+            bRet = pri.X < otherpri.X and pri.Y < otherpri.Y;
          end
 
         return bRet;
@@ -112,8 +112,8 @@ return class("Point",
         local sType = type(vRight);
 
         if (sType == "Point") then
-            this.x = this.x + vRight.x;
-            this.y = this.y + vRight.y;
+            this.X = this.X + vRight.X;
+            this.Y = this.Y + vRight.Y;
         --elseif (sType == "table") then
 
         end
@@ -124,8 +124,8 @@ return class("Point",
         local pri = cdat.pri;
 
         local tData = {
-            x = pri.x,
-            y = pri.y,
+            x = pri.X,
+            y = pri.Y,
         };
 
         return tData;
@@ -136,33 +136,33 @@ return class("Point",
             local pri = cdat.pri;
             local otherpri = cdat.ins[other].pri;
 
-            return Point(pri.x - otherpri.x,
-                         pri.y - otherpri.y);
+            return Point(pri.X - otherpri.X,
+                         pri.Y - otherpri.Y);
         end
 
     end,
 
     __tostring = function(this, cdat)
         local pri = cdat.pri;
-        return "x: "..pri.x.." y: "..pri.y;
+        return "x: "..pri.X.." y: "..pri.Y;
     end,
 
     __unm = function(this, cdat)
-        cdat.pri.x = -cdat.pri.x;
-        cdat.pri.y = -cdat.pri.y;
+        cdat.pri.X = -cdat.pri.X;
+        cdat.pri.Y = -cdat.pri.Y;
 
         return this;
     end,
 },
 {--static public
     deserialize = function(tData)
-        return Point(tData.x, tData.y);
+        return Point(tData.X, tData.Y);
     end,
 
 },
 {--private
-    x = 0,
-    y = 0,
+    X__auto_F = 0,
+    Y__auto_F = 0,
 },
 {--protected
 
@@ -177,42 +177,42 @@ return class("Point",
     ]]
     Point = function(this, cdat, nX, nY)
         local pri = cdat.pri;
-        pri.x = rawtype(nX) == "number" and nX or pri.x;
-        pri.y = rawtype(nY) == "number" and nY or pri.y;
+        pri.X = rawtype(nX) == "number" and nX or pri.X;
+        pri.Y = rawtype(nY) == "number" and nY or pri.Y;
     end,
 
     --[[deserialize = function(this, cdat, sData)
         local tData = deserialize.table(sData);
 
-        this.x = tData.x;
-        this.y = tData.y;
+        this.X = tData.X;
+        this.Y = tData.Y;
 
         return this;
     end,]]
     get = function(this, cdat)
         local pri = cdat.pri;
-        return pri.x, pri.y;
+        return pri.X, pri.Y;
     end,
 
-    getX = function(this, cdat)
+    --[[getX = function(this, cdat)
         local pri = cdat.pri;
-        return pri.x;
+        return pri.X;
     end,
 
     getY = function(this, cdat)
         local pri = cdat.pri;
-        return pri.y;
-    end,
+        return pri.Y;
+    end,]]
 
     --return O, X, Y, -X, -Y, I, II, III or IV
     getQuadrant = function(this, cdat)--TODO use enum
         local pri = cdat.pri;
         local sRet      = "ERROR";
-        local bYIsNeg   = pri.y < 0;
-        local bYIs0     = pri.y == 0;
-        local bYIsPos   = pri.y > 0;--not bYIsNeg and not bYIs0;
+        local bYIsNeg   = pri.Y < 0;
+        local bYIs0     = pri.Y == 0;
+        local bYIsPos   = pri.Y > 0;--not bYIsNeg and not bYIs0;
 
-        if (pri.x < 0) then
+        if (pri.X < 0) then
 
             if (bYIsNeg) then
                 sRet = "III";
@@ -222,7 +222,7 @@ return class("Point",
                 sRet = "II";
             end
 
-        elseif (pri.x == 0) then
+        elseif (pri.X == 0) then
 
             if (bYIsNeg) then
                 sRet = "-Y";
@@ -232,7 +232,7 @@ return class("Point",
                 sRet = "Y";
             end
 
-        elseif (pri.x > 0) then
+        elseif (pri.X > 0) then
 
             if (bYIsNeg) then
                 sRet = "IV";
@@ -252,30 +252,30 @@ return class("Point",
         local nRet = 0;
 
         if (type(this) == "Point" and type(oOther) == "Point") then
-            nRet = math.sqrt( (this.x - oOther.x) ^ 2 + (this.y - oOther.y) ^ 2);
+            nRet = math.sqrt( (this.X - oOther.X) ^ 2 + (this.Y - oOther.Y) ^ 2);
         end
 
         return nRet;
     end,
     ]]
 
-    
+
     set = function(this, cdat, nX, nY)
         local pri = cdat.pri;
-        pri.x = type(nX) == "number" and nX or pri.x;
-        pri.y = type(nY) == "number" and nY or pri.y;
+        pri.X = type(nX) == "number" and nX or pri.X;
+        pri.Y = type(nY) == "number" and nY or pri.Y;
         return this;
     end,
 
     setX = function(this, cdat, nX)
         local pri = cdat.pri;
-        pri.x = type(nX) == "number" and nX or pri.x;
+        pri.X = type(nX) == "number" and nX or pri.X;
         return this;
     end,
 
     setY = function(this, cdat, nY)
         local pri = cdat.pri;
-        pri.y = type(nY) == "number" and nY or pri.y;
+        pri.Y = type(nY) == "number" and nY or pri.Y;
         return this;
     end,
 
@@ -285,8 +285,8 @@ return class("Point",
         local nRet = 0;
 
         if (type(this) == "Point" and type(oOther) == "Point") then
-            nXDelta = this.x - oOther.x;
-            nYDelta = this.y - oOther.y;
+            nXDelta = this.X - oOther.X;
+            nYDelta = this.Y - oOther.Y;
 
             if (nYDelta == 0) then
                 nRet = MATH_UNDEF;

@@ -28,7 +28,9 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
-- Feature: Classes now have (*optional*) static initializers using the ***_INIT*** static public method.
+- Feature: Classes now fully respect polymorphism in assignment operation type checking.
+- Feature: The class constructor may now be either private, protected or public.
+- Feature: Classes now have an *optional* static constructor using the class name as the static method name.
 - Feature: Dox comment blocks can now use anchor links (*#*) to other FQXNs.
 - Feature: added Dox output back navigation.
 - Feature: Dox now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.

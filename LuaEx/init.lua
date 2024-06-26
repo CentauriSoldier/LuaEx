@@ -318,6 +318,8 @@ if (tClassLoadValues[_nClassSystem]) then
 
 end
 
+
+--TODO delete after test
 Inventory       = require("LuaEx.test.Inventory.Inventory");
 InventoryItem   = require("LuaEx.test.Inventory.InventoryItem");
 InventorySlot   = require("LuaEx.test.Inventory.InventorySlot");

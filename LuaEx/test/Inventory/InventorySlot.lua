@@ -10,6 +10,7 @@ return class("InventorySlot",
 
 },
 {--PROTECTED
+    Enabled_AUTOIS    = true,
     name            = "",
     allowedtypes    = {},
     item            = null,

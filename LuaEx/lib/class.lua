@@ -53,7 +53,7 @@
 !]]
 
 
---LOCALIZATION
+--LOCALIZATION TODO delete these
 constant("CLASS_DIRECTIVE_FINAL",           "_FNL"); --this directive causes a method to be final
 constant("CLASS_DIRECTIVE_FINAL_LENGTH",    #CLASS_DIRECTIVE_FINAL);
 constant("CLASS_DIRECTIVE_AUTO",            "_AUTO"); --this directive allows the automatic creation of accessor/mutator methods
@@ -137,6 +137,31 @@ local function isMutableStaticPublicType(sType)
     return (tMutableStaticPublicTypes[sType] or false);
 end
 
+                    --[[
+                    ██████╗ ██╗██████╗ ███████╗ ██████╗████████╗██╗██╗   ██╗███████╗███████╗
+                    ██╔══██╗██║██╔══██╗██╔════╝██╔════╝╚══██╔══╝██║██║   ██║██╔════╝██╔════╝
+                    ██║  ██║██║██████╔╝█████╗  ██║        ██║   ██║██║   ██║█████╗  ███████╗
+                    ██║  ██║██║██╔══██╗██╔══╝  ██║        ██║   ██║╚██╗ ██╔╝██╔══╝  ╚════██║
+                    ██████╔╝██║██║  ██║███████╗╚██████╗   ██║   ██║ ╚████╔╝ ███████╗███████║
+                    ╚═════╝ ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝   ╚═╝   ╚═╝  ╚═══╝  ╚══════╝╚══════╝]]
+--[[!
+@fqxn LuaEx.class.directives
+@desc Directives provide a way for classes to set methods as final,
+<br>set values as read only and create <a href="#LuaEx.class.properties">properties</a>.
+!]]
+--[[!
+@fqxn LuaEx.class.properties
+@desc Directives provide a way for classes to set methods as final,
+<br>set values as read only and create properties
+!]]
+            --[[
+                ███╗   ███╗ █████╗ ██╗███╗   ██╗    ████████╗ █████╗ ██████╗ ██╗     ███████╗███████╗
+                ████╗ ████║██╔══██╗██║████╗  ██║    ╚══██╔══╝██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝
+                ██╔████╔██║███████║██║██╔██╗ ██║       ██║   ███████║██████╔╝██║     █████╗  ███████╗
+                ██║╚██╔╝██║██╔══██║██║██║╚██╗██║       ██║   ██╔══██║██╔══██╗██║     ██╔══╝  ╚════██║
+                ██║ ╚═╝ ██║██║  ██║██║██║ ╚████║       ██║   ██║  ██║██████╔╝███████╗███████╗███████║
+                ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝       ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝╚══════╝]]
+
 --TODO make sure all these values are being updated or delete if not being used
 local class = {
     count       = 0,
@@ -195,7 +220,8 @@ isinstanceof        = TODO,
 issibling           = TODO,--maybe not this one...
 getbase             = TODO,
 getName             = TODO]]
-
+--TODO use error instead of assert so code can be set
+--TODO use isparent and ischild instead of derives, derived...less confusing
 
 local function derives(vChild, vParent)
     --local bRet          = false;
@@ -267,9 +293,10 @@ function class.build(tKit)
     --this is the actual, hidden class table referenced by the returned class object
     local tClass            = clone(tKit.stapub);   --create the static public members
 
-    if (rawtype(tClass._INIT) == "function") then
-        tClass._INIT(tClass);
-        rawset(tClass, "_INIT", nil);
+    --execute then delete the static constructor (if it exists)
+    if (rawtype(tClass[sName]) == "function") then
+        tClass[sName](tClass);
+        rawset(tClass, sName, nil);
     end
 
     local tClassMeta = { --the decoy (returned class object) meta table
@@ -315,6 +342,14 @@ function class.build(tKit)
 
             local oInstance, tInstance = instance.build(tKit, bHasParent and tParents[#tParents].actual or nil); --this is the returned instance
 
+            --get the visibility of the construtor
+            --local sConstructorVisibility = tKit.constructorVisibility;
+
+            --make sure this class has a public constructor
+            if not (tKit.constructorVisibility == "pub") then
+                error("Error in class, '${class}'. No public constructor available." % {class = sName});
+            end
+
             tInstance.pub[sName](...);
             tInstance.constructorcalled = true;
             rawset(tInstance.pub, sName, nil);
@@ -324,14 +359,15 @@ function class.build(tKit)
 
             for x = nParents, 1, -1 do
                 local tParentInfo   = tParents[x];
-                local sParent       = tParentInfo.kit.name;
+                local tParentKit    = tParentInfo.kit;
+                local sParent       = tParentKit.name;
                 local sClass        = x == nParents and tKit.name or tParents[x + 1].kit.name;
 
                 if not (tParentInfo.actual.constructorcalled) then
                     error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}'." % {class = sClass, parent = sParent});--TODO should i set a third argument for the errors?
                 end
 
-                rawset(tParentInfo.actual.pub, sParent, nil); --TODO change this index once other types of constructors are permitted
+                --rawset(tParentInfo.actual[tParentKit.constructorVisibility], sParent, nil);--TODO should this deletion be moved to right after it gets called?
             end
 
             return oInstance;
@@ -526,10 +562,11 @@ function instance.buildAutoMethods(tInstance, tClassData)
     local tKit = tInstance.metadata.kit;
 
     for sName, tItem in pairs(tKit.auto) do
+        local sGetName    = tItem.itemtype == "boolean" and "is" or "get";--set "is" for boolean
         local sVisibility = tItem.CAI;
 
         --create the accesor method
-        tInstance.pub["get"..tItem.formattedname] = function()
+        tInstance.pub[sGetName..tItem.formattedname] = function()
             return tClassData[sVisibility][tItem.formattedname];
         end
 
@@ -844,19 +881,41 @@ function instance.wrapMethods(tInstance, tClassData)
 
             if (rawtype(fWrapped) == "function") then
 
-                if (k == tKit.name) then --wrap constuctors
+                if (k == tKit.name) then --wrap constructors
                     local tParent = tInstance.parent;
 
                     if (tParent) then
                         rawset(tInstance[sCAI], k, function(...)
-                            fWrapped(oInstance, tClassData, tParent[sCAI][tParent.metadata.kit.name], ...);
+                            local tParentKit                    = tParent.metadata.kit;
+                            local sParentName                   = tParentKit.name;
+                            local sParentConstructorVisibility  = tParentKit.constructorVisibility;
+
+                            --delete the parent constructor to prevent multiple calls (TODO NEW LINE HERE; MOVED FORM CLASS.BUILD. TEST TO ENSURE IT'S WORKING)
+                            local fParentConstructor = function(...)
+
+                                if not (tParent[sParentConstructorVisibility][sParentName]) then
+                                        error("Error in class, '${class}'.\nAttempt to call parent constructor for class, '${parent}', more than once." % {class = tKit.name, parent = sParentName}, 3);
+                                end
+
+                                tParent[sParentConstructorVisibility][sParentName](...);
+                                tParent[sParentConstructorVisibility][sParentName] = nil;
+                            end
+
+                            fWrapped(oInstance,
+                                     tClassData,
+                                     fParentConstructor,
+                                     ...);
+
                             tInstance.constructorcalled = true;
                         end);
+
                     else
                         rawset(tInstance[sCAI], k, function(...)
                             fWrapped(oInstance, tClassData, ...);
+
                             tInstance.constructorcalled = true;
                         end);
+
                     end
 
                 else --wrap non-constructors
@@ -904,27 +963,36 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.validateName(sName);
     kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
     kit.validateInterfaces(sName, tInterfaces);
-    --TODO check each member against the static members
+
+    --TODO check each member against the static members?
     --import/create the elements which will comprise the class kit
     local tKit = {
         --properties
-        auto            = {}, --these are the auto getter/setter methods to build on instantiation
+        auto            = {},       --these are the auto getter/setter methods to build on instantiation
+        directives      = {
+            met     = {},
+            stapub  = {},
+            pri     = {},
+            pro     = {},
+            pub     = {},
+        },
         children		= {
             all     = {
-                byName 		= {}, --updated on build
-                byObject 	= {}, --updated when a class object is created (during build)
+                byName 		= {},   --updated on build
+                byObject 	= {},   --updated when a class object is created (during build)
             },
             direct  = {
-                byName 		= {}, --updated on build
-                byObject 	= {}, --updated when a class object is created (during build)
+                byName 		= {},   --updated on build
+                byObject 	= {},   --updated when a class object is created (during build)
             },
         },
-        finalmethodnames= {   --this keeps track of methods marked as final to prevent overriding
+        constructorVisibility = "", --gets set in kit.processConstructor
+        finalmethodnames= {         --this keeps track of methods marked as final to prevent overriding
             met = {},
             pro = {},
             pub = {},
         },
-        initializerCalled = false, --tracks whether the static inializer for this class kit has been called QUESTION do i need this since it executes only once anyway?
+        --initializerCalled = false, --tracks whether the static inializer for this class kit has been called QUESTION do i need this since it executes only once anyway?
         ins		        = rawsetmetatable({},
             {
                 __newindex = function(t, k, v)
@@ -940,7 +1008,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         },
         isFinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
         name 			= sName,
-        parent			= kit.mayExtend(sName, cExtendor) and kit.repo.byObject[cExtendor] or nil, --note the parent kit
+        parent			= nil, --set in kit.mayExtend() (if it does)
         --tables
         met 	        = clone(tMetamethods, 	true),
         stapub 	        = clone(tStaticPublic, 	true),
@@ -949,11 +1017,18 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         pub      	    = clone(tPublic, 		true),
     };
 
-    --note and rename final methods
-    kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
+    --validate the constructor and record its visibility
+    kit.processConstructor(tKit);
+
+    --if this class is attempting to extend a class, validate it can
+    kit.setParent(tKit, cExtendor);
 
     --note and rename final methods
-    kit.processDirectiveFinal(tKit);
+    --kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
+
+    --note and rename final methods
+    --kit.processDirectiveFinal(tKit);
+    kit.processDirectives(tKit);
 
     --kit.processdirectivecombinatory(tKit);  --TODO this will be the directive which is both auto and final
     --TODO add abstract classes and methods?
@@ -1007,6 +1082,277 @@ end
 
 
 --[[!
+@fqxn LuaEx.class.kit.Functions.getDirectiveInfo
+@param string sCAI The visibility name.
+@param string sKey The key as it was written in the class.
+@param any vItem The item associated with the class member key.
+@scope local
+@desc Gets info about any directives set for this class member.
+@ret string sKey The key as rewritted without the directive tags.
+@ret boolean bIsFinal Whether the method has been set to final (applies to methods only).
+@ret boolean bIsReadOnly Whether the value is a read only.
+@ret string|nil sGetter The name of the getter method or nil if no getter method should be created.
+@ret string|nil sSetter The name of the setter method or nil if no setter method should be created.
+@ret boolean bGetterFinal Whether the setter method (if present) is final.
+@ret boolean bSetterFinal Whether the setter method (if present) is final.
+!]]
+function kit.getDirectiveInfo(sCAI, sKey, vItem)
+    --TODO move these string into vars above
+    local sGetter, sSetter;
+    local bUpperCase = false
+    local bGetter, bSetter, bGetterFinal, bSetterFinal = false, false, false, false;
+    local bHasDirective     = false;
+    local bHasAutoDirective = false;
+
+    local bFinal = sKey:find("__FNL") ~= nil;
+    if (bFinal) then
+        bHasDirective = true;
+        sKey = sKey:gsub("__FNL", "");
+    end
+
+    local bReadOnly = sKey:find("__RO") ~= nil;
+    if (bReadOnly) then
+        bHasDirective = true;
+        sKey = sKey:gsub("__RO", "");
+    end
+
+    local nBaseStart    = 0;
+    local nBaseEnd      = -1;
+    local sGetPrefix    = "";
+
+    -- Look for __AUTO or __auto
+    local nStart, nEnd = sKey:find("__AUTO");
+
+    if not nStart then
+        nStart, nEnd = sKey:find("__auto");
+
+        if nStart then
+            bUpperCase = false;
+        end
+
+    else
+        bUpperCase = true;
+    end
+
+    -- Default values if no directive is found
+    if nStart then
+        local sRemainder = sKey:sub(nStart);
+
+        -- Validate length of directive
+        if (#sRemainder < 8) then --TODO move this 8 local const
+            error("Malformed __AUTO__ directive"..#sRemainder)
+        end
+
+        bHasDirective       = true;
+        bHasAutoDirective   = true;
+
+        local nCharIndex        = nStart + 6;--TODO move this 6 local const
+        local sGetterOrSetter   = sKey:sub(nCharIndex, nCharIndex);
+              nCharIndex        = nStart + 7;--TODO move this 7 local const
+        local sWhichFinal       = sKey:sub(nCharIndex, nCharIndex);
+
+        bGetter         = sGetterOrSetter ~= "S";
+        bSetter         = sGetterOrSetter ~= "G";
+        bGetterFinal    = bGetter and (sWhichFinal == "G" or sWhichFinal == "F");
+        bSetterFinal    = bSetter and (sWhichFinal == "S" or sWhichFinal == "F");
+
+        if (bGetter) then
+            local sPrefix = sKey:sub(nCharIndex + 1);
+            sGetter = (#sPrefix > 0 and sPrefix or (bUpperCase and "Get" or "get"))..sKey:sub(1, nStart - 1);
+        end
+
+        --clean up the key
+        sKey = sKey:sub(1, nStart - 1);
+
+        if (bSetter) then
+            sSetter = (bUpperCase and "Set" or "set")..sKey;
+        end
+        --print(sKey, sGetter, sSetter)
+        --TODO check for a value before the _-auto detrective
+
+    end
+
+
+    --Check for malformed/maldesigned directives
+
+    -- Ensure that there is something before the auto directive
+    if bHasDirective and (sKey == "" or not sKey:isvariablecompliant()) then
+        error("There must be something before any AUTO directive and the final result must be a variable-compliant string.");
+    end
+
+    local sType         = type(vItem);--TODO can i get this as a parameter?
+    local bIsNull       = sType == "null";
+    local bIsFunction   = sType == "function";
+
+    if (bHasDirective and bIsNull) then
+        error("Items using directives cannot be null.");
+    end
+
+    if (bReadOnly and bIsFunction) then
+        error("__RO directives can be applied only to fields and cannot be null.");
+    end
+
+    if (bFinal and not bIsFunction) then
+        error("__FNL directive can be applied only to methods (and properties optionally and implciitly) and cannot be null.");
+    end
+
+    if (bReadOnly and sSetter) then
+        error("Cannot apply read only (__RO) directive to a field queued to become a mutator property.");
+    end
+
+    --NOTE: since everything in the met table is guaranteed to be a function, we needn't validate further
+
+    if (sCAI == "pub" and (bHasAutoDirective)) then
+        error("__AUTO directives cannot be applied to public fields.");
+    end
+
+    if (sCAI == "stapub") then
+
+        if (bHasAutoDirective) then
+            error("__AUTO directives cannot be applied to public static fields.");
+        end
+
+        if (bFinal) then
+            error("Application of __FNL directive to public static methods is redundant.");
+        end
+
+    end
+
+    if sKey == "X" or sKey == "Y" then
+        --print(sKey, bFinal, bReadOnly, sGetter, sSetter, bGetterFinal, bSetterFinal)
+    end
+    -- Return the processed names and flags
+    return sKey, bFinal, bReadOnly, sGetter, sSetter, bGetterFinal, bSetterFinal;
+end
+
+
+--[[!
+@fqxn LuaEx.class.kit.Functions.processConstructor
+@param table tKit The kit upon which to operate.
+@scope local
+@desc Configures and validates the kit's constructor method.
+!]]
+function kit.processConstructor(tKit)
+    local sName                    = tKit.name;
+    local bConstructorFound        = false;
+    local tConstructorVisibilities = {"pri", "pro", "pub"};
+
+    --iterate over vibilities where the constructor may exist
+    for _, sVisibility in ipairs(tConstructorVisibilities) do
+
+        --iterate over all class members in the current vibility table
+        for sMemberName, vMember in pairs(tKit[sVisibility]) do
+
+            --check for a constructor
+            if (sMemberName == sName) then
+
+                --throw an error if a non-function member with the class name exists
+                if (rawtype(vMember) ~= "function") then
+                    error(  "Error creating class, '${class}'. Constructor must be of type function.\nType given: ${type} in ${table} table." % {class = sName, type = rawtype(vMember), table = sTable});
+                end
+
+                --make sure there's not already a constructor
+                if (bConstructorFound) then
+                    error(  "Error creating class, '${class}'. Constructor already exists in ${table} table." %
+                            {class = sName, table = tKit.constructorVisibility});
+                end
+
+                --mark the constructor found and record it's location
+                bConstructorFound = true;
+                tKit.constructorVisibility = sVisibility;
+
+                --continue looking for (potential) redundant constructors or class-named values
+            end
+
+        end
+
+    end
+
+    --make sure a constructor was found
+    if not (bConstructorFound) then
+        error( "Error creating class, '${class}'. No constructor provided." % {class = sName}, 3);
+    end
+
+end
+
+
+--[[!
+@fqxn LuaEx.class.kit.Functions.processDirectives
+@param table tKit The kit upon which to operate.
+@scope local
+@desc Prepares all directives dictated by the class.
+!]]
+local _tDirectiveVisibilites = {"met", "stapub", "pri", "pro", "pub"};
+function kit.processDirectives(tKit) --TODO set to local after test
+
+    for _, sCAI in pairs(_tDirectiveVisibilites) do
+
+        for sKeyRaw, vItem in pairs(tKit[sCAI]) do
+            local   sKey, bIsFinal, bIsReadOnly,
+                    vGetter, vSetter,
+                    bGetterFinal, bSetterFinal =
+                    kit.getDirectiveInfo(sCAI, sKeyRaw, vItem);
+
+            if (bIsFinal or bIsReadOnly or vGetter or vSetter) then
+                tKit.directives[sCAI][sKey] = {
+                    keyRaw          = sKeyRaw,
+                    isFinal         = bIsFinal,
+                    isReadOnly      = bIsReadOnly,
+                    getter          = vGetter,
+                    getterIsFinal   = bGetterFinal,
+                    setter          = vSetter,
+                    setterIsFinal   = bSetterFinal,
+                };
+                --print(sKey, bIsFinal, bIsReadOnly, vGetter, vSetter, bGetterFinal, bSetterFinal);
+
+            end
+--[[
+            print(  string.format("Key: %s, Final: %s, Read Only: %s, Getter: %s, Setter: %s, Getter Final: %s, Setter Final: %s,",
+                    sKey,
+                    tostring(bIsFinal),
+                    tostring(bIsReadOnly),
+                    vGetter or "",
+                    vSetter or "",
+                    tostring(bGetterFinal),
+                    tostring(bSetterFinal)
+                ))]]
+            --TODO add new key and delete old one (in new for loop on tKit[sCAI] using tKit.directives)
+            --sKeyRaw
+
+        end
+
+    end
+
+    for sCAI, tKeys in pairs(tKit.directives) do
+
+        for sKey, tDirective in pairs(tKeys) do
+            local tKitCAI = tKit[sCAI];
+            local sKeyRaw = tDirective.keyRaw;
+
+
+            --set the new key name/value and delete the old key
+            tKitCAI[sKey]       = tKitCAI[sKeyRaw];
+            tKitCAI[sKeyRaw]    = nil;
+
+            --create and getters/setters
+            if (tDirective.getter) then
+                tKit.pub[tDirective.getter] = function()
+                    return tKitCAI[sKey];
+                end
+            end
+
+            --TODO setter and finals
+
+            --set other directive items
+            --TODO LEFT OFF HERE
+        end
+
+    end
+
+end
+
+
+--[[!
 @fqxn LuaEx.class.kit.Functions.processInitialIsAChecks
 @param table tKit The kit to check.
 @scope local
@@ -1033,37 +1379,16 @@ function kit.processInitialIsAChecks(tKit)
 
 end
 
---[[!
-@fqxn LuaEx.class.kit.Functions.mayExtend
-@param table tKit The kit to check.
-@scope local
-@desc Checks whether a class kit is allowed to be extended.
-@ret boolean True if the class can be extended, false otherwise.
-!]]
-function kit.mayExtend(sName, cExtendor)
-    local bRet = false;
 
-    --check that the extending class exists
-    if (type(cExtendor) == "class") then
-        assert(type(kit.repo.byObject[cExtendor]) == "table", "Error creating derived class, '${class}'. Parent class, '${item}', does not exist. Got (${type}) '${item}'."	% {class = sName, type = type(cExtendor), item = tostring(cExtendor)}); --TODO since nil is allowed, this never fires. Why have it here?
-        assert(kit.repo.byObject[cExtendor].isFinal == false, "Error creating derived class, '${class}'. Parent class '${parent}' is final and cannot be extended."	% {class = sName, parent = kit.repo.byObject[cExtendor].name})
-
-        bRet = true;
-    end
-
-    return bRet;
-end
-
-
---[[!
+--[[
 @fqxn LuaEx.class.kit.Functions.processDirectiveAuto
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all private and protected members to process them if they have an auto directive.
-!]]
+
 local tAutoVisibility = {pri, pro};
 function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too...firgure out how to do that
-    local tAuto         = {};
+    local tAuto = {};
 
     for _, sCAI in pairs(tAutoVisibility) do
         local tVisibility = tKit[sCAI];
@@ -1089,6 +1414,7 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
                     end
 
                     tAuto[sName] = {
+                        gettername      = "", --set in the next for loop
                         item            = vItem,
                         itemtype        = sItemType,
                         CAI             = sCAI,
@@ -1108,7 +1434,9 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
 
 
     for sName, tItem in pairs(tAuto) do
-        local sGet              = "Get"..tItem.formattedname;
+        --local sGetName          = getGetterFunctionName(sName, tItem.itemtype)
+        --tAuto[sName].getprefix  = sGetName;
+        local sGet              = "get"..tItem.formattedname;
         local sSet              = "Set"..tItem.formattedname;
         local sVisibility       = tItem.CAI;
         local sFormattedName    = tItem.formattedname;
@@ -1151,14 +1479,14 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
     end
 
 end
+]]
 
-
---[[!
+--[[
 @fqxn LuaEx.class.kit.Functions.processDirectiveFinal
 @param table tKit The kit within which the directives will be processed.
 @scope local
 @desc Iterates over all protected and public members to process them if they have a directive. !TODO add metamethods
-!]]
+
 local tFinalVisibility = {met, pro, pub};
 function kit.processDirectiveFinal(tKit)
     local tFinal = {};
@@ -1198,7 +1526,7 @@ function kit.processDirectiveFinal(tKit)
 
     end
 
-end
+end]]
 
 
 --[[!
@@ -1218,6 +1546,42 @@ function kit.processInterfaces(tKit, tInterfaces)
         iInterface(tKit);
     end
 
+end
+
+
+--[[!
+@fqxn LuaEx.class.kit.Functions.setParent
+@param table tKit The kit to check.
+@scope local
+@desc Checks whether a class kit is allowed to be extended and sets the kit's parent if so.
+!]]
+function kit.setParent(tKit, cExtendor)
+    local sName = tKit.name;
+
+    --check that the extending class exists
+    if (type(cExtendor) == "class") then
+        --assert(type(kit.repo.byObject[cExtendor]) == "table", "Error creating derived class, '${class}'. Parent class, '${item}', does not exist. Got (${type}) '${item}'."	% {class = sName, type = type(cExtendor), item = tostring(cExtendor)}); --TODO since nil is allowed, this never fires. Why have it here?
+
+        --if the 'cExtendor' input is a real class
+        if (kit.repo.byObject[cExtendor]) then
+            local tParentKit = kit.repo.byObject[cExtendor];
+
+            --enure the parent class isn't final
+            if (tParentKit.isFinal) then
+                error("Error creating derived class, '${class}'. Parent class, '${parent}', is final and cannot be extended."	% {class = sName, parent = tParentKit.name}, 3);
+            end
+
+            --ensure the parent class doesn't have a private constructor
+            if (tParentKit.constructorVisibility == "pri") then
+                error("Error creating derived class, '${class}'.\nParent class, '${parent}', has a private constructor and cannot be extended."	% {class = sName, parent = tParentKit.name}, 3);
+            end
+
+            tKit.parent = tParentKit; --note the parent kit
+        end
+
+    end
+
+    return bRet;
 end
 
 
@@ -1320,7 +1684,6 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
     assert(type(tProtected) 			== "table", 	"Error creating class, '${class}'. Protected values table expected.\nGot: (${type}) ${item}." 		% {class = sName, 	type = type(tProtected), 		item = tostring(tProtected)});
     assert(type(tPublic) 				== "table", 	"Error creating class, '${class}'. Static values table expected.\nGot: (${type}) ${item}." 			% {class = sName, 	type = type(tPublic), 			item = tostring(tPublic)});
 
-    local bIsConstructor = false;
     local tTables = {
         met 	= tMetamethods,
         stapub 	= tStaticPublic,
@@ -1334,25 +1697,10 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
 
         for k, v in pairs(tTable) do
             assert(rawtype(k) == "string", "Error creating class, '${class}'. All table indices must be of type string. Got: (${type}) ${item} in table, ${table}" % {class = sName, type = type(k), item = tostring(v), table = sTable});
-            --TODO consider what visibility constructors must have (no need for private consttructors since static classes are not really needed in Lua?)
-            --ensure there's a constructor
-            --if ((sTable == "public" or sTable == "protected") and k == sName and rawtype(v) == "function") then
-            if ((sTable == pub) and k == sName and rawtype(v) == "function") then
-
-                --make sure there's not already a constructor
-                assert(not bIsConstructor, "Error creating class, '${class}'. Redundant constructor detected in ${table} table." % {class = sName, table = sTable});
-
-                --make sure it's in the public table
-                --assert(sTable == "public", "Error creating class, ${class}. Constructor must be declared in the 'public' table. Currently declared in the '${table}' table." % {class = sName, table = sTable});
-
-                bIsConstructor = true;
-            end
-
         end
 
     end
 
---TODO import metamethods ONLY if they are legit metanames
     --validate the metamethods
     for sMetaItem, vMetaItem in pairs(tMetamethods) do
         local sMetaname = sMetaItem:gsub("_FNL$", '');--TODO form string above forloop using constant
@@ -1366,8 +1714,6 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
                 {class = sName, metaname = sMetaname, type = type(sMetaItem)});
     end
 
-
-    assert(bIsConstructor, "Error creating class, '${class}'. No constructor provided." % {class = sName});
 end
 
 
