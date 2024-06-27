@@ -65,8 +65,8 @@ local function update(pri)
 
     --determine slope and y-intercept
     if (pri.slopeIsUndefined) then
-        pri.slope       = math.undefined;
-        pri.yIntercept  = nStartX == 0 and math.allrealnumbers or math.undefined;
+        pri.slope       = 0;--math.undefined; -TODO change this back to math.undefined after it's fixed
+        pri.yIntercept  = 0;--nStartX == 0 and math.allrealnumbers or math.undefined;--math.undefined; -TODO change this back to math.allrealnumbers/undefined after it's fixed
     else
         pri.slope       = nYDelta / nXDelta;
         pri.yIntercept  = nStartY - pri.slope * nStartX;

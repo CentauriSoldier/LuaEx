@@ -46,8 +46,59 @@ end
 
 The intersection point of these two lines is (2.5, 2.5).]]
 --create a couple lines
-local oLine1 = Line(Point(1, 1), Point(4, 4));
-local oLine2 = Line(Point(1, 4), Point(4, 1));
+--local oLine1 = Line(Point(1, 1), Point(4, 4));
+--local oLine2 = Line(Point(1, 4), Point(4, 1));
+local l = ""
+--print(oLine2.getX());
+local tPointCache = {};
+local nPerc = 0
+local nMax = 100000;
+local nPerc = nMax / 100;
+for x = 1, nMax do
+
+    if x % nPerc == 0 then
+    --    print("creating points... "..math.floor(((x / nPerc))).. "% complete.")
+    end
+
+    --tPointCache[x] = Point();
+
+end
+
+
+local Point2 = class("Point2",
+{--METAMETHODS
+    
+},
+{--STATIC PUBLIC
+    --Point2 = function(stapub) end,
+
+},
+{--PRIVATE
+
+},
+{--PROTECTED
+
+},
+{--PUBLIC
+    Point2 = function(this, cdat)
+
+    end,
+    getYs = function()
+
+    end,
+},
+Point,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
+
+
+local oTest = Point(1, 15);
+local oTest2 = Point(7, 7);
+oTest.setX(3)
+--oTest.setY(24)
+print(oTest.getX(), oTest.getY())
+--print(oTest2.getX())--, oTest.getY())
 --print("oLine1\n", oLine1);
 --print("\noLine2\n", oLine2);
 

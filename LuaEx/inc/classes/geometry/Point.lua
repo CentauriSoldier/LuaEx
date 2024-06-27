@@ -162,10 +162,10 @@ return class("Point",
 },
 {--private
     X__auto_F = 0,
-    Y__auto_F = 0,
+    Y__auto_A = 0,
 },
 {--protected
-
+    bonk__FNL = function()end;
 },
 {--public
     --[[
@@ -266,19 +266,6 @@ return class("Point",
         pri.Y = type(nY) == "number" and nY or pri.Y;
         return this;
     end,
-
-    setX = function(this, cdat, nX)
-        local pri = cdat.pri;
-        pri.X = type(nX) == "number" and nX or pri.X;
-        return this;
-    end,
-
-    setY = function(this, cdat, nY)
-        local pri = cdat.pri;
-        pri.Y = type(nY) == "number" and nY or pri.Y;
-        return this;
-    end,
-
 
     --[[deprecated...this is a line function
     slopeTo = function(this, oOther)

@@ -72,7 +72,7 @@ local pro       = "pro";    --the instance's protected table
 local pub       = "pub";    --the instance's public table
 local ins       = "ins";    --a table containing all the instances
 
-local tCAINames = {             --primarily used for error messages
+local _tCAINames = {             --primarily used for error messages
     met     = "metamethods",    --the instance's metatable
     stapub  = "static public",  --the class's static public table
     pri     = "private",        --the instance's private table
@@ -112,8 +112,12 @@ local function getMetaNamesAsString()
     local sRet              = "";
     local tSortedMetaNames  = {};
 
-    for sName, _ in pairs(_tMetaNames) do
-        table.insert(tSortedMetaNames, sName);
+    for sName, bAllowed in pairs(_tMetaNames) do
+
+        if (bAllowed) then
+            table.insert(tSortedMetaNames, sName);
+        end
+
     end
 
     table.sort(tSortedMetaNames);
@@ -154,6 +158,11 @@ end
 @desc Directives provide a way for classes to set methods as final,
 <br>set values as read only and create properties
 !]]
+local _sDirectiveAutoUpper  = "__AUTO";
+local _sDirectiveAutoLower  = "__auto";
+local _sDirectiveFNL        = "__FNL";
+local _sDirectiveRO         = "__RO";
+
             --[[
                 ███╗   ███╗ █████╗ ██╗███╗   ██╗    ████████╗ █████╗ ██████╗ ██╗     ███████╗███████╗
                 ████╗ ████║██╔══██╗██║████╗  ██║    ╚══██╔══╝██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝
@@ -195,6 +204,9 @@ local kit = {
         byObject 	= {}, --index by class object | updated when a class object is created
     },
 };
+
+--used to check for child overrides on soon-to-be AUTO properties
+_fAutoPlaceHolder = function() end;
 
 
                 --[[
@@ -524,8 +536,8 @@ function instance.build(tKit, tParentActual)
     --wrap the private, protected and public methods
     instance.wrapMethods(tInstance, tClassData)
 
-    --create auto getter/setter methods
-    instance.buildAutoMethods(tInstance, tClassData);
+    --process the class directives
+    instance.processDirectives(tInstance, tClassData);
 
     --create and set the instance metatable
     instance.setMetatable(tInstance, tClassData);
@@ -548,36 +560,6 @@ function instance.build(tKit, tParentActual)
     };
 
     return oInstance, tInstance;
-end
-
-
---[[!
-@fqxn LuaEx.class.instance.Functions.buildAutoMethods
-@param table tInstance The (actual) instance table.
-@param table tClassData The (decoy) class data table.
-@scope local
-@desc Iterates over instance members to create auto accessor/mutaor methods for those marked with the _AUTO directive.
-!]]
-function instance.buildAutoMethods(tInstance, tClassData)
-    local tKit = tInstance.metadata.kit;
-
-    for sName, tItem in pairs(tKit.auto) do
-        local sGetName    = tItem.itemtype == "boolean" and "is" or "get";--set "is" for boolean
-        local sVisibility = tItem.CAI;
-
-        --create the accesor method
-        tInstance.pub[sGetName..tItem.formattedname] = function()
-            return tClassData[sVisibility][tItem.formattedname];
-        end
-
-        --create the mutator method
-        tInstance.pub["set"..tItem.formattedname] = function(vVal)
-            tClassData[sVisibility][tItem.formattedname] = vVal;
-            return tInstance.decoy;
-        end
-
-    end
-
 end
 
 
@@ -626,6 +608,62 @@ function instance.prepClassData(tInstance)
 end
 
 
+--[[
+directive table reference (as set in kit.processDirectives())
+keyRaw          = sKeyRaw,
+isFinal         = bIsFinal,
+isReadOnly      = bIsReadOnly,
+getter          = vGetter,
+getterIsFinal   = bGetterFinal,
+setter          = vSetter,
+setterIsFinal   = bSetterFinal,
+]]
+function instance.processDirectives(tInstance, tClassData)
+    local tKit      = tInstance.metadata.kit;
+    local oInstance = tInstance.decoy;
+
+    for sCAI, tKeys in pairs(tKit.directives) do
+
+        for sKey, tDirective in pairs(tKeys) do
+            --local tKitCAI = tKit[sCAI];
+            --local sKeyRaw = tDirective.keyRaw;
+
+            --set the new key name/value and delete the old key
+            --tKitCAI[sKey]       = tKitCAI[sKeyRaw];
+        --    tKitCAI[sKeyRaw]    = nil;
+
+            --create and getters/setters
+            if (tDirective.getter) then
+
+                --overwrite the placeholder
+                tInstance.pub[tDirective.getter] = function()
+                    return tInstance[sCAI][sKey];
+                end
+
+            end
+
+            if (tDirective.setter) then
+
+                --overwrite the placeholder
+                tInstance.pub[tDirective.setter] = function(vVal)
+                    tClassData[sCAI][sKey] = vVal;
+                    return oInstance;
+                end
+
+            end
+
+            --TODO finals
+
+
+            --set other directive items
+            --TODO LEFT OFF HERE
+        end
+
+    end
+
+end
+
+
 --[[!
 @fqxn LuaEx.class.instance.Functions.setClassDataMetatable
 @param table tInstance The (actual) instance table.
@@ -664,7 +702,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                 --if none exists, throw an error
                 if (zRet == "nil") then
                     error("Error in class, '${name}'. Attempt to access ${visibility} member, '${member}', a nil value." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 3);
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 return vRet;
@@ -688,7 +726,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                 --if (rawtype(vVal) == "nil") then
                 if (zVal == "nil") then
                     error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
                 local sTypeCurrent  = type(tTarget[k]);
@@ -696,12 +734,12 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 if (sTypeNew == "nil") then
                     error("Error in class, '${name}'. Cannot set ${visibility} member, '${member}', to nil." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
                 if (sCAI ~= "pri" and sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
                     error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
-                        name = sName, visibility = tCAINames[sCAI], member = tostring(k)}, 2);
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 2);
                 end
 
                 --update the isAChecks (if needed) if the initial value was null
@@ -736,7 +774,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                     if not (bAllow) then
                         error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
-                            name = sName, visibility = tCAINames[sCAI], visibility = tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 2);
+                            name = sName, visibility = _tCAINames[sCAI], visibility = _tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 2);
                     end
 
                 end
@@ -744,7 +782,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                 rawset(tTarget, k, v);
             end,
             --__metatable = true,--TODO WARNING is it better to have this type available (and for what) or have the metatable protcted (same with the parent table)?
-            __type = tCAINames[sCAI].."classdata",
+            __type = _tCAINames[sCAI].."classdata",
         });
 
     end
@@ -968,7 +1006,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     --import/create the elements which will comprise the class kit
     local tKit = {
         --properties
-        auto            = {},       --these are the auto getter/setter methods to build on instantiation
+        --auto            = {},       --these are the auto getter/setter methods to build on instantiation
         directives      = {
             met     = {},
             stapub  = {},
@@ -987,7 +1025,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             },
         },
         constructorVisibility = "", --gets set in kit.processConstructor
-        finalmethodnames= {         --this keeps track of methods marked as final to prevent overriding
+        finalMethodNames= {         --this keeps track of methods marked as final to prevent overriding
             met = {},
             pro = {},
             pub = {},
@@ -1023,14 +1061,9 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     --if this class is attempting to extend a class, validate it can
     kit.setParent(tKit, cExtendor);
 
-    --note and rename final methods
-    --kit.processDirectiveAuto(tKit); --TODO allow these to be set set as final too
-
-    --note and rename final methods
-    --kit.processDirectiveFinal(tKit);
+    --process the class directives
     kit.processDirectives(tKit);
 
-    --kit.processdirectivecombinatory(tKit);  --TODO this will be the directive which is both auto and final
     --TODO add abstract classes and methods?
 
     --check for member shadowing
@@ -1096,7 +1129,7 @@ end
 @ret boolean bGetterFinal Whether the setter method (if present) is final.
 @ret boolean bSetterFinal Whether the setter method (if present) is final.
 !]]
-function kit.getDirectiveInfo(sCAI, sKey, vItem)
+function kit.getDirectiveInfo(sCAI, sKey, vItem)--TODO FINISH pretty errors
     --TODO move these string into vars above
     local sGetter, sSetter;
     local bUpperCase = false
@@ -1104,16 +1137,16 @@ function kit.getDirectiveInfo(sCAI, sKey, vItem)
     local bHasDirective     = false;
     local bHasAutoDirective = false;
 
-    local bFinal = sKey:find("__FNL") ~= nil;
+    local bFinal = sKey:find(_sDirectiveFNL) ~= nil;
     if (bFinal) then
         bHasDirective = true;
-        sKey = sKey:gsub("__FNL", "");
+        sKey = sKey:gsub(_sDirectiveFNL, "");
     end
 
-    local bReadOnly = sKey:find("__RO") ~= nil;
+    local bReadOnly = sKey:find(_sDirectiveRO) ~= nil;
     if (bReadOnly) then
         bHasDirective = true;
-        sKey = sKey:gsub("__RO", "");
+        sKey = sKey:gsub(_sDirectiveRO, "");
     end
 
     local nBaseStart    = 0;
@@ -1121,10 +1154,10 @@ function kit.getDirectiveInfo(sCAI, sKey, vItem)
     local sGetPrefix    = "";
 
     -- Look for __AUTO or __auto
-    local nStart, nEnd = sKey:find("__AUTO");
+    local nStart, nEnd = sKey:find(_sDirectiveAutoUpper);
 
     if not nStart then
-        nStart, nEnd = sKey:find("__auto");
+        nStart, nEnd = sKey:find(_sDirectiveAutoLower);
 
         if nStart then
             bUpperCase = false;
@@ -1136,6 +1169,12 @@ function kit.getDirectiveInfo(sCAI, sKey, vItem)
 
     -- Default values if no directive is found
     if nStart then
+
+        --ensure there's text before the directive
+        if (nStart == 1) then
+            error("Cannot create directive without field name.");
+        end
+
         local sRemainder = sKey:sub(nStart);
 
         -- Validate length of directive
@@ -1147,14 +1186,22 @@ function kit.getDirectiveInfo(sCAI, sKey, vItem)
         bHasAutoDirective   = true;
 
         local nCharIndex        = nStart + 6;--TODO move this 6 local const
-        local sGetterOrSetter   = sKey:sub(nCharIndex, nCharIndex);
+        local sAutoToken        = sKey:sub(nCharIndex, nCharIndex);
               nCharIndex        = nStart + 7;--TODO move this 7 local const
-        local sWhichFinal       = sKey:sub(nCharIndex, nCharIndex);
+        local sFinalToken       = sKey:sub(nCharIndex, nCharIndex);
 
-        bGetter         = sGetterOrSetter ~= "S";
-        bSetter         = sGetterOrSetter ~= "G";
-        bGetterFinal    = bGetter and (sWhichFinal == "G" or sWhichFinal == "F");
-        bSetterFinal    = bSetter and (sWhichFinal == "S" or sWhichFinal == "F");
+        --determine the auto type
+        local bTypeIsGetter         = sAutoToken == "A";
+        local bTypeIsSetter         = sAutoToken == "M";
+        local bTypeIsReadOnlyGetter = sAutoToken == "R";
+        local bTypeIsBoth           = not (bTypeIsGetter or bTypeIsSetter or bTypeIsReadOnlyGetter)
+        bReadOnly                   = bTypeIsReadOnlyGetter;
+
+        bGetter         = bTypeIsGetter or bTypeIsBoth;
+        bSetter         = bTypeIsSetter or bTypeIsBoth;
+        bGetterFinal    = bGetter and (sFinalToken == "A" or sFinalToken == "F");
+        bSetterFinal    = bSetter and (sFinalToken == "M" or sFinalToken == "F");
+
 
         if (bGetter) then
             local sPrefix = sKey:sub(nCharIndex + 1);
@@ -1168,7 +1215,7 @@ function kit.getDirectiveInfo(sCAI, sKey, vItem)
             sSetter = (bUpperCase and "Set" or "set")..sKey;
         end
         --print(sKey, sGetter, sSetter)
-        --TODO check for a value before the _-auto detrective
+
 
     end
 
@@ -1188,17 +1235,25 @@ function kit.getDirectiveInfo(sCAI, sKey, vItem)
         error("Items using directives cannot be null.");
     end
 
+    if (bReadOnly and bHasAutoDirective) then
+        error("The read only (__RO) directive cannot be explicitly applied with properties.\nUse the proper AUTO property token to make property value read only.");
+    end
+
     if (bReadOnly and bIsFunction) then
         error("__RO directives can be applied only to fields and cannot be null.");
     end
 
     if (bFinal and not bIsFunction) then
-        error("__FNL directive can be applied only to methods (and properties optionally and implciitly) and cannot be null.");
+        error("__FNL directive can be applied only to methods (and properties optionally and implciitly using the proper AUTO property token) and cannot be null.");
     end
 
-    if (bReadOnly and sSetter) then
-        error("Cannot apply read only (__RO) directive to a field queued to become a mutator property.");
+    if (bFinal and not (sCAI == "met" or sCAI == "pro" or sCAI == "pub") ) then
+        error("__FNL directive cannot be applied to methods in the ${visibility} table." % {visibility = _tCAINames[sCAI]});
     end
+
+    --if (bReadOnly and sSetter) then
+    --    error("Cannot apply read only (__RO) directive to a field queued to become a mutator property.");
+    --end
 
     --NOTE: since everything in the met table is guaranteed to be a function, we needn't validate further
 
@@ -1222,6 +1277,9 @@ function kit.getDirectiveInfo(sCAI, sKey, vItem)
         --print(sKey, bFinal, bReadOnly, sGetter, sSetter, bGetterFinal, bSetterFinal)
     end
     -- Return the processed names and flags
+
+    --if sKey == "X" or sKey == "Y" then
+    --print(sKey, bFinal, bReadOnly, sGetter, sSetter, bGetterFinal, bSetterFinal) end
     return sKey, bFinal, bReadOnly, sGetter, sSetter, bGetterFinal, bSetterFinal;
 end
 
@@ -1316,38 +1374,62 @@ function kit.processDirectives(tKit) --TODO set to local after test
                     tostring(bGetterFinal),
                     tostring(bSetterFinal)
                 ))]]
-            --TODO add new key and delete old one (in new for loop on tKit[sCAI] using tKit.directives)
+            --TODO FINISH check for naming conflicts!
             --sKeyRaw
 
         end
 
     end
 
+
     for sCAI, tKeys in pairs(tKit.directives) do
 
         for sKey, tDirective in pairs(tKeys) do
-            local tKitCAI = tKit[sCAI];
-            local sKeyRaw = tDirective.keyRaw;
+            local tVisibility   = tKit[sCAI];
+            local sKeyRaw       = tDirective.keyRaw;
+            local vValue        = tVisibility[sKeyRaw];
 
-
-            --set the new key name/value and delete the old key
-            tKitCAI[sKey]       = tKitCAI[sKeyRaw];
-            tKitCAI[sKeyRaw]    = nil;
-
-            --create and getters/setters
-            if (tDirective.getter) then
-                tKit.pub[tDirective.getter] = function()
-                    return tKitCAI[sKey];
-                end
+            --check if the key already exists
+            if (tVisibility[sKey]) then
+                error("Error in class, '${name}'. Attempt to overwrite existing ${visibility} member, '${member}', using AUTO directive of the same name." % {
+                    name = tKit.name, visibility = _tCAINames[sCAI], member = tostring(sKey)}, 2);
             end
 
-            --TODO setter and finals
+            --set the new key name/value and delete the old key
+            tVisibility[sKey]       = vValue;
+            tVisibility[sKeyRaw]    = nil;
+            --print(sKeyRaw, sKey, sCAI.." = "..serialize(tKit[sCAI]), vValue)
 
-            --set other directive items
-            --TODO LEFT OFF HERE
+            if (tDirective.isFinal) then
+                tKit.finalMethodNames[sCAI][sKey] = true;
+            end
+
+            if (tDirective.getter) then
+                --set the placeholder
+                tKit.pub[tDirective.getter] = _fAutoPlaceHolder;
+
+                --set the method as final (or not)
+                if (tDirective.getterIsFinal) then
+                    tKit.finalMethodNames.pub[tDirective.getter] = true;
+                end
+
+            end
+
+            if (tDirective.setter) then
+                --set the placeholder
+                tKit.pub[tDirective.setter] = _fAutoPlaceHolder;
+
+                --set the method as final (or not)
+                if (tDirective.setterIsFinal) then
+                    tKit.finalMethodNames.pub[tDirective.setter] = true;
+                end
+
+            end
+
         end
 
     end
+
 
 end
 
@@ -1403,12 +1485,12 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
 
                     if (type(tKit[sCAI][sFormattedName]) ~= "nil") then
                         error(  "Error in class, '${class}'. Attempt to create accessor/mutator methods using the '${directive}' directive for duplicate members, '${name}', of ${visibility} visibility." %
-                                {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = tCAINames[sCAI]});
+                                {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = _tCAINames[sCAI]});
                     end
 
                     if (type(tAuto[sName]) ~= "nil") then
-                        local sVisibility1 = tCAINames[sCAI];
-                        local sVisibility2 = tCAINames[tAuto[sName].CAI];
+                        local sVisibility1 = _tCAINames[sCAI];
+                        local sVisibility2 = _tCAINames[tAuto[sName].CAI];
                         error(  "Error in class, '${class}'. Attempt to create multiple accessor/mutator methods using the '${directive}' directive for members of the same name, '${index}', of visibility ${visibility1} and ${visibility2}." %
                                 {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, index = sFormattedName, visibility1 = sVisibility1, visibility2 = sVisibility2});
                     end
@@ -1444,12 +1526,12 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
         --ensure there are not already getter/setter methods in this kit
         if (type(tKit.pub[sGet]) ~= "nil") then
             error(  "Error in class, '${class}'. Attempt to overwrite existing public method with auto accessor, '${method}', for ${visibility} member, '${member}' ('${name}')." %
-                    {class = tKit.name, method = sGet, visibility = tCAINames[sVisibility], member = sFormattedName, name = sName});
+                    {class = tKit.name, method = sGet, visibility = _tCAINames[sVisibility], member = sFormattedName, name = sName});
         end
 
         if (type(tKit.pub[sSet]) ~= "nil") then
             error(  "Error in class, '${class}'. Attempt to overwrite existing public method with auto mutator, '${method}', for ${visibility} member, '${member}' ('${name}')." %
-                    {class = tKit.name, method = sSet, visibility = tCAINames[sVisibility], member = sFormattedName, name = sName});
+                    {class = tKit.name, method = sSet, visibility = _tCAINames[sVisibility], member = sFormattedName, name = sName});
         end
 
         --look for final getter/setter methods & auto directives in parents
@@ -1457,14 +1539,14 @@ function kit.processDirectiveAuto(tKit)--TODO allow these to be set as final too
 
         while (tParentKit) do
 
-            if ((type(tParentKit.pub[sGet]) ~= "nil" and tParentKit.finalmethodnames.pub[sGet]) or (type(tParentKit.pub[sSet]) ~= "nil" and tParentKit.finalmethodnames.pub[sSet])) then
+            if ((type(tParentKit.pub[sGet]) ~= "nil" and tParentKit.finalMethodNames.pub[sGet]) or (type(tParentKit.pub[sSet]) ~= "nil" and tParentKit.finalMethodNames.pub[sSet])) then
                 error(  "Error in class, '${class}'. Attempt to create accessor/mutator methods for member, '${name}', of ${visibility} visibility\nusing the '${directive}' directive which would override final methods in parent class, '${parent}'." %
-                        {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = tCAINames[sVisibility], parent = tParentKit.name});
+                        {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = _tCAINames[sVisibility], parent = tParentKit.name});
             end
 
             if (tParentKit.auto[sName]) then
                 error(  "Error in class, '${class}'. Attempt to create accessor/mutator methods for member, '${name}', of ${visibility} visibility\nusing the '${directive}' directive which would override auto-created mutator/accessor methods in parent class, '${parent}'." %
-                        {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = tCAINames[sVisibility], parent = tParentKit.name});
+                        {class = tKit.name, directive = CLASS_DIRECTIVE_AUTO, name = sFormattedName, visibility = _tCAINames[sVisibility], parent = tParentKit.name});
             end
 
             tParentKit = tParentKit.parent;
@@ -1521,7 +1603,7 @@ function kit.processDirectiveFinal(tKit)
             tKit[sCAI][sName]    = nil;
 
             --log the method as final
-            tKit.finalmethodnames[sCAI][sNewName] = true;
+            tKit.finalMethodNames[sCAI][sNewName] = true;
         end
 
     end
@@ -1610,15 +1692,19 @@ function kit.shadowCheck(tKit) --checks for public/protected shadowing
                 if (zParentValue ~= "nil") then
 
                     if (bIsFunctionOverride) then
-
-                        if (tParent.finalmethodnames[sCAI][sKey]) then --throw an error if the parent method is final
+                        --local tParentDirectives = tParent.directives[sCAI][sKey];
+                    --    if tKit.name == "Point2" then
+                        --    print(sCAI, sKey, bIsFunctionOverride, tParentDirectives)
+                        --print(sCAI, sKey, tParent.pub.getX, serialize(tParent.directives[sCAI]))
+                        --end
+                        if (tParent.finalMethodNames[sCAI][sKey]) then --throw an error if the parent method is final
                             error(  "Error in class, '${name}'. Attempt to override final ${visibility} method, '${member}', in parent class, '${parent}'." % {
-                                name = tKit.name, visibility = tCAINames[sCAI], member = tostring(sKey), parent = tParent.name});
+                                name = tKit.name, visibility = _tCAINames[sCAI], member = tostring(sKey), parent = tParent.name});
                         end
 
                     else
                         error(  "Error in class, '${name}'. Attempt to shadow existing ${visibility} member, '${member}', in parent class, '${parent}'." % {
-                            name = tKit.name, visibility = tCAINames[sCAI], member = tostring(sKey), parent = tParent.name});
+                            name = tKit.name, visibility = _tCAINames[sCAI], member = tostring(sKey), parent = tParent.name});
                     end
 
                 end
@@ -1703,7 +1789,7 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
 
     --validate the metamethods
     for sMetaItem, vMetaItem in pairs(tMetamethods) do
-        local sMetaname = sMetaItem:gsub("_FNL$", '');--TODO form string above forloop using constant
+        local sMetaname = sMetaItem:gsub(_sDirectiveFNL, '');--TODO form string above forloop using constant
         --print(sMetaItem, sMetaname)
         assert(_tMetaNames[sMetaname],
                 "Error creating class, '${class}'. Invalid metamethod, '${metaname}'.\nPermitted metamethods are:\n${metanames}" %
@@ -1715,23 +1801,6 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
     end
 
 end
-
-
---[[
-███████╗███████╗██████╗ ██╗ █████╗ ██╗     ██╗███████╗ █████╗ ████████╗██╗ ██████╗ ███╗   ██╗
-██╔════╝██╔════╝██╔══██╗██║██╔══██╗██║     ██║╚══███╔╝██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║
-███████╗█████╗  ██████╔╝██║███████║██║     ██║  ███╔╝ ███████║   ██║   ██║██║   ██║██╔██╗ ██║
-╚════██║██╔══╝  ██╔══██╗██║██╔══██║██║     ██║ ███╔╝  ██╔══██║   ██║   ██║██║   ██║██║╚██╗██║
-███████║███████╗██║  ██║██║██║  ██║███████╗██║███████╗██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║
-╚══════╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
---]]
-
---INIT
--- Serialization prefix constant
-_sSerializePrefix       = "LUAEX129f9ff3c29b40b5b3620d97c3c2b627";
-_sSerializePrefixLength = #_sSerializePrefix;
-_sSerializeSuffix       = "354b7462b8ea4bd3beb037bf84aac3e2LUAEX";
-_sSerializeSuffixLength = #_sSerializeSuffix;
 
                             --[[
                             ██████╗ ███████╗████████╗██╗   ██╗██████╗ ███╗   ██╗
@@ -1791,62 +1860,3 @@ return rawsetmetatable({}, {
     __type = "classfactory",
 
 });
-
-
-
---[[
- █████╗ ██████╗  ██████╗██╗  ██╗██╗██╗   ██╗███████╗
-██╔══██╗██╔══██╗██╔════╝██║  ██║██║██║   ██║██╔════╝
-███████║██████╔╝██║     ███████║██║██║   ██║█████╗
-██╔══██║██╔══██╗██║     ██╔══██║██║╚██╗ ██╔╝██╔══╝
-██║  ██║██║  ██║╚██████╗██║  ██║██║ ╚████╔╝ ███████╗
-╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚══════╝
-NOTE This area may contain some useful functions but, as of yet, they have not been integrated
-
-function kit.cloneitem = function(vItem)
-local vRet;
-
-if (type(vItem) == "table") then
-vRet = clone(vItem);
-
-elseif (rawtype(vItem) == "table") then
-local tMeta = rawgetmetatable(vItem);
-
-if (tMeta and tMeta.__is_luaex_class) then
-vRet = vItem.clone();
-
-else
-vRet = clone(vItem);
-
-end
-
-else
-vRet = vItem;
-
-end
-
-return vRet;
-end
-
-function kit.exists = function(vName)
-local tRepo	= type(vName) == "class" and kit.repo.byObject or kit.repo.byName;
-return type(tRepo[vName] ~= "nil");
-end
-
-function kit.get = function(vName)
-local tRepo	= type(vName) == "class" and kit.repo.byObject or kit.repo.byName;
-assert(type(tRepo[vName] ~= "nil"), "Error getting class kit, '${name}'. Class does not exist." % {name = tostring(vName)});
-return tRepo[vName];
-end
-
-function kit.getparent = function(vName)
-local tRet 	= nil;
-local tKit 	= kit.get(vName);
-
-if (type(tKit.parent) ~= "nil") then
-tRet = kit.get(tKit.parent);
-end
-
-return tRet;
-end
-]]
