@@ -67,7 +67,7 @@ end
 
 local Point2 = class("Point2",
 {--METAMETHODS
-    
+    __add = function()end
 },
 {--STATIC PUBLIC
     --Point2 = function(stapub) end,
@@ -80,10 +80,13 @@ local Point2 = class("Point2",
 
 },
 {--PUBLIC
-    Point2 = function(this, cdat)
-
+    Point2 = function(this, cdat, super)
+        super()
     end,
     getYs = function()
+
+    end,
+    Getstest = function()
 
     end,
 },
@@ -92,16 +95,83 @@ false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
 
+local Point3 = class("Point3",
+{--METAMETHODS
+    __add = function()end
+},
+{--STATIC PUBLIC
+    --Point2 = function(stapub) end,
+
+},
+{--PRIVATE
+
+},
+{--PROTECTED
+
+},
+{--PUBLIC
+    Point3 = function(this, cdat, super)
+        super()
+    end,
+    getYs = function()
+
+    end,
+    Getstest = function()
+
+    end,
+},
+Point2,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
+
+local Point4 = class("Point4",
+{--METAMETHODS
+    __add = function()end
+},
+{--STATIC PUBLIC
+    --Point2 = function(stapub) end,
+
+},
+{--PRIVATE
+
+},
+{--PROTECTED
+
+},
+{--PUBLIC
+    Point4 = function(this, cdat, super)
+        super()
+    end,
+    getYs = function()
+
+    end,
+    Getstest = function()
+
+    end,
+},
+Point,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
 
 local oTest = Point(1, 15);
 local oTest2 = Point(7, 7);
 oTest.setX(3)
 --oTest.setY(24)
-print(oTest.getX(), oTest.getY())
+--print(oTest.getX(), oTest.getY())
 --print(oTest2.getX())--, oTest.getY())
 --print("oLine1\n", oLine1);
 --print("\noLine2\n", oLine2);
-
+local oPoint22 = Point2();
+local fk = {"Aetherex", "Aetheris", "Basilorath", "Basilorok", "Centurionis", "Cerberon", "Chimerax", "Draculeth", "Dragonis", "Fenrathis", "Gorgonix", "Krakenix", "Luphorix", "Malroksha", "Medusaris", "Morvathis", "Myrmidonis", "Nephelith", "Nymphalor", "Phoborath", "Seraphion", "Serpentis", "Spectrion", "Thuundrasc", "Titananithar", "Wraithox", "Xyphalith", "Zygomantis", "Zygonixis", "Zypheron"}
+local t = "{"
+for k, v in ipairs(fk) do
+    local comma = k == #fk and "" or ", "
+    t = t..'"'..v:upper()..'"'..comma;
+end
+print(t.."}")
+--print(class.issibling(Point2, Point4))
 --test the lines' interactions
 --print("Interection: ", oLine1.getPointOfIntersection(oLine2));
 --print(oLine1.getR())

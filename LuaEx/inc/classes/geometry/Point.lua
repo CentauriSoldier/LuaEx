@@ -158,14 +158,13 @@ return class("Point",
     deserialize = function(tData)
         return Point(tData.X, tData.Y);
     end,
-
 },
 {--private
     X__auto_F = 0,
     Y__auto_A = 0,
 },
 {--protected
-    bonk__FNL = function()end;
+    test__AUTORA = 45,
 },
 {--public
     --[[
@@ -180,7 +179,6 @@ return class("Point",
         pri.X = rawtype(nX) == "number" and nX or pri.X;
         pri.Y = rawtype(nY) == "number" and nY or pri.Y;
     end,
-
     --[[deserialize = function(this, cdat, sData)
         local tData = deserialize.table(sData);
 
