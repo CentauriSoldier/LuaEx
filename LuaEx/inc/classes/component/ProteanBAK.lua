@@ -41,11 +41,11 @@
     V = [(V + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap
     <br>
     <br>
-    There may be some instances where a client may use several Protean objects but wants the
+    There may be some instances where a client may use several protean objects but wants the
     same base value for all of them. In this case, it would be cumbersome to have to set the
-    base value for each Protean object. So, a Protean object may be told to use an external
-    reference for the base value. In this case, a table is provided to the Protean object with a key
-    of PROTEAN.EXTERNAL_INDEX and a number value. This allows for multiple Protean objects to reference
+    base value for each protean object. So, a protean object may be told to use an external
+    reference for the base value. In this case, a table is provided to the protean object with a key
+    of PROTEAN.EXTERNAL_INDEX and a number value. This allows for multiple protean objects to reference
     the same base value without the need for resetting the base value of each object. Note: the table
     input will have a metamethod (__index) added to it which will update the final value of the Protean objects
     whenever the value is changed. If the table input already has a metamethod of __index, the Protean's __index
@@ -53,17 +53,17 @@
     </p>
 @license <p>The Unlicense<br>
 <br>
-@moduleid Protean
+@moduleid protean
 @version 1.3
 @versionhistory
 <ul>
     <li>
         <b>1.3</b>
         <br>
-        <p>Added a linker system allowing multiple Protean objects to share the same base value. This makes for much faster processing of Proteans which have a common base value.</p>
-        <p>Bugfix: Proteans were not linking properly.</p>
-        <p>Bugfix: deserialize function was not relinking Protean.</p>
-        <p>Feature: added the ability, upon unlinking, to restore a Proteans original value.</p>
+        <p>Added a linker system allowing multiple protean objects to share the same base value. This makes for much faster processing of proteans which have a common base value.</p>
+        <p>Bugfix: proteans were not linking properly.</p>
+        <p>Bugfix: deserialize function was not relinking protean.</p>
+        <p>Feature: added the ability, upon unlinking, to restore a proteans original value.</p>
     </li>
     <li>
         <b>1.2</b>
@@ -97,7 +97,9 @@ local table 	= table;
 local type 		= type;
 local rawtype 	= rawtype;
 
-
+enum("ProteanValue", 	{"Base", "Final"});
+enum("ProteanLimit", 	{"Min", "Max"});
+enum("ProteanMod", 		{"AddativeBonus", "AddativePenalty", "BaseBonus", "BasePenalty", "MultiplicativeBonus", "MultiplicativePenalty", });
 
 local ProteanValue 	= ProteanValue;
 local ProteanLimit 	= ProteanLimit;
@@ -107,18 +109,18 @@ local ProteanMod 	= ProteanMod;
 local calculateFinalValue;
 
 --[[
- Stores linkers for Protean objects with a shared base value.
+ Stores linkers for protean objects with a shared base value.
  The table is structure is as follows:
  tHub[nLinkerID] = {
          baseValue = x,
-        index = {--for fast existential queries of a Protean object within a linker
-            Proteanobject1 = true,
-            Proteanobject2 = true,
+        index = {--for fast existential queries of a protean object within a linker
+            proteanobject1 = true,
+            proteanobject2 = true,
             etc...
         }
-         Proteans = {
-            [1] = Proteanobject1,
-            [2] = Proteanobject2,
+         proteans = {
+            [1] = proteanobject1,
+            [2] = proteanobject2,
             etc...
         },
         totalLinked = 0,
@@ -160,19 +162,19 @@ local function unlink(this, bRestoreOriginalValue)
         tFields.linkerID = nil;
 
         --remove the object from the linker
-        table.remove(tHub[nLinkerID].Proteans, tHub[nLinkerID].index);
+        table.remove(tHub[nLinkerID].proteans, tHub[nLinkerID].index);
         table.remove(tHub[nLinkerID].index, this);
 
         --update the linked count
-        tHub[nLinkerID].totalLinked = #tHub[nLinkerID].Proteans;
+        tHub[nLinkerID].totalLinked = #tHub[nLinkerID].proteans;
     end
 
 end
 
 --[[
-    @desc Links a Protean object to the specified (or new) linker. If the object is currently linked to another linker, it will be unlinked from that linker.
-    @mod Protean
-    @param nLinkerID number The linker ID; that is, the ID of the linker to which the Protean will be linked. If this is nil or otherwise invalid, a new linker will be created.
+    @desc Links a protean object to the specified (or new) linker. If the object is currently linked to another linker, it will be unlinked from that linker.
+    @mod protean
+    @param nLinkerID number The linker ID; that is, the ID of the linker to which the protean will be linked. If this is nil or otherwise invalid, a new linker will be created.
     @scope local
 ]]
 local function link(this, nLinkerID)
@@ -186,7 +188,7 @@ local function link(this, nLinkerID)
             --the new linker will start with the creating object's base value
             baseValue 	= tFields[ProteanValue.Base],
             index 		= {},
-            Proteans	= {},
+            proteans	= {},
         };
     end
 
@@ -196,15 +198,15 @@ local function link(this, nLinkerID)
         local nOriginalValue = tFields[ProteanValue.Base]
         --set the object's base value to be the same as the linker's
         tFields[ProteanValue.Base] = tHub[nLinkerID].baseValue;
-        --link the Protean and update its settings
+        --link the protean and update its settings
         tFields.isLinked = true;
         tFields.linkerID = nLinkerID;
         --update the hub to reflect the new addition
         tHub[nLinkerID].index[this] = nOriginalValue;
-        tHub[nLinkerID].Proteans[#tHub[nLinkerID].Proteans + 1] = this;
+        tHub[nLinkerID].proteans[#tHub[nLinkerID].proteans + 1] = this;
     end
 
-    --now, make sure the Protean isn't linked somewhere else
+    --now, make sure the protean isn't linked somewhere else
 
     --DO NOT REMOVE LINKERS OR ELSE THE LINKER IDs WILL REFERENCE THE WRONG TABLE INDEX
 
@@ -214,14 +216,14 @@ local function link(this, nLinkerID)
     --check if the object is linked anywhere else and, if so, unlink it
     for nHubLinkerID, tLinker in pairs(tHub) do
 
-        --don't operate on the linker known to contain this Protean object
+        --don't operate on the linker known to contain this protean object
         if (nLinkerID ~= nHubLinkerID) then
 
             if (tLinker.index[this]) then
                 table.remove(tLinker.index, this)
-                table.remove(tLinker.Proteans, nHubLinkerID);
+                table.remove(tLinker.proteans, nHubLinkerID);
                 --tLinker.index:remove(this);
-                --tLinker.Proteans:remove(nHubLinkerID);
+                --tLinker.proteans:remove(nHubLinkerID);
 
                 --indicate that the linker needs to be removed
                 --if (#tLinker == 0) then
@@ -246,7 +248,7 @@ local function link(this, nLinkerID)
     end
 
     --update the linked count
-    tHub[nLinkerID].totalLinked = #tHub[nLinkerID].Proteans;
+    tHub[nLinkerID].totalLinked = #tHub[nLinkerID].proteans;
 end
 
 --local function ExternalTableIsValid(tTable)
@@ -293,15 +295,15 @@ local function setValue(this, sType, vValue)
         --set the value
         tFields[sType] = vValue;
 
-        --check if this object is linked and, if so, update the linker and it's Proteans
+        --check if this object is linked and, if so, update the linker and it's proteans
         if (tFields.isLinked and sType == ProteanValue.Base) then
             tHub[tFields.linkerID].baseValue = vValue;
 
-            --update the linked Proteans' final value
+            --update the linked proteans' final value
             for x = 1, tHub[tFields.linkerID].totalLinked do
-                local linkedThis 		= tHub[tFields.linkerID].Proteans[x];
+                local linkedThis 		= tHub[tFields.linkerID].proteans[x];
                 local oLinkedProtean 	= tProteans[linkedThis];
-                --print(rawtype(tHub[tFields.linkerID].Proteans[x]))
+                --print(rawtype(tHub[tFields.linkerID].proteans[x]))
                 if (oLinkedProtean.autoCalculate) then
                     --(re)calculate the final value
                     calculateFinalValue(linkedThis);
@@ -314,7 +316,7 @@ local function setValue(this, sType, vValue)
 
             end
 
-            --indicate that this Protean has also been calulated
+            --indicate that this protean has also been calulated
             bCalculated 	= true;
             --and the callback has been called
             bCallbackCalled = true;
@@ -336,36 +338,89 @@ end
 
 
 Protean = class "Protean" {
+    --[[
+        @desc The constructor for the protean class.
+        @func protean
+        @module protean
+        @param nBaseValue number This value is Vb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+        @param nBaseBonus number/nil This value is Bb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+        @param nBasePenalty number/nil This value is Bp where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+        @param nMultiplicativeBonus number/nil This value is Mb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+        @param nMultiplicativePenalty number/nil This value is Mp where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+        @param nAddativeBonus number/nil This value is Ab where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+        @param nAddativePenalty number/nil This value is Ap where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+        @param nMinLimit number/nil This is the minimum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no minimum value.
+        @param nMaxLimit number/nil This is the maximum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no maximum value.
+        @param fonChange function/nil If the (optional) input is a function, this will be called whenever a change is made to this object (unless callback is inactive).
+        @param bAutoCalculate Whether or not this object should auto-calculate the final value whenever a change is made. This is true by default. If set to nil, it will default to true.
+        @return oProtean protean A protean object.
+    ]]
+    __construct = function(this, shared, nBaseValue, nBaseBonus, nBasePenalty, nMultiplicativeBonus, nMultiplicativePenalty, nAddativeBonus, nAddativePenalty, nMinLimit, nMaxLimit, fonChange, bAutoCalculate)
 
+        local bHasCallbackFunction = rawtype(fonChange) == "function";
+        local eValue 	= ProteanValue
+        local eMod 		= ProteanMod;
+        local eLimit	= ProteanLimit;
 
+        tProteans[this] = {
+            [eValue.Base]					= rawtype(nBaseValue) 				== "number" 	and nBaseValue 				or 0,
+            [eMod.BaseBonus] 				= rawtype(nBaseBonus) 				== "number"		and nBaseBonus  			or 0,
+            [eMod.BasePenalty] 				= rawtype(nBasePenalty) 			== "number"		and nBasePenalty 			or 0,
+            [eMod.MultiplicativeBonus] 		= rawtype(nMultiplicativeBonus) 	== "number"		and nMultiplicativeBonus 	or 0,
+            [eMod.MultiplicativePenalty] 	= rawtype(nMultiplicativePenalty) 	== "number"		and nMultiplicativePenalty 	or 0,
+            [eMod.AddativeBonus] 			= rawtype(nAddativeBonus) 			== "number"		and nAddativeBonus 			or 0,
+            [eMod.AddativePenalty] 			= rawtype(nAddativePenalty) 		== "number"		and nAddativePenalty 		or 0,
+            [eValue.Final]					= 0, --this is (re)calcualted whenever another item is changed
+            [eLimit.Min] 					= rawtype(nMinLimit) 				== "number"		and nMinLimit 				or nil,
+            [eLimit.Max] 					= rawtype(nMaxLimit) 				== "number"		and nMaxLimit				or nil,
+            linkerID						= nil,
+            isLinked						= false, --for fast queries
+            autoCalculate					= rawtype(bAutoCalculate) 			== "boolean" 	and bAutoCalculate 			or true,
+            onChange 						= bHasCallbackFunction						 		and fonChange				or nil,
+            isCallbackActive				= bHasCallbackFunction,
+        };
 
-};
+        --calculate the final value for the first time
+        calculateFinalValue(this);
+    end,
 
---[[
-    @desc returns a number that is one greater than the maximum number of linkers in the Hub. This is used for determining the next, empty, available linker ID.
-    @func Protean.getAvailableLinkerID
-    @module Protean
-    @return nLinkerID number The next open index in the Hub.
-]]
-function ProteangetAvailableLinkerID()
-    return #tHub + 1;
-end
+    --[[
+    @desc Adjusts the given value by the amount input. Note: if using an external table which contains the base value, and the rawtype provided is ProteanValue.Base, nil will be returned. An external base value cannot be adjusted from inside the protean	object (although the base bonus and base penalty may be).
+    @func protean.adjust
+    @module protean
+    @param sType PROTEAN The type of value to adjust.
+    @param nValue number The value by which to adjust the given value.
+    @return oProtean protean This protean object.
+    ]]
+    adjust = function(this, sType, nValue)
+        local tFields = tProteans[this];
 
-return class("Protean",
-{--METAMETHODS
+        if (tFields[sType]) then
 
-},
-{--STATIC PUBLIC
-    LIMIT   = enum("Protean.LIMIT",     {"MIN", "MAX"}, true);
-    MOD     = enum("Protean.MOD", 	    {"ADDATIVE_BONUS",       "ADDATIVE_PENALTY",
-                                         "BASE_BONUS",           "BASE_PENALTY",
-                                         "MULTIPLICATIVE_BONUS", "MULTIPLICATIVE_PENALTY"}, true);
-    VALUE   = enum("Protean.VALUE", 	{"BASE", "FINAL"}, true);
-    --Protean = function(stapub) end,
+            if (rawtype(nValue) == "number") then
+                return setValue(this, sType, tFields[sType] + nValue);
+            end
+
+        end
+
+        return this;
+    end,
+
+    --[[
+        @desc Calculates the final value of the protean. This is done on-change by default so that the final value (when requested) is always up-to-date and accurate. There is no need to call this unless auto-calculate has been disabled. In that case, this serves an external utility function to perform the normally-internal operation of calculating and updating the final value.
+        @func protean.calulateFinalValue
+        @module protean
+        @return nValue number The calculated final value.
+    ]]
+    calulateFinalValue = function(this)
+        calculateFinalValue(this);
+        return this;
+    end,
+
     --[[
         @desc Deserializes data and sets the object's properties accordingly.
-        @func Protean.deserialize
-        @module Protean
+        @func protean.deserialize
+        @module protean
     ]]
     deserialize = function(this, sTable)
         local oProtean 	= tProteans[this];
@@ -396,118 +451,11 @@ return class("Protean",
         end
 
     end,
-},
-{--PRIVATE
-    [Protean.VALUE.BASE]    		     = 0,
-    [Protean.MOD.BASE_BONUS]             = 0,
-    [Protean.MOD.BASE_PENALTY]           = 0,
-    [Protean.MOD.MULTIPLICATIVE_BONUS]   = 0,
-    [Protean.MOD.MULTIPLICATIVE_PENALTY] = 0,
-    [Protean.MOD.ADDATIVE_BONUS]	   	 = 0,
-    [Protean.MOD.ADDATIVE_PENALTY]		 = 0,
-    [Protean.VALUE.FINAL]       		 = 0, --this is (re)calcualted whenever another item is changed
-    [Protean.LIMIT.MIN] 				 = 0,
-    [Protean.LIMIT.MAX]      			 = 0,
-    linkerID						     = null,
-    isLinked						     = false, --for fast queries
-    autoCalculate					     = true,
-    onChange 						     = null,
-    isCallbackActive				     = false,
-},
-{--PROTECTED
-
-},
-{--PUBLIC
-    --[[
-    @fqxn LuaEx.Classes.Component.Protean
-    @desc The constructor for the Protean class.
-    @func Protean
-    @param nBaseValue number This value is Vb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
-    @param nBaseBonus number/nil This value is Bb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
-    @param nBasePenalty number/nil This value is Bp where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
-    @param nMultiplicativeBonus number/nil This value is Mb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
-    @param nMultiplicativePenalty number/nil This value is Mp where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
-    @param nAddativeBonus number/nil This value is Ab where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
-    @param nAddativePenalty number/nil This value is Ap where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
-    @param nMinLimit number/nil This is the minimum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no minimum value.
-    @param nMaxLimit number/nil This is the maximum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no maximum value.
-    @param fonChange function/nil If the (optional) input is a function, this will be called whenever a change is made to this object (unless callback is inactive).
-    @param bAutoCalculate Whether or not this object should auto-calculate the final value whenever a change is made. This is true by default. If set to nil, it will default to true.
-    @return oProtean Protean A Protean object.
-    ]]
-    Protean = function(this, cdat, nBaseValue,  nBaseBonus,             nBasePenalty,
-                                                nMultiplicativeBonus,   nMultiplicativePenalty,
-                                                nAddativeBonus,         nAddativePenalty,
-                                                nMinLimit,              nMaxLimit,
-                                                fonChange,              bAutoCalculate)
-        local bHasCallbackFunction = rawtype(fonChange) == "function";
-        local eValue 	= ProteanValue;
-        local eMod 		= ProteanMod;
-        local eLimit	= ProteanLimit;
-        local pri       = cdat.pri;
-        local eLimit    = Protean.LIMIT;
-        local eMod      = Protean.MOD;
-        local eValue    = Protean.VALUE;
-
-        pri[eValue.BASE]					= rawtype(nBaseValue) 				== "number" 	and nBaseValue 				or 0;
-        pri[eMod.BASE_BONUS] 				= rawtype(nBaseBonus) 				== "number"		and nBaseBonus  			or 0;
-        pri[eMod.BASE_PENALTY] 				= rawtype(nBasePenalty) 			== "number"		and nBasePenalty 			or 0;
-        pri[eMod.MULTIPLICATIVE_BONUS] 		= rawtype(nMultiplicativeBonus) 	== "number"		and nMultiplicativeBonus 	or 0;
-        pri[eMod.MULTIPLICATIVE_PENALTY] 	= rawtype(nMultiplicativePenalty) 	== "number"		and nMultiplicativePenalty 	or 0;
-        pri[eMod.ADDATIVE_BONUS] 			= rawtype(nAddativeBonus) 			== "number"		and nAddativeBonus 			or 0;
-        pri[eMod.ADDATIVE_PENALTY] 			= rawtype(nAddativePenalty) 		== "number"		and nAddativePenalty 		or 0;
-        pri[eValue.FINAL]					= 0; --this is (re)calcualted whenever another item is changed
-        pri[eLimit.MIN] 					= rawtype(nMinLimit) 				== "number"		and nMinLimit 				or nil;
-        pri[eLimit.MAX] 					= rawtype(nMaxLimit) 				== "number"		and nMaxLimit				or nil;
-        pri.linkerID						= nil;
-        pri.isLinked						= false; --for fast queries
-        pri.autoCalculate					= rawtype(bAutoCalculate) 			== "boolean" 	and bAutoCalculate 			or true;
-        pri.onChange 						= bHasCallbackFunction						 		and fonChange				or nil;
-        pri.isCallbackActive				= bHasCallbackFunction;
-
-        --calculate the final value for the first time
-        calculateFinalValue(this);
-
-    end,
-    --[[
-    @desc Adjusts the given value by the amount input. Note: if using an external table which contains the base value, and the rawtype provided is ProteanValue.Base, nil will be returned. An external base value cannot be adjusted from inside the Protean	object (although the base bonus and base penalty may be).
-    @func Protean.adjust
-    @module Protean
-    @param sType PROTEAN The type of value to adjust.
-    @param nValue number The value by which to adjust the given value.
-    @return oProtean Protean This Protean object.
-    ]]
-    adjust = function(this, sType, nValue)
-        local tFields = tProteans[this];
-
-        if (tFields[sType]) then
-
-            if (rawtype(nValue) == "number") then
-                return setValue(this, sType, tFields[sType] + nValue);
-            end
-
-        end
-
-        return this;
-    end,
-
-    --[[
-        @desc Calculates the final value of the Protean. This is done on-change by default so that the final value (when requested) is always up-to-date and accurate. There is no need to call this unless auto-calculate has been disabled. In that case, this serves an external utility function to perform the normally-internal operation of calculating and updating the final value.
-        @func Protean.calulateFinalValue
-        @module Protean
-        @return nValue number The calculated final value.
-    ]]
-    calulateFinalValue = function(this)
-        calculateFinalValue(this);
-        return this;
-    end,
-
-
 
     --[[
     @desc Set this object to be deleted by the garbage collector.
-    @func Protean.destroy
-    @module Protean
+    @func protean.destroy
+    @module protean
     ]]
     destroy = function(this)
         tProteans[this] = nil;
@@ -516,8 +464,8 @@ return class("Protean",
 
     --[[
         @desc Gets the value of the given value type. Note: if the type provided is ProteanValue.Final and MIN or MAX limits have been set, the returned value will fall within the confines of those paramter(s).
-        @func Protean.get
-        @module Protean
+        @func protean.get
+        @module protean
         @param sType PROTEAN The type of value to get.
         @return nValue number The value of the given type.
     ]]
@@ -553,9 +501,9 @@ return class("Protean",
     end,
 
     --[[
-        @desc Gets this Protean's linkerID.
-        @func Protean.getLinkerID
-        @module Protean
+        @desc Gets this protean's linkerID.
+        @func protean.getLinkerID
+        @module protean
         @return nID number The ID of the linker;
     ]]
     getLinkerID = function(this)
@@ -564,8 +512,8 @@ return class("Protean",
 
     --[[
         @desc Determines whether or not auto-calculate is active.
-        @func Protean.isAutoCalculated
-        @module Protean
+        @func protean.isAutoCalculated
+        @module protean
         @return bActive boolean Whether or not auto-calculate occurs on value change.
     ]]
     isAutoCalculated = function(this)
@@ -574,8 +522,8 @@ return class("Protean",
 
     --[[
         @desc Determines whether or not the callback is called on change.
-        @func Protean.isCallbackActive
-        @module Protean
+        @func protean.isCallbackActive
+        @module protean
         @return bActive boolean Whether or not the callback is called on value change.
     ]]
     isCallbackActive = function(this)
@@ -588,8 +536,8 @@ return class("Protean",
 
     --[[
     @desc Serializes the object's data. Note: This does NOT serialize callback functions.
-    @func Protean.serialize
-    @module Protean
+    @func protean.serialize
+    @module protean
     @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
     @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
     ]]
@@ -624,11 +572,11 @@ return class("Protean",
 
     --[[
         @desc Set the given value type to the value input. Note: if this object is linked, and the type provided is ProteanValue.Base, this linker's base value will also change, affecting every other linked object's base value.
-        @func Protean.set
-        @module Protean
+        @func protean.set
+        @module protean
         @param sType PROTEAN The type of value to adjust.
         @param nValue number The value which to set given value type.
-        @return oProtean Protean This Protean object.
+        @return oProtean protean This protean object.
     ]]
     set = function(this, eType, nValue)
 
@@ -645,10 +593,10 @@ return class("Protean",
 
     --[[
         @desc By default, the final value is calculated whenever a change is made to a value; however, this method gives the power of that choice to the client. If disabled, the client will need to call calculateFinalValue to update the final value.
-        @func Protean.setAutoCalculate
-        @module Protean
+        @func protean.setAutoCalculate
+        @module protean
         @param bAutoCalculate boolean Whether or not the objects should auto-calculate the final value.
-        @return oProtean Protean This Protean object.
+        @return oProtean protean This protean object.
     ]]
     setAutoCalculate = function(this, bFlag)
         tProteans[this].autoCalculate = rawtype(bFlag) == "boolean" and bFlag or false;
@@ -657,11 +605,11 @@ return class("Protean",
 
     --[[
         @desc Set the given function as this objects's onChange callback which is called whenever a change occurs (if active).
-        @func Protean.setCallback
-        @module Protean
-        @param fCallback function The callback function (which must accept the Protean object as its first parameter)
+        @func protean.setCallback
+        @module protean
+        @param fCallback function The callback function (which must accept the protean object as its first parameter)
         @param bDoNotSetActive boolean If true, the function is not set to active, otherwise (even with nil value) the function is set to active.
-        @return oProtean Protean This Protean object.
+        @return oProtean protean This protean object.
     ]]
     setCallback = function(this, fCallback, bDoNotSetActive)
         local tFields = tProteans[this];
@@ -681,10 +629,10 @@ return class("Protean",
 
     --[[
         @desc Set the object's callback function (if any) to active/inactive. If active, it will fire whenever a change is made while nothing will occur if it is inactive.
-        @func Protean.setCallbackActive
-        @module Protean
+        @func protean.setCallbackActive
+        @module protean
         @param bActive boolean A boolean value indicating whether or no the callback function should be called.
-        @return oProtean Protean This Protean object.
+        @return oProtean protean This protean object.
     ]]
     setCallbackActive = function(this, bFlag)
         local tFields = tProteans[this];
@@ -701,11 +649,11 @@ return class("Protean",
 
     --[[
         @desc Links or unlinks this object based on the input.
-        @func Protean.setLinker
-        @module Protean
+        @func protean.setLinker
+        @module protean
         @param vLinkerID number If this is a number, the object will be linked to the provided linerkID (if valid). If the input linkerID is invalid, a proper one will be created. If the linkerID is nil, the object will be unlinked (if already linked).
         @param bRestoreOriginalValue boolean If this is true, the original value is restored, otherwise the object gets the linker's base value.
-        @return oProtean Protean This Protean object.
+        @return oProtean protean This protean object.
     ]]
     setLinker = function(this, nLinkerID, bRestoreOriginalValue)
         local sLinkerIDType 	= rawtype(nLinkerID);
@@ -720,8 +668,16 @@ return class("Protean",
 
         return this;
     end,
-},
-nil,   --extending class
-false, --if the class is final
-nil    --interface(s) (either nil, or interface(s))
-);
+};
+
+--[[
+    @desc returns a number that is one greater than the maximum number of linkers in the Hub. This is used for determining the next, empty, available linker ID.
+    @func protean.getAvailableLinkerID
+    @module protean
+    @return nLinkerID number The next open index in the Hub.
+]]
+function protean.getAvailableLinkerID()
+    return #tHub + 1;
+end
+
+return protean;

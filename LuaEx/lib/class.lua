@@ -55,6 +55,7 @@
 
 --LOCALIZATION
 
+
 local function classError(sMessage, nLevel)
     error("Error in class.\n"..sMessage, nLevel + 1);
 end
@@ -202,6 +203,21 @@ local kit = {
 --used to check for child overrides on soon-to-be AUTO properties
 _fAutoPlaceHolder = function() end;
 
+
+local function kitTest(sName, sActiveName, ...)
+
+    if (sName == sActiveName) then
+        local sMessage = "";
+
+        for k, v in pairs({...} or arg) do
+            sMessage = sMessage..tostring(v).."\n";
+        end
+
+        Dialog.Message(sName.." Kit Test", sMessage);
+    end
+
+
+end
 
                 --[[
                 ██████╗ ███████╗██╗      █████╗ ████████╗██╗ ██████╗ ███╗   ██╗ █████╗ ██╗
@@ -484,18 +500,22 @@ function class.build(tKit)
 
                 if (isMutableStaticPublicType(sType)) then
 
+                    if (tKit.readOnlyFields.stapub[k]) then
+                        error("Error in class object, '${class}'. Attempt to modify read-only static public field, '${index}'." % {class = sName, index = tostring(k)});
+                    end
+
                     if (sType == type(v)) then
                         tClass[k] = v;
                     else
-                        error("Error in class object, '${class}'. Attempt to change public static value type for '${index}', from ${typecurrent} to ${typenew} using value, '${value}'." % {class = sName, index = tostring(k), typecurrent = sType, typenew = type(v), value = tostring(v)});
+                        error("Error in class object, '${class}'. Attempt to change static public value type for '${index}', from ${typecurrent} to ${typenew} using value, '${value}'." % {class = sName, index = tostring(k), typecurrent = sType, typenew = type(v), value = tostring(v)});
                     end
 
                 else
-                    error("Error in class object, '${class}'. Attempt to modify immutable public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
+                    error("Error in class object, '${class}'. Attempt to modify immutable static public member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
                 end
 
             else
-                error("Error in class object, '${class}'. Attempt to modify non-existent public static member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
+                error("Error in class object, '${class}'. Attempt to modify non-existent static public member, '${index},' using value, '${value}'." % {class = sName, index = tostring(k), value = tostring(v)});
             end
 
         end,
@@ -1122,10 +1142,10 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         pro 		    = clone(tProtected, 	true),
         pub      	    = clone(tPublic, 		true),
         readOnlyFields  = {
-            stapub = {},
-            pri    = {},
-            pro = {},
-            pub = {},
+            stapub  = {},
+            pri     = {},
+            pro     = {},
+            pub     = {},
         },
     };
 
@@ -1306,7 +1326,7 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
 
     -- Ensure that there is something before the auto directive
     if bHasDirective and (sKey == "" or not sKey:isvariablecompliant()) then
-        error("There must be something before any AUTO directive and the final result must be a variable-compliant string.");
+        error("There must be text before an AUTO directive declaration and the final result must be a variable-compliant string.");
     end
 
     local sType         = type(vItem);--TODO can i get this as a parameter?

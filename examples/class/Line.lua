@@ -164,7 +164,7 @@ oTest.setX(3)
 --print("oLine1\n", oLine1);
 --print("\noLine2\n", oLine2);
 local oPoint22 = Point2();
-local fk = {"Aetherex", "Aetheris", "Basilorath", "Basilorok", "Centurionis", "Cerberon", "Chimerax", "Draculeth", "Dragonis", "Fenrathis", "Gorgonix", "Krakenix", "Luphorix", "Malroksha", "Medusaris", "Morvathis", "Myrmidonis", "Nephelith", "Nymphalor", "Phoborath", "Seraphion", "Serpentis", "Spectrion", "Thuundrasc", "Titananithar", "Wraithox", "Xyphalith", "Zygomantis", "Zygonixis", "Zypheron"}
+local fk = {"Aeluroptera", "Aetherion", "Aetherleonis", "Amethyraura", "Arcanopanthera", "Astridora", "Aventurineon", "Avidusol", "Chromalyx", "Dracantha", "Ephifera", "Equiluna", "Felavion", "Feloria", "Felorion", "Gyracora", "Harmonix", "Ignifemora", "Lucifelis", "Luminara", "Nebulisk", "Nimblynx", "Noctivola", "Obsidicor", "Phantofel", "Seraphelis", "Sombervolant", "Sylvaris", "Umbricor", "Volantia"}
 local t = "{"
 for k, v in ipairs(fk) do
     local comma = k == #fk and "" or ", "

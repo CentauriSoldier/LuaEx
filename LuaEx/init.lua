@@ -325,6 +325,10 @@ InventoryItem   = require("LuaEx.test.Inventory.InventoryItem");
 InventorySlot   = require("LuaEx.test.Inventory.InventorySlot");
 
 
+--TODO FINISH MOVE TO CoG after CoG is rebuilt.
+Protean = require("LuaEx.inc.classes.component.Protean");
+
+
 --🅰🅻🅸🅰🆂🅴🆂
 unpack = unpack or table.unpack;--TODO move this to table hook
 --table.serialize 	= serialize.table;
