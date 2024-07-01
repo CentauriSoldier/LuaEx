@@ -1746,7 +1746,7 @@ function kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProte
     for sTable, tTable in pairs(tTables) do
 
         for k, v in pairs(tTable) do
-            assert(rawtype(k) == "string", "Error creating class, '${class}'. All table indices must be of type string. Got: (${type}) ${item} in table, ${table}" % {class = sName, type = type(k), item = tostring(v), table = sTable});
+            assert(rawtype(k) == "string", "Error creating class, '${class}'. All table indices must be of type string. Got: (${type}) ${item} in ${table} table." % {class = sName, type = type(k), item = tostring(v), table = _tCAINames[sTable]});
         end
 
     end

@@ -4,6 +4,7 @@ local _nBasicClasses        = 2;
 local _nComponentClasses    = 3;
 local _nGeometryClasses     = 5;
 local _nUtilClasses         = 4;
+local _nCoGClasses          = 6;
 
 local _tClassRequirements   = {
     [_nClassSystem]       = {},
@@ -11,6 +12,7 @@ local _tClassRequirements   = {
     [_nComponentClasses]  = {_nClassSystem, _nBasicClasses},
     [_nGeometryClasses]   = {_nClassSystem, _nBasicClasses, _nComponentClasses},
     [_nUtilClasses]       = {_nClassSystem, _nBasicClasses, _nComponentClasses},
+    [_nCoGClasses]        = {_nClassSystem, _nBasicClasses, _nComponentClasses, _nGeometryClasses},
 };
 ---------🇩‌🇴‌ 🇳‌🇴‌🇹‌ 🇲‌🇴‌🇩‌🇮‌🇫‌🇾‌ 🇹‌🇭‌🇮‌🇸‌ 🇧‌🇱‌🇴‌🇨‌🇰---------
 
@@ -33,6 +35,7 @@ local tClassLoadValues = {
     [_nComponentClasses]    = true,  --component class (potentiometer, protean, etc.)?
     [_nGeometryClasses]     = true,  --geometry classes (shape, circle, polygon, etc.)?
     [_nUtilClasses]         = true,  --other things like Dox, Ini, etc.
+    [_nCoGClasses]          = true,  --(Code of Gaming) game system classes
 };
 
 
@@ -244,8 +247,8 @@ if (tClassLoadValues[_nClassSystem]) then
 
         if (tClassLoadValues[_nComponentClasses]) then
             --component classes
-            Potentiometer = require(pClasses..".component.Potentiometer");
-
+            Potentiometer   = require(pClasses..".component.Potentiometer");
+            Protean         = require(pClasses..".component.Protean");
 
             if (tClassLoadValues[_nGeometryClasses]) then
                 --geometry classes
@@ -255,6 +258,11 @@ if (tClassLoadValues[_nClassSystem]) then
                 Shape   = require(pClasses..".geometry.shapes.Shape");
                 Circle  = require(pClasses..".geometry.shapes.Circle");
                 Polygon = require(pClasses..".geometry.shapes.Polygon");
+
+                if (tClassLoadValues[_nCoGClasses]) then
+                    Pool = require(pClasses..".cog.Pool");
+                end
+
             end
 
             if (tClassLoadValues[_nUtilClasses]) then
@@ -326,7 +334,7 @@ InventorySlot   = require("LuaEx.test.Inventory.InventorySlot");
 
 
 --TODO FINISH MOVE TO CoG after CoG is rebuilt.
-Protean = require("LuaEx.inc.classes.component.Protean");
+
 
 
 --🅰🅻🅸🅰🆂🅴🆂
