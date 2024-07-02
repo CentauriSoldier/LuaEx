@@ -41,5 +41,25 @@ end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
-local oPool = Pool();
---print(oProtean2.getValue());
+local oPool = Pool(200, 20, 5);
+
+oPool.setEventCallback("onRegen", function(this) print("regen to -> "..this.getCurrent()) end);
+
+--oPool.setEventActive("onRegen");
+
+--print(oPool.getCurrent());
+--print(oPool.c().getValue())
+--oPool.setCurrentModifier(Protean.BASE_BONUS, 10);
+--oPool.setCurrentModifier(Protean.ADDATIVE_BONUS, 100);
+--oPool.setMaxModifier(Protean.MULTIPLICATIVE_BONUS, 0.2);
+--print(oPool.c().getValue())
+--print("max: "..oPool.getMax());
+--oPool.adjustRegen(12);
+--oPool.regen(60);
+--oPool.setEmpty();
+--print(oPool.isEmpty())
+oPool.setCurrent(-114);
+--oPool.setCurrent(1);
+--oPool.adjustCurrent(10);
+--oPool.adjustCurrent(10);
+print("current: "..oPool.getCurrent());

@@ -258,16 +258,27 @@ calculateFinalValue = function(this, cdat)
     local pri       = cdat.pri;
     local tValues   = pri.values;
     local nBase     = pri.isLinked and tLinkers[pri.linkerID].baseValue or tValues[_nValueBase];
-    local eMod 	    = ProteanMod;
 
     local nBaseBonus	= tValues[_nBaseBonus];
     local nBasePenalty	= tValues[_nBasePenalty];
     local nMultBonus	= tValues[_nMultBonus];
     local nMultPenalty	= tValues[_nMultPenalty];
     local nAddBonus		= tValues[_nAddBonus];
-    local nAddPenalty	= tValues[_nAddPenalty];
+    local nAddPenalty   = tValues[_nAddPenalty];
+    local nFinal        = ((nBase + nBaseBonus - nBasePenalty) * (1 + nMultBonus - nMultPenalty)) + nAddBonus - nAddPenalty;
 
-    tValues[_nValueFinal] = ((nBase + nBaseBonus - nBasePenalty) * (1 + nMultBonus - nMultPenalty)) + nAddBonus - nAddPenalty;
+    --clamp the value if it has been limited
+    if (pri.limitMin) then
+        local nMin = tValues[_nLimitMin];
+        nFinal = nFinal > nMin and nFinal or nMin;
+    end
+
+    if (pri.limitMax) then
+        local nMax = tValues[_nLimitMax];
+        nFinal = nFinal <= nMax and nFinal or nMax;
+    end
+
+    tValues[_nValueFinal] = nFinal;
 end
 
 --[[
@@ -281,20 +292,18 @@ local function setValue(this, cdat, nType, nValue)
     local pri = cdat.pri;
     local bCalculated 		= false;
     local bCallbackCalled 	= false;
-
-    --clamp the value if it has been limited
-    if (pri.limitMin) then
-        local nMin = pri[_nLimitMin];
-        nValue = nValue < nMin and nMin or nValue;
-    end
-
-    if (pri.limitMax) then
-        local nMax = pri[_nLimitMax];
-        nValue = nValue > nMax and nMax or nValue;
-    end
+    local tValues           = pri.values;
 
     --set the value
-    pri.values[nType] = nValue;
+    tValues[nType] = nValue;
+
+    if (nType == _nLimitMin or nType == _nLimitMax) then
+
+        if (tValues[_nLimitMin] > tValues[_nLimitMax]) then
+            tValues[_nLimitMin] = tValues[_nLimitMax];
+        end
+
+    end
 
     --check if this object is linked and, if so, update the linker and it's Proteans
     if (pri.isLinked and nType == _nValueBase) then
@@ -551,8 +560,8 @@ return class("Protean",
         tValues[_nMultPenalty]  = rawtype(nMultiplicativePenalty) 	== "number"		and nMultiplicativePenalty 	or 0;
         tValues[_nAddBonus] 	= rawtype(nAddativeBonus) 			== "number"		and nAddativeBonus 			or 0;
         tValues[_nAddPenalty]	= rawtype(nAddativePenalty) 		== "number"		and nAddativePenalty 		or 0;
-        tValues[_nLimitMin] 	= pri.limitMin                                      and nMinLimit               or 0;
-        tValues[_nLimitMax] 	= pri.limitMax                                      and nMaxLimit               or 0;
+        tValues[_nLimitMin] 	= pri.limitMin                                      and nMinLimit               or -math.huge;
+        tValues[_nLimitMax] 	= pri.limitMax                                      and nMaxLimit               or math.huge;
         tValues[_nValueFinal]	= 0; --this is (re)calcualted whenever another item is changed
         pri.autoCalculate		= not (rawtype(bDontAutoCalculate) == "boolean"     and bDontAutoCalculate      or false);
         pri.onChange 			= bHasCallbackFunction						 		and fonChange				or onChangePlaceHolder;
@@ -560,7 +569,6 @@ return class("Protean",
 
         --calculate the final value for the first time
         calculateFinalValue(this, cdat);
-
     end,
     --[[!
     @fqxn LuaEx.Classes.Component.Protean.adjust
@@ -590,7 +598,7 @@ return class("Protean",
             error("Error adjusting Protean value.\nNew value must be of type number. Type given: "..rawtype(nValue));
         end
 
-        setValue(this, cdat, nType, pri[nType] + nValue);
+        setValue(this, cdat, nType, pri.values[nType] + nValue);
         return this;
     end,
 
@@ -630,7 +638,7 @@ return class("Protean",
         end
 
         if (nType == _nValueBase) then
-            nRet = pri.isLinked and tLinkers[pri.linkerID].baseValue or pri[_nValueBase];
+            nRet = pri.isLinked and tLinkers[pri.linkerID].baseValue or pri.values[_nValueBase];
         else
             nRet = pri.values[nType];
         end
@@ -670,40 +678,6 @@ return class("Protean",
         return cdat.pri.isLinked;
     end,
 
-
-
-    --[[!
-        @fqxn LuaEx.Classes.Component.Protean.set
-        @desc Set the given value type to the value input. Note: if this object is linked, and the type provided is ProteanValue.Base, this linker's base value will also change, affecting every other linked object's base value.
-        @note If only one parameter is given, it is assumed that the base value is intended to be set using the value input.
-        @param nType number The type of value to adjust.
-        @param nValue number The value which to set given value type.
-        @return oProtean Protean This Protean object.
-    !]]
-    setValue = function(this, cdat, nType, nValue)
-
-        if not (rawtype(nType) == "number") then
-            error("Error setting Protean value.\nValue category type expected: number. Type given: "..rawtype(nType));
-        end
-
-        local sValueType = rawtype(nValue);
-
-        if (sValueType == "nil") then
-            nValue  = nType;
-            nType   = _nValueBase;
-        end
-
-        if (nType < _nIndexMin or nType > _nIndexMax or nType == _nValueFinal) then
-            error("Error setting Protean value.\nValue category out of range.");
-        end
-
-        if not (rawtype(nValue) == "number") then
-            error("Error setting Protean value.\nNew value must be of type number. Type given: "..rawtype(nValue));
-        end
-
-        setValue(this, cdat, nType, nValue);
-        return this;
-    end,
 
     --[[!
         @fqxn LuaEx.Classes.Component.Protean.setAutoCalculate
@@ -763,6 +737,30 @@ return class("Protean",
 
 
     --[[!
+        @fqxn LuaEx.Classes.Component.Protean.setLimitMax
+        @desc Tells the Protean whether to enable the maximum limiter.
+        @param bLimit boolean|nil If true, will enable the limiter, if not, it will disable it.
+        @return oProtean Protean This Protean object.
+    !]]
+    setLimitMax = function(this, cdat, bFlag)
+        cdat.pri.limitMax = rawtype(bFlag) == "boolean" and bFlag or false;
+        return this;
+    end,
+
+
+    --[[!
+        @fqxn LuaEx.Classes.Component.Protean.setLimitMin
+        @desc Tells the Protean whether to enable the minimum limiter.
+        @param bLimit boolean|nil If true, will enable the limiter, if not, it will disable it.
+        @return oProtean Protean This Protean object.
+    !]]
+    setLimitMin = function(this, cdat, bFlag)
+        cdat.pri.limitMin = rawtype(bFlag) == "boolean" and bFlag or false;
+        return this;
+    end,
+
+
+    --[[!
         @fqxn LuaEx.Classes.Component.Protean.setLinker
         @desc Links or unlinks this object based on the input.
         @param vLinkerID number If this is a number, the object will be linked to the provided linerkID (if valid). If the input linkerID is invalid, a proper one will be created. If the linkerID is nil, the object will be unlinked (if already linked).
@@ -780,6 +778,40 @@ return class("Protean",
             error("Error setting Protean linker.\nLinker ID must of type number (or nil). Type given: "..type(sLinkerIDType));
         end
 
+        return this;
+    end,
+
+
+    --[[!
+        @fqxn LuaEx.Classes.Component.Protean.set
+        @desc Set the given value type to the value input. Note: if this object is linked, and the type provided is ProteanValue.Base, this linker's base value will also change, affecting every other linked object's base value.
+        @note If only one parameter is given, it is assumed that the base value is intended to be set using the value input.
+        @param nType number The type of value to adjust.
+        @param nValue number The value which to set given value type.
+        @return oProtean Protean This Protean object.
+    !]]
+    setValue = function(this, cdat, nType, nValue)
+
+        if not (rawtype(nType) == "number") then
+            error("Error setting Protean value.\nValue category type expected: number. Type given: "..rawtype(nType));
+        end
+
+        local sValueType = rawtype(nValue);
+
+        if (sValueType == "nil") then
+            nValue  = nType;
+            nType   = _nValueBase;
+        end
+
+        if (nType < _nIndexMin or nType > _nIndexMax or nType == _nValueFinal) then
+            error("Error setting Protean value.\nValue category out of range.");
+        end
+
+        if not (rawtype(nValue) == "number") then
+            error("Error setting Protean value.\nNew value must be of type number. Type given: "..rawtype(nValue));
+        end
+
+        setValue(this, cdat, nType, nValue);
         return this;
     end,
 },
