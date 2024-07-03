@@ -13,6 +13,12 @@ local _nAddPenalty    = Protean.ADDATIVE_PENALTY;
 local _nLimitMax      = Protean.LIMIT_MAX;
 
 
+
+local _nDefaultReverseMax   = 0.5;
+local _nReverseHardCeiling  = 0.99; --the max reservation allowed
+
+--Final = ((nBase + nBaseBonus - nBasePenalty) * (1 + nMultBonus - nMultPenalty)) + nAddBonus - nAddPenalty;
+
 --[[!
 @fqxn LuaEx.Classes.CoG.Pool.Functions
 @desc
@@ -60,12 +66,6 @@ local function validateModifierAndValue(sIndex, sSetOrGet, nMod, nValue)
 
 end
 
---updates the max value of the "current" Protean - called whenever the "max" value changes
-local function updateCurrentMax(this, cdat)--TODO check this
-    local pro = cdat.pro;
-    pro.current.setValue(_nLimitMax, pro.maxFinal);
-end
-
 
 --[[!
 @fqxn LuaEx.Classes.CoG.Pool.Functions
@@ -77,44 +77,21 @@ local function updateFinalValues(this, cdat, bCurrentAndMax, bRegen)
     local pro   = cdat.pro;
 
     if (bRegen) then
-        pro.regenFinal      = pro.regen.getValue();
+        pro.regenFinal = pro.regen.getValue();
     end
 
     if (bCurrentAndMax) then
-        local nMax          = pro.max.getValue();
-        local nCurrent      = pro.current.getValue();
-
-        pro.maxFinal        =   nMax-- >= 0 and nMax or 1;
-        pro.currentFinal    =   nCurrent-- <= nMax and
-                               --(nCurrent >= 0 and nCurrent or 0)
-                            --    or nMax;
+        local nMax      = pro.max.getValue();
+        pro.maxFinal    = nMax;
+        local nCurrent  = pro.current;
+        pro.current  = (nCurrent <= nMax) and (nCurrent >= 0 and nCurrent or 0) or nMax;
     end
 
 end
 
-local function setCurrent(this, cdat, nTarget, bForceEmpty)
-    local bSetEmpty = bForceEmpty or nTarget <= 0;
-    local oCurrent  = cdat.pro.current;
 
-    if (bSetEmpty) then
-        local nAddativeBonus    = oCurrent.getValue(_nAddBonus);
-        local nAddativePenalty  = oCurrent.getValue(_nAddPenalty);
-        oCurrent.setValue(nAddativePenalty - nAddativeBonus);
-    else
-        oCurrent.setValue(nTarget);
-    end
 
-end
 
-local function eventPlaceholder() end
-
-local function calulateFinal(this, cdat, sIndex)
-    local pro       = cdat.pro;
-    local tValue    = pro[sIndex];
-    return (tValue[_nValueBase] + tValue[_nBaseBonus] - tValue[_nBasePenalty]) *
-           (1 + tValue[_nMultBonus] - tValue[_nMultPenalty]) +
-           (tValue[_nAddBonus] - tValue[_nAddPenalty]);
-end
 
 local function setValue(this, cdat, sIndex, nMod, nValue)
 
@@ -138,6 +115,177 @@ local function setValue(this, cdat, sIndex, nMod, nValue)
     end
 
 end
+
+
+
+
+
+
+
+
+
+
+
+
+local function eventPlaceholder() end
+
+local function calulateFinal(this, cdat, sIndex)
+    local pro       = cdat.pro;
+    local tValue    = pro[sIndex];
+    return (tValue[_nValueBase] + tValue[_nBaseBonus] - tValue[_nBasePenalty]) *
+           (1 + tValue[_nMultBonus] - tValue[_nMultPenalty]) +
+           (tValue[_nAddBonus] - tValue[_nAddPenalty]);
+end
+
+
+local function processEvent(this, cdat, sEvent)
+    local pro           = cdat.pro;
+    local tActiveEvents = pro.activeEvents;
+    local tEvents       = pro.events;
+
+    if (tActiveEvents[sEvent]) then
+        tEvents[sEvent](this);
+
+    elseif (tActiveEvents.onChange) then
+        tEvents.onChange(this);
+
+    end
+
+end
+
+
+local function clampCurrent()
+    local pro       = cdat.pro;
+    local nMax      = pro.max[_nValueFinal];
+    local nCurrent  = pro.current;
+
+    if (pro.hasReservation) then
+        pro.current     =   (nCurrent <= nMax)                  and
+                            (nCurrent >= 0 and nCurrent or 0)   or
+                            nMax;
+    else
+        pro.current     =   (nCurrent <= nMax)                  and
+                            (nCurrent >= 0 and nCurrent or 0)   or
+                            nMax;
+    end
+
+end
+
+
+local function updateReserved(this, cdat)
+    local pro   = cdat.pro;
+    local tRes  = pro.reserved;
+    local tMax  = pro.max;
+
+    calulateFinal(this, cdat, "reserved");
+
+
+end
+
+
+
+local function attemptReservationSetOLD(this, cdat, bIsPercent, nValue)
+    local bRet          = true;
+    local pro           = cdat.pro;
+    local tMax          = pro.max;
+    local nMax          = tMax.final;
+    local tReserved     = pro.reserved;
+    --local bIsNegative   = nValue;
+    --local nBaseValue    = 0;
+
+    if (bIsPercent) then
+        local nPercent = tReserved.percent + nValue;
+
+        if (nPercent <= _nReverseHardCeiling) then
+            local nOldBaseValue = tReserved[_nValueBase];
+            tReserved[_nValueBase] = tReserved.flat + nMax * nPercent;
+
+            if (tReserved[_nValueBase] >= 0) then--TODO allow 0-?
+                local nFinal = calulateFinal(this, cdat, "reserved");
+                local nTotalPercent = nFinal / nMax;
+
+                if (nTotalPercent <= _nReverseHardCeiling and nTotalPercent <= tReserved.max) then
+                    tReserved[_nValueFinal] = nFinal;
+                    tReserved.percent = nPercent;
+                    bRet = true;
+                else
+                    tReserved[_nValueBase] = nOldBaseValue;
+                end
+
+            end
+
+        end
+
+    else
+        local nFlat = tReserved.flat + nValue;
+        local nPercent = tReserved.percent;
+        local nOldBaseValue = tReserved[_nValueBase];
+        tReserved[_nValueBase] = tReserved.flat + nMax * nPercent;
+
+        if (tReserved[_nValueBase] >= 0) then
+            local nFinal = calulateFinal(this, cdat, "reserved");
+            local nTotalPercent = nFinal / nMax;
+
+            if (nTotalPercent <= _nReverseHardCeiling and nTotalPercent <= tReserved.max) then
+                tReserved[_nValueFinal] = nFinal;
+                tReserved.flat = nFlat;
+                bRet = true;
+            else
+                tReserved[_nValueBase] = nOldBaseValue;
+            end
+
+        end
+
+    end
+
+    --TODO update other final values
+
+    return bRet;
+end
+
+local function attemptReservationSet(this, cdat, bIsPercent, nValue)
+    local bRet          = false;
+    local pro           = cdat.pro;
+    local tMax          = pro.max;
+    local nMax          = tMax.final;
+    local tReserved     = pro.reserved;
+    local nPercent      = tReserved.percent;
+    local nFlat         = tReserved.flat;
+    local nOldBaseValue = tReserved[_nValueBase];
+
+    if bIsPercent then
+        nPercent = tReserved.percent + nValue;
+    else
+        nFlat = tReserved.flat + nValue;
+    end
+
+    local nNewBaseValue = nFlat + nMax * nPercent;
+    tReserved[_nValueBase] = nNewBaseValue >= 0 and nNewBaseValue or 0;
+
+    local nFinal = calulateFinal(this, cdat, "reserved");
+    local nTotalPercent = nFinal / nMax;
+
+    if (nTotalPercent <= tReserved.max) then
+        tReserved[_nValueFinal] = nFinal;
+
+        if bIsPercent then
+            tReserved.percent = nPercent;
+        else
+            tReserved.flat = nFlat;
+        end
+
+        tReserved.remaining = nMax - nFinal;
+        bRet = true;
+    else
+        tReserved[_nValueBase] = nOldBaseValue;
+    end
+
+
+    return bRet;
+end
+
+
+
 
 
 
@@ -172,7 +320,7 @@ return class("Pool",
 },
 {--PROTECTED
     activeEvents = {
-        onAdjust        = false,
+        onChange        = false,
         onIncrease      = false,
         onDecrease      = false,
         onEmpty         = false,
@@ -180,29 +328,14 @@ return class("Pool",
         onRegen         = false,
     },
     events = {
-        onAdjust        = eventPlaceholder,
+        onChange        = eventPlaceholder,
         onIncrease      = eventPlaceholder,
         onDecrease      = eventPlaceholder,
         onEmpty         = eventPlaceholder,
         onFull          = eventPlaceholder,
         onRegen         = eventPlaceholder,
     },
-    current             = {
-        [_nValueBase]   = 0,
-        [_nValueFinal]  = 0,
-        [_nBaseBonus]   = 0,
-        [_nBasePenalty] = 0,
-        [_nMultBonus]   = 0,
-        [_nMultPenalty] = 0,
-        [_nAddBonus]    = 0,
-        [_nAddPenalty]  = 0,
-        min             = 0,
-        max             = 1,
-        baseMod         = 0, --             _nBaseBonus - _nBasePenalty
-        multMod         = 1, --1      +     _nMultBonus - _nMultPenalty
-        addMod          = 0, --_nValueBase  _nAddBonus  - _nAddPenalty
-        final           = 0, --cached value updated on change
-    },
+    current             = 0,
     max                 = {
         [_nValueBase]   = 0,
         [_nValueFinal]  = 0,
@@ -213,9 +346,6 @@ return class("Pool",
         [_nAddBonus]    = 0,
         [_nAddPenalty]  = 0,
         min             = 1,
-        baseMod         = 0, --             _nBaseBonus - _nBasePenalty
-        multMod         = 1, --1      +     _nMultBonus - _nMultPenalty
-        addMod          = 0, --_nValueBase  _nAddBonus  - _nAddPenalty
         final           = 0, --cached value updated on change
     },
     regen               = {
@@ -227,45 +357,93 @@ return class("Pool",
         [_nMultPenalty] = 0,
         [_nAddBonus]    = 0,
         [_nAddPenalty]  = 0,
-        baseMod         = 0, --             _nBaseBonus - _nBasePenalty
-        multMod         = 1, --1      +     _nMultBonus - _nMultPenalty
-        addMod          = 0, --_nValueBase  _nAddBonus  - _nAddPenalty
         final           = 0, --cached value updated on change
     },
-    --isEmpty         = false, --used to account for zero current value and addative modifiers
+    reserved            = {
+        [_nValueBase]   = 0, --this is updated whenever flat or percent are changed.
+        [_nValueFinal]  = 0,
+        [_nBaseBonus]   = 0,
+        [_nBasePenalty] = 0,
+        [_nMultBonus]   = 0,
+        [_nMultPenalty] = 0,        
+        max             = _nDefaultReverseMax, --MUST be a percentage
+        flat            = 0,
+        percent         = 0,
+        final           = 0, --cached value updated on change
+        remaining       = 0, --cached value updated on change -the difference between max and reserved flat (max - reserved flat)
+    },
+    hasReservation      = 0,
+    --baseMod         = 0, --             _nBaseBonus - _nBasePenalty
+    --multMod         = 1, --1      +     _nMultBonus - _nMultPenalty
+    --addMod          = 0, --_nValueBase  _nAddBonus  - _nAddPenalty
 },
 {--PUBLIC
+
+    --[[!
+    @fqxn LuaEx.Classes.CoG.Pool.Methods.setReservation
+    @desc Sets an amount of the max pool that should be reserved. When checking current, it will account for reservations.
+    <br>Note: if the value is between 0 and .99, it will be considered a percentage reservation rather than a flat value.
+    @param nValue number The flat or percentage value of reservation to set.
+    @ret bSuccess boolean Whether the reservation was able to be set.
+    !]]
+    setReservation = function(this, cdat, nValue)
+        if (rawtype(nValue) ~= "number") then
+            error("Error adding Pool reservation.\nValue must be of type number. Type given: "..type(nValue)..'.');
+        end
+
+        if (nValue == 0) then
+            error("Error adding Pool reservation.\nValue must be non-zero.");
+        end
+
+        local bIsPercent = math.abs(nValue) <= _nReverseHardCeiling;
+        return attemptReservationSet(this, cdat, bIsPercent, nValue);
+    end,
+
+    adjustReservation = function(this, cdat, nValue)
+        if (rawtype(nValue) ~= "number") then
+            error("Error adding Pool reservation.\nValue must be of type number. Type given: "..type(nValue)..'.');
+        end
+
+        if (nValue == 0) then
+            error("Error adding Pool reservation.\nValue must be non-zero.");
+        end
+
+        local tReserved = cdat.pro.reserved;
+
+        local bIsPercent     = math.abs(nValue) <= _nReverseHardCeiling;
+        local nAdjustedValue = bIsPercent and (tReserved.percent + nValue) or (tReserved.flat + nValue);
+        return attemptReservationSet(this, cdat, bIsPercent, nAdjustedValue);
+    end,
+
     --[[!
     @fqxn LuaEx.Classes.CoG.Pool.Methods.Pool
     @desc The constructor for the <b>Pool</b> class.
-    @param nMax number The maximum value of the Pool.
-    @param nCurrent number The current value of the Pool.
-    @param nRegen number The amount the Pool should regenerate when the <a href="#LuaEx.Classes.CoG.Pool.Methods.regen">regen</a> method is called.
+    @param nMax number|nil The maximum value of the Pool.
+    @param nCurrent number|nil The current value of the Pool.
+    @param nRegen number|nil The amount the Pool should regenerate when the <a href="#LuaEx.Classes.CoG.Pool.Methods.regen">regen</a> method is called.
+    @param nReservation number|nil The reservation value of the Pool.
     !]]
-    Pool = function(this, cdat, nMax, nCurrent, nRegen)
+    Pool = function(this, cdat, nMax, nCurrent, nRegen, nReserved)
         local pro   = cdat.pro;
         nMax        = type(nMax) 		== "number"	and nMax	    or 1;
         nCurrent	= type(nCurrent) 	== "number" and nCurrent    or 1;
         nRegen 	    = type(nRegen) 		== "number" and nRegen 		or 0;
+        nReserved   = type(nReserved)   == "number" and nReserved   or 0;
 
         if (nMax <= 0) then
             error("Error creating Pool object.\nMax value must be positive.");
         end
 
         if (nCurrent <= 0) then
-            error("Error creating Pool object.\nCurrent value must be positive.");
+            error("Error creating Pool object.\nCurrent value must be non-negative.");
         end
 
-        --if (nCurrent > nMax) then
-            --error("Error creating Pool object.\nThe current value must be less than or equal to max.");
-        --end
-
-        --create the proteans
-        pro.max[_nValueBase]     = nMax;
-        pro.current[_nValueBase] = nCurrent;
-        pro.regen[_nValueBase]   = nRegen;
-
-
+        --set the values
+        --TODO check and clamp ALL values!
+        pro.max[_nValueBase]        = nMax;
+        pro.current[_nValueBase]    = nCurrent;
+        pro.regen[_nValueBase]      = nRegen;
+        pro.reserved[_nValueBase]   = nReserved;
     end,
 
 
@@ -282,43 +460,25 @@ return class("Pool",
     adjustCurrent = function(this, cdat, nValue)
 
         if (rawtype(nValue) ~= "number") then
-            error("Error adjusting current base value.\nValue must be of type number. Type given: "..type(nValue)..'.');
+            error("Error adjusting Pool's current value.\nValue must be of type number. Type given: "..type(nValue)..'.');
         end
 
-        local pro       = cdat.pro;
-        local oCurrent  = pro.current;
+        local pro           = cdat.pro;
+        local nCurrent      = pro.current;
+        local nMax          = pro.max[_nValueFinal];
+        local bIsDecrease   = nValue < 0 and nCurrent ~= 0;
+        local bIsIncrease   = nValue > 0 and nCurrent ~= nMax;
 
-        oCurrent.setValue(oCurrent.getValue(_nValueBase) + nTarget);
+        if (bIsDecrease) then
+            pro.current = pro.current + nValue;
+            clampCurrent(this, cdat);
+            processEvent("onDecrease");
+        elseif (bIsIncrease) then
+            pro.current = pro.current + nValue;
+            clampCurrent(this, cdat);
+            processEvent("onIncrease");
+        end
 
-        pro.currentFinal = oCurrent.getValue();
-    end,
-
-
-    --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.adjustCurrentModifier
-    @desc Adjusts the value of the given 'current' modifier.
-    <br>
-    <h3>Permitted Modifiers</h3>
-    <ul>
-        <li>Protean.BASE_BONUS</li>
-        <li>Protean.BASE_PENALTY</li>
-        <li>Protean.MULTIPLICATIVE_BONUS</li>
-        <li>Protean.MULTIPLICATIVE_PENALTY</li>
-        <li>Protean.ADDATIVE_BONUS</li>
-        <li>Protean.ADDATIVE_PENALTY</li>
-    </ul>
-    @param nModifier number the number of the Protean modifier ID.
-    @param nValue number The value by which to adjust.
-    @ret oPool Pool The Pool object.
-    !]]
-    adjustCurrentModifier = function(this, cdat, nModifier, nValue)
-        validateModifierAndValue("current", "set", nModifier, nValue);
-        local pro       = cdat.pro;
-        local oCurrent  = pro.current;
-
-        oCurrent.setValue(nModifier, nValue + oCurrent.getValue(nModifier));
-        pro.currentFinal = oCurrent.getValue();
-        --updateFinalValues(this, cdat, true, false);
     end,
 
 
@@ -336,7 +496,7 @@ return class("Pool",
 
         cdat.pro.max.setValue(_nValueBase, nValue + cdat.pro.max.getValue(_nValueBase));
         updateFinalValues(this, cdat, true, false);
-        updateCurrentMax(this, cdat);
+        --updateCurrentMax(this, cdat);
     end,
 
 
@@ -361,7 +521,7 @@ return class("Pool",
         validateModifierAndValue("max", "set", nModifier, nValue)
         cdat.pro.max.setValue(nModifier, nValue + cdat.pro.max.getValue(nModifier));
         updateFinalValues(this, cdat, true, false);
-        updateCurrentMax(this, cdat);
+        --updateCurrentMax(this, cdat);
     end,
 
 
@@ -418,7 +578,7 @@ return class("Pool",
     @ret nCurrent number The current value of the Pool.
     !]]
     getCurrent = function(this, cdat)
-        return cdat.pro.current.final;
+        return cdat.pro.current;
     end,
 
 
@@ -515,7 +675,7 @@ return class("Pool",
     @ret bEmpty boolean True if the Pool is empty, false otherwise.
     !]]
     isEmpty = function(this, cdat)
-        return cdat.pro.currentFinal <= 0;
+        return cdat.pro.current <= 0;
     end,
 
 
@@ -527,7 +687,7 @@ return class("Pool",
     !]]
     isFull = function(this, cdat)
         local pro = cdat.pro;
-        return pro.currentFinal >= pro.maxFinal;
+        return pro.current >= pro.max[_nValueFinal];
     end,
 
 
@@ -571,10 +731,24 @@ return class("Pool",
     setCurrent = function(this, cdat, nValue)
 
         if (rawtype(nValue) ~= "number") then
-            error("Error setting current base value.\nValue must be of type number. Type given: "..type(nValue)..'.');
+            error("Error setting Pool's current value.\nValue must be of type number. Type given: "..type(nValue)..'.');
         end
 
-        setValue(this, cdat, "current", _nValueBase, nValue);
+        local pro           = cdat.pro;
+        local nCurrent      = pro.current;
+        local nMax          = pro.max[_nValueFinal];
+        local bIsDecrease   = nValue < nCurrent and nCurrent ~= 0;
+        local bIsIncrease   = nValue > nCurrent and nCurrent ~= nMax;
+
+        if (bIsDecrease) then
+            pro.current = nValue;
+            clampCurrent(this, cdat);
+            processEvent("onDecrease");
+        elseif (bIsIncrease) then
+            pro.current = nValue;
+            clampCurrent(this, cdat);
+            processEvent("onIncrease");
+        end
     end,
 
 
@@ -604,28 +778,52 @@ return class("Pool",
 
     --[[!
     @fqxn LuaEx.Classes.CoG.Pool.Methods.setEmpty
-    @desc Set the Pool to empty.
+    @desc Set the Pool to empty (if not already empty).
     @ret oPool Pool The Pool object.
     !]]
-    setEmpty = function(this, cdat) --TODO FINISHs
-        processZeroCurrentValue(this, cdat);
-        updateFinalValues(this, cdat, true, false);
+    setEmpty = function(this, cdat)
+        local pro       = cdat.pro;
+
+        --process only if the Pool isn't already empty
+        if (pro.current > 0) then
+            pro.current = 0;
+
+            processEvent("onEmpty");
+        end
+
     end,
 
---Final = ((nBase + nBaseBonus - nBasePenalty) * (1 + nMultBonus - nMultPenalty)) + nAddBonus - nAddPenalty;
+
     --[[!
     @fqxn LuaEx.Classes.CoG.Pool.Methods.setFull
-    @desc Sets Pool is full.
-    <br>This is true when the current value is (<em>greater than or</em>) equal to the maximum value.
+    @desc Sets Pool to full (if not already full).
     @ret oPool Pool The Pool object.
     !]]
-    setFull = function(this, cdat) --TODO FINISH
-        local pro = cdat.pro;
-        return pro.currentFinal >= pro.maxFinal;
+    setFull = function(this, cdat)
+        local pro       = cdat.pro;
+        local nMax      = pro.max[_nValueFinal];
+
+        --process only if the Pool isn't already full
+        if (pro.current ~= nMax) then
+            pro.current = nMax;
+
+            processEvent("onFull");
+        end
+
+        return this;
     end,
 
-    setPortion = function(this, cdat) --TODO FINISH
+    setPortion = function(this, cdat, nFloat) --TODO FINISH
+        local pro = cdat.pro;
 
+        if (rawtype(nValue) ~= "number") then
+            error("Error setting Pool current value.\nValue must be of type number. Type given: "..type(nValue)..'.');
+        end
+
+        local nTarget = pro.max[_nValueFinal] * nFloat;
+        clampAndSetCurrent(nTarget);
+
+        --processEvent();
     end,
 
 
