@@ -41,9 +41,13 @@ end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
-local oPool = Pool(200, 20, 5);
+local oPool = Pool(200, 50, -50);
 
-oPool.setEventCallback("onRegen", function(this) print("regen to -> "..this.getCurrent()) end);
+oPool.setEventCallback(Pool.EVENT.ON_REGEN, function(this,nRegen, nMultiplier, nCurrent, nNew, nMax, bSkipOnFull, bSkipOnEmpty, bSkipOnIncrease, bSkipOnDecrease) print("regen to x("..nMultiplier..") -> "..this.get()) end);
+
+oPool.setEventCallback(Pool.EVENT.ON_EMPTY, function(this) print("set to empty! -> "..this.get()) end);
+
+oPool.setEventCallback(Pool.EVENT.ON_FULL, function(this) print("set to full! -> "..this.get()) end);
 
 --oPool.setEventActive("onRegen");
 
@@ -58,8 +62,19 @@ oPool.setEventCallback("onRegen", function(this) print("regen to -> "..this.getC
 --oPool.regen(60);
 --oPool.setEmpty();
 --print(oPool.isEmpty())
-oPool.setCurrent(-114);
+--oPool.setCurrent(-114);
 --oPool.setCurrent(1);
 --oPool.adjustCurrent(10);
 --oPool.adjustCurrent(10);
-print("current: "..oPool.getCurrent());
+--print("current: "..oPool.get(Pool.ASPECT.RESERVED, nil, Pool.MODIFIER.ADDITIVE_BONUS));
+--oPool.set(22);
+--print("current value: "..oPool.get());
+--oPool.set(0.4, Pool.ASPECT.REGEN, Pool.MODIFIER.MULTIPLICATIVE_BONUS);
+--oPool.regen(9);
+--oPool.setFull();
+--print("current value: "..oPool.get());
+--oPool.setEmpty();
+oPool.set(10, Pool.ASPECT.REGEN, Pool.MODIFIER.BASE)
+oPool.regen(5);
+--oPool.setFull();
+print("current value: "..oPool.get());
