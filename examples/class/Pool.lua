@@ -41,7 +41,7 @@ end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
-local oPool = Pool(200, 50, -50);
+local oPool = Pool(200, 200, 50);
 
 oPool.setEventCallback(Pool.EVENT.ON_REGEN, function(this,nRegen, nMultiplier, nCurrent, nNew, nMax, bSkipOnFull, bSkipOnEmpty, bSkipOnIncrease, bSkipOnDecrease) print("regen to x("..nMultiplier..") -> "..this.get()) end);
 
@@ -49,6 +49,7 @@ oPool.setEventCallback(Pool.EVENT.ON_EMPTY, function(this) print("set to empty! 
 
 oPool.setEventCallback(Pool.EVENT.ON_FULL, function(this) print("set to full! -> "..this.get()) end);
 
+oPool.setEventCallback(Pool.EVENT.ON_RESERVE, function(this) print("reserved! -> "..this.get(Pool.ASPECT.RESERVED)) end);
 --oPool.setEventActive("onRegen");
 
 --print(oPool.getCurrent());
@@ -74,7 +75,11 @@ oPool.setEventCallback(Pool.EVENT.ON_FULL, function(this) print("set to full! ->
 --oPool.setFull();
 --print("current value: "..oPool.get());
 --oPool.setEmpty();
-oPool.set(10, Pool.ASPECT.REGEN, Pool.MODIFIER.BASE)
-oPool.regen(5);
+--oPool.set(10, Pool.ASPECT.REGEN, Pool.MODIFIER.BASE)
+--oPool.regen(5);
 --oPool.setFull();
+print("is Full: "..oPool.isFull());
+oPool.setFullMarker(0.1);
+oPool.set(0.2, Pool.ASPECT.RESERVED_PERCENT);
+print("is Full: "..oPool.isFull());
 print("current value: "..oPool.get());

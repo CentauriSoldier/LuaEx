@@ -532,27 +532,7 @@ return class("Pool",
     end,
 
 
-    --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.isEmpty
-    @desc Determines whether the Pool is empty.
-    <br>This is true when the current value is less or equal to 0.
-    @ret bEmpty boolean True if the Pool is empty, false otherwise.
-    !]]
-    isEmpty = function(this, cdat)
-        return cdat.pro.current <= 0;
-    end,
-
-
-    --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.isFull
-    @desc Determines whether the Pool is full.
-    <br>This is true when the current value is (<em>greater than or</em>) equal to the maximum value.
-    @ret bEmpty boolean True if the Pool is full, false otherwise.
-    !]]
-    isFull = function(this, cdat)
-        local pro = cdat.pro;
-        return pro.current >= pro.max[_nValueFinal];
-    end,
+    
 
 
     --[[!

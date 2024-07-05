@@ -3,9 +3,10 @@ local floor 			= math.floor;
 local math				= math;
 local rawtype           = rawtype;
 local type				= type;
-
+--TODO NEXT LEFT OFF HERE Do events on other items (onFull, Empty etc.)
 --CLASS-LEVEL ENUMS
-local _eAspect      = enum("Pool.ASPECT",   {"CURRENT", "MAX", "REGEN", "RESERVED_FLAT", "RESERVED_PERCENT"}, {"current", "max", "regen", "reserved_flat", "reserved_percent"}, true);
+local _eAspect      = enum("Pool.ASPECT",   {"CURRENT", "MAX", "REGEN", "RESERVED", "RESERVED_FLAT", "RESERVED_PERCENT"},
+                                            {"current", "max", "regen", "reserved", "reserved_flat", "reserved_percent"}, true);
 
 --local _eMode        = enum("Pool.MODE",     {"FLAT", "PERCENT"}, {"flat", "percent"}, true);
 
@@ -15,19 +16,21 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
                                                 "ADDITIVE_BONUS",       "ADDITIVE_PENALTY"},
                                                 {1, 2, 3, 4, 5, 6, 7, 8, 9}, true);
 
-local _eEvent       = enum("Pool.EVENT",    {"ON_INCREASE", "ON_DECREASE",  "ON_EMPTY", "ON_FULL",  "ON_REGEN", "ON_RESERVE", "ON_UNRESERVE"},
-                                            {"onIncrease",  "onDecrease",   "onEmpty",  "onFull",   "onRegens", "OnReserve",  "onUnreserve"}, true);
+local _eEvent       = enum("Pool.EVENT",    {"ON_INCREASE", "ON_DECREASE",  "ON_EMPTY", "ON_FULL",  "ON_LOW",   "ON_REGEN", "ON_RESERVE", "ON_UNRESERVE"},
+                                            {"onIncrease",  "onDecrease",   "onEmpty",  "onFull",   "onLow",    "onRegen",  "OnReserve",  "onUnreserve"}, true);
 
 --ASPECT LOCALIZATION
 local _eAspectCurrent           = _eAspect.CURRENT;
 local _eAspectMax               = _eAspect.MAX;
 local _eAspectRegen             = _eAspect.REGEN;
+local _eAspectReserved          = _eAspect.RESERVED;
 local _eAspectReservedFlat      = _eAspect.RESERVED_FLAT;
 local _eAspectReservedPercent   = _eAspect.RESERVED_PERCENT;
 
 local _sAspectCurrent           = _eAspectCurrent.value;
 local _sAspectMax               = _eAspectMax.value;
 local _sAspectRegen             = _eAspectRegen.value;
+local _sAspectReserved          = _eAspectReserved.value;
 local _sAspectReservedFlat      = _eAspectReservedFlat.value;
 local _sAspectReservedPercent   = _eAspectReservedPercent.value;
 
@@ -64,6 +67,7 @@ local _eOnIncrease  = _eEvent.ON_INCREASE;
 local _eOnDecrease  = _eEvent.ON_DECREASE;
 local _eOnEmpty     = _eEvent.ON_EMPTY;
 local _eOnFull      = _eEvent.ON_FULL;
+local _eOnLow       = _eEvent.ON_LOW;
 local _eOnRegen     = _eEvent.ON_REGEN;
 local _eOnReserve   = _eEvent.ON_RESERVE;
 local _eOnUnreserve = _eEvent.ON_UNRESERVE;
@@ -72,14 +76,289 @@ local _sOnIncrease  = _eOnIncrease.value;
 local _sOnDecrease  = _eOnDecrease.value;
 local _sOnEmpty     = _eOnEmpty.value;
 local _sOnFull      = _eOnFull.value;
+local _sOnLow       = _eOnLow.value;
 local _sOnRegen     = _eOnRegen.value;
 local _sOnReserve   = _eOnReserve.value;
 local _sOnUnreserve = _eOnUnreserve.value;
 
 local _nDefaultReverseMax       = 0.5;
 local _nReverseHardMax          = 0.99; --the max reservation allowed
+local eventPlaceholder          = function() end
+
+
+
+
+local function  updatePoolStatus(this, cdat)
+    local pro      = cdat.pro;
+    local nCurrent = pro[_sAspectCurrent];
+
+    if (nCurrent == 0) then
+        pro.isEmpty     = true;
+        pro.isLow       = false;
+        pro.isFull      = false;
+    else
+        local nMax          = pro[_sAspectMax][_nFinal];
+        --local nReserved     = pro[_eAspectReserved];
+        --local nAvailable    = nMax - nReserved; --TODO allow reserved to coubnt if user sets that
+
+        pro.isEmpty     = false;
+        pro.isLow       = nCurrent <= (nMax * pro.lowMarker);
+        pro.isFull      = nCurrent >= (nMax * pro.fullMarker);
+    end
+
+end
+
+
+
+
+local function clampCurrent(this, cdat)
+    local pro           = cdat.pro;
+    local nMax          = pro[_sAspectMax][_nFinal];
+    local nCurrent      = pro[_sAspectCurrent];
+    local nReserved     = pro[_sAspectReserved];
+    local nAvailable    = nMax - nReserved;
+    local bWasEmpty     = pro.isEmpty;
+    local bWasLow       = pro.isLow;
+    local bWasFull      = pro.isFull;
+    local bIsEmpty;
+    local bIsLow;
+    local bIsFull;
+
+    if (nCurrent <= 0) then-- or nAvailable <= 0) then
+        pro[_sAspectCurrent] = 0;
+        pro.isEmpty,    bIsEmpty = true,    true;
+        pro.isLow,      bIsLow   = false,   false;
+        pro.isFull,     bIsFull  = false,   false;
+    else
+        --set the current value
+        local nNewCurrent = (nCurrent <= nAvailable) and nCurrent or nAvailable;
+        pro[_sAspectCurrent] = nNewCurrent;
+
+        bIsEmpty    = false;
+        bIsLow      = nCurrent <= (nMax * pro.lowMarker);
+        bIsFull     = nCurrent >= (nMax * pro.fullMarker);
+
+        pro.isEmpty     = bIsEmpty;
+        pro.isLow       = bIsLow;
+        pro.isFull      = bIsFull;
+    end
+
+    local bEmptyChange  = bWasEmpty ~= bIsEmpty;
+    local bLowChange    = bWasLow   ~= bIsLow;
+    local bFullChange   = bWasFull  ~= bIsFull;
+
+    return bEmptyChange, bLowChange, bFullChange, bIsEmpty, bIsLow, bIsFull;
+end
+
 
 --Final = ((nBase + nBaseBonus - nBasePenalty) * (1 + nMultBonus - nMultPenalty)) + nAddBonus - nAddPenalty;
+local function calulateFinal(this, cdat, sIndex)
+    local pro       = cdat.pro;
+    local tValue    = pro[sIndex];
+    local nRet      = ( tValue[_nBase] +
+                        tValue[_nBaseBonus] - tValue[_nBasePenalty]) *
+                        (1 + tValue[_nMultBonus] - tValue[_nMultPenalty]);
+
+    --if (sIndex ~= _sAspectReserved) then --no addative bonus/penalty for reserved table
+    --    nRet = nRet + (tValue[_nAddBonus] - tValue[_nAddPenalty]);
+    --end
+
+    return nRet;
+end
+
+
+local function attemptSettingMax(this, cdat, nValue, nModifier)
+
+    return bRet, nOverage
+end
+
+
+
+local function attemptSettingReserved(this, cdat, sReserveAspect, nValue, nModifier)
+    local pro           = cdat.pro;
+    local bRet          = false;
+    local nOverage      = 0;
+
+    --TODO check input values!!!
+    --_nReverseHardMax
+
+    local bIsFlat       = sReserveAspect == _sAspectReservedFlat;
+    local bIsPercent    = not bIsFlat;
+
+    --get the max, current and total reserved final values
+    local nMax              = pro[_sAspectMax][_nFinal];
+    local nCurrent          = pro[_sAspectCurrent];
+    local nOldTotalReserved = pro[_sAspectReserved];
+
+    --reserve tables and final values
+    local tResPercent   = pro[_sAspectReservedPercent];
+    local tResFlat      = pro[_sAspectReservedFlat];
+    local tActive       = bIsPercent and tResPercent or tResFlat;
+
+    --store the old value
+    local nOldValue     = tActive[nModifier];
+    --set the new value
+    tActive[nModifier]  = nValue;
+
+    --get the final values of the reserve aspects
+    local nResFlat      = bIsPercent and tResFlat[_nFinal] or calulateFinal(this, cdat, sReserveAspect);
+    local nResPercent   = bIsFlat and tResPercent[_nFinal] or calulateFinal(this, cdat, sReserveAspect);
+
+    --get the total reserved
+    local nTotalReserved = nResFlat + (nMax * nResPercent);
+    --determine if the reservation is permitted
+    bRet = (    (nOldTotalReserved ~= nTotalReserved) and
+                (nTotalReserved / nMax) <= tResPercent[_nMax]);
+
+    --if the reservation is allowed, process it
+    if (bRet) then
+        --set the new final value
+        tActive[_nFinal]        = bIsPercent and nResPercent or nResFlat;
+        --update the reserved total
+        pro[_sAspectReserved]   = nTotalReserved;
+        --update the current value
+        local nNewCurrent       = nMax - nTotalReserved;
+        local bChangeInCurrent  = nCurrent ~= nNewCurrent;
+
+        if (bChangeInCurrent) then
+            pro[_sAspectCurrent] = nNewCurrent;
+        end
+
+        --check for and fire reserve event
+        local bOnReserve   = nOldTotalReserved < nTotalReserved;
+        local bOnUnReserve = nOldTotalReserved > nTotalReserved;
+
+        if (bOnReserve and pro.activeEvents[_sOnReserve]) then
+            pro.events[_sOnReserve](this, nOldTotalReserved, nTotalReserved);
+        elseif (bOnUnReserve and pro.activeEvents[_sOnUnReserve]) then
+            pro.events[_sOnUnReserve](this, nOldTotalReserved, nTotalReserved);
+        end
+
+        --if the current value was changed, process events
+        if (bChangeInCurrent) then
+            local   bEmptyChange, bLowChange, bFullChange,
+                    bIsEmpty, bIsLow, bIsFull = clampCurrent(this, cdat);
+            local   bIsIncrease = nNewCurrent > nCurrent;
+            local   bIsDecrease = nNewCurrent < nCurrent;
+
+            if (bIsIncrease and pro.activeEvents[_sOnIncrease]) then
+                pro[_sOnIncrease].events(this, nCurrent, nNewCurrent);
+            elseif (bIsDecrease and pro.activeEvents[_sOnDecrease]) then
+                pro[_sOnDecrease].events(this, nCurrent, nNewCurrent);
+            end
+
+            if (bEmptyChange and bIsEmpty and pro.activeEvents[_eOnEmpty]) then
+                pro[_eOnEmpty].events(this);
+            elseif (bLowChange and bIsLow and pro.activeEvents[_sOnLow]) then
+                pro[_sOnLow].events(this);
+            elseif (bFullChange and bIsFull and pro.activeEvents[_sOnFull]) then
+                pro[_sOnFull].events(this);
+            end
+
+        end
+
+    else
+        --set the old value
+        tActive[nModifier] = nOldValue;
+        --indicate the overage
+        --nOverage = bIsPercent and nResPercent or nResFlat TODO
+    end
+
+
+    return bRet, nOverage;
+end
+
+
+--@see class method of the same name
+local function set(this, cdat, nValue, eAspectOrNil, eModifierOrNil)
+    local pro           = cdat.pro;
+    local bSuccess      = false;
+    local nOverage      = 0;
+    local eAspect       = (type(eAspectOrNil)   == "Pool.ASPECT")   and eAspectOrNil    or _eAspectCurrent;
+    local sAspect       =  eAspect.value;
+    local eModifier     = (type(eModifierOrNil) == "Pool.MODIFIER") and eModifierOrNil  or _eBase;
+    local nModifier     = eModifier.value;
+    local sEvent        = "NONE";
+
+    if not (type(nValue) == "number") then
+        error("Error setting value in Pool class.\nExpected type number; got type: "..type(nValue)..'.');
+    end
+
+    if (nModifier == _nFinal) then
+        error("Error setting value in Pool class.\nFinal values are calculated internally and may not be set manually.");
+    end
+
+    --TODO error for RESERVED
+
+    --process CURRENT aspect
+    if (sAspect == _sAspectCurrent) then --since current doesn't have a table
+
+        if (nPrevious ~= nValue) then
+            pro[_sAspectCurrent] = nValue;
+            local bWasEmpty      = pro.isEmpty;
+            local bWasLow
+
+            clampCurrent(this, cdat);
+            nNew                 = pro[_sAspectCurrent];
+            bSuccess             = true;
+            if (nNew > nPrevious) then --onIncrease
+
+                if (pro.activeEvents[_sOnIncrease]) then
+                    pro.events[_sOnIncrease](this, nPrevious, nValue);
+                end
+
+            elseif (nNew < nPrevious) then --onDecrease
+
+                if (pro.activeEvents[_sOnDecrease]) then
+                    pro.events[_sOnDecrease](this, nPrevious, nValue);
+                end
+
+            end
+
+            if (nNew == pro[_sAspectMax][_nFinal]) then --onFull
+
+                if (pro.activeEvents[_sOnFull]) then
+                    pro.events[_sOnFull](this);
+                end
+
+            elseif (nNew == 0) then --onEmpty
+
+                if (pro.activeEvents[_sOnEmpty]) then
+                    pro.events[_sOnEmpty](this);
+                end
+
+            end
+
+        end
+
+    --process all other aspects
+    elseif pro[sAspect][nModifier] then
+
+        --process MAX aspect
+        if (sAspect == _sAspectMax) then
+            bSuccess, nOverage = attemptSettingMax(this, cdat, nValue, nModifier);
+
+        --process REGEN aspect
+        elseif (sAspect == _sAspectRegen) then
+            pro[sAspect][nModifier] = nValue;
+            nNew                    = calulateFinal(this, cdat, sAspect);
+            pro[sAspect][_nFinal]   = nNew;
+            bSuccess                = true;
+
+        --process RESERVED_FLAT aspect
+        elseif (sAspect == _sAspectReservedFlat or sAspect == _sAspectReservedPercent) then
+            bSuccess, nOverage = attemptSettingReserved(this, cdat, sAspect, nValue, nModifier);
+        end
+
+
+    else --for tables like reserved which have only certain modifiers
+        error(  "Error setting value in Pool class.\nNo '${modifier}' modifier exists for aspect, '${aspect}'." %
+                {modifier = eModifier.name, aspect = eAspect.name});
+    end
+
+    return this, bSuccess, nOverage;
+end
+
 
 --[[!
 @fqxn LuaEx.Classes.CoG.Pool.Functions
@@ -124,258 +403,7 @@ local function validateModifierAndValue(sIndex, sSetOrGet, nMod, nValue)
         error("Error "..sSetOrGet.."ting Pool '"..sIndex.."' modifier. Modifer value must be one of the permitted Protean modifer values.");
     end
 
-
-
 end
-
-
---[[!
-@fqxn LuaEx.Classes.CoG.Pool.Functions
-@desc
-@param
-@ret
-!]]
-local function updateFinalValues(this, cdat, bCurrentAndMax, bRegen)
-    local pro   = cdat.pro;
-
-    if (bRegen) then
-        pro.regenFinal = pro.regen.getValue();
-    end
-
-    if (bCurrentAndMax) then
-        local nMax      = pro.max.getValue();
-        pro.maxFinal    = nMax;
-        local nCurrent  = pro.current;
-        pro.current  = (nCurrent <= nMax) and (nCurrent >= 0 and nCurrent or 0) or nMax;
-    end
-
-end
-
-
-
-
-
-local function setValue(this, cdat, sIndex, nMod, nValue)
-
-    if (nMod ~= _nValueFinal) then
-        local pro       = cdat.pro;
-        local tValue    = pro[sIndex];
-
-        if (sIndex == "current") then
-            tValue[nMod] = nValue;
-            local nMax = pro.max.final;
-
-            local nFinal = calulateFinal(this, cdat, "current");
-            tValue[_nValueFinal] = nValue <= nMax and nValue or nMax;
-
-        elseif (sIndex == "max") then
-
-        elseif (sIndex == "regen") then
-
-        end
-
-    end
-
-end
-
-local function clampCurrent(this, cdat)
-    local pro           = cdat.pro;
-    local nMax          = pro[_sAspectMax][_nFinal];
-    local nCurrent      = pro[_sAspectCurrent];
-    --local nReserved     = pro[_sAspectReserved][_nFinal]; TODO
-    local nAvailable    = nMax--nMax - nReserved;
-
-    if (nCurrent <= 0 or nAvailable <= 0) then
-        pro[_sAspectCurrent] = 0;
-    else
-        pro[_sAspectCurrent] = (nCurrent <= nMax) and nCurrent or nMax;
-    end
-
-end
-
-
-
-
-
-
-
---[[ORDER OF ASPECT UPDATE
-regen
-
-max (checks reserved)
-
-reserved (checks max)
-
-
-
-
-current
-]]
-
-
-
-
-
-
-
-
-
-
---GOOD, WORKING FUNCTION
-local function eventPlaceholder() end
-
-local function calulateFinal(this, cdat, sIndex)
-    local pro       = cdat.pro;
-    local tValue    = pro[sIndex];
-    local nRet      = ( tValue[_nBase] +
-                        tValue[_nBaseBonus] - tValue[_nBasePenalty]) *
-                        (1 + tValue[_nMultBonus] - tValue[_nMultPenalty]);
-
-    --if (sIndex ~= _sAspectReserved) then --no addative bonus/penalty for reserved table
-    --    nRet = nRet + (tValue[_nAddBonus] - tValue[_nAddPenalty]);
-    --end
-
-    return nRet;
-end
-
-
-local function attemptSettingMax(this, cdat, nValue, nModifier)
-
-    return bRet, nOverage
-end
-
-
-
-local function attemptSettingReservedFlat(this, cdat, nValue, nModifier)
-    local bRet          = false;
-    local nOverage      = 0;
-    local pro           = cdat.pro;
-    local tMax          = pro[_sAspectMax];
-    local nMaxlife      = tMax[_sFinal];
-    local tReserved     = pro[_sAspectReservedFlat];
-    local nOldBaseValue = tReserved[_nValueBase];
-    local nNewBaseValue = nFlat + nMax * nPercent;
-
-    tReserved[_nValueBase] = nNewBaseValue >= 0 and nNewBaseValue or 0;
-
-    local nFinal = calulateFinal(this, cdat, _sAspectReserved);
-    local nTotalPercent = nFinal / nMax;
-
-    if (nTotalPercent <= tReserved[_nMax]) then
-        tReserved[_nFinal] = nFinal;
-
-        if bIsPercent then
-            tReserved.percent = nPercent;
-        else
-            tReserved.flat = nFlat;
-        end
-
-        tReserved.remaining = nMax - nFinal;
-        bRet = true;
-    else
-        tReserved[_nValueBase] = nOldBaseValue;
-    end
-
-
-    return bRet, nOverage;
-end
-
---@see class method of the same name
-local function set(this, cdat, nValue, eAspectOrNil, eModifierOrNil)
-    local pro           = cdat.pro;
-    local bSuccess      = false;
-    local nOverage      = 0;
-    local eAspect       = (type(eAspectOrNil)   == "Pool.ASPECT")   and eAspectOrNil    or _eAspectCurrent;
-    local sAspect       =  eAspect.value;
-    local eModifier     = (type(eModifierOrNil) == "Pool.MODIFIER") and eModifierOrNil  or _eBase;
-    local nModifier     = eModifier.value;
-    local nPreviousBase = pro[_sAspectCurrent];
-    local nNewBase      = pro[_sAspectCurrent];
-    local sEvent        = "NONE";
-
-    if not (type(nValue) == "number") then
-        error("Error setting value in Pool class.\nExpected type number; got type: "..type(nValue)..'.');
-    end
-
-    if (nModifier == _nFinal) then
-        error("Error setting value in Pool class.\nFinal values are calculated internally and may not be set manually.");
-    end
-
-    --process CURRENT aspect
-    if (sAspect == _sAspectCurrent) then --since current doesn't have a table
-
-        if (nPrevious ~= nValue) then
-            pro[_sAspectCurrent] = nValue;
-            clampCurrent(this, cdat);
-            nNew                 = pro[_sAspectCurrent];
-            bSuccess             = true;
-
-            if (nNew > nPrevious) then --onIncrease
-
-                if (pro.activeEvents[_sOnIncrease]) then
-                    pro.events[_sOnIncrease](this);
-                end
-
-            elseif (nNew < nPrevious) then --onDecrease
-
-                if (pro.activeEvents[_sOnDecrease]) then
-                    pro.events[_sOnDecrease](this);
-                end
-
-            end
-
-            if (nNew == pro[_sAspectMax][_nFinal]) then --onFull
-
-                if (pro.activeEvents[_sOnFull]) then
-                    pro.events[_sOnFull](this);
-                end
-
-            elseif (nNew == 0) then --onEmpty
-
-                if (pro.activeEvents[_sOnEmpty]) then
-                    pro.events[_sOnEmpty](this);
-                end
-
-            end
-
-        end
-
-    --process all other aspects
-    elseif pro[sAspect][nModifier] then
-
-        --process MAX aspect
-        if (sAspect == _sAspectMax) then
-
-
-            bSuccess, nOverage = attemptSettingMax(this, cdat, nValue, nModifier);
-
-        --process REGEN aspect
-        elseif (sAspect == _sAspectRegen) then
-            pro[sAspect][nModifier] = nValue;
-            nNew                    = calulateFinal(this, cdat, sAspect);
-            pro[sAspect][_nFinal]   = nNew;
-            bSuccess                = true;
-
-        --process RESERVED_FLAT aspect
-        elseif (sAspect == _sAspectReservedFlat) then
-            bSuccess, nOverage = attemptSettingReservedFlat(this, cdat, nValue, nModifier);
-            --TODO LEFT OFF HERE...create these methods
-        --process RESERVED_PERCENT aspect
-        elseif (sAspect == _sAspectReservedPercent) then
-            bSuccess, nOverage = attemptSettingReservedPercent(this, cdat, nValue, nModifier);
-        end
-
-
-    else --for tables like reserved which have only certain modifiers
-        error(  "Error setting value in Pool class.\nNo '${modifier}' modifier exists for aspect, '${aspect}'." %
-                {modifier = eModifier.name, aspect = eAspect.name});
-    end
-
-    return this, bSuccess, nOverage;
-end
-
-
-
 
 
 
@@ -433,6 +461,7 @@ return class("Pool",
         [_sOnUnreserve] = eventPlaceholder,
     },
     [_sAspectCurrent] = 1,
+    [_sAspectReserved]= 0, --cached value updated on change
     [_sAspectMax]     = {
         [_nBase]        = 0,
         [_nFinal]       = 0,
@@ -482,10 +511,12 @@ return class("Pool",
         [_nAddPenalty]  = 0,
         final           = 0, --cached value updated on change
     },
-    hasReservation      = 0, --cached value updated on change
-    --baseMod         = 0, --             _nBaseBonus - _nBasePenalty
-    --multMod         = 1, --1      +     _nMultBonus - _nMultPenalty
-    --addMod          = 0, --_nValueBase  _nAddBonus  - _nAddPenalty
+    lowMarker       = 0.3,  --TODO
+    fullMarker      = 1,    --TODO QUESTION should full include reserved?
+    isEmpty         = false,
+    isFull          = false,
+    isLow           = false,
+    --hasReservation      = 0, --cached value updated on change
 },
 {--PUBLIC
 
@@ -519,10 +550,39 @@ return class("Pool",
         pro[_sAspectCurrent]            = nCurrent;
         pro[_sAspectRegen][_nBase]      = nRegen;
         pro[_sAspectRegen][_nFinal]     = nRegen;
+
+        clampCurrent(this, cdat);
     end,
 
 
     adjust = function()
+    end,
+
+
+    --[[!
+    @fqxn LuaEx.Classes.CoG.Pool.Methods.isEmpty
+    @desc Determines whether the Pool is empty.
+    <br>This is true when the current value is less or equal to 0.
+    @ret bEmpty boolean True if the Pool is empty, false otherwise.
+    !]]
+    isEmpty = function(this, cdat)
+        return cdat.pro.isEmpty;
+    end,
+
+
+    --[[!
+    @fqxn LuaEx.Classes.CoG.Pool.Methods.isFull
+    @desc Determines whether the Pool is full.
+    <br>This is true when the current value is (<em>greater than or</em>) equal to the maximum value.
+    @ret bEmpty boolean True if the Pool is full, false otherwise.
+    !]]
+    isFull = function(this, cdat)
+        return cdat.pro.isFull;
+    end,
+
+
+    isLow = function(this, cdat)
+        return cdat.pro.isLow;
     end,
 
 
@@ -548,6 +608,9 @@ return class("Pool",
         if (sAspect == _sAspectCurrent) then --since current doesn't have a table
             nRet = pro[_sAspectCurrent];
 
+        elseif (sAspect == _sAspectReserved) then --for reserved total
+            nRet = pro[_sAspectReserved];
+
         elseif pro[sAspect][nModifier] then
             nRet = pro[sAspect][nModifier];
 
@@ -567,7 +630,7 @@ return class("Pool",
     @param nMultiple number|nil If a number is provided, it will regen the number of times input, otherwise, once.
     @ret oPool Pool The Pool object.
     !]]
-    regen = function(this, cdat, nMultiplier, bSkipOnFull, bSkipOnEmpty, bSkipOnIncrease, bSkipOnDecrease)
+    regen = function(this, cdat, nMultiplier, bSkipOnEmpty, bSkipOnLow, bSkipOnFull, bSkipOnIncrease, bSkipOnDecrease)
         local pro       = cdat.pro;
         local nCurrent  = pro[_sAspectCurrent];
         local nMax      = pro[_sAspectMax][_nFinal];
@@ -579,7 +642,7 @@ return class("Pool",
             pro[_sAspectCurrent] = pro[_sAspectCurrent] + nRegen * nMultiplier;
 
             --clamp the current value
-            clampCurrent(this, cdat);
+            clampCurrent(this, cdat, nCurrent, bSkipOnEmpty, bSkipOnLow, bSkipOnFull, bSkipOnIncrease, bSkipOnDecrease);
 
             local nNew = pro[_sAspectCurrent];
 
@@ -587,7 +650,7 @@ return class("Pool",
             if (pro.activeEvents[_sOnRegen]) then
                 pro.events[_sOnRegen](  this, nRegen, nMultiplier,
                                         nCurrent, nNew, nMax,
-                                        bSkipOnFull, bSkipOnEmpty,
+                                        bSkipOnEmpty, bSkipOnLow, bSkipOnFull,
                                         bSkipOnIncrease, bSkipOnDecrease);
             end
 
@@ -653,6 +716,10 @@ return class("Pool",
         if (pro[_sAspectCurrent] > 0) then
             pro[_sAspectCurrent] = 0;
 
+            pro.isEmpty     = true;
+            pro.isLow       = false;
+            pro.isFull      = false;
+
             if (pro.activeEvents[_sOnEmpty]) then
                 pro.events[_sOnEmpty](this);
             end
@@ -717,13 +784,18 @@ return class("Pool",
     @desc Sets Pool to full (if not already full).
     @ret oPool Pool The Pool object.
     !]]
-    setFull = function(this, cdat)
-        local pro       = cdat.pro;
-        local nMax      = pro[_sAspectMax][_nFinal];
+    setFull = function(this, cdat) --TODO account for reserved
+        local pro           = cdat.pro;
+        local nMax          = pro[_sAspectMax][_nFinal];
+        local nAvailable    = nMax - pro[_sAspectReserved];
 
         --process only if the Pool isn't already full
-        if (pro[_sAspectCurrent] < nMax) then
-            pro[_sAspectCurrent] = nMax;
+        if (pro[_sAspectCurrent] < nAvailable) then
+            pro[_sAspectCurrent] = nAvailable;
+
+            pro.isEmpty     = false;
+            pro.isLow       = nCurrent <= (nMax * pro.lowMarker);
+            pro.isFull      = nCurrent >= (nMax * pro.fullMarker);
 
             if (pro.activeEvents[_sOnFull]) then
                 pro.events[_sOnFull](this);
@@ -733,6 +805,12 @@ return class("Pool",
 
         return this;
     end,
+
+    setFullMarker = function(this, cdat, nValue)
+        --must be float
+        --must be great than low
+    end,
+    --TODO setLow
 },
 nil,   --extending class
 false, --if the class is final
