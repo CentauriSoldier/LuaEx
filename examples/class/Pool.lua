@@ -43,7 +43,7 @@ end
 --==============================================================================
 local oPool = Pool(200, 200, 50);
 
-oPool.setEventCallback(Pool.EVENT.ON_REGEN, function(this,nRegen, nMultiplier, nCurrent, nNew, nMax, bSkipOnFull, bSkipOnEmpty, bSkipOnIncrease, bSkipOnDecrease) print("regen to x("..nMultiplier..") -> "..this.get()) end);
+oPool.setEventCallback(Pool.EVENT.ON_CYCLE, function(this,nRegen, nMultiplier, nCurrent, nNew, nMax, bSkipOnFull, bSkipOnEmpty, bSkipOnIncrease, bSkipOnDecrease) print("regen to x("..nMultiplier..") -> "..this.get()) end);
 
 oPool.setEventCallback(Pool.EVENT.ON_EMPTY, function(this) print("set to empty! -> "..this.get()) end);
 

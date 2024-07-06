@@ -5,8 +5,8 @@ local rawtype           = rawtype;
 local type				= type;
 --TODO NEXT LEFT OFF HERE Do events on other items (onFull, Empty etc.)
 --CLASS-LEVEL ENUMS
-local _eAspect      = enum("Pool.ASPECT",   {"CURRENT", "MAX", "REGEN", "RESERVED", "RESERVED_FLAT", "RESERVED_PERCENT"},
-                                            {"current", "max", "regen", "reserved", "reserved_flat", "reserved_percent"}, true);
+local _eAspect      = enum("Pool.ASPECT",   {"CURRENT", "MAX", "CYCLE", "CYCLE_FLAT", "CYCLE_PERCENT", "RESERVED", "RESERVED_FLAT", "RESERVED_PERCENT"},
+                                            {"current", "max", "cycle", "cycle_flat", "cycle_percent", "reserved", "reserved_flat", "reserved_percent"}, true);
 
 --local _eMode        = enum("Pool.MODE",     {"FLAT", "PERCENT"}, {"flat", "percent"}, true);
 
@@ -16,20 +16,24 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
                                                 "ADDITIVE_BONUS",       "ADDITIVE_PENALTY"},
                                                 {1, 2, 3, 4, 5, 6, 7, 8, 9}, true);
 
-local _eEvent       = enum("Pool.EVENT",    {"ON_INCREASE", "ON_DECREASE",  "ON_EMPTY", "ON_FULL",  "ON_LOW",   "ON_REGEN", "ON_RESERVE", "ON_UNRESERVE"},
-                                            {"onIncrease",  "onDecrease",   "onEmpty",  "onFull",   "onLow",    "onRegen",  "OnReserve",  "onUnreserve"}, true);
+local _eEvent       = enum("Pool.EVENT",    {"ON_INCREASE", "ON_DECREASE",  "ON_EMPTY", "ON_FULL",  "ON_LOW",   "ON_CYCLE", "ON_RESERVE", "ON_UNRESERVE"},
+                                            {"onIncrease",  "onDecrease",   "onEmpty",  "onFull",   "onLow",    "onCycle",  "OnReserve",  "onUnreserve"}, true);
 
 --ASPECT LOCALIZATION
 local _eAspectCurrent           = _eAspect.CURRENT;
 local _eAspectMax               = _eAspect.MAX;
-local _eAspectRegen             = _eAspect.REGEN;
+local _eAspectCycle             = _eAspect.CYCLE;
+local _eAspectCycleFlat         = _eAspect.CYCLE_FLAT;
+local _eAspectCyclePercent      = _eAspect.CYCLE_PERCENT;
 local _eAspectReserved          = _eAspect.RESERVED;
 local _eAspectReservedFlat      = _eAspect.RESERVED_FLAT;
 local _eAspectReservedPercent   = _eAspect.RESERVED_PERCENT;
 
 local _sAspectCurrent           = _eAspectCurrent.value;
 local _sAspectMax               = _eAspectMax.value;
-local _sAspectRegen             = _eAspectRegen.value;
+local _sAspectCycle             = _eAspectCycle.value;
+local _sAspectCycleFlat         = _eAspectCycleFlat.value;
+local _sAspectCyclePercent      = _eAspectCyclePercent.value;
 local _sAspectReserved          = _eAspectReserved.value;
 local _sAspectReservedFlat      = _eAspectReservedFlat.value;
 local _sAspectReservedPercent   = _eAspectReservedPercent.value;
@@ -68,7 +72,7 @@ local _eOnDecrease  = _eEvent.ON_DECREASE;
 local _eOnEmpty     = _eEvent.ON_EMPTY;
 local _eOnFull      = _eEvent.ON_FULL;
 local _eOnLow       = _eEvent.ON_LOW;
-local _eOnRegen     = _eEvent.ON_REGEN;
+local _eOnCycle     = _eEvent.ON_CYCLE;
 local _eOnReserve   = _eEvent.ON_RESERVE;
 local _eOnUnreserve = _eEvent.ON_UNRESERVE;
 
@@ -77,7 +81,7 @@ local _sOnDecrease  = _eOnDecrease.value;
 local _sOnEmpty     = _eOnEmpty.value;
 local _sOnFull      = _eOnFull.value;
 local _sOnLow       = _eOnLow.value;
-local _sOnRegen     = _eOnRegen.value;
+local _sOnCycle     = _eOnCycle.value;
 local _sOnReserve   = _eOnReserve.value;
 local _sOnUnreserve = _eOnUnreserve.value;
 
@@ -174,7 +178,7 @@ end
 
 
 
-local function attemptSettingReserved(this, cdat, sReserveAspect, nValue, nModifier)
+local function attemptSettingReserved(this, cdat, sReserveAspect, nValue, nModifier)--TODO return overage
     local pro           = cdat.pro;
     local bRet          = false;
     local nOverage      = 0;
@@ -280,7 +284,7 @@ local function set(this, cdat, nValue, eAspectOrNil, eModifierOrNil)
     local nModifier     = eModifier.value;
     local sEvent        = "NONE";
 
-    if not (type(nValue) == "number") then
+    if (type(nValue) ~= "number") then
         error("Error setting value in Pool class.\nExpected type number; got type: "..type(nValue)..'.');
     end
 
@@ -292,6 +296,7 @@ local function set(this, cdat, nValue, eAspectOrNil, eModifierOrNil)
 
     --process CURRENT aspect
     if (sAspect == _sAspectCurrent) then --since current doesn't have a table
+        local nPrevious = pro[_sAspectCurrent];
 
         if (nPrevious ~= nValue) then
             pro[_sAspectCurrent] = nValue;
@@ -338,12 +343,9 @@ local function set(this, cdat, nValue, eAspectOrNil, eModifierOrNil)
         if (sAspect == _sAspectMax) then
             bSuccess, nOverage = attemptSettingMax(this, cdat, nValue, nModifier);
 
-        --process REGEN aspect
-        elseif (sAspect == _sAspectRegen) then
-            pro[sAspect][nModifier] = nValue;
-            nNew                    = calulateFinal(this, cdat, sAspect);
-            pro[sAspect][_nFinal]   = nNew;
-            bSuccess                = true;
+        --process CYCLE aspect
+    elseif (sAspect == _sAspectCycleFlat or sAspect == _sAspectCyclePercent) then
+            bSuccess, nOverage = setCycle(this, cdat, sAspect, nValue, nModifier);
 
         --process RESERVED_FLAT aspect
         elseif (sAspect == _sAspectReservedFlat or sAspect == _sAspectReservedPercent) then
@@ -447,7 +449,7 @@ return class("Pool",
         [_sOnDecrease]  = false,
         [_sOnEmpty]     = false,
         [_sOnFull]      = false,
-        [_sOnRegen]     = false,
+        [_sOnCycle]     = false,
         [_sOnReserve]   = false,
         [_sOnUnreserve] = false,
     },
@@ -456,7 +458,7 @@ return class("Pool",
         [_sOnDecrease]  = eventPlaceholder,
         [_sOnEmpty]     = eventPlaceholder,
         [_sOnFull]      = eventPlaceholder,
-        [_sOnRegen]     = eventPlaceholder,
+        [_sOnCycle]     = eventPlaceholder,
         [_sOnReserve]   = eventPlaceholder,
         [_sOnUnreserve] = eventPlaceholder,
     },
@@ -475,7 +477,20 @@ return class("Pool",
         min             = 1,
         final           = 0, --cached value updated on change
     },
-    [_sAspectRegen]    = {
+    [_sAspectCycle]     = 0, --cached value updated on change
+    [_sAspectCycleFlat] = {
+        [_nBase]        = 0,
+        [_nFinal]       = 0,
+        [_nMax]         = math.huge,
+        [_nBaseBonus]   = 0,
+        [_nBasePenalty] = 0,
+        [_nMultBonus]   = 0,
+        [_nMultPenalty] = 0,
+        [_nAddBonus]    = 0,
+        [_nAddPenalty]  = 0,
+        final           = 0, --cached value updated on change
+    },
+    [_sAspectCyclePercent] = {
         [_nBase]        = 0,
         [_nFinal]       = 0,
         [_nMax]         = math.huge,
@@ -525,14 +540,14 @@ return class("Pool",
     @desc The constructor for the <b>Pool</b> class.
     @param nMax number|nil The maximum value of the Pool.
     @param nCurrent number|nil The current value of the Pool.
-    @param nRegen number|nil The amount the Pool should regenerate when the <a href="#LuaEx.Classes.CoG.Pool.Methods.regen">regen</a> method is called.
+    @param nCycle number|nil The amount the Pool should fill or delete when the <a href="#LuaEx.Classes.CoG.Pool.Methods.cycle">cycle</a> method is called.
     @param nReservation number|nil The reservation value of the Pool.
     !]]
-    Pool = function(this, cdat, nMax, nCurrent, nRegen)
+    Pool = function(this, cdat, nMax, nCurrent)
         local pro   = cdat.pro;
         nMax        = type(nMax) 		== "number"	and nMax	    or 1;
         nCurrent	= type(nCurrent) 	== "number" and nCurrent    or 1;
-        nRegen 	    = type(nRegen) 		== "number" and nRegen 		or 0;
+        nCycle 	    = type(nCycle) 		== "number" and nCycle 		or 0;
         nReserved   = type(nReserved)   == "number" and nReserved   or 0;
 
         if (nMax <= 1) then
@@ -548,8 +563,6 @@ return class("Pool",
         pro[_sAspectMax][_nBase]        = nMax;
         pro[_sAspectMax][_nFinal]       = nMax;
         pro[_sAspectCurrent]            = nCurrent;
-        pro[_sAspectRegen][_nBase]      = nRegen;
-        pro[_sAspectRegen][_nFinal]     = nRegen;
 
         clampCurrent(this, cdat);
     end,
@@ -590,7 +603,7 @@ return class("Pool",
     @fqxn LuaEx.Classes.CoG.Pool.Methods.get
     @desc TODO
     @ex TODO
-    @param eAspect Pool.ASPECT|nil If provided, this refers to the aspect of the pool to get such as MAX or REGEN.
+    @param eAspect Pool.ASPECT|nil If provided, this refers to the aspect of the pool to get such as MAX or CYCLE.
     <br>If not provided it will default to CURRENT.
     @param eModifier Pool.MODIFIER|nil If provided, this indicates which modifier to get such as BASE, BASE_BONUS, etc.
     <br>If not provided, it will default to BASE.
@@ -611,6 +624,9 @@ return class("Pool",
         elseif (sAspect == _sAspectReserved) then --for reserved total
             nRet = pro[_sAspectReserved];
 
+        elseif (sAspect == _sAspectCycle) then --for cycle total
+            nRet = pro[_sAspectCycle];
+
         elseif pro[sAspect][nModifier] then
             nRet = pro[sAspect][nModifier];
 
@@ -624,38 +640,38 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.regen
-    @desc Causes the Pool to regenerate based on the regen value (after all modifiers have been applied).
-    <br>Note: The (active) regen event is called only if a regen is possible (that is, if current is less than max).
-    @param nMultiple number|nil If a number is provided, it will regen the number of times input, otherwise, once.
+    @fqxn LuaEx.Classes.CoG.Pool.Methods.cycle
+    @desc Causes the Pool to cycle based on the cycle value (after all modifiers have been applied).
+    <br>This is used for things like regeneration of mana, regen and/or poisoning of life, consumption of fuel, etc.
+    @param nMultiple number|nil If a number is provided, it will cycle the number of times input, otherwise, once.
     @ret oPool Pool The Pool object.
     !]]
-    regen = function(this, cdat, nMultiplier, bSkipOnEmpty, bSkipOnLow, bSkipOnFull, bSkipOnIncrease, bSkipOnDecrease)
+    cycle = function(this, cdat, nMultiplier, bSkipOnEmpty, bSkipOnLow, bSkipOnFull, bSkipOnIncrease, bSkipOnDecrease)
         local pro       = cdat.pro;
         local nCurrent  = pro[_sAspectCurrent];
         local nMax      = pro[_sAspectMax][_nFinal];
-        local nRegen    = pro[_sAspectRegen][_nFinal];
+        local nCycle    = pro[_sAspectCycle][_nFinal]; --TODO LEFT OFF HERE
 
-        if (nCurrent < nMax and nRegen ~= 0) then
-            --process the regen
+        if (nCurrent < nMax and nCycle ~= 0) then
+            --process the cycle
             nMultiplier = (rawtype(nMultiplier) == "number" and nMultiplier ~= 0) and nMultiplier or 1;
-            pro[_sAspectCurrent] = pro[_sAspectCurrent] + nRegen * nMultiplier;
+            pro[_sAspectCurrent] = pro[_sAspectCurrent] + nCycle * nMultiplier;
 
             --clamp the current value
             clampCurrent(this, cdat, nCurrent, bSkipOnEmpty, bSkipOnLow, bSkipOnFull, bSkipOnIncrease, bSkipOnDecrease);
 
             local nNew = pro[_sAspectCurrent];
 
-            --run the regen event if active
-            if (pro.activeEvents[_sOnRegen]) then
-                pro.events[_sOnRegen](  this, nRegen, nMultiplier,
+            --run the cycle event if active
+            if (pro.activeEvents[_sOnCycle]) then
+                pro.events[_sOnCycle](  this, nCycle, nMultiplier,
                                         nCurrent, nNew, nMax,
                                         bSkipOnEmpty, bSkipOnLow, bSkipOnFull,
                                         bSkipOnIncrease, bSkipOnDecrease);
             end
 
             --run the onEmpty or onFull events if active
-            if (not bSkipOnFull and nNew == pro[_sAspectMax][_nFinal]) then --onFull
+            if (not bSkipOnFull and nNew == pro[_sAspectMax][_nFinal]) then --onFull TODO not coorrect!
 
                 if (pro.activeEvents[_sOnFull]) then
                     pro.events[_sOnFull](this);
@@ -670,13 +686,13 @@ return class("Pool",
             end
 
             --run the onIncrease and onDecrease events
-            if (not bSkipOnIncrease and nRegen > 0) then --onIncrease
+            if (not bSkipOnIncrease and nCycle > 0) then --onIncrease
 
                 if (pro.activeEvents[_sOnIncrease]) then
                     pro.events[_sOnIncrease](this);
                 end
 
-            elseif (not bSkipOnDecrease and nRegen < 0) then --onDecrease
+            elseif (not bSkipOnDecrease and nCycle < 0) then --onDecrease
 
                 if (pro.activeEvents[_sOnDecrease]) then
                     pro.events[_sOnDecrease](this);
@@ -695,7 +711,7 @@ return class("Pool",
     @desc TODO
     @ex TODO
     @param nValue number The value to which the item should be set.
-    @param eAspect Pool.ASPECT|nil If provided, this refers to the aspect of the pool to set such as MAX or REGEN.
+    @param eAspect Pool.ASPECT|nil If provided, this refers to the aspect of the pool to set such as MAX or CYCLE.
     <br>If not provided it will default to CURRENT.
     @param eModifier Pool.MODIFIER|nil If provided, this indicates which modifier to set such as BASE, BASE_BONUS, etc.
     <br>If not provided, it will default to BASE.
