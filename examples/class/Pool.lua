@@ -41,9 +41,9 @@ end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
-local oPool = Pool(200, 200, 50);
+local oPool = Pool(200, 80, 50);
 
-oPool.setEventCallback(Pool.EVENT.ON_CYCLE, function(this,nRegen, nMultiplier, nCurrent, nNew, nMax, bSkipOnFull, bSkipOnEmpty, bSkipOnIncrease, bSkipOnDecrease) print("regen to x("..nMultiplier..") -> "..this.get()) end);
+oPool.setEventCallback(Pool.EVENT.ON_CYCLE, function(this, nCurrent, nNew, nCycle, nMultiplier, nTotalRegen, bIsPositive) print("regen to x("..nMultiplier..") -> "..this.get()) end);
 
 oPool.setEventCallback(Pool.EVENT.ON_EMPTY, function(this) print("set to empty! -> "..this.get()) end);
 
@@ -74,12 +74,18 @@ oPool.setEventCallback(Pool.EVENT.ON_RESERVE, function(this) print("reserved! ->
 --oPool.regen(9);
 --oPool.setFull();
 --print("current value: "..oPool.get());
---oPool.setEmpty();
+oPool.setEmpty();
 --oPool.set(10, Pool.ASPECT.REGEN, Pool.MODIFIER.BASE)
 --oPool.regen(5);
 --oPool.setFull();
+--print("is Full: "..oPool.isFull());
+--oPool.setFullMarker(0.1);
+--oPool.set(0.36, Pool.ASPECT.RESERVED_PERCENT);
+oPool.set(20, Pool.ASPECT.CYCLE_FLAT)
+--oPool.set(-.05, Pool.ASPECT.CYCLE_PERCENT)
+oPool.set(30, Pool.ASPECT.MAX, Pool.MODIFIER.BASE)
+oPool.cycle(100);
+--print("Reserved: "..oPool.get(Pool.ASPECT.RESERVED));
 print("is Full: "..oPool.isFull());
-oPool.setFullMarker(0.1);
-oPool.set(0.2, Pool.ASPECT.RESERVED_PERCENT);
-print("is Full: "..oPool.isFull());
-print("current value: "..oPool.get());
+--print("Current: "..oPool.get());
+--print("Available: "..oPool.get(Pool.ASPECT.AVAILABLE));

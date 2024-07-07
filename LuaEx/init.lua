@@ -58,7 +58,6 @@ local tClassLoadValues = {
 
 --TODO I think I need to do this with table.unpack
 
-
 --enforce the class loading system to prevent errors
 --for x = #tClassLoadValues, 1, -1 do
 for x = 1, #tClassLoadValues do
@@ -100,6 +99,7 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 
 --create the 'protected' table used by LuaEx
 local tLuaEx = {
+        __config, --set below
         __metaguard  = {"class", "classfactory", "enum", "enumfactory", "struct", "structfactory"}, --these metatables are protected from modification and general access
         __KEYWORDS__	= setmetatable({}, {--TODO uncap these...
             __index 	= tKeyWords,
@@ -143,6 +143,8 @@ sPath = sPath:sub(1, sPath:len() - 1);
 --update the package.path (use the main directory to prevent namespace issues)
 package.path = package.path..";"..sPath.."\\..\\?.lua";
 
+--load the config
+rawset(tLuaEx, "config", require("LuaEx.config"));
 
 cloner, clone = nil; --delcared here so all lower modules can use it
 --QUESTION do i need serializer here too? I think not but double check
@@ -260,7 +262,8 @@ if (tClassLoadValues[_nClassSystem]) then
                 Polygon = require(pClasses..".geometry.shapes.Polygon");
 
                 if (tClassLoadValues[_nCoGClasses]) then
-                    Pool = require(pClasses..".cog.Pool");
+                    Pool    = require(pClasses..".cog.Pool");
+                    Status  = require(pClasses..".cog.Status");
                 end
 
             end
