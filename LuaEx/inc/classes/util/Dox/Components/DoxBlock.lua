@@ -26,15 +26,18 @@ return class("DoxBlock",
     getBlockData = function(this, cdat, sRawBlock, eLanguage, sTagOpen, tBlockTags)
         local pri   = cdat.pri;
         local tRet  = {};
-        local sTempAtSymbol      = "DOXAtSymbole7fa52f71cfe48298a9ad784026556fb";
-        local sEscapedTagOpen    = eLanguage.value.getEscapeCharater()..sTagOpen;
+        local sEscapeChar           = eLanguage.value.getEscapeCharater();
+        local sTempAtSymbol         = "DOXAtSymbole7fa52f71cfe48298a9ad784026556fb";
+        local sTempNewLineSysmbol   = "DOXNewLineSymbolf47ac10b58cc4372a5670e02b2c3d479"
+        local sEscapedTagOpen       = sEscapeChar..sTagOpen;
+        local sEscapedNewLine       = sEscapeChar.."n";
 
         --TODO account for new lines (delete unescaped ones)
         --replace the escaped @ symbols temporarily
-        local sBlock = sRawBlock:gsub(sEscapedTagOpen, sTempAtSymbol);
+        local sBlock = sRawBlock:gsub(sEscapedTagOpen, sTempAtSymbol);--:gsub(sEscapedNewLine, sTempNewLineSysmbol);
 
         --break the block up into items
-        local tBlockItems = sBlock:totable(sTagOpen);
+        local tBlockItems = sBlock:gsub("^%s+", ""):totable(sTagOpen);
 
         if not (tBlockItems) then
             error("Error creating DoxBlock object: malformed block:\n'"..sBlock.."'", 3);
@@ -44,6 +47,7 @@ return class("DoxBlock",
         for nItemIndex, sRawItem in ipairs(tBlockItems) do
             --replace the @ symbols and trim trailing space
             local sItemInProcess = sRawItem:gsub(sTempAtSymbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), sTagOpen):gsub("%s+$", "");--gsub("\n$", "");
+            --sItemInProcess = sItemInProcess:gsub(sTempNewLineSysmbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), "\n"):gsub("%s+$", "");
             local sItem = sItemInProcess:match("%S.*%S");
 
             --validate the item is still good
@@ -53,7 +57,7 @@ return class("DoxBlock",
 
             --get the alias
             local sAlias = sItem:match("%S+");
-
+            
             --validate the item alias
             if not (sAlias) then
                 error("Error creating DoxBlock object: malformed block item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
@@ -64,11 +68,12 @@ return class("DoxBlock",
 
             --make sure a BlockTag object was recovered
             if not (oBlockTag) then
+                print(serialize(tBlockItems))
                 error("Error creating DoxBlock object: invalid block item alias, '"..sAlias.."', in item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
             end
 
             tRet[#tRet + 1] = {
-                item            = sItem,
+                item      = sItem,--:gsub(sTempAtSymbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), sTagOpen):gsub("%s+$", ""),--gsub("\n$", "");,
                 blockTag  = oBlockTag,
             };
         end
@@ -100,9 +105,9 @@ return class("DoxBlock",
         for _, tLineData in ipairs(tBlockData) do
             local sRawItem      = tLineData.item;
             local oItemBlockTag = tLineData.blockTag;
+
             --log required block tags found
             for __, oRequiredBlockTag in pairs(tRequiredBlockTags) do
-
                 if (oItemBlockTag == oRequiredBlockTag) then
                     --set as found
                     tRequiredBlockTagsFound[oRequiredBlockTag] = true;

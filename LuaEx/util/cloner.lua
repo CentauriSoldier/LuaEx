@@ -130,14 +130,15 @@ local tPure = {
 local tSynth = {
     ["array"]                   = function(aItem) return rawgetmetatable(aItem).__clone(aItem) end,
     ["class"]                   = function(cItem)--TODO is this ever called? We don't actually want to clone class objects (such as Point)
-                                    local tMeta = rawgetmetatable(cItem);
-
-                                    if (rawtype(tMeta.__clones) ~= "function") then
+                                    --local tMeta = rawgetmetatable(cItem);
+                                    --print(serialize(tMeta))
+                                    --if (rawtype(tMeta.__clone) ~= "function") then
                                         --TODO get the class name and FIX this error ...make sure it works
-                                        error("Class is not clonable.", 2);
-                                    end
+                                    --    error("Class, '"..tostring(cItem).."', is not clonable.\n", 2);
+                                    --end
                                     --no need to infuse cItem since it's already injected by the class
-                                    return rawgetmetatable(cItem).__clone();
+                                    --return rawgetmetatable(cItem).__clone(); --TODO FIX since we can't use the method above to validate clonability, we must do an xpcall!
+                                    return rawgetmetatable(cItem).__name;--QUESTION is this right? Is the name what should be returned or the __call metamethod?
                                 end,
     --["enum"]                    = function(eItem) return rawgetmetatable(eItem).__clone(eItem) end,
     ["null"]                    = returnPure,
@@ -192,7 +193,7 @@ local function clone(vItem, bIgnoreMetaTable)
     local bFoundCloner = false;
 
     if (tPure[sType]) then
-        vRet = tPure[sType](vItem, bIgnoreMetaTable);    
+        vRet = tPure[sType](vItem, bIgnoreMetaTable);
         bFoundCloner = true;
 
     elseif (tSynth[sType]) then

@@ -357,6 +357,9 @@ end
 
 return class("Protean",
 {--METAMETHODS
+    __clone = function(this, cdat)
+        
+    end,
     --[[
     @desc Serializes the object's data. Note: This does NOT serialize callback functions.
     @func Protean.serialize

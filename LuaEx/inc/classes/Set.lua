@@ -9,7 +9,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Metamethods.__add
+    @fqxn LuaEx.Classes.Set.Metamethods.__add
     @scope public
     @desc Returns the union of this Set with another Set (A + B).
     @param Set other The other Set with which to form the union.
@@ -40,7 +40,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Metamethods.__call
+    @fqxn LuaEx.Classes.Set.Metamethods.__call
     @scope global
     @desc Creates an iterator function to iterate over the elements of the Set.
     @ret function An iterator function that returns each element of the Set.
@@ -74,7 +74,7 @@ return class("Set",
    end,
 
    --[[!
-   @fqxn Classes.Set.Metamethods.__eq
+   @fqxn LuaEx.Classes.Set.Metamethods.__eq
    @scope global
    @desc Determines of the two Sets are equal.
    @ret boolean True if the two Sets are equal, false otherwise.
@@ -104,7 +104,7 @@ return class("Set",
 
 
    --[[!
-   @fqxn Classes.Set.Metamethods.__len
+   @fqxn LuaEx.Classes.Set.Metamethods.__len
    @scope global
    @desc Returns the number of elements currently in the Set.
    @ret number The number of elements in the Set.
@@ -115,7 +115,7 @@ return class("Set",
 
 
    --[[!
-   @fqxn Classes.Set.Metamethods.__sub
+   @fqxn LuaEx.Classes.Set.Metamethods.__sub
    @scope public
    @desc Returns the relative complement of this Set with repeect to another Set (A - B).
    @param Set other The other Set with which to find the relative complement.
@@ -147,7 +147,7 @@ return class("Set",
        error("Serializer for Set has not been completed.", 2);
    end,
     --[[!
-    @fqxn Classes.Set.Metamethods.__tostring
+    @fqxn LuaEx.Classes.Set.Metamethods.__tostring
     @scope global
     @desc Converts the Set into a string representation.
     @ret string A string representation of the Set.
@@ -164,7 +164,7 @@ return class("Set",
 },
 {--static public
     --[[!
-    @fqxn Classes.Set.Static Methods.deserialize
+    @fqxn LuaEx.Classes.Set.Static Methods.deserialize
     @scope static public
     @desc Deserializes the Set object from a string.
     !]]
@@ -178,7 +178,7 @@ return class("Set",
     set		= {},
     size 	= 0,--TODO figure out whether there can be private/public methods of the same name...if so, the fqxns need to be rethought
     --[[!
-        @fqxn Classes.Set.Methods.addItem
+        @fqxn LuaEx.Classes.Set.Methods.addItem
         @scope protected
         @desc Adds an item to the Set.
         @param Set oSet The Set upon which to operate.
@@ -205,7 +205,7 @@ return class("Set",
         return bRet;
     end,
     --[[!
-        @fqxn Classes.Set.Methods.removeItem
+        @fqxn LuaEx.Classes.Set.Methods.removeItem
         @scope protected
         @desc Removes an item from the Set.
         @param Set oSet The Set upon which to operate.
@@ -242,7 +242,7 @@ return class("Set",
 },
 {--public
     --[[!
-    @fqxn Classes.Set.Methods.Set
+    @fqxn LuaEx.Classes.Set.Methods.Set
     @scope public
     @param table|nil A table of items to add to the Set (optional).
     @desc Constructs a new Set object.
@@ -261,7 +261,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.add
+    @fqxn LuaEx.Classes.Set.Methods.add
     @scope public
     @desc Adds an item to the Set.
     @param any vItem The item to add to the Set.
@@ -274,7 +274,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.clear
+    @fqxn LuaEx.Classes.Set.Methods.clear
     @scope public
     @desc Removes all items from the Set.
     @ret Set The Set object after adding the item.
@@ -289,7 +289,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.contains
+    @fqxn LuaEx.Classes.Set.Methods.contains
     @scope public
     @desc Checks if the Set contains a specific item.
     @param any vItem The item to check for.
@@ -301,7 +301,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.importSet
+    @fqxn LuaEx.Classes.Set.Methods.importSet
     @scope public
     @desc Adds all items from another Set to this Set.
     @param Set oOther The other Set containing items to add.
@@ -321,7 +321,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.intersection
+    @fqxn LuaEx.Classes.Set.Methods.intersection
     @scope public
     @desc Returns the intersection of this Set with another Set.
     @param Set other The other Set with which to find the intersection.
@@ -347,7 +347,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.isEmpty
+    @fqxn LuaEx.Classes.Set.Methods.isEmpty
     @scope public
     @desc Checks if the Set is empty.
     @ret boolean Returns true if the Set is empty, false otherwise.
@@ -358,7 +358,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.isSubset
+    @fqxn LuaEx.Classes.Set.Methods.isSubset
     @scope public
     @desc Checks if the input Set a subset of this Set.
     @param Set other The other Set to detemine subsetness.
@@ -384,7 +384,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.remove
+    @fqxn LuaEx.Classes.Set.Methods.remove
     @scope public
     @desc Removes an item from the Set if it exists.
     @param any vItem The item to remove from the Set.
@@ -397,7 +397,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.purgeSet
+    @fqxn LuaEx.Classes.Set.Methods.purgeSet
     @scope public
     @desc Removes all items from this Set that are present in another Set.
     @param Set other The other Set containing items to remove.
@@ -422,7 +422,7 @@ return class("Set",
 
 
     --[[!
-    @fqxn Classes.Set.Methods.size
+    @fqxn LuaEx.Classes.Set.Methods.size
     @scope public
     @desc Returns the number of items in the Set (Same as #MySet).
     @ret number The number of items in the Set.

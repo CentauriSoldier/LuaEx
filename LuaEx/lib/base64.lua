@@ -1,3 +1,11 @@
+--[[!
+    @fqxn LuaEx.Libraries.base64
+    @author Centauri Soldier
+    @license <a href="https://unlicense.org/" target="_blank">The Unlicense</a>
+    @github <a href="https://github.com/CentauriSoldier/LuaEx" target="_blank">LuaEx</a>
+    @desc Used for encoding/decoding strings to and from <a href="https://en.wikipedia.org/wiki/Base64" target="_blank">base64</a>.
+    @ver 1.0
+!]]
 local base64    = {};
 local string    = string;
 local table     = table;

@@ -25,7 +25,7 @@ local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
 
 --[[!
-    @fqxn Classes.Utility.Dox.Functions.escapePattern
+    @fqxn LuaEx.Classes.Utility.Dox.Functions.escapePattern
     @desc Escapes special characters in a string so it can be used in a Lua pattern match.
     <br>Used by the <a href="#Classes.Utility.Dox.Methods.extractBlockStrings">extractBlockStrings</a> method.
     @vis local
@@ -50,7 +50,7 @@ end
 ██████╔╝╚██████╔╝██╔╝ ██╗
 ╚═════╝  ╚═════╝ ╚═╝  ╚═╝]]
 --[[!
-@fqxn Classes.Utility.Dox
+@fqxn LuaEx.Classes.Utility.Dox
 @desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
 <br><br>
 <strong>Note</strong>: Dox is intended only to be used by being subclassed.
@@ -60,14 +60,14 @@ end
 --...Meta End
 @ex
     --\[\[!
-        \@fqxn Classes.Utility.Dox
-        \@desc &lt;strong&gt;Dox&lt;/strong&gt; auto-generates documentation for code by reading and parsing comment blocks.
+        \@fqxn LuaEx.Classes.Utility.Dox
+        \@desc &lt;sMARKtrong&gt;Dox&lt;/strong&gt; auto-generates documentation for code by reading and parsing comment blocks.
         <br>&lt;br&gt;
         <br>&lt;br&gt;&lt;strong&gt;Note&lt;/strong&gt;: Dox is intended only to be used by being subclassed.
         <br>&lt;br&gt;Subclasses of Dox (called parsers), provide the required parameters to
         <br>&lt;br&gt;properly parse comments blocks for specific languages.
         <br>&lt;br&gt;Running Dox stand-alone without subclassing it will yield unpredictable results.
-        \@ex --Many Wow! How Yay! Much Meta!
+        \@tex --Many Wow! How Yay! Much Meta!
         --...Meta End
     !\]\]
 @ex
@@ -107,13 +107,13 @@ return class("Dox",
     blockTags           = {},
     blockStrings        = {};
     builder             = null,
-    --[[!@fqxn Classes.Utility.Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
+    --[[!@fqxn LuaEx.Classes.Utility.Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
     finalized           = {}; --this is the final, processed data (updated using the refresh() method)
     html                = "", --this is updated on refresh
     mimeTypes           = SortedDictionary(), --TODO throw error on removal of last item
     name                = "",
     output              = "",
-    OutputPath_AUTO     = "",
+    OutputPath__auto__  = "",
     prismCSS            = "",
     --prismScripts        = {},
     requiredBlockTags   = {},
@@ -125,7 +125,7 @@ return class("Dox",
     tagOpen             = "",
     title               = "",
     --[[!
-    @fqxn Classes.Utility.Dox.Methods.extractBlockStrings
+    @fqxn LuaEx.Classes.Utility.Dox.Methods.extractBlockStrings
     @vis private
     @desc Extracts Dox comment blocks from a string input and stores them for later processing.
     @par string sInput The string from which the comment blocks should be extracted.
@@ -168,7 +168,7 @@ return class("Dox",
 
             -- Check if a space is found
             if not nStart then
-                error("Unable to find space for column " .. x)--TODO better message
+                error("Unable to find space for column " .. x.." in block:\n"..sContent)--TODO better message
             end
 
             -- Extract the substring between the current start and end indices
@@ -200,7 +200,7 @@ return class("Dox",
         local pri = cdat.pri;
     end,
     --[[!
-    @fqxn Classes.Utility.Dox.Methods.refresh
+    @fqxn LuaEx.Classes.Utility.Dox.Methods.refresh
     @desc Refreshes the finalized data
     !]]
     refresh = function(this, cdat)
@@ -354,7 +354,7 @@ return class("Dox",
         end
 
     end,
-    export_FNL = function(this, cdat, bPulsar) --TODO puslar snippets
+    export__FNL = function(this, cdat, bPulsar) --TODO puslar snippets
         local pri           = cdat.pri;
         local eBuilder      = pri.builder;
         local cBuilder      = pri.builder.value;
@@ -379,34 +379,40 @@ return class("Dox",
     getOutput = function(this, cdat)
         return cdat.pri.output;
     end,
-    getLanguage_FNL = function(this, cdat)
+    getLanguage__FNL = function(this, cdat)
         return cdat.pri.syntax;
     end,
     getMimeTypes = function(this, cdat)
         --return clone(cdat.pri.mimeTypes);--TODO this must return an iterator
         return cdat.pri.mimeTypes;
     end,
-    getName_FNL = function(this, cdat)
+    getName__FNL = function(this, cdat)
         return cdat.pri.name;
     end,
-    getBlockClose_FNL = function(this, cdat)
+    getBlockClose__FNL = function(this, cdat)
         return cdat.pri.blockClose;
     end,
-    getBlockOpen_FNL = function(this, cdat)
+    getBlockOpen__FNL = function(this, cdat)
         return cdat.pri.blockOpen;
     end,
-    getTagOpen_FNL = function(this, cdat)
+    getTagOpen__FNL = function(this, cdat)
         return cdat.pri.tagOpen;
     end,
-    importDirectory_FNL = function(this, cdat, pDir, bRecursion)
+    importDirectory__FNL = function(this, cdat, pDir, bRecursion)
         type.assert.string(pDir, "%S+");
         local bRecurse = bRecursion;
 
         if (rawtype(bRecurse) ~= "boolean") then
             bRecurse = false;
         end
-        --TODO rewrite this to check for .doxignore files
+        --TODO rewrite this to check for .doxignore files and .git!!!!!!!
         --local tFiles, tRel = io.dir(pDir, bRecurse, 0, cdat.pri.fileTypes);--TODO BUG FIX CHANGE this to use new mime table
+        --local tMimeTypes = {};
+
+    --    for _, sType in cdat.pri.mimeTypes() do
+        --    tMimeTypes[#tMimeTypes + 1] = sType;
+        --end
+
         local tFiles, tRel = io.dir(pDir, bRecurse, 0);--TODO BUG FIX CHANGE this to use new mime table
 
         --TODO THROW ERROR FOR FAILURE
@@ -416,7 +422,7 @@ return class("Dox",
 
         cdat.pri.refresh();
     end,
-    importFile_FNL = function(this, cdat, pFile, bSkipRefresh)
+    importFile__FNL = function(this, cdat, pFile, bSkipRefresh)
         type.assert.string(pFile, "%S+");
 
         --get the path parts (to find the filetype)
@@ -428,6 +434,7 @@ return class("Dox",
         for sExt, oDoxMime in cdat.pri.mimeTypes() do
 
             if (sExt == oDoxMime.getName()) then
+
                 oActiveDoxMime = oDoxMime;
                 break;
             end
@@ -455,7 +462,7 @@ return class("Dox",
         end
 
     end,
-    importString_FNL = function(this, cdat, sInput, oDoxMime, bSkipRefresh)
+    importString__FNL = function(this, cdat, sInput, oDoxMime, bSkipRefresh)
         --TODO assert mime object
         type.assert.string(sInput);
         local sWorking = sInput;

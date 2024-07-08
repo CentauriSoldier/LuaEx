@@ -18,7 +18,7 @@
     @parent
     @interface
     @security
-    @perfomance
+    performance
     @planned
     @todo
     @issue
@@ -36,4 +36,14 @@
     @fb
     @x
     @copy
+!]]
+
+--for modules
+--[[!
+    @fqxn LuaEx.
+    @author Centauri Soldier
+    @license <a href="https://unlicense.org/" target="_blank">The Unlicense</a>
+    @github <a href="https://github.com/CentauriSoldier/LuaEx" target="_blank">LuaEx</a>
+    @desc
+    @ver
 !]]

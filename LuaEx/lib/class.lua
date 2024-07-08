@@ -1,31 +1,31 @@
 --[[!
-@fqxn LuaEx.class
+@fqxn LuaEx.Libraries.class
 @author Centauri Soldier
 @copyright See LuaEx License
 @desc
-    <h2>class</h2>
-    <h3>Bringing (pseudo) Object Oriented Programming to Lua</h3>
+    <h3>Brings (pseudo) Object Oriented Programming to Lua</h3>
     <p>The class module aims to bring a simple-to-use, fully functional, pseudo OOP class system to Lua.
     <br>Among other things, It includes encapsulation, inheritence & polymorphism, final classes & methods, auto-setter/getter directives (<b><i>properties</i></b>) and interfaces.
     </p>
-    @license <p>Same as LuaEx license.</p>
-@version 0.7
+@features Put stuff here
+@license <p>Same as LuaEx license.</p>
+@version 0.8
 @versionhistory
 <ul>
     <li>
         <b>0.8</b>
-        <p>Feature: added a static initializer (<b>__INIT</b>) to classes.</p>
+        <p>Feature: added a static initializer to classes (uses a method of the class name in the static public table).</p>
         <p>Feature: updated type setting permissions to honor child class instances.</p>
         <b>0.7</b>
         <br>
-        <p>Bugfix: editing kit visibility table during iteration in _AUTO directive was causing malformed classes.</p>
+        <p>Bugfix: editing kit visibility table during iteration in __AUTO__ directive was causing malformed classes.</p>
         <p>Bugfix: private methods not able to be overriden from within the class.</p>
         <p>Bugfix: public static members could not be set or retrieved.</p>
         <p>Bugfix: __shr method not providing 'other' parameter to client.</p>
         <p>Feature: completed the interface system.</p>
         <p>Feature: added cloning and serialization capabilities.</p>
-        <p>Feature: added _FNL directive allowing for final methods and metamethods.</p>
-        <p>Feature: added _AUTO directive allowing automatically created mutator and accessor methods for members.</p>
+        <p>Feature: added __FNL directive allowing for final methods and metamethods.</p>
+        <p>Feature: added __AUTO directive allowing automatically created mutator and accessor methods for members.</p>
         <p>Feature: rewrote <em>(and improved)</em> set, stack and queue classes for new class system.</p>
         <p>Feature: global <strong><em>is</em></strong> functions are now created for classes upon class creation (e.g., isCreature(vInput)).</p>
         <b>0.6</b>
@@ -144,14 +144,76 @@ end
                     ██████╔╝██║██║  ██║███████╗╚██████╗   ██║   ██║ ╚████╔╝ ███████╗███████║
                     ╚═════╝ ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝   ╚═╝   ╚═╝  ╚═══╝  ╚══════╝╚══════╝]]
 --[[!
-@fqxn LuaEx.class.directives
+@fqxn LuaEx.Libraries.class.Directives
 @desc Directives provide a way for classes to set methods as final,
-<br>set values as read only and create <a href="#LuaEx.class.properties">properties</a>.
+<br>set values as read only and create <a href="#LuaEx.Libraries.class.Properties">Properties</a>.
+<br><br>
+<h3>List of Base Directives</h3>
+<ul>
+    <li><strong>__AUTO__</strong> The Upper Auto Directive</li>
+    <li><strong>__auto__</strong> The Lower Auto Directive</li>
+    <li><strong>__FNL</strong> The Final Directive</li>
+    <li><strong>__RO</strong> The Read-only Directive</li>
+</ul>
+<br><br>
+<hr>
+<h3>Auto Directives</h3>
+<p>Auto directives may be applied only to class members that are fields, never methods.
+<br>They can be used to create accessor and/or mutator methods for that field.
+<br><br>The Upper and Lower Auto Directives behave identically except that when method prefixes are auto-generated,
+<br>the Upper Auto makes the first letter of the method uppercase and the Lower Auto makes it lowercase.
+<br><br>
+The last two characters (__) of the directive can be changed to allow customization of the method(s) and field.
+<br><br>
+The first of the two underscores refers to the methods to be created.
+<ul>
+    <li>If an "<strong>A</strong>" is used, only an accessor method will be created for the field.</li>
+    <li>If an "<strong>M</strong>" is used, only a mutator method will be created for the field.</li>
+    <li>If an "<strong>R</strong>" is used, only an accessor method will be created for the field and the field will be set to read-only.</li>
+    <li>If any other character (including an underscore) is used, both an accessor and mutator method will be created for the field.</li>
+</ul>
+<br><br>
+The second of the two underscores refers to the finality of the methods created (whether they can be overriden by subclasses).
+<ul>
+    <li>If an "<strong>A</strong>" is used, only the accessor method will be set to final.</li>
+    <li>If an "<strong>M</strong>" is used, only the mutator method will be set to final.</li>
+    <li>If an "<strong>F</strong>" is used, both the accessor and mutator methods will be set to final.</li>
+    <li>If any other character (including an underscore) is used, neither method will be set to final.</li>
+</ul>
+<br>
+<br>
+<strong>Note</strong>: As with all other fields, directive fields may contain only the types for which they were designed.
+<br><strong>Note</strong>: Directives cannot contain null values.
+<br><br>
+In addition, if any characters are found after the trailing two underscodes (or letters if applicable), that string will be used for the accessor prefix.
+<pre><code class="language-lua">
+--this will create an accessor method named 'isEnabled' and a mutator method called 'setEnabled'
+Enabled__auto__is = true
+--this will create an accessor method named 'getEnabled' and a mutator method called 'setEnabled'
+Enabled__auto__ = true
+--this will create an accessor method named 'isEnabled' and set the field to read-only.
+Enabled__autoR_is = true
+</code></pre>
+<hr>
+</p>
+<h3>Final Directive</h3>
+<p>
+Adding the __FNL directive to the end of a method name prevents it from being overridden by a child class.
+<pre><code class="language-lua">
+MyMethod_FNL = function() end
+</code></pre>
+</p>
+<h3>Read-only Directive</h3>
+<p>
+By adding the __RO directive to the end of a field name, it becomes read-only and may not be interally or externally modified.
+<pre><code class="language-lua">
+MyField_RO = 12,
+</code></pre>
+</p>
 !]]
 --[[!
-@fqxn LuaEx.class.properties
-@desc Directives provide a way for classes to set methods as final,
-<br>set values as read only and create properties
+@fqxn LuaEx.Libraries.class.Properties
+@desc Properties are fields which have accessor/mutator methods auto-created by using <a href="#LuaEx.Libraries.class.Directives">Directives</a>.
 !]]
 local _sDirectiveAutoUpper  = "__AUTO";
 local _sDirectiveAutoLower  = "__auto";
@@ -364,10 +426,10 @@ end
 
 --TODO ERROR BUG FIX interfaces are throwing an error for missing metamethods even though parents have them
 --[[!
-@fqxn LuaEx.class.class.Functions.build
+@fqxn LuaEx.Libraries.class.Functions.build
 @param table tKit The kit that is to be built.
 @scope local
-@desc Builds a complete class object given the kit table. This is called by kit.build().
+@desc Builds a complete class object given the <a href="#LuaEx.Libraries.kit">kit</a> table. This is called by kit.build().
 @ret class A class object.
 !]]
 function class.build(tKit)
@@ -576,7 +638,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.instance.Functions.build
+@fqxn LuaEx.Libraries.instance.Functions.build
 @param table tKit The kit from which the instance is to be built.
 @param table tParentActual The (actual) parent instance table (if any).
 @scope local
@@ -641,7 +703,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.instance.Functions.prepClassData
+@fqxn LuaEx.Libraries.instance.Functions.prepClassData
 @param table tInstance The (actual) instance table.
 @scope local
 @desc Creates and prepares the decoy and actual class data tables for use by the instance input.
@@ -742,7 +804,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.instance.Functions.setClassDataMetatable
+@fqxn LuaEx.Libraries.instance.Functions.setClassDataMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -878,7 +940,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.instance.Functions.setMetatable
+@fqxn LuaEx.Libraries.instance.Functions.setMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -938,7 +1000,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.instance.Functions.wrapMetamethods
+@fqxn LuaEx.Libraries.instance.Functions.wrapMetamethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @desc Wraps all the instance metamethods so they have access to the instance object (decoy) and the class data.
@@ -988,7 +1050,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.instance.Functions.wrapMethods
+@fqxn LuaEx.Libraries.instance.Functions.wrapMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -1067,7 +1129,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.build
+@fqxn LuaEx.Libraries.kit.Functions.build
 @param string sName The name of the class kit. This must be a unique, variable-compliant name.
 @param table tMetamethods A table containing all class metamethods.
 @param table tStaticPublic A table containing all static public class members.
@@ -1212,7 +1274,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.getDirectiveInfo
+@fqxn LuaEx.Libraries.kit.Functions.getDirectiveInfo
 @param string sCAI The visibility name.
 @param string sKey The key as it was written in the class.
 @param any vItem The item associated with the class member key.
@@ -1398,7 +1460,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.processConstructor
+@fqxn LuaEx.Libraries.kit.Functions.processConstructor
 @param table tKit The kit upon which to operate.
 @scope local
 @desc Configures and validates the kit's constructor method.
@@ -1448,7 +1510,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.processDirectives
+@fqxn LuaEx.Libraries.kit.Functions.processDirectives
 @param table tKit The kit upon which to operate.
 @scope local
 @desc Prepares all directives dictated by the class.
@@ -1552,7 +1614,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.processInitialIsAChecks
+@fqxn LuaEx.Libraries.kit.Functions.processInitialIsAChecks
 @param table tKit The kit to check.
 @scope local
 @desc Sets up the kit's isAChecks table with initial values (of potential class items)
@@ -1580,7 +1642,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.processInterfaces
+@fqxn LuaEx.Libraries.kit.Functions.processInterfaces
 @param table tKit The kit for which the interfaces should be processed.
 @param table tInterfaces The table of interfaces to enforce.
 Note: must be at least an entry table.
@@ -1600,7 +1662,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.setParent
+@fqxn LuaEx.Libraries.kit.Functions.setParent
 @param table tKit The kit to check.
 @scope local
 @desc Checks whether a class kit is allowed to be extended and sets the kit's parent if so.
@@ -1636,7 +1698,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.shadowCheck
+@fqxn LuaEx.Libraries.kit.Functions.shadowCheck
 @param table tKit The kit the check for member shadowing.
 @scope local
 @desc Ensures there is no member shadowing happening in the class.
@@ -1685,7 +1747,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.validateInterfaces
+@fqxn LuaEx.Libraries.kit.Functions.validateInterfaces
 @param table The varargs table.
 @scope local
 @desc Checks to see if the args input are all valid interfaces.
@@ -1704,7 +1766,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.validateName
+@fqxn LuaEx.Libraries.kit.Functions.validateName
 @param string sName The name to be checked.
 @scope local
 @desc Ensure the class name is a variable-compliant string.
@@ -1717,7 +1779,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.class.kit.Functions.validateTables
+@fqxn LuaEx.Libraries.kit.Functions.validateTables
 @param string sName The class name.
 @param table tMetamethods The metamethods input table.
 @param table tStaticPublic The static public input table.
@@ -1794,7 +1856,7 @@ local tClassActual = {
 
 return rawsetmetatable({}, {
     --[[!
-    @fqxn LuaEx.class.Functions.class
+    @fqxn LuaEx.Libraries.class.Functions.class
     @param string sClass The name of the class. Note: this must be a unique, variable-compliant string.
     @param table tMetamethods A table containing the class metamethods. Note: undeclared metamethods in this class, if present in a parent class, are automatically inherited.
     @param table tStaticPublic A table containing static public class members.

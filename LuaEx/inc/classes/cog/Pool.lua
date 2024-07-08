@@ -5,6 +5,50 @@ local rawtype           = rawtype;
 local type				= type;
 --TODO NEXT LEFT OFF HERE Do events on other items (onFull, Empty etc.)
 --CLASS-LEVEL ENUMS                                       Note: AVAILABLE, CYCLE and RESERVED are calculated values and cannot be set directly
+--[[!
+    @fqxn LuaEx.Classes.CoG.Pool.Enums.ASPECT
+    @desc Used in class method for setting/getting values.
+    <ul>
+        <li><b class="text-primary">AVAILABLE</b>
+            <p>Used for getting the total <b>Available</b> (<i>Max - Reserved</i>).
+            <br>This value is cached and changes only when the Pool's <b>Max</b> or <b>Reserved</b> values change.</p>
+        </li>
+        <li><b class="text-primary">CURRENT</b>
+            <p>Used for getting the <b>Current</b> value.</p>
+        </li>
+        <li><b class="text-primary">CYCLE</b>
+            <p>Used for getting the <b>Cycle</b> amount.</p>
+        </li>
+        <li><b class="text-primary">RESERVED</b>
+            <p>Used for getting the total <b>Reserved</b> value.</p>
+        </li>
+        <li><b class="text-primary">MAX</b>
+            <p>Used for setting/getting <b>Max</b> values.</p>
+        </li>
+        <li><b class="text-primary">CYCLE_FLAT</b>
+            <p></p>
+        </li>
+        <li><b class="text-primary">CYCLE_PERCENT</b>
+            <p></p>
+        </li>
+        <li><b class="text-primary">RESERVED_FLAT</b>
+            <p></p>
+        </li>
+        <li><b class="text-primary">RESERVED_PERCENT</b>
+            <p></p>
+        </li>
+    </ul>
+    @ex
+    local oPool = Pool(200, 80); --create the Pool object with 200 max and 0 current
+    oPool.set(0.36, Pool.ASPECT.RESERVED_PERCENT); --reserve 36% of the Pool
+    print("Reserved: "..oPool.get(Pool.ASPECT.RESERVED)); --> Reserved: 72.0
+    print("Available: "..oPool.get(Pool.ASPECT.AVAILABLE)); --> Available: 128.0
+    oPool.set(0.10, Pool.ASPECT.MAX, Pool.MODIFIER.MULTIPLICATIVE_BONUS); --adjust the max value by 10%
+    print("Max: "..oPool.get(Pool.ASPECT.MAX)); --> Max: 220.0
+    print("Reserved: "..oPool.get(Pool.ASPECT.RESERVED)); --> Reserved: 79.2
+    print("Available: "..oPool.get(Pool.ASPECT.AVAILABLE)); --> Available: 140.8
+    @ex More Coming Soon (or later)
+!]]
 local _eAspect      = enum("Pool.ASPECT",   {"AVAILABLE", "CURRENT", "CYCLE", "RESERVED", "MAX", "CYCLE_FLAT", "CYCLE_PERCENT", "RESERVED_FLAT", "RESERVED_PERCENT"},
                                             {"available", "current", "cycle", "reserved", "max", "cycle_flat", "cycle_percent", "reserved_flat", "reserved_percent"}, true);
 
@@ -197,22 +241,36 @@ local function attemptSettingMax(this, cdat, nValue, nModifier)
 
     --store the old value
     local nOldValue  = tMax[nModifier];
+
     --set the new value
     tMax[nModifier]  = nValue;
+
     --calculate the new final value
     local nNewFinal  = calculateFinal(this, cdat, _sAspectMax);
-    --get the reserved amount and compare
-    local nReserved  = pro[_sAspectReserved];
+
+    --get the reserved
+    local nResFlat      = pro[_sAspectReservedFlat][_nFinal]
+    local nResPercent   = pro[_sAspectReservedPercent][_nFinal]
+
+    --calucalte the new total reserved
+    local nTotalReserved = nResFlat + (nNewFinal * nResPercent);
+
+
     --calculate the new available
-    local nNewAvailable = nNewFinal - nReserved
+    local nNewAvailable = nNewFinal - nTotalReserved;
     --check the success
     bRet = nNewAvailable > tMax.min;
 
     if (bRet) then
         --set the new max
         tMax[_nFinal] = nNewFinal;
+
+        --set the new reserved
+        pro[_sAspectReserved] = nTotalReserved;
+
         --set the new avaiable
         pro[_sAspectAvailable] = nNewAvailable;
+
         --check current and adjust if needed
         if (pro[_sAspectCurrent] > nNewAvailable) then
             setCurrent(this, cdat, nNewAvailable);
@@ -362,56 +420,8 @@ end
 
 
 --[[!
-@fqxn LuaEx.Classes.CoG.Pool.Functions
-@desc
-@param
-@ret  TODO DELETE THIS IF NOT BEING USED
-!]]
-local function validateModifier(sIndex, sSetOrGet, nMod)
-
-    if (rawtype(nMod) ~= "number") then
-        error("Error "..sSetOrGet.."ting Pool '"..sIndex.."' modifier. Modifer value must be of type number.");
-    end
-
-    if (nMod ~= _nBaseBonus and nMod ~= _nBasePenalty and
-        nMod ~= _nMultBonus and nMod ~= _nMultPenalty and
-        nMod ~= _nAddBonus  and nMod ~= _nAddPenalty) then
-        error("Error "..sSetOrGet.."ting Pool '"..sIndex.."' modifier. Modifer value must be one of the permitted Protean modifer values.");
-    end
-
-end
-
-
---[[!
-@fqxn LuaEx.Classes.CoG.Pool.Functions
-@desc
-@param
-@ret  TODO DELETE THIS IF NOT BEING USED
-!]]
-local function validateModifierAndValue(sIndex, sSetOrGet, nMod, nValue)
-
-    if (rawtype(nMod) ~= "number") then
-        error("Error "..sSetOrGet.."ting Pool '"..sIndex.."' modifier. Modifer value must be of type number. Type given: "..type(nMod)..'.');
-    end
-
-    if (rawtype(nValue) ~= "number") then
-        error("Error "..sSetOrGet.."ting Pool '"..sIndex.."' modifier.\nValue must be of type number. Type given: "..type(nValue)..'.');
-    end
-
-    if (nMod ~= _nBaseBonus and nMod ~= _nBasePenalty and
-        nMod ~= _nMultBonus and nMod ~= _nMultPenalty and
-        nMod ~= _nAddBonus  and nMod ~= _nAddPenalty) then
-        error("Error "..sSetOrGet.."ting Pool '"..sIndex.."' modifier. Modifer value must be one of the permitted Protean modifer values.");
-    end
-
-end
-
-
-
-
---[[!
     @fqxn LuaEx.Classes.CoG.Pool
-    @authors Centauri Soldier
+    @author Centauri Soldier
     @desc <h2>Pool</h2><h3>Utility class used to keep track of things like Health, Magic, etc.</h3><p>You can operate on <strong>Pool</strong> objects using some math operators.</p>
     <b>TODO</b>
     <ul>
@@ -430,8 +440,43 @@ end
 !]]
 return class("Pool",
 {--METAMETHODS
+    __clone = function(this, cdat)
+        local pro       = cdat.pro;
+        local oNew      = Pool(1, 1);
+        local newpro    = cdat.ins[oNew].pro;
 
+        local tTables = {
+            "activeEvents",
+            "events",
+            _sAspectMax,
+            _sAspectCycleFlat,
+            _sAspectCyclePercent,
+            _sAspectReservedFlat,
+            _sAspectReservedPercent,
+        };
+
+        for _, sIndex in pairs(tTables) do
+
+            for k, v in pairs(pro[sIndex]) do
+                newpro[sIndex][k] = v;
+            end
+
+        end
+
+        newpro.lowMarker            = pro.lowMarker;
+        newpro.fullMarker           = pro.fullMarker;
+        newpro.isEmpty              = pro.isEmpty;
+        newpro.isFull               = pro.isFull;
+        newpro.isLow                = pro.isLow;
+        newpro[_sAspectAvailable]   = pro[_sAspectAvailable];
+        newpro[_sAspectCurrent]     = pro[_sAspectCurrent];
+        newpro[_sAspectCycle]       = pro[_sAspectCycle];
+        newpro[_sAspectReserved]    = pro[_sAspectReserved];
+
+        return oNew;
+    end,
 },
+--TODO __serialize
 {--STATIC PUBLIC
     ASPECT__RO      = _eAspect,
     EVENT__RO       = _eEvent,
@@ -535,7 +580,6 @@ return class("Pool",
     isEmpty         = false,
     isFull          = false,
     isLow           = false,
-    --hasReservation      = 0, --cached value updated on change
 },
 {--PUBLIC
 
@@ -544,8 +588,6 @@ return class("Pool",
     @desc The constructor for the <b>Pool</b> class.
     @param nMax number|nil The maximum value of the Pool.
     @param nCurrent number|nil The current value of the Pool.
-    @param nCycle number|nil The amount the Pool should fill or delete when the <a href="#LuaEx.Classes.CoG.Pool.Methods.cycle">cycle</a> method is called.
-    @param nReservation number|nil The reservation value of the Pool.
     !]]
     Pool = function(this, cdat, nMax, nCurrent)
         local pro   = cdat.pro;
@@ -554,7 +596,7 @@ return class("Pool",
         nCycle 	    = type(nCycle) 		== "number" and nCycle 		or 0;
         nReserved   = type(nReserved)   == "number" and nReserved   or 0;
 
-        if (nMax <= 1) then
+        if (nMax < 1) then
             error("Error creating Pool object.\nMax value must be positive number greater than or equal to 1.");
         end
 
@@ -649,7 +691,7 @@ return class("Pool",
     <br>If not provided it will default to CURRENT.
     @param eModifier Pool.MODIFIER|nil If provided, this indicates which modifier to get such as BASE, BASE_BONUS, etc.
     <br>If not provided, it will default to BASE.
-    <br><strong>Note</strong>: not all aspects have all modifiers. E.g., Pool.ASPECT.RESERVED does not have ADDITIVE_BONUS or ADDITIVE_PENALTY and Pool.ASPECT.CURRENT has no modifiers whatsoever.
+    <br><strong>Note</strong>: not all aspects have all modifiers. E.g., Pool.ASPECT.RESERVED, Pool.ASPECT.CURRENT Pool.ASPECT.AVAILABLE have no modifiers whatsoever and only accessor methods.
     @ret nRet number The value requested in either a flat value or a percentage between 0 and 1.
     !]]
     get = function(this, cdat, eAspectOrNil, eModifierOrNil)
@@ -716,8 +758,10 @@ return class("Pool",
 
     --[[!
     @fqxn LuaEx.Classes.CoG.Pool.Methods.setEventActive
-    @desc
-    @param
+    @desc Enables\disables an event from triggering.
+    <br>Note: this does not affect any current callback function for this event, it simply makes<br>
+    the event dormant until manually reactivated.
+    @param bEnable boolean Enables the event if true, disables it otherwise.
     @ret oPool Pool The Pool object.
     !]]
     setEventActive = function(this, cdat, eEvent, bFlag)
@@ -736,8 +780,12 @@ return class("Pool",
 
     --[[!
     @fqxn LuaEx.Classes.CoG.Pool.Methods.setEventCallback
-    @desc
-    @param
+    @desc Sets a callback function for the specified event. The funciton will fire whenever the event is triggered.
+    @param eEvent Pool.EVENT The event for which the function should be called.
+    @param fCallback function|nil The callback function.
+    <br>Note: If a function is not input, it will delete any previous callback function and disable the event trigger.
+    @param bDoNotAutoActivate boolean|nil If a true value is input, it will prevent the event from being activated by this call.
+    <br>If nothing is provided, the event is active by default and the callback function will fire on event trigger.
     @ret oPool Pool The Pool object.
     !]]
     setEventCallback = function(this, cdat, eEvent, fCallback, bDoNotAutoActivate)

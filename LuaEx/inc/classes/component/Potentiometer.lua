@@ -1,20 +1,20 @@
---[[*
-@authors Centauri Soldier
+--[[!
+@fqxn LuaEx.Classes.Component.Potentiometer
+@author Centauri Soldier
 @copyright Public Domain
 @description
     <h2>Potentiometer</h2>
     <p>A logical potentiometer object. The client can set minimum and maximum values for the object, as well as rate of increase/decrease.
     Note: 'increase' and 'decrease' are logical terms referring to motion along a line based on the current direction. E.g., If a pot is
     alternating and descening, 'increase' would cause the positional value to be absolutely reduced, while 'decrease' would have the opposite
-    affect.
+    effect.
     By default, values are clamped at min and max; however, if the object is set to be revolving (or alternating), any values which exceed the minimum or maximum
     boundaries, are carried over. For example, imagine a pot is set to have a min value of 0 and a max of 100. Then, imagine its position is set to 120.
     If revolving, it would have a final positional value of 19; if alternating it would have a final positional value of 80 and, if neither, its final positional
     value would be 100.</p>
 @license <p>The Unlicense<br>
 <br>
-@moduleid pot
-@version 1.2
+@version 1.5
 @versionhistory
 <ul>
     <li>
@@ -50,7 +50,7 @@
     </li>
 </ul>
 @website https://github.com/CentauriSoldier
-*]]
+!]]
 
 --the default values in case constructor input is bad
 local nMinDefault 	= 0;
@@ -370,7 +370,7 @@ return class("Potentiometer",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Potentiometer.serialize
+        @fqxn LuaEx.Classes.Component.Potentiometer.serialize
         @desc Serializes the object's data.
         @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
         @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.

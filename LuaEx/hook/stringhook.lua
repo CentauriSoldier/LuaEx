@@ -79,6 +79,19 @@ function string.totable(sInput, sDelimiter, bAllowBlank)
     return tRet
 end
 
+function string.totableTEST(sInput, sDelimiter, bAllowBlank)
+    local tRet = {}
+    local pattern = "([^"..(sDelimiter or "\n]+").."]+)"
+    if bAllowBlank then
+        pattern = "([^"..(sDelimiter or "\n]+").."]*)"
+    end
+
+    for w in sInput:gmatch(pattern) do
+        table.insert(tRet, w)
+    end
+
+    return tRet
+end
 
 
 

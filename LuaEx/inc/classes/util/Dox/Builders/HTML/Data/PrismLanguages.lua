@@ -1,5 +1,5 @@
 --[[
-    @fqxn Classes.Utility.Dox.
+    @fqxn LuaEx.Classes.Utility.Dox.
 ]]
 return {
     abap                = "abap",

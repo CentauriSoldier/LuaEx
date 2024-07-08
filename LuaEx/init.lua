@@ -22,7 +22,7 @@ local _tClassRequirements   = {
 
 
 --🆂🆃🅰🆁🆃 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂-----------------------------------------------
-
+_bRunDoxOnLuaEx = true;--set this to false in production environments
 
 --[[🅲🅻🅰🆂🆂 🅻🅾🅰🅳 🆅🅰🅻🆄🅴🆂
 🅽🅾🆃🅴: setting a Class Load Value
@@ -348,5 +348,44 @@ unpack = unpack or table.unpack;--TODO move this to table hook
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
 ]]
+
+if (_bRunDoxOnLuaEx) then
+    --sSourccePath = "";
+
+    function getsourcepath()
+        --determine the call location
+        local sPath = debug.getinfo(1, "S").source;
+        --remove the calling filename
+        local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
+        --make a pattern to account for case
+        local sFilename = "";
+        for x = 1, #sFilenameRAW do
+            local sChar = sFilenameRAW:sub(x, x);
+
+            if (sChar:find("[%a]")) then
+                sFilename = sFilename.."["..sChar:upper()..sChar:lower().."]";
+            else
+                sFilename = sFilename..sChar;
+            end
+
+        end
+        sPath = sPath:gsub("@", ""):gsub(sFilename, "");
+        --remove the "/" at the end
+        sPath = sPath:sub(1, sPath:len() - 1);
+
+        return sPath;
+    end
+
+    --determine the call location
+     sSourcePath = getsourcepath();
+
+    local oDoxLua = DoxLua("LuaEx");
+    local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\LuaEx");
+    local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\LuaEx\\";
+    oDoxLua.importDirectory(pImport, true);
+    oDoxLua.setOutputPath(pHTML);
+    oDoxLua.export();
+end
+
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
-constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?
+constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?\
