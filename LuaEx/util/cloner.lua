@@ -138,7 +138,8 @@ local tSynth = {
                                     --end
                                     --no need to infuse cItem since it's already injected by the class
                                     --return rawgetmetatable(cItem).__clone(); --TODO FIX since we can't use the method above to validate clonability, we must do an xpcall!
-                                    return rawgetmetatable(cItem).__name;--QUESTION is this right? Is the name what should be returned or the __call metamethod?
+                                    --return rawgetmetatable(cItem).__name;--QUESTION is this right? Is the name what should be returned or the __call metamethod?
+                                    return cItem;
                                 end,
     --["enum"]                    = function(eItem) return rawgetmetatable(eItem).__clone(eItem) end,
     ["null"]                    = returnPure,

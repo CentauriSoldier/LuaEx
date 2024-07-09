@@ -262,20 +262,54 @@ if (tClassLoadValues[_nClassSystem]) then
                 Polygon = require(pClasses..".geometry.shapes.Polygon");
 
                 if (tClassLoadValues[_nCoGClasses]) then
-                    Pool    = require(pClasses..".cog.Pool");
-                    Status  = require(pClasses..".cog.Status");
+                    local pCoG = pClasses..".cog";
+
+                    CoG         = require(pCoG..".CoG"); --CoG's base entity
+                    Actor       = require(pCoG..".Actor");
+                    Entity      = require(pCoG..".Entity");
+                    Object      = require(pCoG..".Object");
+
+                    local sActors       = pCoG..".Actors";
+                    local sEntities     = pCoG..".Entities";
+                    local sObjects      = pCoG..".Objects";
+
+                    --CoG entities
+                    Pool        = require(sEntities..".Pool");
+                    Status      = require(sEntities..".Status");
+
+                    --CoG objects
+
+                    --item system
+                    local sItemSystem   = sObjects..".ItemSystem";
+
+                    --interfaces
+                    IEquippable     = require(sItemSystem..".Interfaces.IEquippable");
+                    IConsumable     = require(sItemSystem..".Interfaces.IConsumable");
+
+                    --load items
+                    Item            = require(sItemSystem..".Item");
+                    Boots           = require(sItemSystem..".ItemTypes.Boots");--TODO move this subclass out of here into the game after testing...
+
+                    ItemSlot        = require(sItemSystem..".ItemSlot");
+
+                    ItemStore       = require(sItemSystem..".ItemStore");
+                    Inventory       = require(sItemSystem..".Inventory");
+                    Equipage        = require(sItemSystem..".Equipage");
+
+                    --CoG actors
+
                 end
 
             end
 
             if (tClassLoadValues[_nUtilClasses]) then
                 pDox                    = pClasses..".util.Dox";
-                local pDoxBuilders  = pDox..".Builders";
+                local pDoxBuilders      = pDox..".Builders";
                 local pDoxComponents    = pDox..".Components";
                 local pDoxParsers       = pDox..".Parsers";
 
                 --dox and dox component classes
-                DoxMime         = require(pDoxComponents..".DoxMime"); --TODO rename to Parser
+                DoxMime         = require(pDoxComponents..".DoxMime");
                 DoxSyntax       = require(pDoxComponents..".DoxSyntax");
                 DoxBlockTag     = require(pDoxComponents..".DoxBlockTag");
                 DoxBlock        = require(pDoxComponents..".DoxBlock");
@@ -328,15 +362,6 @@ if (tClassLoadValues[_nClassSystem]) then
     end
 
 end
-
-
---TODO delete after test
-Inventory       = require("LuaEx.test.Inventory.Inventory");
-InventoryItem   = require("LuaEx.test.Inventory.InventoryItem");
-InventorySlot   = require("LuaEx.test.Inventory.InventorySlot");
-
-
---TODO FINISH MOVE TO CoG after CoG is rebuilt.
 
 
 

@@ -1,22 +1,24 @@
-return class("Inventory",
+return class("Equipage",
 {--METAMETHODS
 
 },
 {--STATIC PUBLIC
-    _INIT = function(stapub)
-    end,
+    --Equipage = function(stapub)
+    --end,
 },
 {--PRIVATE
 
 },
 {--PROTECTED
-    owner = null,
+
 },
 {--PUBLIC
-    Inventory = function(this, cdat, oOwner, tSlots)
+    Equipage = function(this, cdat, super, oOwner, tSlots)
+        super(class.is(oOwner) and Actor);
+        --init the owner slot;
+        cdat.pro.owner = Actor();
         cdat.pro.owner = (type.isnil(oOwner) or type.isnull(oOwner))
-                          and cdat.pro.owner or oOwner;
-
+                          and cdat.pro.owner or oOwner;--????
     end,
     getOwner = function(this, cdat)
         return cdat.pro.owner;
@@ -29,7 +31,7 @@ return class("Inventory",
 
     end,
 },
-nil,   --extending class
+Entity,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

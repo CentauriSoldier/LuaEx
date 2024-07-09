@@ -1,11 +1,13 @@
-return class("InventoryItem",
+return class("CoG",
 {--METAMETHODS
-
-},
-{--STATIC PUBLIC
-    _INIT = function(stapub)
+    __clone = function(this, cdat)
+        local oNew = CoG();
+        return oNew;
     end,
 },
+{--STATIC PUBLIC
+},
+--CoG = function(stapub) end,
 {--PRIVATE
 
 },
@@ -13,7 +15,7 @@ return class("InventoryItem",
 
 },
 {--PUBLIC
-    InventoryItem = function(this, cdat)
+    CoG = function(this, cdat)
 
     end,
 },

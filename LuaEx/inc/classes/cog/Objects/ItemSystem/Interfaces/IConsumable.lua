@@ -1,4 +1,4 @@
-return interface("IMyInterface",
+return interface("IConsumable",
 {--metamethods
 
 },

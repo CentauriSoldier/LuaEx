@@ -241,7 +241,10 @@ local class = {
     },
 };
 
-
+--[[!
+    @fqxn LuaEx.Libraries.instance
+    @desc Stuff here
+!]]
 local instance = {
     repo = {
         --TODO do I need these?
@@ -252,7 +255,10 @@ local instance = {
     },
 };
 
-
+--[[!
+    @fqxn LuaEx.Libraries.kit
+    @desc Stuff here
+!]]
 local kit = {
     --trackers, repo & other properties
     count  = 0, --keep track of the total number of class kits
@@ -303,26 +309,34 @@ issibling           = TODO,--maybe not this one...
 getbase             = TODO,
 getName             = TODO]]
 --TODO use error instead of assert so error level can be set (or can it be on assert?)..assert is slower...
---TODO use isparent and ischild instead of derives, derived...less confusing
 
 local function ischild(vChild, vParent)
-    --local bRet          = false;
-    local tChildKit     = rawtype(class.repo.byObject[vChild]) ~= "nil" and
-                            class.repo.byObject[vChild] or nil;
-    local tParentKit    = rawtype(class.repo.byObject[vParent]) ~= "nil" and
-                            class.repo.byObject[vParent] or nil;
+    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
+                                class.repo.byObject[vChild]                 or nil;
+    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
+                                class.repo.byObject[vParent]                or nil;
 
     return  ( (tChildKit and tParentKit)  and
               (tChildKit ~= tParentKit)   and
               (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil") );
 end
 
+local function ischildorself(vChild, vParent)
+    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
+                                class.repo.byObject[vChild]                 or nil;
+    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
+                                class.repo.byObject[vParent]                or nil;
+
+    return (tChildKit and tParentKit) and
+           (tChildKit == tParentKit)  or
+           (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil");
+end
+
 local function isdirectchild(vChild, vParent)
-    --local bRet          = false;
-    local tChildKit     = rawtype(class.repo.byObject[vChild]) ~= "nil" and
-                            class.repo.byObject[vChild] or nil;
-    local tParentKit    = rawtype(class.repo.byObject[vParent]) ~= "nil" and
-                            class.repo.byObject[vParent] or nil;
+    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
+                                class.repo.byObject[vChild]                 or nil;
+    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
+                                class.repo.byObject[vParent]                or nil;
 
     return  (tChildKit and tParentKit)  and
             (tChildKit ~= tParentKit)   and
@@ -330,22 +344,46 @@ local function isdirectchild(vChild, vParent)
 end
 
 
+local function isinlineage(vChild, vParent)
+    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
+                                class.repo.byObject[vChild]                 or nil;
+    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
+                                class.repo.byObject[vParent]                or nil;
+
+    return (tChildKit and tParentKit) and
+           (tChildKit == tParentKit)   or
+           (rawtype(tChildKit.children.all.byObject[vParent]) ~= "nil") or
+           (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil");
+end
+
+
 local function isparent(vParent, vChild)
-    local tChildKit     = rawtype(class.repo.byObject[vChild]) ~= "nil" and
-                            class.repo.byObject[vChild] or nil;
-    local tParentKit    = rawtype(class.repo.byObject[vParent]) ~= "nil" and
-                            class.repo.byObject[vParent] or nil;
+    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
+                                class.repo.byObject[vChild]                 or nil;
+    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
+                                class.repo.byObject[vParent]                or nil;
 
     return  ( (tChildKit and tParentKit)  and
               (tChildKit ~= tParentKit)   and
               (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil") );
 end
 
+local function isparentorself(vParent, vChild)
+    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
+                                class.repo.byObject[vChild]                 or nil;
+    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
+                                class.repo.byObject[vParent]                or nil;
+
+    return (tChildKit and tParentKit) and
+           (tChildKit == tParentKit)  or
+           (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil");
+end
+
 local function isdirectparent(vParent, vChild)
-    local tChildKit     = rawtype(class.repo.byObject[vChild]) ~= "nil" and
-                            class.repo.byObject[vChild] or nil;
-    local tParentKit    = rawtype(class.repo.byObject[vParent]) ~= "nil" and
-                            class.repo.byObject[vParent] or nil;
+    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
+                                class.repo.byObject[vChild]                 or nil;
+    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
+                                class.repo.byObject[vParent]                or nil;
 
     return  (tChildKit and tParentKit)  and
             (tChildKit ~= tParentKit)   and
@@ -369,6 +407,18 @@ local function of(vInstance)
 
     return cRet;
 end
+
+local function getname(vClass)
+    local tKit = rawtype(   class.repo.byObject[vClass]) ~= "nil"    and
+                            class.repo.byObject[vClass]              or nil
+    return tKit and tKit.name or nil;
+end
+
+
+
+
+
+
 
 
 local function getbase(vClass)
@@ -519,8 +569,16 @@ function class.build(tKit)
             return oInstance;
         end,
         __eq = function(left, right)--TODO COMPLETE
-            --print(type(left), type(right))
-            return "asdasd";
+            local bRet          = false;
+            local tClassRepo    = class.repo.byObject;
+
+            if (left and right) then
+                local cLeft     = tClassRepo[left];
+                local cRight    = tClassRepo[right];
+                bRet = cLeft and cRight and cLeft.name == cRight.name;
+            end
+
+            return bRet;
         end,
         __index     = function(t, k)
 
@@ -911,11 +969,13 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                             local sOriginalClass = tInstance.isAChecks[sCAI][k].class;
 
                             --allow if the class type is the same as the original
-                            bAllow = kit.repo.byObject[sOriginalClass].name == kit.repo.byObject[sNewClass].name;
+                            bAllow = kit.repo.byObject[sOriginalClass].name ==
+                                     kit.repo.byObject[sNewClass].name      or
+                                     ischild(sNewClass, sOriginalClass);
 
-                            if not (bAllow) then--check for a derived class and allow if so
-                                bAllow = ischild(sNewClass, sOriginalClass);
-                            end
+                            --if not (bAllow) then--check for a derived class and allow if so
+                                --bAllow = ischild(sNewClass, sOriginalClass);
+                            --end
 
                         end
 
@@ -1331,19 +1391,19 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
 
         --ensure there's text before the directive
         if (nStart == 1) then
-            error("Cannot create directive without field name.");
+            error("Cannot create directive without field name.", 5);
         end
 
         local sRemainder = sKey:sub(nStart);
 
         -- Validate length of directive
         if (#sRemainder < 8) then --TODO move this 8 local const
-            error("Malformed __AUTO__ directive"..#sRemainder)
+            error("Malformed __AUTO__ directive in class '"..tKit.name.."' and Key '"..sKey.."'.", 5);
         end
 
         --make sure there's not a RO directive appended
         if (bHasAutoDirective) then
-            error("The read only (__RO) directive cannot be explicitly applied with properties.\nUse the proper AUTO property token to make property value read only.");
+            error("The read only (__RO) directive cannot be explicitly applied with properties.\nUse the proper AUTO property token to make property value read only.", 5);
         end
 
         bHasDirective       = true;
@@ -1388,7 +1448,7 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
 
     -- Ensure that there is something before the auto directive
     if bHasDirective and (sKey == "" or not sKey:isvariablecompliant()) then
-        error("There must be text before an AUTO directive declaration and the final result must be a variable-compliant string.");
+        error("There must be text before an AUTO directive declaration and the final result must be a variable-compliant string.", 5);
     end
 
     local sType         = type(vItem);--TODO can i get this as a parameter?
@@ -1396,18 +1456,18 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
     local bIsFunction   = sType == "function";
 
     if (bHasDirective and bIsNull) then
-        error("Items using directives cannot be null.");
+        error("Items using directives cannot be null.", 5);
     end
 
     --check _RO application
     if (bReadOnly) then
 
         if (bIsFunction) then
-            error("__RO directives can be applied only to fields and cannot be null.");
+            error("__RO directives can be applied only to fields and cannot be null.", 5);
         end
 
         if not (tKit.readOnlyFields[sCAI]) then
-            error("__RO directive cannot be applied to fields in the ${visibility} table." % {visibility = _tCAINames[sCAI]});
+            error("__RO directive cannot be applied to fields in the ${visibility} table." % {visibility = _tCAINames[sCAI]}, 5);
         end
 
     end
@@ -1416,15 +1476,15 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
     if (bFinal) then
 
         if not (bIsFunction) then
-            error("__FNL directive can be applied only to methods (and properties optionally and implciitly using the proper AUTO property token) and cannot be null.");
+            error("__FNL directive can be applied only to methods (and properties optionally and implciitly using the proper AUTO property token) and cannot be null.", 5);
         end
 
         if not (tKit.finalMethodNames[sCAI]) then
-            error("__FNL directive cannot be applied to methods in the ${visibility} table." % {visibility = _tCAINames[sCAI]});
+            error("__FNL directive cannot be applied to methods in the ${visibility} table." % {visibility = _tCAINames[sCAI]}, 5);
         end
 
         if (sCAI == "stapub") then
-            error("Application of __FNL directive to public static methods is redundant.");
+            error("Application of __FNL directive to public static methods is redundant.", 5);
         end
 
     end
@@ -1438,11 +1498,11 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
     if (bHasAutoDirective) then
 
         if (bIsFunction) then
-            error("__AUTO directives can be applied only to fields.");
+            error("__AUTO directives can be applied only to fields.", 5);
         end
 
         if (sCAI == "pub" or sCAI == "stapub") then
-            error("__AUTO directives cannot be applied to ${visibility} fields." % {visibility = _tCAINames[sCAI]});
+            error("__AUTO directives cannot be applied to ${visibility} fields." % {visibility = _tCAINames[sCAI]}, 5);
         end
 
     end
@@ -1841,15 +1901,18 @@ end
 local tClassActual = {
     byname              = byname,
     ischild             = ischild,
+    ischildorself       = ischildorself,
     isdirectchild       = isdirectchild,
     is                  = is,
     isbase              = isbase,
+    isinlineage         = isinlineage,
     isparent            = isparent,
+    isparentorself      = isparentorself,
     isdirectparent      = isdirectparent,
     isinstance          = isinstance,
     isinstanceof        = isinstanceof,
     getbase             = getbase,
-    getName             = getName,
+    getname             = getname,
     of                  = of,
 };
 

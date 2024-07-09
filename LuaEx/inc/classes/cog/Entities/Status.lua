@@ -6,7 +6,7 @@ return class("StatusHandler",
         local tConfig = rawget(_G, "luaex").config.Status;
 
         for nIndex, sEffect in pairs(tConfig.effects) do
-            stapub[sEffect] = nIndex;
+            stapub[sEffect.."__RO"] = nIndex;
         end
 
     end,

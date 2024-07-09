@@ -54,4 +54,17 @@ oProtean2.setLinker();
 oProtean1.setValue(20);
 
 oProtean1.setValue(Protean.MULTIPLICATIVE_PENALTY, 0.46);
-print(oProtean2.getValue());
+
+--print(Boots == Pool)
+local oFeet     = ItemSlot("Feet", {Boots});
+local k = Boots();
+--oFeet.setLocked(true)
+oFeet.setItem(k)
+--oFeet.removeItem();
+--print(oFeet.isOccupied())
+--print(oFeet.isLocked())
+--print(oFeet.getName())
+--print(class.isinlineage(CoG, CoG))
+--class.isinlineage(CoG, CoG)
+--print(class.ischildorself(Boots, Boots))
+--print(class.isparentorself(Boots, Boots))
