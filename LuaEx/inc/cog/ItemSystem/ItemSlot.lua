@@ -1,7 +1,13 @@
 --TODO LOCALIZATION
 local class             = class;
-local oItemPlaceholder  = Item();
+local oItemPlaceholder;
 
+
+--[[!
+    @fqxn LuaEx.CoG.ItemSystem.ItemSlot.isAllowedItem
+    @scope Local
+    @desc Designed
+!]]
 local function isAllowedItem(this, cdat, vInput)
     local bRet  = class.isinstance(vInput);
     local pro   = cdat.pro;
@@ -23,17 +29,22 @@ local function isAllowedItem(this, cdat, vInput)
     return bRet;
 end
 
-
+--[[!
+    @fqxn LuaEx.CoG.ItemSystem.ItemSlot
+    @desc Designed to hold and manage Items.
+    @parent <a href="#LuaEx.CoG.Entity">Entity</a>
+!]]
 return class("ItemSlot",
 {--METAMETHODS
 
 },
 {--STATIC PUBLIC
     ItemSlot = function(stapub)
+        --oItemPlaceholder = Item();
     end,
 },
 {--PRIVATE
-
+    placeholderItem     = null;
 },
 {--PROTECTED
     allowedTypes        = {},
@@ -42,11 +53,13 @@ return class("ItemSlot",
     Locked__auto_Fis    = false,
     Name__autoAF        = "",
     Occupied__autoAAis  = false,
-    Owner__auto_F       = CoG(),
+    Owner__auto_F       = null,--TODO set
 },
 {--PUBLIC
     ItemSlot = function(this, cdat, super, sName, tAllowedTypes)
         super();
+
+        ---cdat.pri.placeholderItem = Item();
         type.assert.string(sName, "%S+", "ItemSlot name cannot be blank.");
         local pro = cdat.pro;
 
@@ -96,8 +109,6 @@ return class("ItemSlot",
         return pro.Occupied and pro.item or nil;
     end,
 
-
-
     removeItem__FNL = function(this, cdat)
         local pro   = cdat.pro;
         local bRet  = not pro.Locked and pro.Occupied;
@@ -112,14 +123,14 @@ return class("ItemSlot",
 
 
 
-    setItem__FNL = function(this, cdat, vItem)
+    setItem__FNL = function(this, cdat, vItem, bForceRemoval)
         local pro = cdat.pro;
 
         if not (isAllowedItem(this, cdat, vItem)) then
             error("Error adding Item to ItemSlot. Not an Item or Item type not allowed.");
         end
 
-        local bRet = not (pro.Locked or pro.Occupied);
+        local bRet = not pro.Locked and (not pro.Occupied or bForceRemoval);
 
         if (bRet) then
             pro.item     = vItem;
@@ -167,6 +178,6 @@ return class("ItemSlot",
     end,
 },
 Entity,   --extending class
-false, --if the class is final
+true, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

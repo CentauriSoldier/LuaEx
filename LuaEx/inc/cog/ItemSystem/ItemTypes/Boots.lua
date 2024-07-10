@@ -16,7 +16,7 @@ return class("Boots",
         super();
     end,
 },
-Item,  --extending class
-true,           --if the class is final
-IEquipable      --interface(s) (either nil, or interface(s))
+Item,       --extending class
+true,       --if the class is final
+IEquipable  --interface(s) (either nil, or interface(s))
 );

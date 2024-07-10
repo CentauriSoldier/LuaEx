@@ -262,42 +262,44 @@ if (tClassLoadValues[_nClassSystem]) then
                 Polygon = require(pClasses..".geometry.shapes.Polygon");
 
                 if (tClassLoadValues[_nCoGClasses]) then
-                    local pCoG = pClasses..".cog";
+                    local pCoG = "LuaEx.inc.cog";
 
                     CoG         = require(pCoG..".CoG"); --CoG's base entity
                     Actor       = require(pCoG..".Actor");
                     Entity      = require(pCoG..".Entity");
                     Object      = require(pCoG..".Object");
+                    Component   = require(pCoG..".Component");
 
-                    local sActors       = pCoG..".Actors";
-                    local sEntities     = pCoG..".Entities";
-                    local sObjects      = pCoG..".Objects";
+                    local pActors       = pCoG..".Actors";
+                    local pEntities     = pCoG..".Entities";
+                    local pObjects      = pCoG..".Objects";
 
                     --CoG entities
-                    Pool        = require(sEntities..".Pool");
-                    Status      = require(sEntities..".Status");
+                    Pool        = require(pEntities..".Pool");
+                    Status      = require(pEntities..".Status");
 
                     --CoG objects
 
                     --item system
-                    local sItemSystem   = sObjects..".ItemSystem";
+                    local pItemSystem   = pCoG..".ItemSystem";
 
                     --interfaces
-                    IEquippable     = require(sItemSystem..".Interfaces.IEquippable");
-                    IConsumable     = require(sItemSystem..".Interfaces.IConsumable");
+                    IEquippable     = require(pItemSystem..".Interfaces.IEquippable");
+                    IConsumable     = require(pItemSystem..".Interfaces.IConsumable");
 
                     --load items
-                    Item            = require(sItemSystem..".Item");
-                    Boots           = require(sItemSystem..".ItemTypes.Boots");--TODO move this subclass out of here into the game after testing...
+                    Item            = require(pItemSystem..".Item");
+                    Boots           = require(pItemSystem..".ItemTypes.Boots");--TODO move this subclass out of here into the game after testing...
 
-                    ItemSlot        = require(sItemSystem..".ItemSlot");
-
-                    ItemStore       = require(sItemSystem..".ItemStore");
-                    Inventory       = require(sItemSystem..".Inventory");
-                    Equipage        = require(sItemSystem..".Equipage");
+                    ItemSlot        = require(pItemSystem..".ItemSlot");
+                    ItemSlotManager = require(pItemSystem..".ItemSlotManager");
+                    Container       = require(pItemSystem..".Container");
+                    Inventory       = require(pItemSystem..".Inventory");
+                    Equipage        = require(pItemSystem..".Equipage");
 
                     --CoG actors
-
+                    local pActors   = pCoG..".Actors";
+                    Being           = require(pActors..".Being");
                 end
 
             end

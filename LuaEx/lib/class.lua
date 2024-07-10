@@ -183,7 +183,7 @@ The second of the two underscores refers to the finality of the methods created 
 <br>
 <br>
 <strong>Note</strong>: As with all other fields, directive fields may contain only the types for which they were designed.
-<br><strong>Note</strong>: Directives cannot contain null values.
+<br><strong>Note</strong>: The exception (as with other fields) being, initial null values are permitted.
 <br><br>
 In addition, if any characters are found after the trailing two underscodes (or letters if applicable), that string will be used for the accessor prefix.
 <pre><code class="language-lua">
@@ -309,7 +309,7 @@ issibling           = TODO,--maybe not this one...
 getbase             = TODO,
 getName             = TODO]]
 --TODO use error instead of assert so error level can be set (or can it be on assert?)..assert is slower...
-
+--can i get rid of rawtype and just use ~= nil?
 local function ischild(vChild, vParent)
     local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
                                 class.repo.byObject[vChild]                 or nil;
@@ -329,7 +329,7 @@ local function ischildorself(vChild, vParent)
 
     return (tChildKit and tParentKit) and
            (tChildKit == tParentKit)  or
-           (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil");
+           (tParentKit and (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil"));
 end
 
 local function isdirectchild(vChild, vParent)
@@ -352,8 +352,8 @@ local function isinlineage(vChild, vParent)
 
     return (tChildKit and tParentKit) and
            (tChildKit == tParentKit)   or
-           (rawtype(tChildKit.children.all.byObject[vParent]) ~= "nil") or
-           (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil");
+           (tChildKit  and (rawtype(tChildKit.children.all.byObject[vParent]) ~= "nil")) or
+           (tParentKit and (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil"));
 end
 
 
@@ -387,7 +387,7 @@ local function isdirectparent(vParent, vChild)
 
     return  (tChildKit and tParentKit)  and
             (tChildKit ~= tParentKit)   and
-            (rawtype(tParentKit.children.direct.byObject[vChild]) ~= "nil");
+            (tParentKit and (rawtype(tParentKit.children.direct.byObject[vChild]) ~= "nil"));
 end
 
 local function is(vClass)
@@ -543,7 +543,7 @@ function class.build(tKit)
 
             --make sure this class has a public constructor
             if not (tKit.constructorVisibility == "pub") then
-                error("Error in class, '${class}'. No public constructor available." % {class = sName});
+                error("Error instantiating class, '${class}'. Contructor is ${visibility}." % {class = sName, visibility = _tCAINames[tKit.constructorVisibility]}, 3);
             end
 
             tInstance.pub[sName](...);
@@ -619,13 +619,18 @@ function class.build(tKit)
             if (sType ~= "nil") then
 
                 if (isMutableStaticPublicType(sType)) then
+                    local tROField = tKit.readOnlyFields.stapub[k];
+                    local bROFieldIsFixed = tROField and tROField.fixed or false;
 
-                    if (tKit.readOnlyFields.stapub[k]) then
+                    if (bROFieldIsFixed) then
                         error("Error in class object, '${class}'. Attempt to modify read-only static public field, '${index}'." % {class = sName, index = tostring(k)});
                     end
 
                     if (sType == type(v)) then
                         tClass[k] = v;
+                    elseif (tROField and not bROFieldIsFixed) then
+                        tClass[k] = v;
+                        tROField.fixed = true;
                     else
                         error("Error in class object, '${class}'. Attempt to change static public value type for '${index}', from ${typecurrent} to ${typenew} using value, '${value}'." % {class = sName, index = tostring(k), typecurrent = sType, typenew = type(v), value = tostring(v)});
                     end
@@ -923,17 +928,26 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                     tNextParent = tNextParent.parent;
                 end
 
+                --TODO DIRECTIVE TEST
+               --ensure this isn't a read-only field
+                local tROField      = tInstance.readOnlyFields[sCAI] and
+                                      tInstance.readOnlyFields[sCAI][k];
+                local bSetROFixed   = tROField and not tROField.fixed;
+
+                if (tROField) then
+
+                    if (tROField.fixed) then
+                        error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a read-only value." % {
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 3);
+                    end
+
+                end
+
                 --if none exists, throw an error
                 --if (rawtype(vVal) == "nil") then
                 if (zVal == "nil") then
                     error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a nil value." % {
-                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 2);
-                end
-
-                --ensure this isn't a readonly field
-                if (tInstance.readOnlyFields[sCAI] and tInstance.readOnlyFields[sCAI][k]) then --TODO is there a way to do this faster than with two table calls?
-                    error("Error in class, '${name}'. Attempt to modify ${visibility} member, '${member}', a read-only value." % {
-                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 2);
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 local sTypeCurrent  = type(tTarget[k]);
@@ -941,12 +955,12 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 if (sTypeNew == "nil") then
                     error("Error in class, '${name}'. Cannot set ${visibility} member, '${member}', to nil." % {
-                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 2);
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 if (sCAI ~= "pri" and sTypeCurrent == "function") then --TODO look into this and how, if at all, it would/should work work protected methods
                     error("Error in class, '${name}'. Attempt to override ${visibility} class method, '${member}', outside of a subclass context." % {
-                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 2);
+                        name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
                 --update the isAChecks (if needed) if the initial value was null
@@ -983,9 +997,14 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                     if not (bAllow) then
                         error("Error in class, '${name}'. Attempt to change type for ${visibility} member, '${member}', from ${typecurrent} to ${typenew}." % {
-                            name = sName, visibility = _tCAINames[sCAI], visibility = _tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 2);
+                            name = sName, visibility = _tCAINames[sCAI], visibility = _tCAINames[sCAI], member = tostring(k), typecurrent = sTypeCurrent, typenew = sTypeNew}, 3);
                     end
 
+                end
+
+                --mark the red-only field as now being fixed
+                if (bSetROFixed) then
+                    tROField.fixed = true;
                 end
 
                 rawset(tTarget, k, v);
@@ -1455,9 +1474,9 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
     local bIsNull       = sType == "null";
     local bIsFunction   = sType == "function";
 
-    if (bHasDirective and bIsNull) then
-        error("Items using directives cannot be null.", 5);
-    end
+    --if (bHasDirective and bIsNull) then --TODO DIRECTIVE TEST
+        --error("Items using directives cannot be null.", 5);
+    --end
 
     --check _RO application
     if (bReadOnly) then
@@ -1636,7 +1655,7 @@ function kit.processDirectives(tKit) --TODO set to local after test
             --print(sKeyRaw, sKey, sCAI.." = "..serialize(tKit[sCAI]), vValue)
 
             if (tDirective.isReadOnly) then
-                tKit.readOnlyFields[sCAI][sKey] = true;
+                tKit.readOnlyFields[sCAI][sKey] = {fixed = not (type(vValue) == "null")};
             end
 
             if (tDirective.isFinal) then

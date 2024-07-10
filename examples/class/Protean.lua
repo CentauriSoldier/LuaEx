@@ -52,14 +52,18 @@ oProtean3.setLinker(1);
 oProtean2.setValue(10);
 oProtean2.setLinker();
 oProtean1.setValue(20);
+--write a for loop from 1 to 20
 
 oProtean1.setValue(Protean.MULTIPLICATIVE_PENALTY, 0.46);
+--local n  = Being(Actor.TYPE.NATURAL, Actor.COMPOSITION.ORGANIC);
 
+--print(n.getHealthPool().get())
 --print(Boots == Pool)
 local oFeet     = ItemSlot("Feet", {Boots});
 local k = Boots();
+print()
 --oFeet.setLocked(true)
-oFeet.setItem(k)
+--oFeet.setItem(k)
 --oFeet.removeItem();
 --print(oFeet.isOccupied())
 --print(oFeet.isLocked())

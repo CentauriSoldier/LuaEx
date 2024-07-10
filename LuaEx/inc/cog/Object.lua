@@ -1,3 +1,8 @@
+--[[!
+    @fqxn LuaEx.CoG.Object
+    @desc This is the base class for all classes which are intended to represent world objects.
+    @parent <a href="#LuaEx.CoG.CoG" target="_blank">CoG</a>
+!]]
 return class("Object",
 {--METAMETHODS
     __clone = function(this, cdat)

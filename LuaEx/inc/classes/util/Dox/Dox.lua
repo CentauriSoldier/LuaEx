@@ -254,8 +254,7 @@ return class("Dox",
 
     end,
 },
-{},--protected
-{--public
+{
     Dox = function(this, cdat, sName, sTitle, sBlockOpen, sBlockClose, sTagOpen, eSyntax, tMimeTypes, ...)
         type.assert.string(sName,       "%S+",      "Dox subclass name must not be blank.");
         type.assert.string(sTitle,      "%S+",      "Dox documentation title name must not be blank.");
@@ -335,6 +334,8 @@ return class("Dox",
         --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
 
     end,
+},--protected
+{--public
     addMimeType = function(this, cdat, oDoxMime)
         type.assert.custom(oDoxMime, "DoxMime");
         pri.mimeTypes.add(oDoxMime.getName(), oDoxMime);
