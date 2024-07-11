@@ -264,19 +264,26 @@ if (tClassLoadValues[_nClassSystem]) then
                 if (tClassLoadValues[_nCoGClasses]) then
                     local pCoG = "LuaEx.inc.cog";
 
-                    CoG         = require(pCoG..".CoG"); --CoG's base entity
-                    Actor       = require(pCoG..".Actor");
-                    Entity      = require(pCoG..".Entity");
-                    Object      = require(pCoG..".Object");
-                    Component   = require(pCoG..".Component");
+                    CoG             = require(pCoG..".CoG"); --CoG's base object
+                    Entity          = require(pCoG..".Entity");
+                    Integrator      = require(pCoG..".Integrator");
+                    --Component       = require(pCoG..".Component");
+                    Actor           = require(pCoG..".Actor");
+                    Object          = require(pCoG..".Object");
+                    Item            = require(pCoG..".Item");
+                    Structure       = require(pCoG..".Structure");
 
-                    local pActors       = pCoG..".Actors";
                     local pEntities     = pCoG..".Entities";
+                    local pComponents   = pCoG..".Components";
+                    local pActors       = pCoG..".Actors";
                     local pObjects      = pCoG..".Objects";
 
                     --CoG entities
                     Pool        = require(pEntities..".Pool");
                     Status      = require(pEntities..".Status");
+
+                    --CoG Components
+
 
                     --CoG objects
 
@@ -284,17 +291,17 @@ if (tClassLoadValues[_nClassSystem]) then
                     local pItemSystem   = pCoG..".ItemSystem";
 
                     --interfaces
-                    IEquippable     = require(pItemSystem..".Interfaces.IEquippable");
-                    IConsumable     = require(pItemSystem..".Interfaces.IConsumable");
+                    IEquippable     = require(pCoG..".Interfaces.IEquippable");
+                    IConsumable     = require(pCoG..".Interfaces.IConsumable");
 
                     --load items
-                    Item            = require(pItemSystem..".Item");
-                    Boots           = require(pItemSystem..".ItemTypes.Boots");--TODO move this subclass out of here into the game after testing...
+                    Item            = require(pCoG..".Item");
+                    --Boots           = require(pItemSystem..".ItemTypes.Boots");--TODO move this subclass out of here into the game after testing...
 
                     ItemSlot        = require(pItemSystem..".ItemSlot");
                     ItemSlotManager = require(pItemSystem..".ItemSlotManager");
-                    Container       = require(pItemSystem..".Container");
-                    Inventory       = require(pItemSystem..".Inventory");
+                    --Container       = require(pItemSystem..".Container");
+                    --Inventory       = require(pItemSystem..".Inventory");
                     Equipage        = require(pItemSystem..".Equipage");
 
                     --CoG actors

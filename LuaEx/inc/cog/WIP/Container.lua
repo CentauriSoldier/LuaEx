@@ -1,7 +1,7 @@
 --[[!
-    @fqxn LuaEx.CoG.ItemSystem.Container
+    @fqxn LuaEx.CoG.Systems.ItemSystem.Container
     @desc A child of the ItemSlotManager, <b>Container</b> is meant to provide item management for <a href="#LuaEx.CoG.Object">Objects</a>.
-    @parent <a href="#LuaEx.CoG.ItemSystem.ItemSlotManager">ItemSlotManager</a>
+    @parent <a href="#LuaEx.CoG.Systems.ItemSystem.ItemSlotManager">ItemSlotManager</a>
 !]]
 return class("Container",
 {--METAMETHODS

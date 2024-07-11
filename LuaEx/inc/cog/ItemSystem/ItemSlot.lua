@@ -4,7 +4,7 @@ local oItemPlaceholder;
 
 
 --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlot.isAllowedItem
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlot.isAllowedItem
     @scope Local
     @desc Designed
 !]]
@@ -30,7 +30,7 @@ local function isAllowedItem(this, cdat, vInput)
 end
 
 --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlot
     @desc Designed to hold and manage Items.
     @parent <a href="#LuaEx.CoG.Entity">Entity</a>
 !]]
@@ -57,7 +57,7 @@ return class("ItemSlot",
 },
 {--PUBLIC
     ItemSlot = function(this, cdat, super, sName, tAllowedTypes)
-        super();
+        super(false, true, false, false);
 
         ---cdat.pri.placeholderItem = Item();
         type.assert.string(sName, "%S+", "ItemSlot name cannot be blank.");
@@ -139,11 +139,6 @@ return class("ItemSlot",
 
         return this, bRet;
     end,
-
-
-
-
-
 
     equip = function(this, oCreature, oItem)
         local pro = cdat.pro;

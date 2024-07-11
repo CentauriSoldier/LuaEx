@@ -3,17 +3,54 @@
 @author Centauri Soldier
 @copyright See LuaEx License
 @desc
-    <h3>Brings (pseudo) Object Oriented Programming to Lua</h3>
-    <p>The class module aims to bring a simple-to-use, fully functional, pseudo OOP class system to Lua.
-    <br>Among other things, It includes encapsulation, inheritence & polymorphism, final classes & methods, auto-setter/getter directives (<b><i>properties</i></b>) and interfaces.
+    <h3>Lua's (<i>pseudo</i>) Object Oriented Programming</h3>
+    <p>The class module aims to bring a simple-to-use, fully functional, OOP class system to Lua to the extent that such a feat is possible.
+    <br>Among other things, It includes encapsulation, inheritence & polymorphism, final, limited and abstract classes, final methods, auto-setter/getter and read-only directives (<b><i>properties</i></b>) as well as interfaces.
     </p>
-@features Put stuff here
+@features
+<h4>Strongly Typed</h4>
+<p>Fields that are set in classes remain the type with which they were intialized. The only expection to this is the <a href="#LuaEx.Libraries.null">null</a> value. Any field set to null in its declaration can be changed to any other type once. Once the type has been set, it cannot be changed again. This allows field types be to set during contruction or on first mutation.
+<br><br>
+Fields marked as read-only cannot be modified once set. This, of course, excludes fields initialized as null. They can be set once and only once from the null value to something else.
+<br><br>
+Class methods cannot be overriden except by subclasses and only if they're not marked as final by the parent class.
+</p>
+<h4>Encapsulation</h4>
+<p>Class tables' access is appropriately restricted to prevent incidental access. Each class method (and metamethods) are infused with two arguments. The first is the class object itself so each methods has access to the protected and public fields and methods of the class. The second is the class data table which is indexed by five tables:
+<ul>
+    <li><b>met</b></li> (class metamethods)
+    <li><b>pri</b></li> (class private fields and methods)
+    <li><b>pro</b></li> (class protected fields and methods)
+    <li><b>pub</b></li> (class public fields and methods)
+    <li><b>ins</b></li> (class instances)
+</ul>
+<b>Note</b>: for obvious reasons, methods in the static public table do not get infused with these instance-specific arguments. The only method in that table that has an argument infused into it is the static constructor that has the static public table as its first argument to allow it to make changes to the static public tables upon class creation.
+<br>
+<br>
+To facilitate a class's instances accessing and mutating each other (as is common in most other programming laguages), the <b>ins</b> table is provided. This table is indexed by class instance objects whose values are the class data of that instance. This allows other class instances input as arguments into a method to be directly manipulated (incuding private, protected, etc.) by the class method.
+<b>Note</b>: as is expected, this works only for instances of the same class. ClassA cannot access class data from an instance of ClassB.
+</p>
+<h4>Inheritance</h4>
+<br><p>Subclasses can be created by declaring the Parent class in the class arguments.</p>
+<p>Subclasses will inherit all protected and public fields and methods from the parent class and may access them as if they were its own.</p>
+<p>Parent methods can be overriden by the child class unless they are marked as final in the parent class.
+<h5>Restrictions on Inheritance</h5>
+<ol>
+    <li>Any class with a blacklist or whitelist may or may not allow certain classes to subclass it.</li>
+    <li>Classes marked as final cannot be subclassed.</li>
+</ol>
+</p>
+<h4>Polymorphism</h4>
+<p>Polymorphism is a key component of the class system and is honored in class fields.
+<br>For example, if a class has a Creature class object (whose subclasses are Human and Monster) as a field, the object in that field can be changed to either another Creature, a Human or a Monster since Human and Monster are both subclasses of the Creature class.</p>
 @license <p>Same as LuaEx license.</p>
 @version 0.8
 @versionhistory
 <ul>
     <li>
         <b>0.8</b>
+        <p>Feature: subclassing can now be controlled with whitelists or blacklists.</p>
+        <p>Feature: added several class-level methods.</p>
         <p>Feature: added a static initializer to classes (uses a method of the class name in the static public table).</p>
         <p>Feature: updated type setting permissions to honor child class instances.</p>
         <b>0.7</b>
@@ -428,7 +465,7 @@ local function getbase(vClass)
     if tClassKit and tClassKit.base then
 
         if (tClassKit.base) then
-            cRet = class.repo.byKit[tClassKit.base];  -- Assuming the base class is stored in the 'base' field
+            cRet = class.repo.byKit[tClassKit.base];
         end
 
     end
@@ -437,7 +474,7 @@ local function getbase(vClass)
 end
 
 -- Function to get the class object by its name
-local function byname(className)
+local function byname(className) --TODO DELETE DEPRECATED remove this, it violates visibility principles by exposing otherwise-private/protected classes
     return class.repo.byName[className];
 end
 
@@ -464,7 +501,6 @@ end
 
 
 --TODO go through and set error levels on every error (test each one)
---TODO abstract classes?
 --TODO abstract methods (no static public allowed obviously, throw error in such case)
 --TODO forbid type names (string, boolean, etc)
                             --[[ ██████╗██╗      █████╗ ███████╗███████╗
@@ -1216,13 +1252,13 @@ end
 @param table tProtected A table containing all protected class members.
 @param table tPublic A table containing all public class members.
 @param class|nil cExtendor The parent class from which this class ischild (if any). If there is no parent class, this argument should be nil.
-@param boolean bIsFinal A boolean value indicating whether this class is final.
+@param boolean|table|nil vLimitationsOrFinal A boolean value indicating whether this class is final, nil indicating false, or a numerically-indexed table of strings whose values are class names to which subclasses should be limited.
 @param interface|nil The interface(s) this class implements (or nil, if none). This is a cararg table, so many or none may be entered.
 @scope local
 @desc Imports a kit for later use in building class objects
 @ret class Class Returns the class returned from the kit.build() tail call.
 !]]
-function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, bIsFinal, ...)
+function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vFinality, ...)
     local tInterfaces = {...} or arg;
     --validate the input TODO remove any existing metatable from input tables or throw error if can't
 
@@ -1273,7 +1309,11 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             pro = {},
             pub = {},
         },
-        isFinal			= type(bIsFinal) == "boolean" and bIsFinal or false,
+        isFinal			= false, --whether the classis final (processed below)
+        --hasBlacklist    = false, --whether the class has a blacklist (processed below)
+        --hasWhitelist    = false, --whether the class has a whitelist (processed below)
+        blacklist       = nil,   --which class(es) may NOT subclass this one (processed below)
+        whitelist       = nil,   --which class(es) may subclass this one (processed below)
         name 			= sName,
         parent			= nil, --set in kit.mayExtend() (if it does)
         --tables
@@ -1290,6 +1330,9 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         },
     };
 
+    --determine whether the class is final or limited (and, if so, set limitations)
+    kit.processFinality(tKit, vFinality);
+
     --validate the constructor and record its visibility
     kit.processConstructor(tKit);
 
@@ -1298,8 +1341,6 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 
     --process the class directives
     kit.processDirectives(tKit);
-
-    --TODO add abstract classes and methods?
 
     --check for member shadowing
     kit.shadowCheck(tKit);
@@ -1693,6 +1734,56 @@ end
 
 
 --[[!
+@fqxn LuaEx.Libraries.kit.Functions.processFinality
+@param table tKit The kit to check.
+@scope local
+@desc Determines whether the class is final or limited and, if so, sets the limitations or finality.
+!]]
+function kit.processFinality(tKit, vFinality)
+    local sType = type(vFinality);
+
+    if (sType == "boolean") then
+        tKit.isFinal = vFinality;
+
+    elseif (sType == "table" and #vFinality > 0) then
+        local   sName = tKit.name;
+        local   sList, tList, sIndicator, bIsBlacklistItem,
+                sKeyType, sValType, sFinalItem;
+
+        for k, v in pairs(vFinality) do
+            sKeyType = type(k);
+            sValType = type(v);
+
+            if (sKeyType ~= "number" or sValType ~= "string") then
+                error("Error in class, '${name}'. Subclass limitation list table must be numerically-indexed with string values." % {name = sName}, 2);
+            end
+
+            sIndicator        = v:sub(1, 1);
+            bIsBlacklistItem  = sIndicator == "!";
+
+            --set the list type if not already set
+            if not (sList) then
+                sList = bIsBlacklistItem and "blacklist" or "whitelist";
+                tKit[sList] = {};
+                tList = tKit[sList];
+            end
+
+            --check for combined list items
+            if ( (sList == "blacklist" and not   bIsBlacklistItem)  or
+                 (sList == "whitelist" and       bIsBlacklistItem)) then
+                error("Error in class, '${name}'. Cannot create both a subclass Blacklist and Whitelist for the same class." % {name = sName}, 2);
+            end
+
+            sFinalItem = bIsBlacklistItem and v:gsub("^!", "") or v;
+            tList[sFinalItem] = true;
+        end
+
+    end
+
+end
+
+
+--[[!
 @fqxn LuaEx.Libraries.kit.Functions.processInitialIsAChecks
 @param table tKit The kit to check.
 @scope local
@@ -1759,12 +1850,28 @@ function kit.setParent(tKit, cExtendor)
 
             --enure the parent class isn't final
             if (tParentKit.isFinal) then
-                error("Error creating derived class, '${class}'. Parent class, '${parent}', is final and cannot be extended."	% {class = sName, parent = tParentKit.name}, 3);
+                error("Error creating child class, '${class}'.\nParent class, '${parent}', is final and cannot be extended."	% {class = sName, parent = tParentKit.name}, 3);
+            end
+
+            local bHasBlackList = tParentKit.blacklist;
+
+            --ensure, if the parent class is limited, that this one is permitted to subclass
+            if ( (bHasBlackList         and tParentKit.blacklist[sName] ~= nil) or
+                 (tParentKit.whitelist  and tParentKit.whitelist[sName] == nil) ) then
+                local tList       = bHasBlackList and tParentKit.blacklist or tParentKit.whitelist;
+                local sSubclasses = "";
+                local sPermission = bHasBlackList and "Restricted" or "Permitted";
+
+                for k, v in pairs(tList) do
+                    sSubclasses = sSubclasses..k.."\n";
+                end
+
+                error("Error creating child class, '${class}'.\nParent class, '${parent}', is limited and cannot be extended by this subclass.\n${permission} subclass types are:\n${list}"	% {class = sName, parent = tParentKit.name, permission = sPermission, list = sSubclasses}, 3);
             end
 
             --ensure the parent class doesn't have a private constructor
             if (tParentKit.constructorVisibility == "pri") then
-                error("Error creating derived class, '${class}'.\nParent class, '${parent}', has a private constructor and cannot be extended."	% {class = sName, parent = tParentKit.name}, 3);
+                error("Error creating child class, '${class}'.\nParent class, '${parent}', has a private constructor and cannot be extended."	% {class = sName, parent = tParentKit.name}, 3);
             end
 
             tKit.parent = tParentKit; --note the parent kit

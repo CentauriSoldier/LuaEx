@@ -28,6 +28,22 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
+- Feature: Subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
+- Feature Added several class-level checks:
+    - **class.of**
+    - **class.getname**
+    - **class.getbase**
+    - **class.is**
+    - **class.isbase**
+    - **class.ischild**
+    - **class.ischildorself**
+    - **class.isdirectchild**
+    - **class.isdirectparent**
+    - **class.isinlineage**
+    - **class.isinstance**
+    - **class.isinstanceof**
+    - **class.isparent**
+    - **class.isparentorself**    
 - Feature: Classes now fully respect polymorphism in assignment operation type checking.
 - Feature: The class constructor may now be either private, protected or public.
 - Feature: Classes now have an *optional* static constructor using the class name as the static method name.
@@ -412,10 +428,11 @@ print(ERROR_MARKER);            --> "err:"
 - A fully-functional, (*pseudo*) [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
 - The class system also takes advantage of metatables and allows user to create, inherit and override these for class objects.
 - Optional **Properties**: auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.
-- Optional static initializer method (***_INIT***) called once during class creation.
+- Optional static initializer method called once during class creation.
 - Strongly typed values (although allowing initial ***null*** values).
 - Optional final methods (preventing subclass overrides).
 - Optional final classes.
+- Optional limited classes meaning a class can limit which classes can subclass it.
 - **More** features inbound...
 
 <details>

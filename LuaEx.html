@@ -725,16 +725,33 @@
         "CoG": {
             "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   <b>C</b>ode <b>o</b>f <b>G</b>aming is a Lua framework containing support scripts, classes and interfaces such as STUFF HERE and more.</div></div></div>",
             "subtable": {
-            "Actor": {
-                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is the base class for all classes which are intended to interact with the game world.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.CoG\">CoG</a></div></div></div>",
-                "subtable": null
-            },
-            "CoG": {
-                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is the base class for all CoG classes. The four child classes under CoG are:\n    <br>\n    <ul>\n        <li><a href=\"#LuaEx.CoG.Actor\"></a>Actor</li>\n        <li><a href=\"#LuaEx.CoG.Entity\"></a>Entity</li>\n        <li><a href=\"#LuaEx.CoG.Object\"></a>Object</li>\n        <li><a href=\"#LuaEx.CoG.Component\"></a>Component</li>\n    </ul>\n    Every other class is a decendant of one of these three classes.</div></div></div>",
-                "subtable": null
+            "Classes": {
+                "value": "",
+                "subtable": {
+                "Actor": {
+                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is the base class for all classes which are intended to interact with the game world.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.CoG\">CoG</a></div></div></div>",
+                    "subtable": null
+                },
+                "CoG": {
+                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   <p>This is the base class for all CoG classes. The three child classes under CoG are:</p>\n    <ul>\n        <li><a href=\"#LuaEx.CoG.Actor\"></a>Actor</li>\n        <li><a href=\"#LuaEx.CoG.Entity\"></a>Entity</li>\n        <li><a href=\"#LuaEx.CoG.Object\"></a>Object</li>\n    </ul>\n    <b>Note</b>: this class is limited and may be subclassed only by the classes listed above.</div></div></div>",
+                    "subtable": null
+                },
+                "Component": {
+                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   <p>This is a utility class intended to be used with and add functionality to the <a href=\"#LuaEx.CoG.Actor\">Actor</a>, <a href=\"#LuaEx.CoG.Entity\">Entity</a> and <a href=\"#LuaEx.CoG.Object\">Object</a> classes.</p>\n    <p>Every <a href=\"#LuaEx.CoG.Entity\">CoG</a> has the ability to use <b>Components</b>. <b>Components</b>, such as <a href=\"#LuaEx.CoG.Systems.ItemSystem.Inventory\"></a>Inventory</li></p>, can be added to certain <b>CoGs</b> as defined and restricted within each <b>Component</b>. Rather than making classes force their subclasses to use or not use every potential mechanism, it permits versatility by allowing functionality at a granular level.\n    <br>\n    For example, some creature subclass may need an inventory system while another does not. Instead of mandating an inventory system for all creatures, the superclass could allow each subclass to choose for itself whether it implemented that system.\n    In order to prevent errors arrising from assumptions about functionality, <b>CoG</b> methods exist to check for <b>Components</b> before attempting to use them (in cases where there would otherwise be ambiguity).\n    </p></div></div></div>",
+                    "subtable": null
+                },
+                "Entity": {
+                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is the base class for all support classes which are intended to provide additional functionality to Actor and Object classes and subclasses.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.CoG\">CoG</a></div></div></div>",
+                    "subtable": null
+                },
+                "Object": {
+                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is the base class for all classes which are intended to represent world objects.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.CoG\" target=\"_blank\">CoG</a></div></div></div>",
+                    "subtable": null
+                }
+                }
             },
             "Component": {
-                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is a utility class intended to be used with and add functionality to the <a href=\"#LuaEx.CoG.Actor\">Actor</a>, <a href=\"#LuaEx.CoG.Entity\">Entity</a> and <a href=\"#LuaEx.CoG.Object\">Object</a> classes.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.CoG\">CoG</a></div></div></div>",
+                "value": "",
                 "subtable": {
                 "Methods": {
                     "value": "",
@@ -747,109 +764,106 @@
                 }
                 }
             },
-            "Entity": {
-                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is the base class for all support classes which are intended to provide additional functionality to Actor and Object classes and subclasses.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.CoG\">CoG</a></div></div></div>",
-                "subtable": null
-            },
-            "ItemSystem": {
+            "Systems": {
                 "value": "",
                 "subtable": {
-                "Container": {
-                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   A child of the ItemSlotManager, <b>Container</b> is meant to provide item management for <a href=\"#LuaEx.CoG.Object\">Objects</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.ItemSystem.ItemSlotManager\">ItemSlotManager</a></div></div></div>",
-                    "subtable": null
-                },
-                "Inventory": {
-                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   A child of the ItemSlotManager, <b>Inventory</b> is meant to provide items management for <a href=\"#LuaEx.CoG.Actor\">Actors</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.ItemSystem.ItemSlotManager\">ItemSlotManager</a></div></div></div>",
-                    "subtable": null
-                },
-                "Item": {
-                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   STUFF HERE</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Object\">Object</a></div></div></div>",
-                    "subtable": null
-                },
-                "ItemSlot": {
-                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Designed to hold and manage Items.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Entity\">Entity</a></div></div></div>",
+                "ItemSystem": {
+                    "value": "",
                     "subtable": {
-                    "isAllowedItem": {
-                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Scope</div><div class=\"section-content\">   <em>Local</em></div></div><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Designed</div></div></div>",
+                    "Container": {
+                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   A child of the ItemSlotManager, <b>Container</b> is meant to provide item management for <a href=\"#LuaEx.CoG.Object\">Objects</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Systems.ItemSystem.ItemSlotManager\">ItemSlotManager</a></div></div></div>",
                         "subtable": null
-                    }
-                    }
-                },
-                "ItemSlotManager": {
-                    "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   STUFF HERE</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Component\">Component</a></div></div></div>",
-                    "subtable": {
-                    "Functions": {
-                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                    },
+                    "Inventory": {
+                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   A child of the <a href=\"#LuaEx.CoG.Systems.ItemSystem.ItemSlotManager\">ItemSlotManager</a>, <b>Inventory</b> is meant to provide items management for <a href=\"#LuaEx.CoG.Actor\">Actors</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Systems.ItemSystem.ItemSlotManager\">ItemSlotManager</a></div></div></div>",
                         "subtable": null
+                    },
+                    "Item": {
+                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   STUFF HERE</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Object\">Object</a></div></div></div>",
+                        "subtable": null
+                    },
+                    "ItemSlot": {
+                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Designed to hold and manage Items.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Entity\">Entity</a></div></div></div>",
+                        "subtable": {
+                        "isAllowedItem": {
+                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Scope</div><div class=\"section-content\">   <em>Local</em></div></div><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Designed</div></div></div>",
+                            "subtable": null
+                        }
+                        }
                     },
                     "ItemSlotManager": {
-                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   The constructor for the <b>ItemSlotManager</b>. It's designed to be subclassed by classes such as <a href=\"#LuaEx.CoG.ItemSystem.Inventory\">Inventory</a> and <a href=\"#LuaEx.CoG.ItemSystem.Container\">Container</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>Actor|Object</em></strong>   <em>oActor|oObject</em>   T</div></div></div>",
-                        "subtable": null
-                    },
-                    "Methods": {
-                        "value": "",
+                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   STUFF HERE</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.Component\">Component</a></div></div></div>",
                         "subtable": {
-                        "addItemSlot": {
+                        "Functions": {
                             "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
                             "subtable": null
                         },
-                        "containsItem": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                        "ItemSlotManager": {
+                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   The constructor for the <b>ItemSlotManager</b>. It's designed to be subclassed by classes such as <a href=\"#LuaEx.CoG.Systems.ItemSystem.Inventory\">Inventory</a> and <a href=\"#LuaEx.CoG.Systems.ItemSystem.Container\">Container</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>Actor|Object</em></strong>   <em>oActor|oObject</em>   T</div></div></div>",
                             "subtable": null
                         },
-                        "containsItemAt": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "containsItemSlot": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "containsItemSlotAt": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "eachItemSlot": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "getItemAt": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "getItemCount": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "getItemSlotAt": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "getItemSlotCount": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Gets the total number of <a href=\"#LuaEx.CoG.ItemSystem.ItemSlot\">ItemSlots</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">local nItemSlots = oItemSlotManager.getItemSlotCount();</code></pre></div></div><div class=\"custom-section\"><div class=\"section-title\">Return</div><div class=\"section-content\">   <strong><em>number</em></strong>   <em>nItemSlots</em>   The total number of <b>ItemSlots</b>.</div></div></div>",
-                            "subtable": null
-                        },
-                        "getOwner": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "removeItemSlot": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
-                        },
-                        "swapItems": {
-                            "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
-                            "subtable": null
+                        "Methods": {
+                            "value": "",
+                            "subtable": {
+                            "addItemSlot": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "containsItem": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "containsItemAt": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "containsItemSlot": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "containsItemSlotAt": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "eachItemSlot": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "getItemAt": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "getItemCount": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "getItemSlotAt": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "getItemSlotCount": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Gets the total number of <a href=\"#LuaEx.CoG.Systems.ItemSystem.ItemSlot\">ItemSlots</a>.</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">local nItemSlots = oItemSlotManager.getItemSlotCount();</code></pre></div></div><div class=\"custom-section\"><div class=\"section-title\">Return</div><div class=\"section-content\">   <strong><em>number</em></strong>   <em>nItemSlots</em>   The total number of <b>ItemSlots</b>.</div></div></div>",
+                                "subtable": null
+                            },
+                            "getOwner": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "removeItemSlot": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            },
+                            "swapItems": {
+                                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   TODO</div></div><div class=\"custom-section\"><div class=\"section-title\">Example</div><div class=\"section-content\">   <pre><code class=\"language-lua\">TODO</code></pre></div></div></div>",
+                                "subtable": null
+                            }
+                            }
                         }
                         }
                     }
                     }
                 }
                 }
-            },
-            "Object": {
-                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   This is the base class for all classes which are intended to represent world objects.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parent</div><div class=\"section-content\">   <a href=\"#LuaEx.CoG.CoG\" target=\"_blank\">CoG</a></div></div></div>",
-                "subtable": null
             }
             }
         },
@@ -861,7 +875,7 @@
                 "subtable": null
             },
             "class": {
-                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">       <h3>Brings (pseudo) Object Oriented Programming to Lua</h3>\n    <p>The class module aims to bring a simple-to-use, fully functional, pseudo OOP class system to Lua.\n    <br>Among other things, It includes encapsulation, inheritence & polymorphism, final classes & methods, auto-setter/getter directives (<b><i>properties</i></b>) and interfaces.\n    </p></div></div><div class=\"custom-section\"><div class=\"section-title\">Features</div><div class=\"section-content\">   Put stuff here</div></div><div class=\"custom-section\"><div class=\"section-title\">Changelog</div><div class=\"section-content\">   <ul>\n    <li>\n        <b>0.8</b>\n        <p>Feature: added a static initializer to classes (uses a method of the class name in the static public table).</p>\n        <p>Feature: updated type setting permissions to honor child class instances.</p>\n        <b>0.7</b>\n        <br>\n        <p>Bugfix: editing kit visibility table during iteration in __AUTO__ directive was causing malformed classes.</p>\n        <p>Bugfix: private methods not able to be overriden from within the class.</p>\n        <p>Bugfix: public static members could not be set or retrieved.</p>\n        <p>Bugfix: __shr method not providing 'other' parameter to client.</p>\n        <p>Feature: completed the interface system.</p>\n        <p>Feature: added cloning and serialization capabilities.</p>\n        <p>Feature: added __FNL directive allowing for final methods and metamethods.</p>\n        <p>Feature: added __AUTO directive allowing automatically created mutator and accessor methods for members.</p>\n        <p>Feature: rewrote <em>(and improved)</em> set, stack and queue classes for new class system.</p>\n        <p>Feature: global <strong><em>is</em></strong> functions are now created for classes upon class creation (e.g., isCreature(vInput)).</p>\n        <b>0.6</b>\n        <br>\n        <p>Change: rewrote class system again from the ground up, avoiding the logic error in the previous class system.</p>\n        <b>0.5</b>\n        <br>\n        <p>Change: removed new class system as it had a fatal, uncorrectable flaw.</p>\n        <b>0.4</b>\n        <br>\n        <p>Feature: added interfaces.</p>\n        <b>0.3</b>\n        <br>\n        <p>Change: removed current class system.</p>\n        <p>Change: rewrote class system from scratch.</p>\n        <b>0.2</b>\n        <br>\n        <p>Feature: added several features to the existing class system.</p>\n        <b>0.1</b>\n        <br>\n        <p>Imported <a href=\"https://github.com/Imagine-Programming/\" target=\"_blank\">Bas Groothedde's</a> class module.</p>\n    </li>\n</ul></div></div><div class=\"custom-section\"><div class=\"section-title\">Version</div><div class=\"section-content\">   0.8</div></div><div class=\"custom-section\"><div class=\"section-title\">Author</div><div class=\"section-content\">   Centauri Soldier</div></div><div class=\"custom-section\"><div class=\"section-title\">License</div><div class=\"section-content\">   <p>Same as LuaEx license.</p></div></div><div class=\"custom-section\"><div class=\"section-title\">Website</div><div class=\"section-content\">   https://github.com/CentauriSoldier/Dox</div></div><div class=\"custom-section\"><div class=\"section-title\">Copyright</div><div class=\"section-content\">   See LuaEx License</div></div></div>",
+                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">       <h3>Lua's (<i>pseudo</i>) Object Oriented Programming</h3>\n    <p>The class module aims to bring a simple-to-use, fully functional, OOP class system to Lua to the extent that such a feat is possible.\n    <br>Among other things, It includes encapsulation, inheritence & polymorphism, final, limited and abstract classes, final methods, auto-setter/getter and read-only directives (<b><i>properties</i></b>) as well as interfaces.\n    </p></div></div><div class=\"custom-section\"><div class=\"section-title\">Features</div><div class=\"section-content\">   <h4>Strongly Typed</h4>\n<p>Fields that are set in classes remain the type with which they were intialized. The only expection to this is the <a href=\"#LuaEx.Libraries.null\">null</a> value. Any field set to null in its declaration can be changed to any other type once. Once the type has been set, it cannot be changed again. This allows field types be to set during contruction or on first mutation.\n<br><br>\nFields marked as read-only cannot be modified once set. This, of course, excludes fields initialized as null. They can be set once and only once from the null value to something else.\n<br><br>\nClass methods cannot be overriden except by subclasses and only if they're not marked as final by the parent class.\n</p>\n<h4>Encapsulation</h4>\n<p>Class tables' access is appropriately restricted to prevent incidental access. Each class method (and metamethods) are infused with two arguments. The first is the class object itself so each methods has access to the protected and public fields and methods of the class. The second is the class data table which is indexed by five tables:\n<ul>\n    <li><b>met</b></li> (class metamethods)\n    <li><b>pri</b></li> (class private fields and methods)\n    <li><b>pro</b></li> (class protected fields and methods)\n    <li><b>pub</b></li> (class public fields and methods)\n    <li><b>ins</b></li> (class instances)\n</ul>\n<b>Note</b>: for obvious reasons, methods in the static public table do not get infused with these instance-specific arguments. The only method in that table that has an argument infused into it is the static constructor that has the static public table as its first argument to allow it to make changes to the static public tables upon class creation.\n<br>\n<br>\nTo facilitate a class's instances accessing and mutating each other (as is common in most other programming laguages), the <b>ins</b> table is provided. This table is indexed by class instance objects whose values are the class data of that instance. This allows other class instances input as arguments into a method to be directly manipulated (incuding private, protected, etc.) by the class method.\n<b>Note</b>: as is expected, this works only for instances of the same class. ClassA cannot access class data from an instance of ClassB.\n</p>\n<h4>Inheritance</h4>\n<br><p>Subclasses can be created by declaring the Parent class in the class arguments.</p>\n<p>Subclasses will inherit all protected and public fields and methods from the parent class and may access them as if they were its own.</p>\n<p>Parent methods can be overriden by the child class unless they are marked as final in the parent class.\n<h5>Restrictions on Inheritance</h5>\n<ol>\n    <li>Any class with a blacklist or whitelist may or may not allow certain classes to subclass it.</li>\n    <li>Classes marked as final cannot be subclassed.</li>\n</ol>\n</p>\n<h4>Polymorphism</h4>\n<p>Polymorphism is a key component of the class system and is honored in class fields.\n<br>For example, if a class has a Creature class object (whose subclasses are Human and Monster) as a field, the object in that field can be changed to either another Creature, a Human or a Monster since Human and Monster are both subclasses of the Creature class.</p></div></div><div class=\"custom-section\"><div class=\"section-title\">Changelog</div><div class=\"section-content\">   <ul>\n    <li>\n        <b>0.8</b>\n        <p>Feature: subclassing can now be controlled with whitelists or blacklists.</p>\n        <p>Feature: added several class-level methods.</p>\n        <p>Feature: added a static initializer to classes (uses a method of the class name in the static public table).</p>\n        <p>Feature: updated type setting permissions to honor child class instances.</p>\n        <b>0.7</b>\n        <br>\n        <p>Bugfix: editing kit visibility table during iteration in __AUTO__ directive was causing malformed classes.</p>\n        <p>Bugfix: private methods not able to be overriden from within the class.</p>\n        <p>Bugfix: public static members could not be set or retrieved.</p>\n        <p>Bugfix: __shr method not providing 'other' parameter to client.</p>\n        <p>Feature: completed the interface system.</p>\n        <p>Feature: added cloning and serialization capabilities.</p>\n        <p>Feature: added __FNL directive allowing for final methods and metamethods.</p>\n        <p>Feature: added __AUTO directive allowing automatically created mutator and accessor methods for members.</p>\n        <p>Feature: rewrote <em>(and improved)</em> set, stack and queue classes for new class system.</p>\n        <p>Feature: global <strong><em>is</em></strong> functions are now created for classes upon class creation (e.g., isCreature(vInput)).</p>\n        <b>0.6</b>\n        <br>\n        <p>Change: rewrote class system again from the ground up, avoiding the logic error in the previous class system.</p>\n        <b>0.5</b>\n        <br>\n        <p>Change: removed new class system as it had a fatal, uncorrectable flaw.</p>\n        <b>0.4</b>\n        <br>\n        <p>Feature: added interfaces.</p>\n        <b>0.3</b>\n        <br>\n        <p>Change: removed current class system.</p>\n        <p>Change: rewrote class system from scratch.</p>\n        <b>0.2</b>\n        <br>\n        <p>Feature: added several features to the existing class system.</p>\n        <b>0.1</b>\n        <br>\n        <p>Imported <a href=\"https://github.com/Imagine-Programming/\" target=\"_blank\">Bas Groothedde's</a> class module.</p>\n    </li>\n</ul></div></div><div class=\"custom-section\"><div class=\"section-title\">Version</div><div class=\"section-content\">   0.8</div></div><div class=\"custom-section\"><div class=\"section-title\">Author</div><div class=\"section-content\">   Centauri Soldier</div></div><div class=\"custom-section\"><div class=\"section-title\">License</div><div class=\"section-content\">   <p>Same as LuaEx license.</p></div></div><div class=\"custom-section\"><div class=\"section-title\">Website</div><div class=\"section-content\">   https://github.com/CentauriSoldier/Dox</div></div><div class=\"custom-section\"><div class=\"section-title\">Copyright</div><div class=\"section-content\">   See LuaEx License</div></div></div>",
                 "subtable": {
                 "Directives": {
                     "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Directives provide a way for classes to set methods as final,\n<br>set values as read only and create <a href=\"#LuaEx.Libraries.class.Properties\">Properties</a>.\n<br><br>\n<h3>List of Base Directives</h3>\n<ul>\n    <li><strong>__AUTO__</strong> The Upper Auto Directive</li>\n    <li><strong>__auto__</strong> The Lower Auto Directive</li>\n    <li><strong>__FNL</strong> The Final Directive</li>\n    <li><strong>__RO</strong> The Read-only Directive</li>\n</ul>\n<br><br>\n<hr>\n<h3>Auto Directives</h3>\n<p>Auto directives may be applied only to class members that are fields, never methods.\n<br>They can be used to create accessor and/or mutator methods for that field.\n<br><br>The Upper and Lower Auto Directives behave identically except that when method prefixes are auto-generated,\n<br>the Upper Auto makes the first letter of the method uppercase and the Lower Auto makes it lowercase.\n<br><br>\nThe last two characters (__) of the directive can be changed to allow customization of the method(s) and field.\n<br><br>\nThe first of the two underscores refers to the methods to be created.\n<ul>\n    <li>If an \"<strong>A</strong>\" is used, only an accessor method will be created for the field.</li>\n    <li>If an \"<strong>M</strong>\" is used, only a mutator method will be created for the field.</li>\n    <li>If an \"<strong>R</strong>\" is used, only an accessor method will be created for the field and the field will be set to read-only.</li>\n    <li>If any other character (including an underscore) is used, both an accessor and mutator method will be created for the field.</li>\n</ul>\n<br><br>\nThe second of the two underscores refers to the finality of the methods created (whether they can be overriden by subclasses).\n<ul>\n    <li>If an \"<strong>A</strong>\" is used, only the accessor method will be set to final.</li>\n    <li>If an \"<strong>M</strong>\" is used, only the mutator method will be set to final.</li>\n    <li>If an \"<strong>F</strong>\" is used, both the accessor and mutator methods will be set to final.</li>\n    <li>If any other character (including an underscore) is used, neither method will be set to final.</li>\n</ul>\n<br>\n<br>\n<strong>Note</strong>: As with all other fields, directive fields may contain only the types for which they were designed.\n<br><strong>Note</strong>: The exception (as with other fields) being, initial null values are permitted.\n<br><br>\nIn addition, if any characters are found after the trailing two underscodes (or letters if applicable), that string will be used for the accessor prefix.\n<pre><code class=\"language-lua\">\n--this will create an accessor method named 'isEnabled' and a mutator method called 'setEnabled'\nEnabled__auto__is = true\n--this will create an accessor method named 'getEnabled' and a mutator method called 'setEnabled'\nEnabled__auto__ = true\n--this will create an accessor method named 'isEnabled' and set the field to read-only.\nEnabled__autoR_is = true\n</code></pre>\n<hr>\n</p>\n<h3>Final Directive</h3>\n<p>\nAdding the __FNL directive to the end of a method name prevents it from being overridden by a child class.\n<pre><code class=\"language-lua\">\nMyMethod_FNL = function() end\n</code></pre>\n</p>\n<h3>Read-only Directive</h3>\n<p>\nBy adding the __RO directive to the end of a field name, it becomes read-only and may not be interally or externally modified.\n<pre><code class=\"language-lua\">\nMyField_RO = 12,\n</code></pre>\n</p></div></div></div>",
@@ -927,7 +941,7 @@
                     "value": "",
                     "subtable": {
                     "build": {
-                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Scope</div><div class=\"section-content\">   <em>local</em></div></div><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Imports a kit for later use in building class objects</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>boolean</em></strong>   <em>bIsFinal</em>   A boolean value indicating whether this class is final.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>interface|nil</em></strong>   <em>The</em>   interface(s) this class implements (or nil, if none). This is a cararg table, so many or none may be entered.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>class|nil</em></strong>   <em>cExtendor</em>   The parent class from which this class ischild (if any). If there is no parent class, this argument should be nil.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>string</em></strong>   <em>sName</em>   The name of the class kit. This must be a unique, variable-compliant name.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tPublic</em>   A table containing all public class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tPrivate</em>   A table containing all private class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tProtected</em>   A table containing all protected class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tMetamethods</em>   A table containing all class metamethods.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tStaticPublic</em>   A table containing all static public class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Return</div><div class=\"section-content\">   <strong><em>class</em></strong>   <em>Class</em>   Returns the class returned from the kit.build() tail call.</div></div></div>",
+                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Scope</div><div class=\"section-content\">   <em>local</em></div></div><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Imports a kit for later use in building class objects</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>boolean|table|nil</em></strong>   <em>vLimitationsOrFinal</em>   A boolean value indicating whether this class is final, nil indicating false, or a numerically-indexed table of strings whose values are class names to which subclasses should be limited.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>interface|nil</em></strong>   <em>The</em>   interface(s) this class implements (or nil, if none). This is a cararg table, so many or none may be entered.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>class|nil</em></strong>   <em>cExtendor</em>   The parent class from which this class ischild (if any). If there is no parent class, this argument should be nil.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>string</em></strong>   <em>sName</em>   The name of the class kit. This must be a unique, variable-compliant name.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tPublic</em>   A table containing all public class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tPrivate</em>   A table containing all private class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tProtected</em>   A table containing all protected class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tMetamethods</em>   A table containing all class metamethods.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tStaticPublic</em>   A table containing all static public class members.</div></div><div class=\"custom-section\"><div class=\"section-title\">Return</div><div class=\"section-content\">   <strong><em>class</em></strong>   <em>Class</em>   Returns the class returned from the kit.build() tail call.</div></div></div>",
                         "subtable": null
                     },
                     "getDirectiveInfo": {
@@ -940,6 +954,10 @@
                     },
                     "processDirectives": {
                         "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Scope</div><div class=\"section-content\">   <em>local</em></div></div><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Prepares all directives dictated by the class.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tKit</em>   The kit upon which to operate.</div></div></div>",
+                        "subtable": null
+                    },
+                    "processFinality": {
+                        "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Scope</div><div class=\"section-content\">   <em>local</em></div></div><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   Determines whether the class is final or limited and, if so, sets the limitations or finality.</div></div><div class=\"custom-section\"><div class=\"section-title\">Parameter</div><div class=\"section-content\">   <strong><em>table</em></strong>   <em>tKit</em>   The kit to check.</div></div></div>",
                         "subtable": null
                     },
                     "processInitialIsAChecks": {
@@ -973,6 +991,10 @@
                     }
                 }
                 }
+            },
+            "null": {
+                "value": "<div class=\"container-fluid\"><div class=\"custom-section\"><div class=\"section-title\">Description</div><div class=\"section-content\">   <p>The null value...\n    </p></div></div></div>",
+                "subtable": null
             }
             }
         },

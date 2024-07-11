@@ -1,7 +1,7 @@
 --[[!
-    @fqxn LuaEx.CoG.ItemSystem.Inventory
-    @desc A child of the ItemSlotManager, <b>Inventory</b> is meant to provide items management for <a href="#LuaEx.CoG.Actor">Actors</a>.
-    @parent <a href="#LuaEx.CoG.ItemSystem.ItemSlotManager">ItemSlotManager</a>
+    @fqxn LuaEx.CoG.Systems.ItemSystem.Inventory
+    @desc A child of the <a href="#LuaEx.CoG.Systems.ItemSystem.ItemSlotManager">ItemSlotManager</a>, <b>Inventory</b> is meant to provide items management for <a href="#LuaEx.CoG.Actor">Actors</a>.
+    @parent <a href="#LuaEx.CoG.Systems.ItemSystem.ItemSlotManager">ItemSlotManager</a>
 !]]
 return class("Inventory",
 {--METAMETHODS
@@ -22,7 +22,7 @@ return class("Inventory",
         --cdat.pro.owner = oOwner;
     end,
 },
-ItemSlotSystem,   --extending class
+ItemSlotManager,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

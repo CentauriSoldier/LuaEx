@@ -1,5 +1,5 @@
 --[[!
-    @fqxn LuaEx.CoG.Entity
+    @fqxn LuaEx.CoG.Classes.Entity
     @desc This is the base class for all support classes which are intended to provide additional functionality to Actor and Object classes and subclasses.
     @parent <a href="#LuaEx.CoG.CoG">CoG</a>
 !]]

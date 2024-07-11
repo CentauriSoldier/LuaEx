@@ -1,5 +1,5 @@
 --[[!
-    @fqxn LuaEx.CoG.ItemSystem.Item
+    @fqxn LuaEx.CoG.Systems.ItemSystem.Item
     @desc STUFF HERE
     @parent <a href="#LuaEx.CoG.Object">Object</a>
 !]]
@@ -22,13 +22,12 @@ return class("Item",
 {--PROTECTED
     Item = function(this, cdat, super)
         super();
-
     end,
 },
 {--PUBLIC
 
 },
-Object,   --extending class
+Integrator,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

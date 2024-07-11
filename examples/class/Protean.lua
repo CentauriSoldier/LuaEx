@@ -55,13 +55,17 @@ oProtean1.setValue(20);
 --write a for loop from 1 to 20
 
 oProtean1.setValue(Protean.MULTIPLICATIVE_PENALTY, 0.46);
---local n  = Being(Actor.TYPE.NATURAL, Actor.COMPOSITION.ORGANIC);
+local a  = Actor();
 
 --print(n.getHealthPool().get())
 --print(Boots == Pool)
 local oFeet     = ItemSlot("Feet", {Boots});
-local k = Boots();
-print()
+--for x = 1, 40000 do
+--local k = Boots();
+local i = ItemSlotManager();
+
+
+--end
 --oFeet.setLocked(true)
 --oFeet.setItem(k)
 --oFeet.removeItem();

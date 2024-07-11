@@ -1,7 +1,7 @@
 --TODO LOCALIZATION
 
 --[[!
-@fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Functions
+@fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Functions
 @desc TODO
 @ex TODO
 !]]
@@ -25,7 +25,7 @@ end
 
 
 --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager
     @desc STUFF HERE
     @parent <a href="#LuaEx.CoG.Component">Component</a>
 !]]
@@ -44,23 +44,23 @@ return class("ItemSlotManager",
 },
 {--PUBLIC
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.ItemSlotManager
-    @desc The constructor for the <b>ItemSlotManager</b>. It's designed to be subclassed by classes such as <a href="#LuaEx.CoG.ItemSystem.Inventory">Inventory</a> and <a href="#LuaEx.CoG.ItemSystem.Container">Container</a>.
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.ItemSlotManager
+    @desc The constructor for the <b>ItemSlotManager</b>. It's designed to be subclassed by classes such as <a href="#LuaEx.CoG.Systems.ItemSystem.Inventory">Inventory</a> and <a href="#LuaEx.CoG.Systems.ItemSystem.Container">Container</a>.
     @param Actor|Object oActor|oObject T
     @ex TODO
     !]]
-    ItemSlotManager = function(this, cdat, super, tItemSlots, bPermitActor, bPermitEntity, bPermitObject)
-        super(bPermitActor, bPermitEntity, bPermitObject);
+    ItemSlotManager = function(this, cdat, super, tItemSlots, bPermitActor, bPermitComponent, bPermitObject)
+        super(bPermitActor, bPermitComponent, bPermitObject);
 
-        if not (cOwner) then
+        --[[if not (cOwner) then
             error("Error creating ItemSlotManager.\nOwner must be an instance of a class. Got type "..type(oOwner)..".");
         end
 
         if not (class.ischildorself(cOwner, Actor) or class.ischildorself(cOwner, ContainerObject) ) then
             error("Error creating ItemSlotManager.\nOwner must be an instance of an Actor or Object class or subclass. Got "..tostring(cOwner)..".");
-        end
+        end]]
 
-        cdat.pro.owner = oOwner;
+        --cdat.pro.owner = oOwner;
 
         if (rawtype(tItemSlots) == "table") then
 
@@ -78,7 +78,7 @@ return class("ItemSlotManager",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.addItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.addItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -88,7 +88,7 @@ return class("ItemSlotManager",
         tItemSlots[#tItemSlots + 1] = oSlot;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.containsItem
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItem
     @desc TODO
     @ex TODO
     !]]
@@ -110,7 +110,7 @@ return class("ItemSlotManager",
         return bRet, nRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.containsItemAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -129,7 +129,7 @@ return class("ItemSlotManager",
         return bRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.containsItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -151,7 +151,7 @@ return class("ItemSlotManager",
         return bRet, nRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.containsItemSlotAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItemSlotAt
     @desc TODO
     @ex TODO
     !]]
@@ -162,7 +162,7 @@ return class("ItemSlotManager",
         return tItemSlots[nIndex] and tItemSlots[nIndex] == oSlot or false;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.eachItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.eachItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -183,7 +183,7 @@ return class("ItemSlotManager",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.getItemAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -199,7 +199,7 @@ return class("ItemSlotManager",
         return bRet
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.getItemCount
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemCount
     @desc TODO
     @ex TODO
     !]]
@@ -217,7 +217,7 @@ return class("ItemSlotManager",
         return nRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.getItemSlotAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemSlotAt
     @desc TODO
     @ex TODO
     !]]
@@ -225,8 +225,8 @@ return class("ItemSlotManager",
         return cdat.pro.itemSlots[nIndex] or nil;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.getItemSlotCount
-    @desc Gets the total number of <a href="#LuaEx.CoG.ItemSystem.ItemSlot">ItemSlots</a>.
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemSlotCount
+    @desc Gets the total number of <a href="#LuaEx.CoG.Systems.ItemSystem.ItemSlot">ItemSlots</a>.
     @ret number nItemSlots The total number of <b>ItemSlots</b>.
     @ex local nItemSlots = oItemSlotManager.getItemSlotCount();
     !]]
@@ -234,7 +234,7 @@ return class("ItemSlotManager",
         return #cdat.pro.itemSlots;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.getOwner
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getOwner
     @desc TODO
     @ex TODO
     !]]
@@ -242,7 +242,7 @@ return class("ItemSlotManager",
         return cdat.pro.owner;
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.removeItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.removeItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -253,7 +253,7 @@ return class("ItemSlotManager",
         table.remove(tItemSlots, nIndex);
     end,
     --[[!
-    @fqxn LuaEx.CoG.ItemSystem.ItemSlotManager.Methods.swapItems
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.swapItems
     @desc TODO
     @ex TODO
     !]]
@@ -283,7 +283,7 @@ return class("ItemSlotManager",
         return this, bRet;
     end,
 },
-Component,--extending class
+Entity,--extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
