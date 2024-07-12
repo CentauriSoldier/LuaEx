@@ -1,30 +1,30 @@
 --[[!
     @fqxn LuaEx.CoG.Systems.AStar
-    @desc <p>AStar is an versatile A* pathfinding system designed for game detailed development.
+    @desc <p>AStar is an versatile A* pathfinding system designed for detailed game development.
     It has weighted <a href="#LuaEx.CoG.Classes.AStarNode">Nodes</a> that respond to the
     <a href="#LuaEx.CoG.Classes.AStarRover">Rovers</a> moving through them. That is, a
     <b>Node's</b> weight is based not only on the <b>Node</b> properties but also on the
-    <b>Rover's</a> affinities or aversions to that node.
-    <br>For example, a human waling on solid, flat ground would move much faster than if he were
+    <b>Rover's</b> affinities or aversions to that node.
+    <br>For example, a human walking on solid, flat ground would move much faster than if he were
     walking on a muddy slope.
     <br><br>
     The system uses various private, public and publicly-available classes.
     <h4>Private Classes</h4>
     <ul>
-        <li><a href="#LuaEx.CoG.Classes.AStarAspect">AStarAspect</li>
-        <li><a href="#LuaEx.CoG.Classes.AStarLayer">AStarLayer</li>
-        <li><a href="#LuaEx.CoG.Classes.AStarMap">AStarMap</li>
-        <li><a href="#LuaEx.CoG.Classes.AStarNode">AStarNode</li>
-        <li><a href="#LuaEx.CoG.Classes.AStarRover">AStarRover</li>
+        <li><a href="#LuaEx.CoG.Classes.AStarAspect">AStarAspect</a></li>
+        <li><a href="#LuaEx.CoG.Classes.AStarLayer">AStarLayer</a></li>
+        <li><a href="#LuaEx.CoG.Classes.AStarMap">AStarMap</a></li>
+        <li><a href="#LuaEx.CoG.Classes.AStarNode">AStarNode</a></li>
+        <li><a href="#LuaEx.CoG.Classes.AStarRover">AStarRover</a></li>
     </ul>
     <h4>Public Classes</h4>
     <ul>
-        <li><a href="#LuaEx.CoG.Classes.AStar">AStar</li>
+        <li><a href="#LuaEx.CoG.Classes.AStar">AStar</a></li>
     </ul>
     <h4>Publicly-available Classes</h4>
     <ul>
-        <li><a href="#LuaEx.CoG.Classes.AStarLayerConfig">AStarLayerConfig</li>
-        <li><a href="#LuaEx.CoG.Classes.AStarPath">AStarPath</li>
+        <li><a href="#LuaEx.CoG.Classes.AStarLayerConfig">AStarLayerConfig</a></li>
+        <li><a href="#LuaEx.CoG.Classes.AStarPath">AStarPath</a></li>
     </ul>
     These two classes are available in <b>AStar's</b> static public table.
     <b>AStar.LayerConfig</b>

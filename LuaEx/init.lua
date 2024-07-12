@@ -273,6 +273,8 @@ if (tClassLoadValues[_nClassSystem]) then
                     Item            = require(pCoG..".Item");
                     Structure       = require(pCoG..".Structure");
 
+                    AStar           = require(pCoG..".AStar");
+
                     local pEntities     = pCoG..".Entities";
                     local pComponents   = pCoG..".Components";
                     local pActors       = pCoG..".Actors";
