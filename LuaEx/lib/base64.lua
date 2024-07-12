@@ -13,7 +13,16 @@ local table     = table;
 -- Character table string
 local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
--- Function to encode data
+--[[!
+    @fqxn LuaEx.Libraries.base64.enc
+    @desc Encodes a string to Base64.
+    @param string sInput The sting to encode.
+    @ret string sEncoded The encoded Base64 string.
+    @ex
+    local sText     = "I really like apples but only the glowing, purple ones.";
+    local sEncoded  = base64.enc(sText);
+    print(sEncoded) --> SSByZWFsbHkgbGlrZSBhcHBsZXMgYnV0IG9ubHkgdGhlIGdsb3dpbmcsIHB1cnBsZSBvbmVzLg==
+!]]
 function base64.enc(data)
     return ((data:gsub('.', function(x)
         local r, b = '', x:byte()
@@ -27,7 +36,20 @@ function base64.enc(data)
     end) .. ({ '', '==', '=' })[#data % 3 + 1])
 end
 
--- Function to decode data
+
+--[[!
+    @fqxn LuaEx.Libraries.base64.enc
+    @desc Encodes a string to Base64.
+    @param string sInput The sting to encode.
+    @ret string sEncoded The encoded Base64 string.
+    @ex
+    local sText     = "I really like apples but only the glowing, purple ones.";
+    local sEncoded  = base64.enc(sText);
+    print(sEncoded) --> SSByZWFsbHkgbGlrZSBhcHBsZXMgYnV0IG9ubHkgdGhlIGdsb3dpbmcsIHB1cnBsZSBvbmVzLg==
+    local sDecoded  = base64.dec(sEncoded);
+    print(sDecoded) --> I really like apples but only the glowing, purple ones.
+    print (sText == sDecoded) --> true
+!]]
 function base64.dec(data)
     data = string.gsub(data, '[^' .. b .. '=]', '')
     return (data:gsub('.', function(x)
@@ -43,4 +65,4 @@ function base64.dec(data)
     end))
 end
 
-return base64
+return base64;
