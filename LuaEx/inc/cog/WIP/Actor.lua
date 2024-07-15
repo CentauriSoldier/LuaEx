@@ -22,29 +22,22 @@ return class("Actor",
 
 },
 {--PROTECTED
-    --inventory            = null,
+    --TODO DOCS
     HealthPool__autoRA   = null,
+    Inventory__autoRA    = null,
     Name__auto_F         = "",
     Targetor__autoRA     = null,--TODO add this!!!,
 
 },
 {--PUBLIC
-    Actor = function(this, cdat, super)--sName, eAlliance, eClass, eComposition, eType)
-        super(Actor);
-        --type.assert.custom(eType, "Actor.TYPE");
-        --type.assert.custom(eComposition, "Actor.COMPOSITION");
+    Actor = function(this, cdat)
         local pro = cdat.pro;
-
         pro.HealthPool = Pool(1, 1);
-        local oInventory = ItemSlotManager();
-
-        cdat.pro.components.Inventory = oInventory;
+        cdat.pro.Inventory = ItemSlotManager();
+        --TODO targetor
     end,
-    log = function(this, cdat, val)
-        cdat.pro.log = val;
-    end
 },
-Integrator,   --extending class
+nil,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

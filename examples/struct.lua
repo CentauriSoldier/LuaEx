@@ -49,7 +49,7 @@ end
     existing factory for that subtype, changing a read-only struct, creating
     read-only structs with null values, etc. to see error messages for those
     activities.
-]]
+
 
 
 --create a mutable bullet struct table
@@ -104,3 +104,17 @@ print("\n\nBullet #1 Serialized:\n", zBullet1);
 --deserialize it (creating a new struct object) and show it's type and details
 local oBullet1Deserialized = deserialize(zBullet1);
 print("\n\nBullet #1 Deserialized:\n", "type: "..type(oBullet1Deserialized).."\n", oBullet1Deserialized);
+]]
+
+local XP = XPTracker(XPTracker.TYPE.LINEAR, 256, 256, 256);
+--print("XP: -> "..XP.getXPProtean().setValue(240).getValue())
+--print("Level: -> "..XP.getLevel())
+
+--for k, v in XP.XPBoundsIterator() do
+--print(k, v)
+--end
+XP.setCallback(function(this, nOldLevel, nNewLevel, nFinalXP)
+    print("New Level! -> "..this.getLevel(), nOldLevel, nNewLevel, nFinalXP)
+end)
+XP.getXPProtean().setValue(950)
+--print(XP.getXPRequired(3))

@@ -253,7 +253,7 @@ local targetor = class "targetor" {
 		local tArgs = arg or {...};
 
 	end,
-	--[[!
+	--[[#
 	@module targetor
 	@func __add
 	@scope local
@@ -303,7 +303,7 @@ local targetor = class "targetor" {
 
 		return oRet;
 	end,
-	--[[!
+	--[[$
 	@module targetor
 	@func __sub
 	@scope local
@@ -353,7 +353,7 @@ local targetor = class "targetor" {
 
 		return oRet;
 	end,
-	--[[!
+	--[[#
 	@module targetor
 	@func __lt
 	@desc <p>Determines whether the right object can target the left (or, if using the greater-than symbol, whether the left can target the right).
@@ -432,7 +432,7 @@ local function initInputIsValid(tInput)
 	return bCont, sError;
 end
 
---[[!
+--[[#@
 @module targetor
 @func init
 @scope global

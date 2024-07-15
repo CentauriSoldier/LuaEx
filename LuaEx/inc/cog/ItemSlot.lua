@@ -172,7 +172,7 @@ return class("ItemSlot",
         return bRet;
     end,
 },
-Entity,   --extending class
+nil,   --extending class
 true, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

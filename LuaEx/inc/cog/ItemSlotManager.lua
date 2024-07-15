@@ -45,22 +45,10 @@ return class("ItemSlotManager",
 {--PUBLIC
     --[[!
     @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.ItemSlotManager
-    @desc The constructor for the <b>ItemSlotManager</b>. It's designed to be subclassed by classes such as <a href="#LuaEx.CoG.Systems.ItemSystem.Inventory">Inventory</a> and <a href="#LuaEx.CoG.Systems.ItemSystem.Container">Container</a>.
-    @param Actor|Object oActor|oObject T
+    @desc The constructor for the <b>ItemSlotManager</b>.
     @ex TODO
     !]]
-    ItemSlotManager = function(this, cdat, super, tItemSlots, bPermitActor, bPermitComponent, bPermitObject)
-        super(bPermitActor, bPermitComponent, bPermitObject);
-
-        --[[if not (cOwner) then
-            error("Error creating ItemSlotManager.\nOwner must be an instance of a class. Got type "..type(oOwner)..".");
-        end
-
-        if not (class.ischildorself(cOwner, Actor) or class.ischildorself(cOwner, ContainerObject) ) then
-            error("Error creating ItemSlotManager.\nOwner must be an instance of an Actor or Object class or subclass. Got "..tostring(cOwner)..".");
-        end]]
-
-        --cdat.pro.owner = oOwner;
+    ItemSlotManager = function(this, cdat, super, tItemSlots)
 
         if (rawtype(tItemSlots) == "table") then
 
@@ -283,7 +271,7 @@ return class("ItemSlotManager",
         return this, bRet;
     end,
 },
-Entity,--extending class
-false, --if the class is final
-nil    --interface(s) (either nil, or interface(s))
+nil,    --extending class
+false,  --if the class is final
+nil     --interface(s) (either nil, or interface(s))
 );

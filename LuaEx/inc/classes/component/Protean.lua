@@ -288,7 +288,7 @@ end
     @param nLinkerID
     @scope local
 ]]
-local function setValue(this, cdat, nType, nValue)
+local function setValue(this, cdat, nType, nValue)--TODO send old and new final values through callback
     local pri = cdat.pri;
     local bCalculated 		= false;
     local bCallbackCalled 	= false;
@@ -358,7 +358,7 @@ end
 return class("Protean",
 {--METAMETHODS
     __clone = function(this, cdat)
-        
+
     end,
     --[[
     @desc Serializes the object's data. Note: This does NOT serialize callback functions.
@@ -507,6 +507,7 @@ return class("Protean",
     autoCalculate		= true,
     onChange            = onChangePlaceHolder,
     isCallbackActive    = false,
+    isCallbackLocked    = false,
     values = {
         [_nValueBase]       = 0,
         [_nValueFinal]      = 0, --this is (re)calcualted whenever another item is changed
@@ -676,11 +677,18 @@ return class("Protean",
         return cdat.pri.isCallbackActive;
     end,
 
+    isCallbackLocked = function(this, cdat)
+        return cdat.pri.isCallbackLocked;
+    end,
+
     --@fqxn LuaEx.Classes.Component.Protean
     isLinked = function(this, cdat)
         return cdat.pri.isLinked;
     end,
 
+    lockCallback = function(this, cdat)
+        cdat.pri.isCallbackLocked = true;
+    end,
 
     --[[!
         @fqxn LuaEx.Classes.Component.Protean.setAutoCalculate
@@ -703,6 +711,10 @@ return class("Protean",
     setCallback = function(this, cdat, fCallback, bDoNotSetActive)
         local pri = cdat.pri;
 
+        if (pri.isCallbackLocked) then
+            error("Error setting Protean callback function.\nCallback is locked.");
+        end
+
         if (rawtype(fCallback) == "function") then
             pri.onChange 			= fCallback;
             pri.isCallbackActive 	= not (rawtype(bDoNotSetActive) == "boolean" and bDoNotSetActive or false);
@@ -722,7 +734,7 @@ return class("Protean",
         @param bActive boolean A boolean value indicating whether or no the callback function should be called.
         @return oProtean Protean This Protean object.
     !]]
-    setCallbackActive = function(this, cdat, bFlag)
+    setCallbackActive = function(this, cdat, bFlag)--TODO check for locked --port over to XPTracker
         local pri = cdat.pri;
 
         if (rawtype(bFlag) == "boolean") then

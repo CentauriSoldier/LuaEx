@@ -248,6 +248,12 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
 
             return rawget(tItemActual, vKey);
         end
+        tItemMeta.__clone       = function()
+            return tItemDecoy;
+        end
+        tItemMeta.__serialize       = function()
+            return sEnumName..'.'..sItem;
+        end
 
         --set the item's metatable
         setmetatable(tItemDecoy, tItemMeta);
@@ -330,9 +336,6 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
     tEnumActual.random = function()
         return tEnumActual[tItemsByOrdinal[math.random(1, nItemCount)]];
     end
-    tEnumActual.serialize = function()
-        return sEnumName;
-    end
     tEnumActual.totable = function(vInputValue)
         local tRet 				= {};
         local bUseInputValue 	= type(vInputValue) ~= "nil";
@@ -378,6 +381,9 @@ local function configureEnum(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdinal
         __clone     = function() return tEnumDecoy; end,--TODO MAke sure this works as expected and make sure the enum and items have a clone metamethod
         __tostring 	= function() return sFormattedEnumName; end,
         __len		= function() return  nItemCount end,
+        --__serialize = function()
+        --    return sEnumName;
+        --end,
         __type		= "enum",
     });
 
@@ -497,7 +503,7 @@ end
 
 local tEnumFactoryActual = {
     --fromtable = fromtable,
-    prep = prep,
+    --prep = prep,
 };
 local tEnumFactoryDecoy  = {};
 local tEnumFactoryMeta   = {

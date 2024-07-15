@@ -20,14 +20,14 @@ return class("Item",
 
 },
 {--PROTECTED
-    Item = function(this, cdat, super)
-        super();
+    Item = function(this, cdat)
+
     end,
 },
 {--PUBLIC
 
 },
-Integrator,   --extending class
+nil,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

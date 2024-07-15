@@ -3,20 +3,20 @@ return class("Vehicle",
 
 },
 {--STATIC PUBLIC
-    --MyClass = function(stapub) end,
+    --Vehicle = function(stapub) end,
 },
 {--PRIVATE
 
 },
 {--PROTECTED
-    MyClass = function(this, cdat, super, eType, eComposition)
+    Vehicle = function(this, cdat, super, eType, eComposition)
         super(eType, eComposition);
     end,
 },
 {--PUBLIC
 
 },
-Actor,   --extending class
+nil,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
