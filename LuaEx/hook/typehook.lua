@@ -204,10 +204,10 @@ local type = {
 
                 --check number line position
                 if (bErrorNegative and vInput < 0) then
-                    sError = sError.."\nNumber must be positive.";
+                    sError = sError.."\nNumber must be non-negative.";
                     bError = true;
                 elseif (bErrorPositive and vInput > 0) then
-                    sError = sError.."\nNumber must be negative.";
+                    sError = sError.."\nNumber must be non-positive.";
                     bError = true;
                 elseif (bErrorZero and vInput == 0) then
                     sError = sError.."\nNumber must not be zero.";
@@ -227,12 +227,12 @@ local type = {
 
                 --check range
                 if (nMin and vInput < nMin) then
-                    sError = sError.."\nNumber must greater than or equal to "..nMin..".";
+                    sError = sError.."\nNumber must be greater than or equal to "..nMin..".";
                     bError = true;
                 end
 
                 if (nMax and vInput > nMax) then
-                    sError = sError.."\nNumber must less than or equal to "..nMax..".";
+                    sError = sError.."\nNumber must be less than or equal to "..nMax..".";
                     bError = true;
                 end
 

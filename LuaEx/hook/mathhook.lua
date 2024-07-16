@@ -1,6 +1,8 @@
 local math      = math;
 local rawtype   = rawtype;
 
+math.e = math.exp(1);
+
 --local constant = _G.__LUAEX__.constant;
 --constant("MATH_ARL", 	"all real numbers");
 --constant("MATH_UNDEF", 	"undefined");

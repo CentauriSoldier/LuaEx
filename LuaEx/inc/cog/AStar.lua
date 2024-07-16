@@ -108,8 +108,6 @@ local AStarUtil;
 local DEFAULT_ASPECT_IMPACTOR_BASE_VALUE = 1;
 
 
-
-
 AStarUtil = {
     clampNodeEntryCost = function(nValue)
            local nRet 	= nValue 	>= ASTAR_NODE_ENTRY_COST_MIN and nValue or ASTAR_NODE_ENTRY_COST_MIN;

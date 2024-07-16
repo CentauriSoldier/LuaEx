@@ -22,7 +22,7 @@ local _tClassRequirements   = {
 
 
 --🆂🆃🅰🆁🆃 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂-----------------------------------------------
-_bRunDoxOnLuaEx = true;--set this to false in production environments
+_bRunDoxOnLuaEx = false;--set this to false in production environments
 
 --[[🅲🅻🅰🆂🆂 🅻🅾🅰🅳 🆅🅰🅻🆄🅴🆂
 🅽🅾🆃🅴: setting a Class Load Value
@@ -275,7 +275,7 @@ if (tClassLoadValues[_nClassSystem]) then
                     ItemSlot        = require(pCoG..".ItemSlot");
                     ItemSlotManager = require(pCoG..".ItemSlotManager");
 
-                    XPTracker               = require(pCoG..".XPTracker");
+                    XPSystem               = require(pCoG..".XPSystem");
                 end
 
             end

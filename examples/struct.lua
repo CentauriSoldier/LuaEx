@@ -106,15 +106,30 @@ local oBullet1Deserialized = deserialize(zBullet1);
 print("\n\nBullet #1 Deserialized:\n", "type: "..type(oBullet1Deserialized).."\n", oBullet1Deserialized);
 ]]
 
-local XP = XPTracker(XPTracker.TYPE.LINEAR, 256, 256, 256);
+local XP = XPSystem(XPSystem.TYPE.LINEAR, 100, 10, 150, 3);
+
+--XP.setType(XPSystem.TYPE.STEP);
+
+for k, v in XP.XPBoundsIterator() do
+    --print(k, v)
+end
+
+XP.setCallback(function(this, nOldLevel, nNewLevel, nFinalXP)
+    print("New Level! -> "..this.getLevel(), nOldLevel, nNewLevel, nFinalXP)
+end)
+
 --print("XP: -> "..XP.getXPProtean().setValue(240).getValue())
+--XP.getXPProtean().setValue(500)
+print(XP.getLevel())
+XP.setLevel(10);
+print(XP.getLevel())
+print(XP.getXPProtean().getValue())
+
 --print("Level: -> "..XP.getLevel())
 
 --for k, v in XP.XPBoundsIterator() do
 --print(k, v)
 --end
-XP.setCallback(function(this, nOldLevel, nNewLevel, nFinalXP)
-    print("New Level! -> "..this.getLevel(), nOldLevel, nNewLevel, nFinalXP)
-end)
-XP.getXPProtean().setValue(950)
+
+--XP.getXPProtean().setValue(950)
 --print(XP.getXPRequired(3))
