@@ -22,7 +22,7 @@ local _tClassRequirements   = {
 
 
 --🆂🆃🅰🆁🆃 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂-----------------------------------------------
-_bRunDoxOnLuaEx = false;--set this to false in production environments
+_bRunDoxOnLuaEx = true;--set this to false in production environments
 
 --[[🅲🅻🅰🆂🆂 🅻🅾🅰🅳 🆅🅰🅻🆄🅴🆂
 🅽🅾🆃🅴: setting a Class Load Value
@@ -263,6 +263,8 @@ if (tClassLoadValues[_nClassSystem]) then
 
                 if (tClassLoadValues[_nCoGClasses]) then
                     local pCoG = "LuaEx.inc.cog";
+
+                    RNG             = require(pCoG..".RNG");
 
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");

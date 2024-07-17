@@ -500,14 +500,15 @@ return class("Protean",
     end,
 },
 {--PRIVATE
-    limitMin            = false,
-    limitMax            = false,
-    linkerID			= -1,
-    isLinked			= false, --for fast queries
-    autoCalculate		= true,
-    onChange            = onChangePlaceHolder,
-    isCallbackActive    = false,
-    isCallbackLocked    = false,
+    limitMin                = false,
+    limitMax                = false,
+    linkerID			    = -1,
+    isLinked			    = false, --for fast queries
+    autoCalculate		    = true,
+    onChange                = onChangePlaceHolder,
+    isCallbackActive        = false,
+    isCallbackLocked        = false,
+    isCallbackToggleLocked  = false,
     values = {
         [_nValueBase]       = 0,
         [_nValueFinal]      = 0, --this is (re)calcualted whenever another item is changed
@@ -681,6 +682,10 @@ return class("Protean",
         return cdat.pri.isCallbackLocked;
     end,
 
+    isCallbackToggleLocked = function(this, cdat)
+        return cdat.pri.isCallbackToggleLocked;
+    end,
+
     --@fqxn LuaEx.Classes.Component.Protean
     isLinked = function(this, cdat)
         return cdat.pri.isLinked;
@@ -688,6 +693,10 @@ return class("Protean",
 
     lockCallback = function(this, cdat)
         cdat.pri.isCallbackLocked = true;
+    end,
+
+    lockCallbackToggle = function(this, cdat)
+        cdat.pri.isCallbackToggleLocked = true;
     end,
 
     --[[!
@@ -734,8 +743,12 @@ return class("Protean",
         @param bActive boolean A boolean value indicating whether or no the callback function should be called.
         @return oProtean Protean This Protean object.
     !]]
-    setCallbackActive = function(this, cdat, bFlag)--TODO check for locked --port over to XPTracker
+    setCallbackActive = function(this, cdat, bFlag)
         local pri = cdat.pri;
+
+        if (pri.isCallbackToggleLocked) then
+            error("Error enabling/disabling Protean callback function.\nCallback toggling is locked.");
+        end
 
         if (rawtype(bFlag) == "boolean") then
 

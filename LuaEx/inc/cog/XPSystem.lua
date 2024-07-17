@@ -40,16 +40,17 @@ return class("XPSystem",
 },
 {--PRIVATE
     --CurrentXP__autoAF             = 0,
-    levelOneXP__RO                  = null,
+    levelOneXP__RO                  = null,--TODO allow changing this too
     levelBounds                     = {},
     levelBoundsCount                = 0,
-    MaxLevel__autoAA                = 1,--QUESTION allow this to be changed?
+    MaxLevel__autoAA                = 1,
     onChange                        = null,
     IsCallbackActive__autoAA        = false,
     IsCallbackLocked__autoAA        = false,
-    Progression__autoAA        = 0,
+    IsCallbackToggleLocked__autoAA  = false,
+    Progression__autoAA             = 0,
     StepSize__autoAA                = 0,
-    Type__autoAA                    = null,--QUESTION allow this to be changed?
+    Type__autoAA                    = null,
 
     calculateLevelBounds = function(this, cdat)
         local pri          = cdat.pri;
@@ -99,8 +100,8 @@ return class("XPSystem",
 },
 {--PUBLIC
     XPSystem = function(this, cdat, eType, nLevelOneXP, nMaxlevel, nProgression, nStepSize)
-        local pri = cdat.pri;
-        local pro = cdat.pro;
+        local pri           = cdat.pri;
+        local pro           = cdat.pro;
         local eTrackerType  = XPSystem.TYPE;
 
         --safety defaults for potentially-nil parameters
@@ -192,6 +193,13 @@ return class("XPSystem",
 
         return nRet;
     end,
+    lockCallback = function(this, cdat)
+        cdat.pri.isCallbackLocked = true;
+    end,
+
+    lockCallbackToggle = function(this, cdat)
+        cdat.pri.isCallbackToggleLocked = true;
+    end,
     setCallback = function(this, cdat, fCallback, bDoNotSetActive)
         local pri = cdat.pri;
 
@@ -206,6 +214,25 @@ return class("XPSystem",
         else
             pri.onChange 			= nil;
             pri.IsCallbackActive	= false;
+        end
+
+        return this;
+    end,
+    setCallbackActive = function(this, cdat, bFlag)
+        local pri = cdat.pri;
+
+        if (pri.isCallbackToggleLocked) then
+            error("Error enabling/disabling XPSystem callback function.\nCallback toggling is locked.");
+        end
+
+        if (rawtype(bFlag) == "boolean") then
+
+            if (rawtype(pri.onChange) == "function" and pri.onChange ~= onChangePlaceHolder) then
+                pri.isCallbackActive = bFlag;
+            end
+
+        else
+            pri.isCallbackActive = false;
         end
 
         return this;

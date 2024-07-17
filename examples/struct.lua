@@ -120,10 +120,10 @@ end)
 
 --print("XP: -> "..XP.getXPProtean().setValue(240).getValue())
 --XP.getXPProtean().setValue(500)
-print(XP.getLevel())
-XP.setLevel(10);
-print(XP.getLevel())
-print(XP.getXPProtean().getValue())
+--print(XP.getLevel())
+--XP.setLevel(10);
+--print(XP.getLevel())
+--print(XP.getXPProtean().getValue())
 
 --print("Level: -> "..XP.getLevel())
 
@@ -133,3 +133,8 @@ print(XP.getXPProtean().getValue())
 
 --XP.getXPProtean().setValue(950)
 --print(XP.getXPRequired(3))
+
+for x = 1, 4 do
+    local k, t, v = RNG.rollPercentage(1, 3);
+    print(k, t, v);
+end
