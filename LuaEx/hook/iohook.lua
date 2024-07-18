@@ -551,4 +551,20 @@ end
 io.dirFind = io.dirList
 io.fileFind = io.fileList
 
+
+
+
+function io.getuserdir()
+    local home = os.getenv("HOME")
+    if not home then
+        home = os.getenv("USERPROFILE")
+    end
+    return home
+end
+
+
+
+
+
+
 return io;

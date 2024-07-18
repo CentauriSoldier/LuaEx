@@ -9,10 +9,10 @@ local oItemPlaceholder;
     @desc Designed
 !]]
 local function isAllowedItem(this, cdat, vInput)
-    local bRet  = class.isinstance(vInput);
+    local bRet  = false;
     local pro   = cdat.pro;
 
-    if (bRet) then
+    if (class.isinstance(vInput)) then
 
         for _, cType in pairs(pro.allowedTypes) do
             local cInput = class.of(vInput);
@@ -49,21 +49,19 @@ return class("ItemSlot",
 {--PROTECTED
     allowedTypes        = {},
     Enabled__auto_Fis   = true,
-    item                = oItemPlaceholder,
+    item                = null,--oItemPlaceholder,
     Locked__auto_Fis    = false,
     Name__autoAF        = "",
     Occupied__autoAAis  = false,
     Owner__auto_F       = null,--TODO set
 },
 {--PUBLIC
-    ItemSlot = function(this, cdat, super, sName, tAllowedTypes)
-        super(false, true, false, false);
-
-        ---cdat.pri.placeholderItem = Item();
-        type.assert.string(sName, "%S+", "ItemSlot name cannot be blank.");
+    ItemSlot = function(this, cdat, tAllowedTypes)
         local pro = cdat.pro;
+        ---cdat.pri.placeholderItem = Item();
+        --type.assert.string(sName, "%S+", "ItemSlot name cannot be blank.");
 
-        pro.Name = sName;
+        --pro.Name = sName;
 
         if (rawtype(tAllowedTypes) == "table") then
 
@@ -74,8 +72,8 @@ return class("ItemSlot",
                 --check only class input
                 if (class.is(cItemClass)) then
 
-                    --process only the Item class or its subclasses
-                    if (cItemClass == Item or class.ischild(cItemClass, Item)) then
+                    --process only the BaseItem class or its subclasses
+                    if (cItemClass == BaseItem or class.ischild(cItemClass, BaseItem)) then
                         pro.allowedTypes[#pro.allowedTypes + 1] = cItemClass;
 
                     else--throw error if there's a type mismatch
@@ -89,27 +87,27 @@ return class("ItemSlot",
                 end
 
                 if (bError) then
-                    error("Error creating ItemSlot.\nAllowed types must be of type Item (or Item subclass). Got type: "..sTypeError, 3);
+                    error("Error creating ItemSlot.\nAllowed types must be of type BaseItem (or BaseItem subclass). Got type: "..sTypeError, 3);
                 end
 
             end
 
         end
 
-        --default to Item if no allowed types were provided
+        --default to BaseItem if no allowed types were provided
         if (#pro.allowedTypes < 1) then
-            pro.allowedTypes[1] = ItemSlot;
+            pro.allowedTypes[1] = BaseItem;--ItemSlot;
         end
 
     end,
 
 
-    getItem__FNL = function(this, cdat)
+    get__FNL = function(this, cdat)
         local pro = cdat.pro;
         return pro.Occupied and pro.item or nil;
     end,
 
-    removeItem__FNL = function(this, cdat)
+    remove__FNL = function(this, cdat)
         local pro   = cdat.pro;
         local bRet  = not pro.Locked and pro.Occupied;
 
@@ -123,11 +121,11 @@ return class("ItemSlot",
 
 
 
-    setItem__FNL = function(this, cdat, vItem, bForceRemoval)
+    set__FNL = function(this, cdat, vItem, bForceRemoval)
         local pro = cdat.pro;
 
         if not (isAllowedItem(this, cdat, vItem)) then
-            error("Error adding Item to ItemSlot. Not an Item or Item type not allowed.");
+            error("Error adding item to ItemSlot. Not a BaseItem, or, type not allowed.");
         end
 
         local bRet = not pro.Locked and (not pro.Occupied or bForceRemoval);
@@ -138,38 +136,6 @@ return class("ItemSlot",
         end
 
         return this, bRet;
-    end,
-
-    equip = function(this, oCreature, oItem)
-        local pro = cdat.pro;
-        cdat.pro.OnEquip(this, oCreature);
-    end,
-
-    unequip = function(this, cdat, oItem)
-        local pro = cdat.pro;
-        cdat.pro.OnUnequip(this, pro.owner);
-    end,
-
-    setOnEquipEvent = function(this, cdat, fEvent)
-        local bRet = false;
-
-        if (type(fEvent) == "function") then
-            cdat.pro.onEquip = fEvent;
-            bRet = true;
-        end
-
-        return bRet;
-    end,
-
-    setOnUnequipEvent = function(this, fEvent)
-        local bRet = false;
-
-        if (type(fEvent) == "function") then
-            cdat.pro.onUnequip = fEvent;
-            bRet = true;
-        end
-
-        return bRet;
     end,
 },
 nil,   --extending class

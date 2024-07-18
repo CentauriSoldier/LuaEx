@@ -1,7 +1,7 @@
 --TODO LOCALIZATION
 
 --[[!
-@fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Functions
+@fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Functions
 @desc TODO
 @ex TODO
 !]]
@@ -9,11 +9,11 @@ local function validateItemInput(vItem)
     local cItem = class.of(vItem);
 
     if not (cItem) then
-        error("Error creating ItemSlotManager.\nOwner must be an instance of a class. Got type "..type(vItem)..".", 2);
+        error("Error in ItemSlotSystem.\nOwner must be an instance of a class. Got type "..type(vItem)..".", 2);
     end
 
-    if not (class.ischildorself(cItem, "Item")) then
-        error("Error in ItemSlotManager.\nItem must be an instance of an Item class or subclass.", 2);
+    if not (class.ischildorself(cItem, BaseItem)) then
+        error("Error in ItemSlotSystem.\nItem must be an instance of an BaseItem class or subclass.", 2);
     end
 
 end
@@ -25,37 +25,48 @@ end
 
 
 --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem
     @desc STUFF HERE
     @parent <a href="#LuaEx.CoG.Component">Component</a>
 !]]
-return class("ItemSlotManager",
+return class("ItemSlotSystem",
 {--METAMETHODS
     --TODO clone
+
+    --[[!
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.removeItemSlot
+    @desc TODO
+    @ex TODO
+    !]]
+    __pairs = function(this, cdat)
+        local tItemSlots = cdat.pro.itemSlots;
+        return next, tItemSlots, nil;
+    end,
 },
 {--STATIC PUBLIC
-    --ItemSlotManager = function(stapub)
+    --ItemSlotSystem = function(stapub)
     --end,
 },
 {--PRIVATE
-    itemSlots = {},
+
 },
 {--PROTECTED
+    itemSlots = {},
 },
 {--PUBLIC
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.ItemSlotManager
-    @desc The constructor for the <b>ItemSlotManager</b>.
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.ItemSlotSystem
+    @desc The constructor for the <b>ItemSlotSystem</b>.
     @ex TODO
     !]]
-    ItemSlotManager = function(this, cdat, super, tItemSlots)
+    ItemSlotSystem = function(this, cdat, super, tItemSlots)
 
         if (rawtype(tItemSlots) == "table") then
 
             for _, vItemSlot in pairs(tItemSlots) do
 
                 if (type(vItemSlot) ~= "ItemSlot") then
-                    error("Error creating ItemSlotManager.\nExpected type ItemSlot. Got type ${type} at index ${index}." %
+                    error("Error creating ItemSlotSystem.\nExpected type ItemSlot. Got type ${type} at index ${index}." %
                     {type = type(vItemSlot), index = nIndex});
                 end
 
@@ -66,7 +77,7 @@ return class("ItemSlotManager",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.addItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.addItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -76,7 +87,7 @@ return class("ItemSlotManager",
         tItemSlots[#tItemSlots + 1] = oSlot;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItem
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.containsItem
     @desc TODO
     @ex TODO
     !]]
@@ -87,7 +98,7 @@ return class("ItemSlotManager",
 
         for nIndex, oItemSlot in pairs(cdat.pro.itemSlots) do
 
-            if (oItemSlot.isOccupied() and oItemSlot.getItem() == oItem) then
+            if (oItemSlot.isOccupied() and oItemSlot.get() == oItem) then
                 bRet = true;
                 nRet = nIndex;
                 break;
@@ -98,7 +109,7 @@ return class("ItemSlotManager",
         return bRet, nRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItemAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.containsItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -117,7 +128,7 @@ return class("ItemSlotManager",
         return bRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.containsItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -139,7 +150,7 @@ return class("ItemSlotManager",
         return bRet, nRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.containsItemSlotAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.containsItemSlotAt
     @desc TODO
     @ex TODO
     !]]
@@ -150,7 +161,7 @@ return class("ItemSlotManager",
         return tItemSlots[nIndex] and tItemSlots[nIndex] == oSlot or false;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.eachItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.eachItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -171,7 +182,7 @@ return class("ItemSlotManager",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.getItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -187,7 +198,7 @@ return class("ItemSlotManager",
         return bRet
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemCount
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.getItemCount
     @desc TODO
     @ex TODO
     !]]
@@ -205,7 +216,7 @@ return class("ItemSlotManager",
         return nRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemSlotAt
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.getItemSlotAt
     @desc TODO
     @ex TODO
     !]]
@@ -213,7 +224,7 @@ return class("ItemSlotManager",
         return cdat.pro.itemSlots[nIndex] or nil;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getItemSlotCount
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.getItemSlotCount
     @desc Gets the total number of <a href="#LuaEx.CoG.Systems.ItemSystem.ItemSlot">ItemSlots</a>.
     @ret number nItemSlots The total number of <b>ItemSlots</b>.
     @ex local nItemSlots = oItemSlotManager.getItemSlotCount();
@@ -222,7 +233,7 @@ return class("ItemSlotManager",
         return #cdat.pro.itemSlots;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.getOwner
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.getOwner
     @desc TODO
     @ex TODO
     !]]
@@ -230,7 +241,16 @@ return class("ItemSlotManager",
         return cdat.pro.owner;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.removeItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.removeItemSlot
+    @desc TODO
+    @ex TODO
+    !]]
+    iterator__FNL = function(this, cdat) --5.1 compat
+        local tItemSlots = cdat.pro.itemSlots;
+        return next, tItemSlots, nil;
+    end,
+    --[[!
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.removeItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -241,7 +261,7 @@ return class("ItemSlotManager",
         table.remove(tItemSlots, nIndex);
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotManager.Methods.swapItems
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.swapItems
     @desc TODO
     @ex TODO
     !]]

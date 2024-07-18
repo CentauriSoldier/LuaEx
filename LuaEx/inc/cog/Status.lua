@@ -3,8 +3,8 @@ return class("StatusHandler",
 },
 {--STATIC PUBLIC
     StatusHandler = function(stapub)
-        local tConfig = rawget(_G, "luaex").config.Status;
-
+        local tConfig = _G.luaex.cog.config.Status;
+        
         for nIndex, sEffect in pairs(tConfig.effects) do
             stapub[sEffect.."__RO"] = nIndex;
         end

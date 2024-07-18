@@ -33,19 +33,34 @@ if not (LUAEX_INIT) then
      sSourcePath = getsourcepath();
 
     --update the package.path (use the main directory to prevent namespace issues)
-    package.path = package.path..";"..sSourcePath.."\\..\\?.lua;";
-    package.path = package.path.."C:\\Testing\\?.lua;";
+    package.path = package.path..";"..sSourcePath.."\\..\\..\\?.lua;";
+
     --load LuaEx
     require("LuaEx.init");
-    require("Globals");
 end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
-local oCat = Creature(Creature.TYPE.HERO, "Erchie", 0);
---print(oCat.getAgility().getValue())
-oCat.getXPSystem().setLevel(56);
---print(oCat.getAgility().getValue())
---print(oCat.getAbilitySystem().getCount())
-local s = NodeUnderworld("sID", {"Adj1", "Adj2"}, "SomeMap", "sStartNode");
-local sd = Monster(Monster.FACTION.ABYSSALI, Monster.ABYSSALI.ARACH, 232);
+
+Item            = require("LuaEx.Item");
+EquipableItem   = require("LuaEx.EquipableItem");
+Boots           = require("LuaEx.Boots");
+Potion          = require("LuaEx.Potion");
+
+local oBootsOfSpeed = Boots("Boots of Speed",
+--onEquip
+function(this, oCreature)
+    oCreature.getAgility.set(10);
+end,
+--onUnequip
+function(this, oCreature)
+    print("unequipping")
+end);
+
+--oBootsOfSpeed.equip();
+--oBootsOfSpeed.unequip();
+print(oBootsOfSpeed.isCursed())
+oBootsOfSpeed.setCursed(true)
+print(oBootsOfSpeed.isCursed())
+oBootsOfSpeed.setCursed(false)
+print(oBootsOfSpeed.isCursed())

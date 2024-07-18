@@ -32,7 +32,12 @@ end
 
 return class("XPSystem",
 {--METAMETHODS
+    __clone = function(this, cdat)
 
+    end,
+    __serialize = function(this, cdat)
+
+    end,
 },
 {--STATIC PUBLIC
     TYPE = enum("XPSystem.TYPE", {"LINEAR", "LOGARITHMIC", "EXPONENTIAL", "QUADRATIC", "CUBIC", "STEP"}, nil, true),

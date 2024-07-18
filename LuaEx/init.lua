@@ -99,7 +99,7 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 
 --create the 'protected' table used by LuaEx
 local tLuaEx = {
-        __config, --set below
+        --__config, --set below
         __metaguard  = {"class", "classfactory", "enum", "enumfactory", "struct", "structfactory"}, --these metatables are protected from modification and general access
         __KEYWORDS__	= setmetatable({}, {--TODO uncap these...
             __index 	= tKeyWords,
@@ -142,9 +142,6 @@ sPath = sPath:gsub("@", ""):gsub("[Ii][Nn][Ii][Tt].[Ll][Uu][Aa]", "");
 sPath = sPath:sub(1, sPath:len() - 1);
 --update the package.path (use the main directory to prevent namespace issues)
 package.path = package.path..";"..sPath.."\\..\\?.lua";
-
---load the config
-rawset(tLuaEx, "config", require("LuaEx.config"));
 
 cloner, clone = nil; --delcared here so all lower modules can use it
 --QUESTION do i need serializer here too? I think not but double check
@@ -264,18 +261,40 @@ if (tClassLoadValues[_nClassSystem]) then
                 if (tClassLoadValues[_nCoGClasses]) then
                     local pCoG = "LuaEx.inc.cog";
 
+                    --load the config
+                    local tCoGConfig = require(pCoG..".config");
+
+                    local tCoG = {
+                        config = setmetatable({}, {
+                            __newindex = function() end, --deadcall
+                            __index = function(t, k)
+                                return tCoGConfig[k] or nil;
+                            end,
+                        }),
+                    };
+                    rawset(tLuaEx, "cog", tCoG);
+
+                    rawset(_G, "luaex.cog", setmetatable({},
+                    {
+                        __index     = function(t, k)
+                            return tCoG[k] or nil;
+                        end,
+                        __newindex  = function() end, --deadcall
+                    }));
+
                     RNG             = require(pCoG..".RNG");
 
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");
                     IConsumable     = require(pCoG..".Interfaces.IConsumable");
 
+                    TagSystem       = require(pCoG..".TagSystem");
                     Pool            = require(pCoG..".Pool");
                     Status          = require(pCoG..".Status");
-                    Item            = require(pCoG..".Item");
+                    BaseItem            = require(pCoG..".BaseItem");
                     AStar           = require(pCoG..".AStar");
                     ItemSlot        = require(pCoG..".ItemSlot");
-                    ItemSlotManager = require(pCoG..".ItemSlotManager");
+                    ItemSlotSystem = require(pCoG..".ItemSlotSystem");
 
                     XPSystem               = require(pCoG..".XPSystem");
                 end
@@ -391,6 +410,8 @@ if (_bRunDoxOnLuaEx) then
     oDoxLua.setOutputPath(pHTML);
     oDoxLua.export();
 end
+
+--TODO FINISH return the package path to its original state
 
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?\
