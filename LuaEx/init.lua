@@ -22,7 +22,7 @@ local _tClassRequirements   = {
 
 
 --🆂🆃🅰🆁🆃 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂-----------------------------------------------
-_bRunDoxOnLuaEx = true;--set this to false in production environments
+_bRunDoxOnLuaEx = false;--set this to false in production environments
 
 --[[🅲🅻🅰🆂🆂 🅻🅾🅰🅳 🆅🅰🅻🆄🅴🆂
 🅽🅾🆃🅴: setting a Class Load Value
@@ -259,29 +259,19 @@ if (tClassLoadValues[_nClassSystem]) then
                 Polygon = require(pClasses..".geometry.shapes.Polygon");
 
                 if (tClassLoadValues[_nCoGClasses]) then
-                    local pCoG = "LuaEx.inc.cog";
+                    local pCoG      = "LuaEx.inc.cog";
 
-                    --load the config
-                    local tCoGConfig = require(pCoG..".config");
+                    --create the CoG table
+                    local tCoG = table.setreadonly(
+                    {
+                        config  = require(pCoG..".config"),
+                        scaler  = require(pCoG..".scaler"),
+                    });
 
-                    local tCoG = {
-                        config = setmetatable({}, {
-                            __newindex = function() end, --deadcall
-                            __index = function(t, k)
-                                return tCoGConfig[k] or nil;
-                            end,
-                        }),
-                    };
+                    --import CoG's table into the luaex global table
                     rawset(tLuaEx, "cog", tCoG);
 
-                    rawset(_G, "luaex.cog", setmetatable({},
-                    {
-                        __index     = function(t, k)
-                            return tCoG[k] or nil;
-                        end,
-                        __newindex  = function() end, --deadcall
-                    }));
-
+                    --scaler          = require(pCoG..".scaler");
                     RNG             = require(pCoG..".RNG");
 
                     --interfaces
@@ -290,13 +280,16 @@ if (tClassLoadValues[_nClassSystem]) then
 
                     TagSystem       = require(pCoG..".TagSystem");
                     Pool            = require(pCoG..".Pool");
-                    Status          = require(pCoG..".Status");
-                    BaseItem            = require(pCoG..".BaseItem");
+                    StatusSystem    = require(pCoG..".StatusSystem");
                     AStar           = require(pCoG..".AStar");
-                    ItemSlot        = require(pCoG..".ItemSlot");
-                    ItemSlotSystem = require(pCoG..".ItemSlotSystem");
 
-                    XPSystem               = require(pCoG..".XPSystem");
+                    --item system
+                    local pItemSystem = pCoG..".ItemSystem";
+                    BaseItem        = require(pItemSystem..".BaseItem");
+                    ItemSlot        = require(pItemSystem..".ItemSlot");
+                    ItemSlotSystem  = require(pItemSystem..".ItemSlotSystem");
+
+                    XPSystem        = require(pCoG..".XPSystem");
                 end
 
             end

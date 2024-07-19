@@ -43,10 +43,12 @@ end
 --==============================================================================
 local oTags = TagSystem();
 local tTags = {"Massive", "Solder", "Rich", "DEmOn", "Baleful"};
-oTags.addMultiple(tTags);
-oTags.setMultipleEnabled(tTags);
-oTags.setMultipleEnabled({"Massive", "Solder"}, true);
+--oTags.addMultiple(tTags);
+--oTags.setMultipleEnabled(tTags);
+--oTags.setMultipleEnabled({"Massive", "Solder"}, true);
 for sTag, bEnabled in oTags.iterator() do
-    print(sTag, bEnabled)
+--    print(sTag, bEnabled)
 end
-print(#oTags)
+--print(#oTags)
+--StatusSystem.test = 44
+print(StatusSystem.EFFECT.ENRAGED);

@@ -523,7 +523,7 @@ function class.build(tKit)
     local sName     = tKit.name;
 
     --this is the actual, hidden class table referenced by the returned class object
-    local tClass            = clone(tKit.stapub);   --create the static public members
+    local tClass    = clone(tKit.stapub);   --create the static public members
 
     --execute then delete the static constructor (if it exists)
     if (rawtype(tClass[sName]) == "function") then
@@ -1329,6 +1329,13 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             pub     = {},
         },
     };
+
+    --execute then delete the static constructor (if it exists)
+    --local sStaticFieldMaker = "__"..sName;
+    --if (rawtype(tClass[sStaticFieldMaker]) == "function") then
+--        tClass[sStaticFieldMaker](tClass);
+        --rawset(tClass, sStaticFieldMaker, nil);
+    --end
 
     --determine whether the class is final or limited (and, if so, set limitations)
     kit.processFinality(tKit, vFinality);

@@ -56,6 +56,45 @@ function table.getindex(tTable, vElement)
     return nRet;
 end
 
+--WARNING: destroys metatables. should be used on basic table only
+
+local function setReadOnly(tInput)--TODO add option to throw error on write attempt
+    local tProxy = {};
+
+    local tMeta = {
+        __call         = function() --5.1 compat
+            return pairs(tInput)
+        end,
+        __index         = tInput,
+        __newindex      = function(t, k, v)--deadcall
+        end,
+        __pairs         = function()
+            return pairs(tInput)
+        end,
+        __metatable 	= false,
+    }
+    setmetatable(tProxy, tMeta);
+    return tProxy;
+end
+
+local function copyTable(tInput)
+    local tDecoy = {};
+
+    for k, v in pairs(tInput) do
+
+        if (type(v) == "table") then
+            tDecoy[k] = copyTable(v);
+        else
+            tDecoy[k] = v;
+        end
+
+    end
+
+    return setReadOnly(tDecoy);
+end
+
+table.setreadonly = copyTable;
+
 
 function table.lock(tInput)
 
