@@ -1,4 +1,4 @@
-return interface("iCloneable",
+return interface("ICloneable",
 {  --METAMETHODS
     "__clone",
 },

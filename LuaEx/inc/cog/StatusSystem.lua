@@ -11,7 +11,7 @@ return class("StatusSystem",
         local tEffect = luaex.cog.config["StatusSystem"].EFFECT;
 
         --create the effect enum
-        stapub.EFFECT = enum(   "StatusSystem.EFFECT", tEffect, nil, true);
+        stapub.EFFECT = enum("StatusSystem.EFFECT", tEffect, nil, true);
 
         --store the ordinal references
         for nOrdinal, eEffect in stapub.EFFECT() do
@@ -51,6 +51,10 @@ return class("StatusSystem",
         return this;
     end,
     cycle = function(this, cdat)
+        local pri = cdat.pri;
+
+        --for
+
         local tEffect = cdat.pri.effects[eEffect];
 --TODO
         tEffect.duration = tEffect + nDuration;

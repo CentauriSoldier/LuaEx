@@ -34,17 +34,14 @@ local class         = class;
 local deserialize   = deserialize;
 local math          = math;
 local point         = point;
+local rawtype       = rawtype;
 local serialize     = serialize;
 local type          = type;
 local shape         = shape;
-
-local function update(pri)
-    pri.area              = math.pi * pri.radius ^ 2;
-    pri.circumference     = math.pi * pri.radius * 2;
-end
+local nPi           = math.pi;
 
 --the unit circle
-local _nStartArea           = math.pi;
+local _nStartArea           = nPi;
 local _nStartCircumference  = 2 * _nStartArea;
 local _nStartRadius         = 1;
 
@@ -53,58 +50,7 @@ return class("Circle",
 
 },
 {--static public
-
-},
-{--private
-    area            = _nStartArea,
-    center          = null,
-    centroid        = null, --alias of center
-    circumference   = _nStartCircumference,
-    radius          = _nStartRadius,
-},
-{--protected
-},
-{--public
-    --[[
-    @fqxn LuaEx.Classes.Geometry.circle
-    @desc The constructor for the circle class.
-    @ret oCircle circle A circle object. Public properties are center and radius.
-    ]]
-    Circle = function(this, cdat, super, pCenter, nRadius)
-        super();
-        local pri = cdat.pri;
-
-        pri.center          = type(pCenter)     == "point"                      and pCenter.clone() or point();
-        pri.centroid        = pri.center;     -- alias of center
-        pri.radius          = (rawtype(nRadius) == "number" and nRadius >= 0)   and nRadius or pri.radius;
-        pri.area            = 0;
-        pri.circumference   = 0;
-        update(pri);
-    end,
-
-    containsPoint = function(this, oPoint)
-        local pri = cdat.pri;
-        return math.sqrt( (pri.center.x - oPoint.getX()) ^ 2 + (pri.center.y - oPoint.getY()) ^ 2 ) < pri.radius;
-    end,
-
-    getArea = function(this, cdat)
-        return cdat.pri.area;
-    end,
-
-    getCircumference = function(this, cdat)
-        return cdat.pri.circumference;
-    end,
-
-    getPos = function(this, cdat)
-        return cdat.pri.center:clone();
-    end,
-
-    getRadius = function(this, cdat)
-        return cdat.pri.radius;
-    end,
-
-    --TODO FINISH
-    deserialize = function(this, cdat, sData)
+    deserialize = function(sData)--TODO FINISH
         local tData = deserialize.table(sData);
 
         this.center = tData.center;
@@ -112,61 +58,148 @@ return class("Circle",
 
         return this;
     end,
+},
+{--private
+},
+{--protected
+    area            = _nStartArea,
+    center          = {x = 0, y = 0},
+    centroid        = null, --alias of center
+    circumference   = _nStartCircumference,
+    radius          = _nStartRadius,
+},
+{--public
+    --[[
+    @fqxn LuaEx.Classes.Geometry.circle
+    @desc The constructor for the circle class.
+    @ret oCircle circle A circle object. Public properties are center and radius.
+    ]]
+    Circle = function(this, cdat, super, oCenter, nRadius)
+        super();
+        local pro = cdat.pro;
 
-    setArea = function(this, cdat)
-        local tFields = cdat.pri;
+        if (type(pCenter) == "point") then
+            local tCenter = pro.center;
+            tCenter.x = oCenter.getX();
+            tCenter.y = oCenter.getY();
+        end
+
+        pro.centroid = pro.center; --alias of center
+
+        if (rawtype(nRadius) == "number" and nRadius > 0) then
+            pro.radius = nRadius;
+        end
+
+        pro.area          = nPi * nRadius ^ 2;
+        pro.circumference = nPi * nRadius * 2;
     end,
 
-    setCircumference = function(this, cdat)
-        local tFields = cdat.pri;
+    containsCoords = function(this, nX, nY)
+        local pro       = cdat.pro;
+        local oCenter   = pro.center;
+
+        return (rawtype(nX) == "number" and rawtype(nY) == "number") and
+        math.sqrt( (oCenter.x - nX) ^ 2 + (oCenter.y - nY) ^ 2 ) < pro.radius;
     end,
 
-    setRadius = function(this, cdat)
-        local tFields = cdat.pri;
+    containsPoint = function(this, oPoint)
+        local pro       = cdat.pro;
+        local oCenter   = pro.center;
+        return (rawtype(oPoint) == "Point") and
+        math.sqrt( (oCenter.x - oPoint.getX()) ^ 2 + (oCenter.y - oPoint.getY()) ^ 2 ) < pro.radius;
+    end,
+
+    getArea = function(this, cdat)
+        return cdat.pro.area;
+    end,
+
+    getCircumference = function(this, cdat)
+        return cdat.pro.circumference;
+    end,
+
+    getPos = function(this, cdat)
+        local tCenter = cdat.pro.center;
+        return {x = tCenter.x, y = tCenter.y};
+    end,
+
+    getRadius = function(this, cdat)
+        return cdat.pro.radius;
+    end,
+
+    setArea = function(this, cdat, nArea)
+
+        if not (rawtype(nArea) == "number") then
+            error("Area must be of type number.\nGot type: "..rawtype(nArea));
+        end
+
+        if (nArea <= 0) then
+            error("Area must be a positive value.\nGot: "..nArea);
+        end
+
+        local pro           = cdat.pro;
+        pro.area            = nArea;
+        pro.radius          = math.sqrt(nArea / nPi);
+        pro.circumference   = 2 * nPi * pro.radius;
+    end,
+
+    setCircumference = function(this, cdat, nCircumference)
+        if not (rawtype(nCircumference) == "number") then
+            error("Error setting circle radius. Radius must of type number.\nGot type: "..rawtype(nCircumference));
+        end
+
+        if (nCircumference <= 0) then
+            error("Error setting circle radius. Radius must a positive value.\nGot: "..nCircumference);
+        end
+
+        local pro           = cdat.pro;
+        pro.circumference   = nCircumference;
+        pro.radius          = nCircumference / (nPi * 2);
+        pro.area            = nPi * pro.radius ^ 2;
+    end,
+
+    setRadius = function(this, cdat, nRadius)
+
+        if not (rawtype(nRadius) == "number") then
+            error("Error setting circle radius. Radius must of type number.\nGot type: "..rawtype(nRadius));
+        end
+
+        if (nRadius <= 0) then
+            error("Error setting circle radius. Radius must a positive value.\nGot: "..nRadius);
+        end
+
+        local pro = cdat.pro;
+        pro.radius        = nRadius;
+        pro.area          = nPi * nRadius ^ 2;
+        pro.circumference = nPi * nRadius * 2;
     end,
 
     translate = function(this, cdat, nX, nY)
-        local tFields = cdat.pri;
+        local tCenter = cdat.pro.center;
 
-        --update all vertices
-        for nVertex, oVertex in ipairs(tFields.vertices) do
-            oVertex.x = oVertex.x + nX;
-            oVertex.y = oVertex.y + nY;
+        if not (rawtype(nX) == "number" and rawtype(nY) == "number") then
+            error("Error translating circle position. X and Y values must be of type number.\nGot types:\nx: "..rawtype(nX)..' | y: '..rawtype(nY));
         end
 
-        --update all anchors
-        for nVertex, oVertex in ipairs(tFields.anchors) do
-            oVertex.x = oVertex.x + nX;
-            oVertex.y = oVertex.y + nY;
-        end
+        tCenter.x = tCenter.x + nX;
+        tCenter.y = tCenter.y + nY;
 
         return this;
     end,
 
-    translateTo = function(this, cdat, oPoint)
-        local tFields = cdat.pri;
+    translateTo = function(this, cdat, nX, nY)
+        local tCenter = cdat.pro.center;
 
-        --get the anchor point and find the change in x and y
-        local oAnchor = tFields.anchors[tFields.anchorIndex];
-        local nDeltaX = oPoint.x - oAnchor.x;
-        local nDeltaY = oPoint.y - oAnchor.y;
-
-        --adjust all vertices to reflect that change
-        for nVertex, oVertex in ipairs(tFields.vertices) do
-            oVertex.x = oVertex.x + nDeltaX;
-            oVertex.y = oVertex.y + nDeltaY;
+        if not (rawtype(nX) == "number" and rawtype(nY) == "number") then
+            error("Error translating circle position. X and Y values must be of type number.\nGot types:\nx: "..rawtype(nX)..' | y: '..rawtype(nY));
         end
 
-        --update all anchors
-        for nVertex, oVertex in ipairs(tFields.anchors) do
-            oVertex.x = oVertex.x + nDeltaX;
-            oVertex.y = oVertex.y + nDeltaY;
-        end
+        tCenter.x = nX;
+        tCenter.y = nY;
 
         return this;
     end,
 },
-shape,      --extending class
-false,      --if the class is final
-nil         --interface(s) (either nil, or interface(s))
+Shape, --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
 );

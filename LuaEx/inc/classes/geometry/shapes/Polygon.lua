@@ -32,6 +32,29 @@ Certainly! Here's a succinct bullet-point summary of the differences between reg
         Examples: Regular Polygons, convex quadrilateral.
 ]]
 
+
+local function newLine()
+    return {
+    start                       = {x = 0, y = 0},
+    stop                        = {x = 0, y = 0},
+    --midpoint      = {x = 0, y = 0},
+    --a                           = 0,
+    --b                           = 0,
+    --c                           = 0,
+    --deltaX                      = 0,
+    --deltaY                      = 0,
+    length                      = 0,
+    --slope                       = 0,
+    --slopeIsUndefined            = true,
+    --theta                       = 0,
+    --yIntercept                  = 0,
+    --yInterceptIsUndefined       = true,
+    --xIntercept                  = 0,
+    --xInterceptIsUndefined       = true,
+    };
+end
+
+
 local tProtectedRepo            = {};
 local tPrivate                  = {};
 
@@ -53,10 +76,9 @@ local SHAPE_ANCHOR_CENTROID     = SHAPE_ANCHOR_CENTROID;
 local SHAPE_ANCHOR_DEFAULT      = SHAPE_ANCHOR_DEFAULT;
 local class                     = class;
 local deserialize               = deserialize;
-local Line                      = Line;
 local math                      = math;
 local pairs                     = pairs;
-local Point                     = Point;
+local ipairs                    = ipairs;
 local rawtype                   = rawtype;
 local serialize                 = serialize;
 local table                     = table;
@@ -123,11 +145,11 @@ return class("Polygon",
 },
 {--private
     anchors = {
-        [SHAPE_ANCHOR_TOP_LEFT]         = Point(),
-        [SHAPE_ANCHOR_TOP_RIGHT]        = Point(),
-        [SHAPE_ANCHOR_BOTTOM_RIGHT]     = Point(),
-        [SHAPE_ANCHOR_BOTTOM_LEFT]      = Point(),
-        [SHAPE_ANCHOR_CENTROID]         = Point(),
+        [SHAPE_ANCHOR_TOP_LEFT]         = {x = -1,  y = 1},
+        [SHAPE_ANCHOR_TOP_RIGHT]        = {x = 1,   y = 1},
+        [SHAPE_ANCHOR_BOTTOM_RIGHT]     = {x = 1,   y = -1},
+        [SHAPE_ANCHOR_BOTTOM_LEFT]      = {x = -1,  y = -1},
+        [SHAPE_ANCHOR_CENTROID]         = {x = 0,   y = 0},
     },
     anchorIndex = SHAPE_ANCHOR_DEFAULT;--this can be be set to a vertex ID or one of the shape anchor constants
     area        = 0,
@@ -145,6 +167,106 @@ return class("Polygon",
 },
 --TODO make the constructor protected (once the class system allows it)
 {--protected
+--[[!
+    @fqxn LuaEx.Classes.Geometry.Polygon
+    @desc Used for creating various Polygons and handling Point
+    detection and detector properties. The child class is responsible
+    for creating vertices (upon construction) and storing them
+    in the protected property of 'vertices' (a numerically-indexed
+    table whose values are Points). The child class is also
+    responsible for updating the Polygon whenever changes are
+    made to size or position. This is done by calling super:update().
+    It is expected, when creating the vertices, that a child class will
+    insert them into the table starting with the first vertex and continuing
+    around the Polygon clockwise.
+
+    Protected fields and methods:
+    anchorIndex
+    area                     (number)
+    edges                    (numerically-indexed table of Lines)
+    perimeter                (number)
+    isConcave                (boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
+    isRegular                (boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
+    tweener                    (table)
+    vertices                 (numerically-indexed table of Points)
+    verticesCount            (number) NO CHILD CLASS SHOULD MODIFY THIS VALUE TODO move to pri
+    imporaVertices             (function)
+    updateArea                (function)
+    updateAnchors             (function)
+    updateDetector             (function)
+    updatePerimeterAndEdges (function)
+]]
+    Polygon = function(this, cdat, super, tVertices)
+        local pri = cdat.pri;
+        local pro = cdat.pro;
+        super();
+
+        --check the input
+        if (rawtype(tVertices) ~= "table") then
+            --TODO THROW ERROR
+        end
+
+        local nVertices = #tVertices;
+
+        --create the vertices table
+        pri.vertices = {};
+
+        --create the edges table
+        pri.edges = {};
+
+        --check the input array data and add the Point values
+        for nIndex, tPoint in ipairs(tVertices) do
+
+            if (rawtype(tPoint["x"]) ~= "number" or rawtype(tPoint["y"]) ~= "number") then
+                --TODO THROW ERROR
+            end
+
+            pri.vertices[nIndex] = oPoint.clone();
+
+            local oStartPoint;
+            local oEndPoint;
+            local bMakeLine     = nIndex > 1;
+            local bOnLastIndex  = nIndex == tVertices.length;
+
+            --create the Line from this Point to the last
+            if (bMakeLine) then
+                local nLastIndex = nIndex - 1;
+                --determine which Point to use as start and end
+                oStartPoint = bOnLastIndex and aVertices[aVertices.length]  or aVertices[nLastIndex];
+                oEndPoint   = bOnLastIndex and aVertices[1]                 or aVertices[nIndex];
+                --build the Points and the Line
+                pri.edges[nLastIndex] = Line(oStartPoint.clone(), oEndPoint.clone(), true); --TODO think about if this should be updated or not here
+            end
+
+        end
+
+        --create the edges
+        --pri.edges       = {};--rawtype(pri.edges)            == "table"     and pri.edges             or {};
+        --pri.area        = {};--rawtype(pri.area)             == "number" and pri.area                 or 0;
+        --pri.isConcave   = false;
+    ---    pri.isRegular   = false;
+        --this can be be set to a vertex ID or one of the shape anchor constants
+        --pri.anchorIndex = rawtype(pri.anchorIndex)     == "number" and pri.anchorIndex        or SHAPE_ANCHOR_DEFAULT;
+
+
+        --setup the protected methods TODO IF I decide to pass these, they must be protected...but are they needed?
+        --ALSO this will have to be done in a different way as these indices are currently nil
+    --[[    pro.updateArea                  = updateArea;
+        pro.updateAnchors               = updateAnchors;
+        pro.updateDetector              = updateDetector;
+        pro.updatePerimeterAndEdges     = updatePerimeterAndEdges;
+        pro.updateAngles                = updateAngles;
+    ]]
+        --update the Polygon (if not skipped)
+        if (not bSkipUpdate) then
+            pro.updatePerimeterAndEdges();
+            pro.updateDetector();
+            pro.updateAnchors();
+            pro.updateArea();
+            pro.updateAngles();
+        end
+
+    end,
     updateArea = function(this, cdat, pri)--this algorithm doesn't work on complex Polygons, find one which does and check before returning the area
         local pri               = cdat.pri;
         local nSum              = 0;
@@ -322,99 +444,6 @@ return class("Polygon",
     end,
 },
 {--public
-    --[[!
-        @fqxn LuaEx.Classes.Geometry.Polygon
-        @desc Used for creating various Polygons and handling Point
-        detection and detector properties. The child class is responsible
-        for creating vertices (upon construction) and storing them
-        in the protected property of 'vertices' (a numerically-indexed
-        table whose values are Points). The child class is also
-        responsible for updating the Polygon whenever changes are
-        made to size or position. This is done by calling super:update().
-        It is expected, when creating the vertices, that a child class will
-        insert them into the table starting with the first vertex and continuing
-        around the Polygon clockwise.
-
-        Protected fields and methods:
-        anchorIndex
-        area                     (number)
-        edges                    (numerically-indexed table of Lines)
-        perimeter                (number)
-        isConcave                (boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
-        isRegular                (boolean)  NO CHILD CLASS SHOULD MODIFY THIS VALUE;
-        tweener                    (table)
-        vertices                 (numerically-indexed table of Points)
-        verticesCount            (number) NO CHILD CLASS SHOULD MODIFY THIS VALUE TODO move to pri
-        imporaVertices             (function)
-        updateArea                (function)
-        updateAnchors             (function)
-        updateDetector             (function)
-        updatePerimeterAndEdges (function)
-    ]]
-    Polygon = function(this, cdat, super, aVertices)
-        local pri = cdat.pri;
-        local pro = cdat.pro;
-
-        super();
-
-        --check the input
-        type.assert.custom(aVertices, "array");
-
-        --create the vertices array
-        pri.vertices = array(aVertices.length);
-        --create the edges array
-        pri.edges = array(aVertices.length - 1);
-
-        --check the input array data and add the Point values
-        for nIndex, oPoint in aVertices() do
-            type.assert.custom(oPoint, "Point", "Error creating Polygon.\nVertices must be of type Point.\nGot type ${type} at index ${index}." %
-            {type = type(oPoint), index = nIndex});
-            pri.vertices[nIndex] = oPoint.clone();
-
-            local oStartPoint;
-            local oEndPoint;
-            local bMakeLine     = nIndex > 1;
-            local bOnLastIndex  = nIndex == aVertices.length;
-
-            --create the Line from this Point to the last
-            if (bMakeLine) then
-                local nLastIndex = nIndex - 1;
-                --determine which Point to use as start and end
-                oStartPoint = bOnLastIndex and aVertices[aVertices.length]  or aVertices[nLastIndex];
-                oEndPoint   = bOnLastIndex and aVertices[1]                 or aVertices[nIndex];
-                --build the Points and the Line
-                pri.edges[nLastIndex] = Line(oStartPoint.clone(), oEndPoint.clone(), true); --TODO think about if this should be updated or not here
-            end
-
-        end
-
-        --create the edges
-        --pri.edges       = {};--rawtype(pri.edges)            == "table"     and pri.edges             or {};
-        --pri.area        = {};--rawtype(pri.area)             == "number" and pri.area                 or 0;
-        --pri.isConcave   = false;
-    ---    pri.isRegular   = false;
-        --this can be be set to a vertex ID or one of the shape anchor constants
-        --pri.anchorIndex = rawtype(pri.anchorIndex)     == "number" and pri.anchorIndex        or SHAPE_ANCHOR_DEFAULT;
-
-
-        --setup the protected methods TODO IF I decide to pass these, they must be protected...but are they needed?
-        --ALSO this will have to be done in a different way as these indices are currently nil
-    --[[    pro.updateArea                  = updateArea;
-        pro.updateAnchors               = updateAnchors;
-        pro.updateDetector              = updateDetector;
-        pro.updatePerimeterAndEdges     = updatePerimeterAndEdges;
-        pro.updateAngles                = updateAngles;
-]]
-        --update the Polygon (if not skipped)
-        if (not bSkipUpdate) then
-            pro.updatePerimeterAndEdges();
-            pro.updateDetector();
-            pro.updateAnchors();
-            pro.updateArea();
-            pro.updateAngles();
-        end
-
-    end,
     containsCoord = function(this, nX, nY)
         local tFields   = tProtectedRepo[this];
         local tDetector = pri.detector;

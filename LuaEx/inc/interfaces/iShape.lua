@@ -1,10 +1,12 @@
-return interface("iShape",
-{},--metamethods
-{},--static public
-{},--private
-{},--protected
-{--public
-    "getArea", "getPos", "containsPoint",
+return interface("IShape",
+{   --metamethods
 },
-nil    --extending interface
+{   --static public
+},
+{}, --private
+{}, --protected
+{   --public
+    --"containsCoords", "getArea", "getPos", "translate", "translateTo",
+},
+nil--ISerializable, ICloneable --extending interface
 );

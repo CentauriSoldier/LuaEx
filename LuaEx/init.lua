@@ -257,6 +257,8 @@ if (tClassLoadValues[_nClassSystem]) then
                 Shape   = require(pClasses..".geometry.shapes.Shape");
                 Circle  = require(pClasses..".geometry.shapes.Circle");
                 Polygon = require(pClasses..".geometry.shapes.Polygon");
+                --solids
+                Solid   = require(pClasses..".geometry.solids.Solid");
 
                 if (tClassLoadValues[_nCoGClasses]) then
                     local pCoG      = "LuaEx.inc.cog";

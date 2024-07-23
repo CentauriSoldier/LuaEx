@@ -1,4 +1,4 @@
-return interface("iSerializable",
+return interface("ISerializable",
 {   --METAMETHODS
     "__serialize"
 },

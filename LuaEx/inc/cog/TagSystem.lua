@@ -51,7 +51,7 @@ return class("TagSystem",
 },
 {},--PROTECTED
 {--PUBLIC
-    TagSystem = function(this, cdat)       
+    TagSystem = function(this, cdat)
     end,
     add = function(this, cdat, sTag, bDisabled)
         local bRet          = false;
@@ -233,6 +233,6 @@ return class("TagSystem",
     end,
 },
 nil,  --extending class
-true,--if the class is final or limited
+true, --if the class is final or limited
 nil   --interface(s) (either nil, or interface(s))
 );

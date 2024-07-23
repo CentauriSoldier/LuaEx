@@ -13,7 +13,7 @@ local function validateItemInput(vItem)
     end
 
     if not (class.ischildorself(cItem, BaseItem)) then
-        error("Error in ItemSlotSystem.\nItem must be an instance of an BaseItem class or subclass.", 2);
+        error("Error in ItemSlotSystem.\nItem must be an instance of a BaseItem class or subclass.", 2);
     end
 
 end
@@ -241,7 +241,7 @@ return class("ItemSlotSystem",
         return cdat.pro.owner;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.removeItemSlot
+    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.iterator
     @desc TODO
     @ex TODO
     !]]

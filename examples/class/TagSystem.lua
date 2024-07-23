@@ -51,4 +51,20 @@ for sTag, bEnabled in oTags.iterator() do
 end
 --print(#oTags)
 --StatusSystem.test = 44
-print(StatusSystem.EFFECT.ENRAGED);
+--print(StatusSystem.EFFECT.ENRAGED);
+local oCircle = Circle(Point(5, 9), 10);
+-- Example block of code to measure
+local start = os.clock()  -- Record the start time
+
+for i = 1, 10000 do
+    -- Some computation here
+    local x = oCircle.setRadius(34);
+end
+
+local delta = os.clock() - start  -- Calculate the delta time
+--print("Elapsed time:", delta, "seconds")
+local t = {x = 4, y =0}
+
+if (rawtype(t["x"]) ~= "number" or rawtype(t["y"]) ~= "number") then
+    print("Bad stuff!")
+end

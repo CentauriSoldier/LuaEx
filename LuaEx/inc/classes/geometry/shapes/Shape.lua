@@ -24,14 +24,8 @@
 @website https://github.com/CentauriSoldier
 *]]
 
-abstractMethod = function()
-    error("Theis method has not been implemented in the child class.");
-end
-
 --localization
 local class = class;
-local type  = type;
-local rawtype  = rawtype;
 
 return class("Shape",
 {--metamethods
@@ -41,24 +35,12 @@ return class("Shape",
 {--private
 },
 {--protected
-},
-{--public
     Shape = function(this, cdat)
     end,
-    containsPoint = function()
-        error("The 'containsPoint' method has not been implemented in the child class.");
-    end,
-    clone = function()
-        error("The 'clone' method has not been implemented in the child class.");
-    end,
-    getArea = function()
-        error("The 'getArea' method has not been implemented in the child class.");
-    end,
-    getPos = function()
-        error("The 'getPos' method has not been implemented in the child class.");
-    end,
+},
+{--public
 },
 nil,
 false,
-iShape
+IShape
 );
