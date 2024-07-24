@@ -565,7 +565,7 @@ function class.build(tKit)
                 local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT";
 
                 --instantiate the parent object
-                local oParent, tParent = instance.build(tParentInfo.kit, tMyParent);
+                local oParent, tParent = instance.build(tParentInfo.kit, tMyParent, sName);
 
                 --store this info for the next iteration
                 tParentInfo.decoy   = oParent;
@@ -599,6 +599,7 @@ function class.build(tKit)
                     error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}'." % {class = sClass, parent = sParent});--TODO should i set a third argument for the errors?
                 end
 
+                --rawset(tParentInfo.actual.met, "__type", tKit.name);
                 --rawset(tParentInfo.actual[tParentKit.constructorVisibility], sParent, nil);--TODO should this deletion be moved to right after it gets called?
             end
 
@@ -744,7 +745,7 @@ end
 @desc Builds an instance of an object given the name of the kit.
 @ret object|table oInstance|tInstance The instance object (decoy) and the instance table (actual).
 !]]
-function instance.build(tKit, tParentActual)
+function instance.build(tKit, tParentActual, sType)
     local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
         met = clone(tKit.met), --create the metamethods
@@ -778,7 +779,7 @@ function instance.build(tKit, tParentActual)
     instance.processDirectives(tInstance, tClassData);
 
     --create and set the instance metatable
-    instance.setMetatable(tInstance, tClassData);
+    instance.setMetatable(tInstance, tClassData, sType);
 
     --TODO I need to update the children field of each parent (OR do I?)
     --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
@@ -1061,7 +1062,7 @@ end
 @scope local
 @desc Creates and sets the instance's metatable.
 !]]
-function instance.setMetatable(tInstance, tClassData)
+function instance.setMetatable(tInstance, tClassData, sType)
     local tMeta     = {}; --actual
     local tKit      = tInstance.metadata.kit;
     local oInstance = tInstance.decoy;
@@ -1106,7 +1107,7 @@ function instance.setMetatable(tInstance, tClassData)
         tClassData.pub[k] = v;
     end;
 
-    tMeta.__type = tKit.name;
+    tMeta.__type = (sType ~= nil) and sType or tKit.name;
 
     tMeta.__is_luaex_class = true;
 
