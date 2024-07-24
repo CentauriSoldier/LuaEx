@@ -25,7 +25,10 @@
 *]]
 
 --localization
-local class = class;
+local class             = class;
+
+
+
 
 return class("Shape",
 {--metamethods
@@ -36,7 +39,7 @@ return class("Shape",
 },
 {--protected
     Shape = function(this, cdat)
-    end,
+    end,    
 },
 {--public
 },

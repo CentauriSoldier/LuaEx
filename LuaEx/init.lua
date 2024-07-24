@@ -236,6 +236,12 @@ if (tClassLoadValues[_nClassSystem]) then
     --🅸🅼🅿🅾🆁🆃 🅲🅻🅰🆂🆂🅴🆂
 
     if (tClassLoadValues[_nBasicClasses]) then
+        --primitive
+        local pPrimitives   = "LuaEx.inc.primitives";
+        line                = require(pPrimitives..".line");
+        circle              = require(pPrimitives..".circle");
+
+        --actual classes
         local pClasses = "LuaEx.inc.classes";
 
         --dependency class

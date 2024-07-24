@@ -357,15 +357,15 @@ math.geometry = {};
 
 function math.geometry.rectcontains(tMe, tOther)
   -- Calculate the bounding coordinates for each object
-  local leftMe = tMe.X
-  local rightMe = tMe.X + tMe.Width
-  local topMe = tMe.Y
-  local bottomMe = tMe.Y + tMe.Height
+  local leftMe = tMe.x
+  local rightMe = tMe.x + tMe.width
+  local topMe = tMe.y
+  local bottomMe = tMe.y + tMe.height
 
-  local leftOther = tOther.X
-  local rightOther = tOther.X + tOther.Width
-  local topOther = tOther.Y
-  local bottomOther = tOther.Y + tOther.Height
+  local leftOther = tOther.x
+  local rightOther = tOther.x + tOther.width
+  local topOther = tOther.y
+  local bottomOther = tOther.y + tOther.height
 
   -- Check for collision by comparing the bounding coordinates
   if leftMe <= rightOther and

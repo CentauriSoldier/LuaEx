@@ -228,14 +228,14 @@ return class("Polygon",
             local bMakeLine     = nIndex > 1;
             local bOnLastIndex  = nIndex == tVertices.length;
 
-            --create the Line from this Point to the last
+            --create the dLine from this Point to the last
             if (bMakeLine) then
                 local nLastIndex = nIndex - 1;
                 --determine which Point to use as start and end
                 oStartPoint = bOnLastIndex and aVertices[aVertices.length]  or aVertices[nLastIndex];
                 oEndPoint   = bOnLastIndex and aVertices[1]                 or aVertices[nIndex];
-                --build the Points and the Line
-                pri.edges[nLastIndex] = Line(oStartPoint.clone(), oEndPoint.clone(), true); --TODO think about if this should be updated or not here
+                --build the Points and the dLine
+                pri.edges[nLastIndex] = dLine(oStartPoint.clone(), oEndPoint.clone(), true); --TODO think about if this should be updated or not here
             end
 
         end
@@ -357,12 +357,12 @@ return class("Polygon",
             local oLine2 = bIsFirstLine and tEdges[nEdges] or tEdges[nLine - 1];
             --[[create a ghost triangle by creating a third, ghost Line between
             the start of the first Line and the end of the second Line]]
-            local oLine3 = Line(oLine1:getEnd(), oLine2:getStart()); --ghost Line
+            local oLine3 = dLine(oLine1:getEnd(), oLine2:getStart()); --ghost Line
 
             --get the length of each Line
-            local nLength1 = oLine1:getLength();
-            local nLength2 = oLine2:getLength();
-            local nLength3 = oLine3:getLength();
+            local nLength1 = oLine1.length;
+            local nLength2 = oLine2.length;
+            local nLength3 = oLine3.length;
 
             --get the angle opposite the ghost side using law of cosines (c^2 = a^2 + b^2 - 2ab*cos(C))
             local nTheta = math.deg(math.acos((nLength1 ^ 2 + nLength2 ^ 2 - nLength3 ^ 2) / (2 * nLength1 * nLength2)));

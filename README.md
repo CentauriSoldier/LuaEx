@@ -253,7 +253,8 @@ Variables are prefixed with the following lower-case symbols based on their type
 *_* |   **file-scoped local variables** *e.g.,* ```local _nMaxUnits = 12;```  
 *a* |   **array**  
 *b*	|	**boolean**  
-*c*	|	**class**  
+*c*	|	**class**
+*d*	|	**classaide**
 *e*	|	**enum**  
 *f*	| 	**function**  
 *h*	|	**file\window\etc. handle** *(number)*  

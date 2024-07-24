@@ -68,3 +68,19 @@ local t = {x = 4, y =0}
 if (rawtype(t["x"]) ~= "number" or rawtype(t["y"]) ~= "number") then
     print("Bad stuff!")
 end
+
+
+
+
+
+-- Example usage
+local pCircle = circle(20, 40, 35);
+pCircle.autoCalculate = false;
+--line.start.x = 58;
+
+for x = 1, 10000000 do
+    pCircle.radius = x;
+end
+
+--pCircle.update()
+print(pCircle.center.y);
