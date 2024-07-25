@@ -8,10 +8,10 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
     local   tActual,        tDecoy,         tMeta,
             tCenterActual, tCenterDecoy,    tCenterMeta;
 
-    local bAutoCalculate = true
+    local bAutoUpdate = true
 
     tActual = {
-        autoCalculate   = true,
+        autoUpdate   = true,
         radius          = nInpRadius,
         diameter        = 0,
         circumference   = 0,
@@ -50,14 +50,14 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
     tMeta     = {
         __index     = tActual,
         __newindex  = function(t, k, v)
-            if (k == "autoCalculate" and rawtype(v) == "boolean") then
-                tActual.autoCalculate = v;
-                bAutoCalculate = v;
+            if (k == "autoUpdate" and rawtype(v) == "boolean") then
+                tActual.autoUpdate = v;
+                bAutoUpdate = v;
 
             elseif (k == "radius") then
                 tActual.radius = v;
 
-                if (bAutoCalculate) then
+                if (bAutoUpdate) then
                     local nCenterX = tCenterActual.x;
                     local nCenterY = tCenterActual.y;
 

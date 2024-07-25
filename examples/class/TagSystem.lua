@@ -47,40 +47,16 @@ local tTags = {"Massive", "Solder", "Rich", "DEmOn", "Baleful"};
 --oTags.setMultipleEnabled(tTags);
 --oTags.setMultipleEnabled({"Massive", "Solder"}, true);
 for sTag, bEnabled in oTags.iterator() do
---    print(sTag, bEnabled)
-end
---print(#oTags)
---StatusSystem.test = 44
---print(StatusSystem.EFFECT.ENRAGED);
-local oCircle = Circle(Point(5, 9), 10);
--- Example block of code to measure
-local start = os.clock()  -- Record the start time
-
-for i = 1, 10000 do
-    -- Some computation here
-    local x = oCircle.setRadius(34);
+    --print(sTag, bEnabled)
 end
 
-local delta = os.clock() - start  -- Calculate the delta time
---print("Elapsed time:", delta, "seconds")
-local t = {x = 4, y =0}
+local tRect = {
+    {x = 0, y = 0},
+    {x = 0, y = 3},
+    {x = 5, y = 3},
+    {x = 5, y = 0},
+}
 
-if (rawtype(t["x"]) ~= "number" or rawtype(t["y"]) ~= "number") then
-    print("Bad stuff!")
-end
-
-
-
-
-
--- Example usage
-local pCircle = circle(20, 40, 35);
-pCircle.autoCalculate = false;
---line.start.x = 58;
-
-for x = 1, 10000000 do
-    pCircle.radius = x;
-end
-
---pCircle.update()
-print(pCircle.center.y);
+local oPoly = polygon(tRect);
+oPoly.edges[2].start.y = 33;
+print(oPoly.edges[2].start.y);

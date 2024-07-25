@@ -309,6 +309,21 @@ local kit = {
 _fAutoPlaceHolder = function() end;
 
 
+local function kitTest(sName, sActiveName, ...)
+
+    if (sName == sActiveName) then
+        local sMessage = "";
+
+        for k, v in pairs({...} or arg) do
+            sMessage = sMessage..tostring(v).."\n";
+        end
+
+        Dialog.Message(sName.." Kit Test", sMessage);
+    end
+
+
+end
+
                 --[[
                 ██████╗ ███████╗██╗      █████╗ ████████╗██╗ ██████╗ ███╗   ██╗ █████╗ ██╗
                 ██╔══██╗██╔════╝██║     ██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║██╔══██╗██║
@@ -518,7 +533,6 @@ function class.build(tKit)
 
     local tClassMeta = { --the decoy (returned class object) meta table
         __call      = function(t, ...) --instantiate the class
-            local oInstance = {};
 
             --make a list of the parents (if any)
             local tParents          = {};
@@ -551,14 +565,14 @@ function class.build(tKit)
                 local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT";
 
                 --instantiate the parent object
-                local tParent = instance.build(oInstance, tParentInfo.kit, tMyParent);--, sName);
+                local oParent, tParent = instance.build(tParentInfo.kit, tMyParent, sName);
 
                 --store this info for the next iteration
                 tParentInfo.decoy   = oParent;
                 tParentInfo.actual  = tParent;
             end
 
-            local tInstance = instance.build(oInstance, tKit, bHasParent and tParents[#tParents].actual or nil); --this is the returned instance
+            local oInstance, tInstance = instance.build(tKit, bHasParent and tParents[#tParents].actual or nil); --this is the returned instance
 
             --get the visibility of the construtor
             --local sConstructorVisibility = tKit.constructorVisibility;
@@ -731,8 +745,8 @@ end
 @desc Builds an instance of an object given the name of the kit.
 @ret object|table oInstance|tInstance The instance object (decoy) and the instance table (actual).
 !]]
-function instance.build(oInstance, tKit, tParentActual, sType)
-    --local oInstance     = {};                       --this is the decoy instance object that gets returned
+function instance.build(tKit, tParentActual, sType)
+    local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
         met = clone(tKit.met), --create the metamethods
         pri = clone(tKit.pri), --create the private members
@@ -765,7 +779,7 @@ function instance.build(oInstance, tKit, tParentActual, sType)
     instance.processDirectives(tInstance, tClassData);
 
     --create and set the instance metatable
-    instance.setMetatable(tInstance, tClassData);--, sType);
+    instance.setMetatable(tInstance, tClassData, sType);
 
     --TODO I need to update the children field of each parent (OR do I?)
     --TODO add serialize missing warrning (or just automatically create the method if it's missing) (or just have base object with methods lie serialize, clone, etc.)
@@ -784,7 +798,7 @@ function instance.build(oInstance, tKit, tParentActual, sType)
         class   = class.repo.byKit[tKit],
     };
 
-    return tInstance;
+    return oInstance, tInstance;
 end
 
 
@@ -1048,7 +1062,7 @@ end
 @scope local
 @desc Creates and sets the instance's metatable.
 !]]
-function instance.setMetatable(tInstance, tClassData)--, sType)
+function instance.setMetatable(tInstance, tClassData, sType)
     local tMeta     = {}; --actual
     local tKit      = tInstance.metadata.kit;
     local oInstance = tInstance.decoy;

@@ -2,7 +2,7 @@ local rawsetmetatable   = rawsetmetatable;
 local math              = math;
 local sqrt              = math.sqrt;
 local atan2             = math.atan2;
-local nPi               = math.pi;
+local _nPi              = math.pi;
 
 --custom line primitive
 return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
@@ -10,10 +10,10 @@ return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
             tStartActual,   tStartDecoy,    tStartMeta,
             tStopActual,    tStopDecoy,     tStopMeta;
 
-    local bAutoCalculate = true;
+    local bAutoUpdate = true;
 
     tActual = {
-        autoCalculate               = true,
+        autoUpdate               = true,
         start                       = {x = 0, y = 0},
         stop                        = {x = 0, y = 0},
         midpoint                    = {x = 0, y = 0},
@@ -44,7 +44,7 @@ return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
             if (tStartActual[k] ~= nil) then
                 tStartActual[k] = v;
 
-                if (bAutoCalculate) then
+                if (bAutoUpdate) then
                     local nStartX = tStartActual.x;
                     local nStartY = tStartActual.y;
                     local nStopX  = tStopActual.x;
@@ -64,7 +64,7 @@ return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
                     tActual.length                  = sqrt( (nStartX - nStopX) ^ 2 + (nStartY - nStopY) ^ 2);
                     tActual.isHorizontal            = tActual.a == 0;
                     tActual.isVertical              = bXsSame;
-                    tActual.theta                   = bXsSame and (nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
+                    tActual.theta                   = bXsSame and (_nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
                     tActual.yIntercept              = bXsSame and "undefined" or tActual.b;
                     tActual.yInterceptIsUndefined   = tActual.yIntercept == "undefined";
                     tActual.xIntercept              = bXsSame and nStartX or (tActual.a == 0 and "undefined" or -tActual.b / tActual.a);
@@ -87,7 +87,7 @@ return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
             if (tStopActual[k] ~= nil) then
                 tStopActual[k] = v;
 
-                if (bAutoCalculate) then
+                if (bAutoUpdate) then
                     local nStartX = tStartActual.x;
                     local nStartY = tStartActual.y;
                     local nStopX  = tStopActual.x;
@@ -107,7 +107,7 @@ return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
                     tActual.length                  = sqrt( (nStartX - nStopX) ^ 2 + (nStartY - nStopY) ^ 2);
                     tActual.isHorizontal            = tActual.a == 0;
                     tActual.isVertical              = bXsSame;
-                    tActual.theta                   = bXsSame and (nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
+                    tActual.theta                   = bXsSame and (_nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
                     tActual.yIntercept              = bXsSame and "undefined" or tActual.b;
                     tActual.yInterceptIsUndefined   = tActual.yIntercept == "undefined";
                     tActual.xIntercept              = bXsSame and nStartX or (tActual.a == 0 and "undefined" or -tActual.b / tActual.a);
@@ -143,7 +143,7 @@ return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
         tActual.length                  = sqrt( (nStartX - nStopX) ^ 2 + (nStartY - nStopY) ^ 2);
         tActual.isHorizontal            = tActual.a == 0;
         tActual.isVertical              = bXsSame;
-        tActual.theta                   = bXsSame and (nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
+        tActual.theta                   = bXsSame and (_nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
         tActual.yIntercept              = bXsSame and "undefined" or tActual.b;
         tActual.yInterceptIsUndefined   = tActual.yIntercept == "undefined";
         tActual.xIntercept              = bXsSame and nStartX or (tActual.a == 0 and "undefined" or -tActual.b / tActual.a);
@@ -155,9 +155,9 @@ return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
         __index     = tActual,
         __newindex  = function(t, k, v)
 
-            if (k == "autoCalculate" and rawtype(v) == "boolean") then
-                tActual.autoCalculate = v;
-                bAutoCalculate = v;
+            if (k == "autoUpdate" and rawtype(v) == "boolean") then
+                tActual.autoUpdate = v;
+                bAutoUpdate = v;
             end
 
         end,

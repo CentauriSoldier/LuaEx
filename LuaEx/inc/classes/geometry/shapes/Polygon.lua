@@ -32,29 +32,6 @@ Certainly! Here's a succinct bullet-point summary of the differences between reg
         Examples: Regular Polygons, convex quadrilateral.
 ]]
 
-
-local function newLine()
-    return {
-    start                       = {x = 0, y = 0},
-    stop                        = {x = 0, y = 0},
-    --midpoint      = {x = 0, y = 0},
-    --a                           = 0,
-    --b                           = 0,
-    --c                           = 0,
-    --deltaX                      = 0,
-    --deltaY                      = 0,
-    length                      = 0,
-    --slope                       = 0,
-    --slopeIsUndefined            = true,
-    --theta                       = 0,
-    --yIntercept                  = 0,
-    --yInterceptIsUndefined       = true,
-    --xIntercept                  = 0,
-    --xInterceptIsUndefined       = true,
-    };
-end
-
-
 local tProtectedRepo            = {};
 local tPrivate                  = {};
 
@@ -114,8 +91,6 @@ updateArea
 updateAngles
 
 ]]
-
-
 
 
 

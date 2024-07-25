@@ -240,6 +240,7 @@ if (tClassLoadValues[_nClassSystem]) then
         local pPrimitives   = "LuaEx.inc.primitives";
         line                = require(pPrimitives..".line");
         circle              = require(pPrimitives..".circle");
+        polygon             = require(pPrimitives..".polygon");
 
         --actual classes
         local pClasses = "LuaEx.inc.classes";

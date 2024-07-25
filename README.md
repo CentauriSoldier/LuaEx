@@ -27,6 +27,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
+- Bugfix:  Instance returns in parent class were not properly returning child instance when subclassed.
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
 - Feature: Subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
 - Feature Added several class-level checks:
