@@ -11,6 +11,7 @@ local tostring                  = tostring;
 local type                      = type;
 
 local atan2                     = math.atan2;
+local floor                     = math.floor;
 local sqrt                      = math.sqrt;
 local _nPi                      = math.pi;
 
@@ -35,120 +36,126 @@ local SIDE_TRIANGLE_DIFFERENTIAL        = 3;
 local SIDE_ANGLE_FACTOR_DIFFERENTIAL    = 2;
 local SUM_OF_EXTERIOR_ANGLES            = 360;
 
-local function update(tActual)
+local function update(tActual, tAnchors, tVertices, tEdges, nVertices, bPerimeterAndEdges, bAnchors, bArea, bAngles)
 
-    updatePerimeterAndEdges = function(this, cdat)
-        local pri            = cdat.pri;
-        pri.perimeter        = 0;
-        local aVertices      = pri.vertices;
-        local nVerticesCount = aVertices.length;
+    --Perimeter And Edges
+    if (bPerimeterAndEdges) then
+        tActual.perimeter        = 0;
 
-        for i = 1, nVerticesCount do
-            local oPoint1 = aVertices[i];
-            local oPoint2 = i < nVerticesCount and aVertices[i + 1] or aVertices[1];
+        for nVertex = 1, nVertices do
+            local tNewStart = tVertices[nVertex];
+            local tNewStop  = nVertex < nVertices and tVertices[nVertex + 1] or tVertices[1];
 
-            pri.edges[i].setStart(oPoint1, true);
-            pri.edges[i].setEnd(oPoint2);
+            local tEdge         = tEdges[nVertex];
+            local tStart        = tEdge.start;
+            local tStop         = tEdge.stop;
+            local nNewStartX    = tNewStart.x
+            local nNewStartY    = tNewStart.y
+            local nNewStopX     = tNewStop.x
+            local nNewStopY     = tNewStop.y
 
-            pri.perimeter = pri.perimeter + pri.edges[i]:getLength();
+            tStart.x  = nNewStartX;
+            tStart.y  = nNewStartY;
+            tStop.x   = nNewStopX;
+            tStop.y   = nNewStopY;
+
+            tEdge.length    = sqrt( (nNewStopX - nNewStartX) ^ 2 + (nNewStopY - nNewStartY) ^ 2 );
+            tActual.perimeter = tActual.perimeter + tEdge.length;
         end
 
-        pri.edgesCount = #pri.edges;
+    end
+
+
+    --Anchors
+    if (bAnchors) then
+        local nSumX     = 0;
+        local nSumY     = 0;
+        local tAnchorTL = tAnchors[_nAnchorTL];  -- top left
+        local tAnchorTR = tAnchors[_nAnchorTR];  -- top right
+        local tAnchorBR = tAnchors[_nAnchorBR];  -- bottom right
+        local tAnchorBL = tAnchors[_nAnchorBL];  -- bottom left
+
+        -- Prep the 'corner' anchor points
+        local tPoint1   = tVertices[1];
+        local nPoint1X  = tPoint1.x;
+        local nPoint1Y  = tPoint1.y;
+
+        -- Top left, right - bottom left, right
+        tAnchorTL.x = nPoint1X;
+        tAnchorTL.y = nPoint1Y;
+        tAnchorTR.x = nPoint1X;
+        tAnchorTR.y = nPoint1Y;
+        tAnchorBR.x = nPoint1X;
+        tAnchorBR.y = nPoint1Y;
+        tAnchorBL.x = nPoint1X;
+        tAnchorBL.y = nPoint1Y;
+
+        for nVertex = 1, nVertices do
+            -- Process data for the centroid
+            local tPoint    = tVertices[nVertex];
+            local nX        = tPoint.x;
+            local nY        = tPoint.y;
+
+            nSumX = nSumX + nX;
+            nSumY = nSumY + nY;
+
+            -- Update the 'corner' anchor points
+            local nTLX, nTLY = tAnchorTL.x, tAnchorTL.y;
+            local nTRX, nTRY = tAnchorTR.x, tAnchorTR.y;
+            local nBRX, nBRY = tAnchorBR.x, tAnchorBR.y;
+            local nBLX, nBLY = tAnchorBL.x, tAnchorBL.y;
+
+            -- Top left, top right, bottom right, bottom left
+            tAnchorTL.x = (nX < nTLX) and nX or nTLX;
+            tAnchorTL.y = (nY < nTLY) and nY or nTLY;
+            tAnchorTR.x = (nX > nTRX) and nX or nTRX;
+            tAnchorTR.y = (nY < nTRY) and nY or nTRY;
+            tAnchorBR.x = (nX > nBRX) and nX or nBRX;
+            tAnchorBR.y = (nY > nBRY) and nY or nBRY;
+            tAnchorBL.x = (nX < nBLX) and nX or nBLX;
+            tAnchorBL.y = (nY > nBLY) and nY or nBLY;
+        end
+
+        local nCenterXY = nSumX / nVertices;
+        -- Update the centroid anchor
+        tAnchors[_nAnchorC].x = nCenterXY;
+        tAnchors[_nAnchorC].y = nCenterXY;
     end
 
 
 
-    updateAnchors = function(this, cdat)
-        local pri                   = cdat.pri;
-        local nSumX                 = 0;
-        local nSumY                 = 0;
-        local aVertices             = pri.vertices;
-        local nVertices             = aVertices.length;
-        local oAnchorTopLeft        = pri.anchors[SHAPE_ANCHOR_TOP_LEFT];
-        local oAnchorTopRight       = pri.anchors[SHAPE_ANCHOR_TOP_RIGHT];
-        local oAnchorBottomRight    = pri.anchors[SHAPE_ANCHOR_BOTTOM_RIGHT];
-        local oAnchorBottomLeft     = pri.anchors[SHAPE_ANCHOR_BOTTOM_LEFT];
 
-        --prep the 'corner' anchor Points
-        local tPoint1   = aVertices[1];
-        local nPoint1X  = tPoint1.getX();
-        local nPoint1Y  = tPoint1.getY();
+    if (bArea) then--this algorithm doesn't work on complex Polygons, find one which does and check before returning the area
+        local nSum = 0;
 
-        --top left, right - bottom left, right
-        oAnchorTopLeft.set(nPoint1X, nPoint1Y);
-        oAnchorTopRight.set(nPoint1X, nPoint1Y);
-        oAnchorBottomRight.set(nPoint1X, nPoint1Y);
-        oAnchorBottomLeft.set(nPoint1X, nPoint1Y);
+        for i = 1, nVertices do
+            local tVertex1 = tVertices[i];
+            local tVertex2 = i < nVertices and tVertices[i + 1] or tVertices[1];
 
-        for x = 1, nVertices do
-            --process data for the centroid
-            local oPoint    = aVertices[x];
-            local nPointX   = oPoint.getX();
-            local nPointY   = oPoint.getY();
-
-            nSumX = nSumX + nPointX;
-            nSumY = nSumY + nPointY;
-
-            --update the 'corner' anchor Points
-            local nAnchorTopLeftX,      nAnchorTopLeftY     = oAnchorTopLeft.get();
-            local nAnchorTopRightX,     nAnchorTopRightY    = oAnchorTopRight.get();
-            local nAnchorBottomRightX,  nAnchorBottomRightY = oAnchorBottomRight.get();
-            local nAnchorBottomLeftX,   nAnchorBottomLeftY  = oAnchorBottomLeft.get();
-
-            --top left, top right, bottom right, bottom left
-            oAnchorTopLeft.set(     nPointX < nAnchorTopLeftX       and nPointX or nAnchorTopLeftX,
-                                    nPointY < nAnchorTopLeftY       and nPointY or nAnchorTopLeftY);
-            oAnchorTopRight.set(    nPointX > nAnchorTopRightX      and nPointX or nAnchorTopRightX,
-                                    nPointY < nAnchorTopRightY      and nPointY or nAnchorTopRightY);
-            oAnchorBottomRight.set( nPointX > nAnchorBottomRightX   and nPointX or nAnchorBottomRightX,
-                                    nPointY > nAnchorBottomRightY   and nPointY or nAnchorBottomRightY);
-            oAnchorBottomLeft.set(  nPointX < nAnchorBottomLeftX    and nPointX or nAnchorBottomLeftX,
-                                    nPointY > nAnchorBottomLeftY    and nPointY or nAnchorBottomLeftY);
+            nSum = nSum + (tVertex1.x * tVertex2.y - tVertex1.y * tVertex2.x)
         end
 
-        --update the centroid anchor
-        pri.anchors[SHAPE_ANCHOR_CENTROID].x = nSumX / nVertices;--pri.centroid.x;
-        pri.anchors[SHAPE_ANCHOR_CENTROID].y = nSumY / nVertices;--pri.centroid.y;
-    end
-
-
-
-
-    updateArea = function(this, cdat, pri)--this algorithm doesn't work on complex Polygons, find one which does and check before returning the area
-        local pri               = cdat.pri;
-        local nSum              = 0;
-        local aVertices         = pri.vertices;
-        local nVerticesCount    = #aVertices;
-
-        for i = 1, nVerticesCount do
-            local oPoint1 = aVertices[i];
-            local oPoint2 = i < nVerticesCount and aVertices[i + 1] or aVertices[1];
-
-            nSum = nSum + (oPoint1.getX() * oPoint2.getY() - oPoint1.getY() * oPoint2.getX())
-        end
-
-        pri.area = nSum / 2;
+        local nArea = nSum / 2;
         --make sure it's a positive number (since the loop goes clockwise instead of CCW)
-        pri.area = pri.area >= 0 and pri.area or -pri.area;
+        tActual.area = nArea >= 0 and nArea or -nArea;
     end
 
 
 
 
-    updateAngles = function(this, cdat)
-        local pri                   = cdat.pri;
-        pri.interiorAngles          = {};
-        pri.exteriorAngles          = {};
-        pri.isConcave               = false;
-        pri.isRegular               = false;
+    if (bAngles) then
+        act.interiorAngles          = {};
+        act.exteriorAngles          = {};
+        act.isConcave               = false;
+        act.isRegular               = false;
         local nRegularityAngleMark  = 0;
         local nRegularityEdgeMark   = 0;
         local bRegularityFailed     = false;
-        local tEdges                = pri.edges;
-        local nEdges                = #pri.edges;
+        local tEdges                = act.edges;
+        local nEdges                = #act.edges;
 
 
-        for nLine = 1, pri.edges.length do --use the number of vertices since it's the same as the number of edges
+        for nLine = 1, act.edges.length do --use the number of vertices since it's the same as the number of edges
             local bIsFirstLine     = nLine == 1;
 
             --determine the Lines between which the angle will be
@@ -167,11 +174,11 @@ local function update(tActual)
             local nTheta = math.deg(math.acos((nLength1 ^ 2 + nLength2 ^ 2 - nLength3 ^ 2) / (2 * nLength1 * nLength2)));
 
             --save the angle
-            pri.interiorAngles[nLine] = nTheta;
+            act.interiorAngles[nLine] = nTheta;
 
             --check for concavity
             if (nTheta > 180) then
-                pri.isConcave = true;
+                act.isConcave = true;
             end
 
             --regularity check init
@@ -189,33 +196,46 @@ local function update(tActual)
 
             --if this is the last Line and all angles/edges are repectively equal
             if (not bRegularityFailed and nLine == nEdges) then
-                pri.isRegular = true;
+                act.isRegular = true;
             end
 
             --get the exterior angle: this allows for negative interior angles so all ext angles == 360 even on concave Polygons
-            pri.exteriorAngles[nLine] = 180 - pri.interiorAngles[nLine];
+            act.exteriorAngles[nLine] = 180 - act.interiorAngles[nLine];
         end
 
     end
 
 end
 
-return function(tVertices, bSkipFirstUpdate)
-    local   tActual,            tDecoy,         tMeta,
-            tAnchorsActual,     tAnchorsDecoy,  tAnchorsMeta,
-            tEdgesActual,       tEdgesDecoy,    tEdgesMeta,
-            tVerticesActual,    tVerticesDecoy, tVerticesMeta;
+return function(tInpVertices, bSkipFirstUpdate)
+    local   tActual,            tAnalog,            tDecoy,         tMeta,
+            tAnchors,           tAnchorsAnalog,     tAnchorsDecoy,  tAnchorsMeta,
+            tEdgesActual,       tEdgesAnalog,       tEdgesDecoy,    tEdgesMeta,
+            tVerticesActual,    tVerticesAnalog,    tVerticesDecoy, tVerticesMeta;
 
-    local bAutoUpdate = true;
-    local nVertices = #tVertices;
+    local bAutoUpdate               = true;
+    local nAnchorID                 = _nAnchorDefault
+
+    --used for readability of the code when calling 'update'
+    local bUpdatePerimeterAndEdges  = true;
+    local bUpdateAnchors            = true;
+    local bUpdateArea               = true;
+    local bUpdateAngles             = true;
+
+    local nVertices = #tInpVertices;
 
     --🅰🅲🆃🆄🅰🅻
     tActual = {
-        area        = 0,
+        anchorID        = _nAnchorDefault, --default anchor index
+        area            = 0,
+        autoUpdate      = true,
         --edges (added later)
-        isConcave   = false,
-        isRegular   = false,
-        perimeter   = 0,
+        interiorAngles  = {}, --TODO
+        exteriorAngles  = {}, --TODO
+        isConcave       = false,
+        isRegular       = false,
+        perimeter       = 0,
+        verticesCount   = nVertices,
         --[[tweener     = {
             inProgress  = false,
             line        = Line(nil, nil, true),
@@ -225,68 +245,153 @@ return function(tVertices, bSkipFirstUpdate)
     };
 
     --🅰🅽🅲🅷🅾🆁🆂 TODO FINISH
-    tAnchorsActual = {
+    tAnchors = {
         [_nAnchorTL] = {x = -1,  y = 1},
         [_nAnchorTR] = {x = 1,   y = 1},
         [_nAnchorBR] = {x = 1,   y = -1},
         [_nAnchorBL] = {x = -1,  y = -1},
         [_nAnchorC]  = {x = 0,   y = 0},
-    }
+    };
+    tAnchorsDecoy   = { --TODO
+        __index = tAnchors,
+        __newindex = function(t, k, v) end,
+    };
+    tAnchorsMeta    = {};
+    rawsetmetatable(tAnchorsDecoy, tAnchorsMeta);
+
 
     --🆅🅴🆁🆃🅸🅲🅴🆂
-    tVerticesActual = {};
-    tVerticesDecoy  = {};
-    tVerticesMeta   = {
-
-    };
+    tVertices           = {}; --actual
+    tVerticesAnalog     = {}; --where subtables' actuals' decoys are stored, referenced by the decoy
+    tVerticesDecoy      = {}; --returned to the user
+    tVerticesMeta       = {};
 
     --🅴🅳🅶🅴🆂
-    tEdgesActual    = {};
-    tEdgesDecoy     = {};
+    tEdges          = {}; --actual
+    tEdgesAnalog    = {}; --where subtables' actuals' decoys are stored, referenced by the decoy
+    tEdgesDecoy     = {}; --returned to the user
     tEdgesMeta      = {};
 
-    for nIndex, tVertex in ipairs(tVertices) do        --TODO check order?
-        local nNextEdgeIndex    = (nIndex % nVertices) + 1;
-        local tNextVertex       = tVertices[nNextEdgeIndex];
+    for nIndex, tVertex in ipairs(tInpVertices) do        --TODO check order?
         local nX                = tVertex.x;
         local nY                = tVertex.y;
-        --copy the vertex
-        tVerticesActual[nIndex] = {x = nX, y = nY};
-        -- Add line from current vertex to next vertex
-        tEdgesActual[nIndex] = line(nX, nY, tNextVertex.x, tNextVertex.y);
+        local nNextEdgeIndex    = (nIndex % nVertices) + 1;
+        local tNextVertex       = tInpVertices[nNextEdgeIndex];
+        local nNextX            = tNextVertex.x;
+        local nNextY            = tNextVertex.y;
+
+        --create the vertex
+        local tVertex       = {x = nX, y = nY};
+        local tVertexDecoy  = {};
+        local tVertexMeta   = {
+            __index = tVertex,
+            __newindex = function(t, k, v)
+
+                if (tVertex[k] ~= nil) then
+                    tVertex[k] = v;
+                    --print("updating")
+                    update( tActual, tAnchors, tVertices, tEdges, nVertices,
+                            bUpdatePerimeterAndEdges,   bUpdateAnchors,
+                            bUpdateArea,                not bUpdateAngles);
+                end
+
+            end,
+            __metatable = false,
+        };
+        rawsetmetatable(tVertexDecoy, tVertexMeta);
+        tVertices[nIndex]       = tVertex;
+        tVerticesAnalog[nIndex] = tVertexDecoy;
+
+        -- create line from the current vertex to next vertex
+        local tStart        = {x = nX, y = nY};
+        local tStartDecoy   = {};
+        local tStartMeta    = {
+            __index = tStart,
+            __newindex = function(t, k, v) end,
+        };
+        rawsetmetatable(tStartDecoy, tStartMeta);
+
+        local tStop      = {x = nNextX, y = nNextY};
+        local tStopDecoy = {};
+        local tStopMeta  = {
+            __index = tStop,
+            __newindex = function(t, k, v) end,
+        };
+        rawsetmetatable(tStopDecoy, tStopMeta);
+
+        local nLength       = sqrt( (nNextX - nX) ^ 2 + (nNextY - nY) ^ 2 );
+        local tEdge         = {start = tStart,      stop = tStop,       length = nLength};
+        local tEdgeAnalog   = {start = tStartDecoy, stop = tStopDecoy,  length = nLength};
+        local tEdgeDecoy    = {};
+        local tEdgeMeta     = {
+            __index = tEdgeAnalog,
+            __newindex = function(t, k, v) end,
+            __pairs = function(t, k)
+                return next, tEdgeAnalog, nil;
+            end,
+        };
+        rawsetmetatable(tEdgeDecoy, tEdgeMeta);
+
+        tEdges[nIndex]       = tEdge;
+        tEdgesAnalog[nIndex] = tEdgeDecoy;
     end
+
+
 
     rawsetmetatable(tVerticesDecoy,
     {
-        __index = tVerticesActual,
-        __newindex = function(t, k, v)
-
-            if (tVerticesActual[k] ~= nil) then
-                tVerticesActual[k] = v;
-                ---TODO calcs
-            end
-
+        __index = tVerticesAnalog,
+        __newindex = function(t, k, v) end,
+        __pairs = function()
+            return next, tVertices, nil;
         end,
+        __metatable = false,
     });
 
     rawsetmetatable(tEdgesDecoy,
     {
-        __index = tEdgesActual,
-        __newindex = function(t, k, v)
-
-            if (tEdgesActual[k] ~= nil) then
-                tEdgesActual[k] = v;
-                ---TODO calcs
-            end
-
+        __index = tEdgesAnalog,
+        __newindex = function(t, k, v) end,
+        __pairs = function(t, k)
+            return next, tEdgesAnalog, nil;
         end,
+        __metatable = false,
     });
 
 
-    tActual.vertices = tVerticesDecoy;
-    tActual.edges    = tEdgesDecoy;
+    tActual.anchors     = tAnchorsDecoy;
+    tActual.edges       = tEdgesDecoy;
+    tActual.translate   = function(nX, nY)
 
+        for nID, tPoint in ipairs(tAnchors) do
+            tPoint.x = tPoint.x + nX;
+            tPoint.y = tPoint.y + nY;
+        end
 
+        for nID, tPoint in ipairs(tVertices) do
+            tPoint.x = tPoint.x + nX;
+            tPoint.y = tPoint.y + nY;
+        end
+
+    end
+    tActual.translateTo = function(nToX, nToY)
+        local tAnchor = tAnchors[nAnchorID];
+        local nDeltaX = nToX - tAnchor.x;
+        local nDeltaY = nToY - tAnchor.y;
+
+        for nID, tPoint in ipairs(tAnchors) do
+            tPoint.x = tPoint.x + nX;
+            tPoint.y = tPoint.y + nY;
+        end
+
+        for nID, tPoint in ipairs(tVertices) do
+            tPoint.x = tPoint.x + nX;
+            tPoint.y = tPoint.y + nY;
+        end
+
+    end
+    tActual.update      = udpate;
+    tActual.vertices    = tVerticesDecoy;
 
     tDecoy    = {};
     tMeta     = {
@@ -296,6 +401,19 @@ return function(tVertices, bSkipFirstUpdate)
             if (k == "autoUpdate" and rawtype(v) == "boolean") then
                 tActual.autoUpdate = v;
                 bAutoUpdate = v;
+
+            elseif (k == "anchorID" and rawtype(v) == "number") then
+                local nOldID    = tActual.anchorID;
+                local nVal      = floor(v);
+                nVal            = ( nVal > 0 and nVal <= _nAnchorCount) and
+                                    nVal or tActual.anchorID;
+
+                tActual.anchorID    = nVal;
+                nAnchorID           = nVal;
+                --QUESTION SHOULD I AUTO UPDATE HERE?
+
+            elseif (k == "x") then--TODO --sort of translate function
+
             end
 
         end,
@@ -303,7 +421,7 @@ return function(tVertices, bSkipFirstUpdate)
         __subtype   = "polygon",
     };
     rawsetmetatable(tDecoy, tMeta);
-
+    --TODO add traslate and translateTo methods
     --update the polygon (if requested)
     if not (bSkipFirstUpdate) then
         --tActual.update();

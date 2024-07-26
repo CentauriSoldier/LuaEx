@@ -51,12 +51,28 @@ for sTag, bEnabled in oTags.iterator() do
 end
 
 local tRect = {
-    {x = 0, y = 0},
-    {x = 0, y = 3},
-    {x = 5, y = 3},
-    {x = 5, y = 0},
+    {x = 0,     y = 0},
+    {x = 0,     y = 10},
+    {x = 10,    y = 10},
+    {x = 10,     y = 0},
 }
 
 local oPoly = polygon(tRect);
-oPoly.edges[2].start.y = 33;
-print(oPoly.edges[2].start.y);
+--oPoly.edges[2].start.y = 44;
+--print(oPoly.edges[2].start.y);
+--oPoly.vertices[3].x = 44;
+--print(oPoly.vertices[3].x);
+--print(oPoly.perimeter)
+--oPoly.autoUpdate = 12
+oPoly.vertices[2].y = 26;
+for k, v in pairs(oPoly.vertices) do
+    print(k, v.x, v.y)
+end
+
+for k, v in pairs(oPoly.edges) do
+    print(k, "start", v.start.x, v.start.y)
+    print(k, "start", v.stop.x, v.stop.y)
+end
+
+print(oPoly.perimeter);
+print(oPoly.area);
