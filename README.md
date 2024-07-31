@@ -267,6 +267,7 @@ Variables are prefixed with the following lower-case symbols based on their type
 *t*	|	**table**  
 *u*	| 	**userdata**  
 *v*	|	**variable/unknown type**  
+*x*	|	**factory**  
 *z*	|	**type** *(string)* (e.g., "string", "table", etc.)  
 
 Types ignored by this convention are types **nil** and **null** since prefixing such a variable type would, generally, serve no real purpose.
