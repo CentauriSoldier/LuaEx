@@ -260,7 +260,7 @@ function struct.build(sName, tInputArgs)
     for sKey, tVals in pairs(tConstraints) do
         tStructActual[sKey] = {
             type 	= tVals.type,
-            value 	= tVals.defaultvalue,--FIX if this is a table or object, it will shared...this is bad; clone it
+            value 	= clone(tVals.defaultvalue),
         };
     end
 
@@ -506,7 +506,7 @@ local tStructFactoryDecoy = {};
 setmetatable(tStructFactoryDecoy,
 {
     __call 		= factory.build,
-    __clones     = function()
+    __clone     = function()
         return tStructFactoryDecoy;
     end,
     __index 	= function(t, k, v)
