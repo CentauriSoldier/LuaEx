@@ -10,21 +10,19 @@ local UUID_BLOCKS	= 5;
 function string.cap(sInput, bLowerRemaining)
     local sRet = "";
 
-    if string.len(sInput) > 1 then
-        local sFirstLetter = string.sub(sInput, 1, 1);
-        local sRightSide = string.sub(sInput, 2, string.len(sInput));
-        sRet = string.upper(sFirstLetter);
+    if sInput:len(sInput) > 1 then
+        local sFirstLetter = sInput:sub(1, 1);
+        local sRightSide = sInput:sub(2, sInput:len()); --DO i need the 2nd arg?
+        sRet = sFirstLetter:upper();
 
             if bLowerRemaining then
-            sRet = sRet..string.lower(sRightSide);
-
+                sRet = sRet..sRightSide:lower();
             else
-            sRet = sRet..sRightSide;
-
+                sRet = sRet..sRightSide;
             end
 
     else
-        sRet = string.upper(sInput);
+        sRet = sInput:upper();
     end
 
     return sRet
