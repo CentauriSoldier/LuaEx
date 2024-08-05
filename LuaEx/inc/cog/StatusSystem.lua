@@ -28,14 +28,15 @@ return class("StatusSystem",
 },
 {},--PROTECTED
 {--PUBLIC
-    StatusSystem = function(this, cdat, tStatuses)
+    StatusSystem = function(this, cdat)
         local pri = cdat.pri;
 
         for nOrdinal, eEffect in StatusSystem.EFFECT() do
             pri.effects[eEffect] = {
                 id          = nOrdinal,
                 isImmune    = false,
-                remaining   = 0,--TODO use protean?
+                remaining   = Protean(0, 0, 0, 0, 0, 0, 0, 0, 9999),
+                resistance  = Protean(0, 0, 0, 0, 0, 0, 0, 0, 100),
             };
 
             pri.activeEffectsByEnum[eEffect] = false;

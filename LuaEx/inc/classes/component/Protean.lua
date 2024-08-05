@@ -279,6 +279,7 @@ calculateFinalValue = function(this, cdat)
     end
 
     tValues[_nValueFinal] = nFinal;
+    return nFinal;
 end
 
 --[[
@@ -293,6 +294,10 @@ local function setValue(this, cdat, nType, nValue)--TODO send old and new final 
     local bCalculated 		= false;
     local bCallbackCalled 	= false;
     local tValues           = pri.values;
+    local nFinal            = -1;
+
+    --get the old value (for the callback function)
+    local nOldValue = tValues[nType];
 
     --set the value
     tValues[nType] = nValue;
@@ -317,12 +322,12 @@ local function setValue(this, cdat, nType, nValue)--TODO send old and new final 
 
             if (tPrivate.autoCalculate) then
                 --(re)calculate the final value
-                calculateFinalValue(oProtean, tCDAT);
+                nFinal = calculateFinalValue(oProtean, tCDAT);
             end
 
             if (tPrivate.isCallbackActive) then
                 --process the callback function
-                oProtean.onChange(oProtean);
+                oProtean.onChange(oProtean, nType, nOldValue, nValue, nFinal);
             end
 
         end
@@ -335,11 +340,11 @@ local function setValue(this, cdat, nType, nValue)--TODO send old and new final 
 
     if (not bCalculated and pri.autoCalculate) then
         ---(re)calculate the final value
-        calculateFinalValue(this, cdat);
+        nFinal = calculateFinalValue(this, cdat);
     end
 
     if (not bCallbackCalled and pri.isCallbackActive) then
-        pri.onChange(this);
+        pri.onChange(this, nType, nOldValue, nValue, nFinal);
     end
 
 end
@@ -539,6 +544,14 @@ return class("Protean",
     @param nMinLimit number/nil This is the minimum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no minimum value.
     @param nMaxLimit number/nil This is the maximum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no maximum value.
     @param fonChange function/nil If the (optional) input is a function, this will be called whenever a change is made to this object (unless callback is inactive).
+    <br>Note: the callback function must accept the following paramters:
+    <ol>
+        <li>The Protean object. <em>(Protean)</em>.</li>
+        <li>The value type. <em>(number)</em></li>
+        <li>The previous value. <em>(number)</em></li>
+        <li>The changed value. <em>(number)</em></li>
+        <li>The final value. <em>(number)</em></li>
+    </ol>
     @param bAutoCalculate Whether or not this object should auto-calculate the final value whenever a change is made. This is true by default. If set to nil, it will default to true.
     @return oProtean Protean A Protean object.
     !]]
