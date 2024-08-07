@@ -241,6 +241,7 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
 
         --item(s) that must be put into the item metatable in either case (if it's an item or embdded enum)
         tItemMeta.__type 		= sEnumName;
+        tItemMeta.__subtype		= "enumitem";
         tItemMeta.__index 		= function(tTable, vKey)
             if (rawget(tItemActual, vKey) == nil) then
                 error("The enum property or method '"..tostring(vKey).."' does not exist in item '"..sItem.."' in enum '"..sEnumName.."'.");

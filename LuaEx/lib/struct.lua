@@ -1,6 +1,7 @@
 local rawtype 		= rawtype;
 local pairs 		= pairs;
 local setmetatable 	= setmetatable;
+local subtype       = subtype;
 local type 			= type;
 --TODO documentation
 
@@ -90,8 +91,8 @@ local function processPropertiesTable(sName, tProperties, tConstraint, bReadOnly
     for vKey, vValue in pairs(tProperties) do
 
         --ensure all keys are valid strings
-        if (rawtype(vKey) ~= "string") then
-            error("Error creating struct factory, '"..sName.."' at key "..tostring(vKey)..".\nKey type expected: string. Type given: "..type(vKey), 3);
+        if not (rawtype(vKey) == "string" or subtype(vKey) == "enumitem") then
+            error("Error creating struct factory, '"..sName.."' at key "..tostring(vKey)..".\nKey type expected: string (or subtype: enumitem). Type and subtype given: "..type(vKey).." | "..subtype(vKey), 3);
         end
 
         local sValType = type(vValue);
