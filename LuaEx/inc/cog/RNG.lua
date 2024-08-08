@@ -209,12 +209,14 @@ return class("RNG",
             -- Multiple rolls, find the best total among them
             for nRoll = 1, nAttempts do
                 nTotal = 0;
+                rand();--rand();
 
                 if nDice == 1 then
                     nTotal = rand(1, nSides);
                 else
 
                     for nDie = 1, nDice do
+                        rand();--rand();
                         nTotal = nTotal + rand(1, nSides);
                     end
 
