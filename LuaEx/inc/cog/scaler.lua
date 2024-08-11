@@ -1,68 +1,49 @@
-local tScaler = {
-    build = {
-        width   = 0,
-        height  = 0,
-    },
-    screen = {
-        width   = 0,
-        height  = 0,
-    },
-    viewport = { --this will be scaled and centered
-        width   = 0,
-        height  = 0,
-    },
-    cov = {
-        xw = 0,
-        yh = 0,
-    },
-    coordOffset = {
-        x = 0,
-        y = 0,
-    },
-};
+local assert    = assert;
+local class     = class;
+local math      = math;
+local rawtype   = rawtype;
+local fitrect   = math.geometry.fitrect;
 
-local scaler = {
-    adjust = function(tRect)
-        return {width   = tRect.width   * tScaler.cov.xw,
-                height  = tRect.height  * tScaler.cov.yh,
-                x       = tRect.x * tScaler.cov.xw + tScaler.coordOffset.x,
-                y       = tRect.y * tScaler.cov.yh + tScaler.coordOffset.y};
-    end,
-    adjustSize = function(width, height)
-        return {width   = width *   tScaler.cov.xw,
-                height  = height *  tScaler.cov.yh};
-    end,
-    adjustPos = function(x, y)
-        return {x   = x * tScaler.cov.xw + tScaler.viewport.x,
-                y   = y * tScaler.cov.yh + tScaler.viewport.y};
-    end,
-    getBuildSize = function()
-        return {width = tScaler.build.width, height = tScaler.build.height};
-    end,
-    getCOV = function()
-        return {xw = tScaler.cov.xw, yh = tScaler.cov.yh};
-    end,
-    getScreenSize = function()
-        return {width = tScaler.screen.width, height = tScaler.screen.height};
-    end,
-    getViewport = function()
-        local tV = tScaler.viewport;
-        return {width = tV.width, height = tV.height, x = tV.x, y = tV.y};
-    end,
-    init = function(buildWidth, buildHeight, screenWidth, screenHeight, bFullscreen)--, nAdditionalXOffset, nAdditionalYOffset)
-        assert(rawtype(buildWidth)      == "number", "Build width must be of type number. Type given was '${w}'" % {w = rawtype(buildWidth)});
-        assert(rawtype(buildHeight)     == "number", "Build height must be of type number. Type given was '${h}'" % {h = rawtype(buildHeight)});
-        assert(rawtype(screenWidth)     == "number", "Screen width must be of type number. Type given was '${w}'" % {w = rawtype(screenWidth)});
-        assert(rawtype(screenHeight)    == "number", "Screen height must be of type number. Type given was '${h}'" % {h = rawtype(screenHeight)});
-        assert(buildWidth > 0,      "Build Width must be a positive number");
-        assert(buildHeight > 0,     "Build Height must be a positive number");
-        assert(screenWidth > 0,     "Screen Width must be a positive number");
-        assert(screenHeight > 0,    "Screen Height must be a positive number");
+return class("Scaler",
+{--METAMETHODS
 
-        tScaler.build.width     = buildWidth;
-        tScaler.build.height    = buildHeight;
-        tScaler.screen.width    = screenWidth;
-        tScaler.screen.height   = screenHeight;
+},
+{--STATIC PUBLIC
+    --Scaler = function(stapub) end,
+},
+{--PRIVATE
+
+},
+{--PROTECTED
+    buildWidth      = 0,
+    buildHeight     = 0,
+    screenWidth     = 0,
+    screenHeight    = 0,
+    viewportWidth   = 0, --this will be scaled and centered
+    viewportHeight  = 0, --this will be scaled and centered
+    viewportX       = 0, --this will be scaled and centered
+    viewportY       = 0, --this will be scaled and centered
+    covXW           = 0,
+    covYH           = 0,
+    coordOffsetX    = 0,
+    coordOffsetY    = 0,
+},
+{--PUBLIC
+    Scaler = function(this, cdat, nBuildWidth, nBuildHeight, nScreenWidth, nScreenHeight, bFullscreen)--, nAdditionalXOffset, nAdditionalYOffset)
+        local pro = cdat.pro;
+        assert(rawtype(nBuildWidth)     == "number", "Build width must be of type number. Type given was '${w}'"      % {w = rawtype(nBuildWidth)});
+        assert(rawtype(nBuildHeight)    == "number", "Build height must be of type number. Type given was '${h}'"     % {h = rawtype(nBuildHeight)});
+        assert(rawtype(nScreenWidth)    == "number", "Screen width must be of type number. Type given was '${w}'"     % {w = rawtype(nScreenWidth)});
+        assert(rawtype(nScreenHeight)   == "number", "Screen height must be of type number. Type given was '${h}'"    % {h = rawtype(nScreenHeight)});
+        assert(nBuildWidth      > 0, "Build Width must be a positive number");
+        assert(nBuildHeight     > 0, "Build Height must be a positive number");
+        assert(nScreenWidth     > 0, "Screen Width must be a positive number");
+        assert(nScreenHeight    > 0, "Screen Height must be a positive number");
+
+        pro.buildWidth   = nBuildWidth;
+        pro.buildHeight  = nBuildHeight;
+        pro.screenWidth  = nScreenWidth;
+        pro.screenHeight = nScreenHeight;
 
         --TODO app asserts
         --configure the app window
@@ -72,24 +53,70 @@ local scaler = {
         --tScaler.app.y       = tApp.y;
 
         --configure the viewport
-        tScaler.viewport = math.geometry.fitrect({width = screenWidth, height = screenHeight, x = 0, y = 0}, {width = buildWidth, height = buildHeight}, 1, true);
+        local tViewport = fitrect({width = nScreenWidth, height = nScreenHeight, x = 0, y = 0}, {width = nBuildWidth, height = nBuildHeight}, 1, true);
 
-        tScaler.cov.xw = tScaler.viewport.width / buildWidth;
-        tScaler.cov.yh = tScaler.viewport.height / buildHeight;
-        --error(tScaler.cov.xw.." "..tScaler.cov.yh)
+        local nViewportWidth    = tViewport.width;
+        local nViewportHeight   = tViewport.height;
+        local nViewportX        = tViewport.x;
+        local nViewportY        = tViewport.y;
+
+        pro.viewportWidth   = nViewportWidth;
+        pro.viewportHeight  = nViewportHeight;
+        pro.viewportX       = nViewportX;
+        pro.viewportY       = nViewportY;
+
+        pro.covXW = nViewportWidth  / nBuildWidth;
+        pro.covYH = nViewportHeight / nBuildHeight;
 
         if (bFullscreen) then
-            tScaler.coordOffset.x = tScaler.viewport.x;-- + math.abs(tScaler.viewport.width - buildWidth) + (nAdditionalXOffset or 0);
-            tScaler.coordOffset.y = tScaler.viewport.y;-- + math.abs(tScaler.viewport.height - buildHeight) + (nAdditionalYOffset or 0);
+            pro.coordOffsetX = nViewportX;-- + math.abs(tScaler.viewport.width - nBuildWidth) + (nAdditionalXOffset or 0);
+            pro.coordOffsetY = nViewportY;-- + math.abs(tScaler.viewport.height - nBuildHeight) + (nAdditionalYOffset or 0);
         end
+    end,
+    adjust = function(this, cdat, tRect)
+        local pro = cdat.pro;
+        local nCOV_XW = pro.covXW;
+        local nCOV_YH = pro.covYH;
+
+        return {width   = tRect.width   * nCOV_XW,
+                height  = tRect.height  * nCOV_YH,
+                x       = tRect.x * nCOV_XW + pro.coordOffsetX,
+                y       = tRect.y * nCOV_YH + pro.coordOffsetY};
+    end,
+    adjustSize = function(this, cdat, width, height)
+        local pro = cdat.pro;
+        return {width   = width *   pro.covXW,
+                height  = height *  pro.covYH};
+    end,
+    adjustPos = function(this, cdat, x, y)
+        local pro = cdat.pro;
+        return {x   = x * pro.covXW + pro.viewportX,
+                y   = y * pro.covYH + pro.viewportY};
+    end,
+    getBuildSize = function(this, cdat)
+        local pro = cdat.pro;
+        return {width = pro.buildWidth, height = pro.buildHeight};
+    end,
+    getCOV = function(this, cdat)
+        local pro = cdat.pro;
+        return {xw = pro.covXW, yh = pro.covYH};
+    end,
+    getScreenSize = function(this, cdat)
+        local pro = cdat.pro;
+        return {width = pro.viewportWidth, height = pro.viewportHeight};
+    end,
+    getViewport = function(this, cdat)
+        local pro   = cdat.pro;
+        return {width = pro.viewportWidth, height = pro.viewportHeight, x = pro.viewportX, y = pro.viewportY};
+    end,
+    onResize = function(this, cdat)
 
     end,
-    --[[setApp = function(tApp)--TODO asserts
-        tScaler.app.width   = tApp.width;
-        tScaler.app.height  = tApp.height;
-        tScaler.app.x       = tApp.x;
-        tScaler.app.y       = tApp.y;
-    end,]]
-};
+    setOnResizeCallback = function(this, cdat, fCallback)
 
-return scaler;
+    end
+},
+nil,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);

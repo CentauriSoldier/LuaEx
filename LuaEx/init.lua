@@ -274,13 +274,13 @@ if (tClassLoadValues[_nClassSystem]) then
                     local tCoG = table.setreadonly(
                     {
                         config  = require(pCoG..".config"),
-                        scaler  = require(pCoG..".scaler"),
+                        --Scaler  = require(pCoG..".Scaler"),
                     });
 
                     --import CoG's table into the luaex global table
                     rawset(tLuaEx, "cog", tCoG);
 
-                    --scaler          = require(pCoG..".scaler");
+                    Scaler          = require(pCoG..".Scaler");
                     RNG             = require(pCoG..".RNG");
 
                     --interfaces
