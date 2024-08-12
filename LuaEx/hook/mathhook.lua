@@ -1,5 +1,6 @@
 local math      = math;
 local rawtype   = rawtype;
+local string    = string;
 
 math.e = math.exp(1);
 
@@ -497,6 +498,18 @@ end
 --TODO move these to a color module and put that module in CoG
 function math.rgbtolong(nR, nG, nB)
     return nR + (nG * 256) + (nB * 65536)
+end
+
+-- Function to convert RGB values to hexadecimal color code
+function math.rgbtohex(r, g, b)
+    -- Ensure values are clamped between 0 and 255
+    r = math.max(0, math.min(r, 255))
+    g = math.max(0, math.min(g, 255))
+    b = math.max(0, math.min(b, 255))
+
+    -- Convert RGB values to hexadecimal format
+    local hex = string.format("0x%02X%02X%02X", r, g, b)
+    return hex
 end
 --[[
 nR = nR;
