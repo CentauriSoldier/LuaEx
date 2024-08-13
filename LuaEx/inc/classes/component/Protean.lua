@@ -552,7 +552,7 @@ return class("Protean",
         <li>The changed value. <em>(number)</em></li>
         <li>The final value. <em>(number)</em></li>
     </ol>
-    @param bAutoCalculate Whether or not this object should auto-calculate the final value whenever a change is made. This is true by default. If set to nil, it will default to true.
+    @param bDoNotAutoCalculate Whether or not this object should auto-calculate the final value whenever a change is made. This is true by default. If set to nil, it will default to true.
     @return oProtean Protean A Protean object.
     !]]
     Protean = function(this, cdat, nBaseValue,  nBaseBonus,             nBasePenalty,

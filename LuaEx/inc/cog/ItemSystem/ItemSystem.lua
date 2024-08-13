@@ -52,7 +52,8 @@ return class("ItemSystem",
 
 },
 {--PROTECTED
-    items = {},
+    items       = {},
+    maxItems    = math.huge,
 },
 {--PUBLIC
     --[[!
@@ -60,13 +61,30 @@ return class("ItemSystem",
     @desc The constructor for the <b>ItemSystem</b>.
     @ex TODO
     !]]
-    ItemSystem = function(this, cdat, super, tItems)
+    ItemSystem = function(this, cdat, super, nMaxItems, tItems) --TODO allow for max items adjustment plus setter/getter
+        local pro = cdat.pro;
+
+        if (rawtype(nMaxItems) == "number") then
+            nMaxItems = math.floor(nMaxItems);
+
+            if (nMaxItems > 0) then
+                pro.maxItems = nMaxItems;
+            end
+
+        end
 
         if (rawtype(tItems) == "table") then
+            local tMyItems      = pro.items;
+            local nMyMaxItems   = pro.maxItems;
 
             for _, vItem in pairs(tItems) do
-                validateItemInput(vItem);
-                tItems[#tItems + 1] = vItem;
+                local nItemCount = #tMyItems;
+
+                if (nItemCount < tMyMaxItems) then
+                    validateItemInput(vItem);
+                    tMyItems[nItemCount + 1] = vItem;
+                end
+
             end
 
         end
@@ -77,10 +95,22 @@ return class("ItemSystem",
     @desc TODO
     @ex TODO
     !]]
-    addItem = function(this, cdat, oItem)
+    addItem__FNL = function(this, cdat, oItem)
         validateItemInput(oItem);
-        local tItems = cdat.pro.items;
-        tItems[#tItems + 1] = oItem;
+        local pro           = cdat.pro;
+        local tItems        = pro.items;
+        local nItemCount    = #tItems;
+        local nMaxItems     = pro.maxItems;
+        local bRet          = nItemCount < nMaxItems;
+
+        if (bRet) then
+            tItems[nItemCount + 1] = oItem;
+        end
+
+        return bRet, this;
+    end,
+    --TODO FINISH
+    clear = function()
     end,
     --[[!
     @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.containsItem
