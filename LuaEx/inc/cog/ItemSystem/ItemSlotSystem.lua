@@ -63,14 +63,16 @@ return class("ItemSlotSystem",
 
         if (rawtype(tItemSlots) == "table") then
 
-            for _, vItemSlot in pairs(tItemSlots) do
+            for nIndex, vItemSlot in ipairs(tItemSlots) do --TODO LEFT OFF HERE FINISH QUESTION Shouldn't this use ipairs?
+
+                --TODO check index
 
                 if (type(vItemSlot) ~= "ItemSlot") then
                     error("Error creating ItemSlotSystem.\nExpected type ItemSlot. Got type ${type} at index ${index}." %
                     {type = type(vItemSlot), index = nIndex});
                 end
 
-                tItemSlots[#tItemSlots + 1] = vItemSlot;
+                tItemSlots[nIndex] = vItemSlot;
             end
 
         end
@@ -245,7 +247,7 @@ return class("ItemSlotSystem",
     @desc TODO
     @ex TODO
     !]]
-    iterator__FNL = function(this, cdat) --5.1 compat
+    iterator__FNL = function(this, cdat) --5.1 compat QUESTION Isn't this redundant? Choose either  each or iterator
         local tItemSlots = cdat.pro.itemSlots;
         return next, tItemSlots, nil;
     end,
