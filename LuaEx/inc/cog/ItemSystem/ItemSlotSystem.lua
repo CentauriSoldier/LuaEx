@@ -51,7 +51,8 @@ return class("ItemSlotSystem",
 
 },
 {--PROTECTED
-    itemSlots = {},
+    itemSlots   = {},
+    owner       = null,
 },
 {--PUBLIC
     --[[!
@@ -59,31 +60,27 @@ return class("ItemSlotSystem",
     @desc The constructor for the <b>ItemSlotSystem</b>.
     @ex TODO
     !]]
-    ItemSlotSystem = function(this, cdat, super, tItemSlots)
+    ItemSlotSystem = function(this, cdat, tItemSlots, oOwner)
+        local pro = cdat.pro;
 
         if (rawtype(tItemSlots) == "table") then
+            type.assert.table(tItemSlots, "number", "ItemSlot", 1);
 
-            for nIndex, vItemSlot in ipairs(tItemSlots) do --TODO LEFT OFF HERE FINISH QUESTION Shouldn't this use ipairs?
-
-                --TODO check index
-
-                if (type(vItemSlot) ~= "ItemSlot") then
-                    error("Error creating ItemSlotSystem.\nExpected type ItemSlot. Got type ${type} at index ${index}." %
-                    {type = type(vItemSlot), index = nIndex});
-                end
-
-                tItemSlots[nIndex] = vItemSlot;
+            for nIndex, vItemSlot in ipairs(tItemSlots) do
+                tItemSlots[nIndex] = clone(vItemSlot);
             end
 
         end
 
+        --TODO FINISH check owner type
+        pro.owner = oOwner;
     end,
     --[[!
     @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlotSystem.Methods.addItemSlot
     @desc TODO
     @ex TODO
     !]]
-    addItemSlot = function(this, cdat, oSlot)
+    addItemSlot__FNL = function(this, cdat, oSlot)
         type.assert.custom(oSlot, "ItemSlot");
         local tItemSlots = cdat.pro.itemSlots;
         tItemSlots[#tItemSlots + 1] = oSlot;

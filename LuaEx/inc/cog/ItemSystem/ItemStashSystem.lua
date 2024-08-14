@@ -21,12 +21,13 @@ return class("ItemStashSystem",
 },
 {--PRIVATE
     maxItemsPerTab  = -1,
+    Owner__autoRF   = null,
     tabs            = {},
 },
 {--PROTECTED
 },
 {--PUBLIC
-    ItemStashSystem = function(this, cdat, nTabs, nMaxItemsPerTab)
+    ItemStashSystem = function(this, cdat, oOwner, nTabs, nMaxItemsPerTab)
         local pri = cdat.pri;
 
         nTabs = rawtype(nTabs) == "number" and math.floor(nTabs) or 1;
@@ -41,6 +42,9 @@ return class("ItemStashSystem",
         end
 
         pri.maxItemsPerTab = nMaxItemsPerTab;
+
+        --TODO assert oOwner
+        pri.Owner = oOwner;
     end,
     addTab = function(this, cdat)
         local pri           = cdat.pri;

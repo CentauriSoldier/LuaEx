@@ -272,7 +272,7 @@ local type = {
                 error(sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""), 2);
             end
         end,
-        table = function(vInput, vIndexType, vValueType, vMinItems, vMaxItems)
+        table = function(vInput, vIndexType, vValueType, vMinItems, vMaxItems, sMessage)
             local bConditionMet = rawtype(vInput) == "table";
             local sError        = "Error in parameter input.";
             local sIndexType    = rawtype(vIndexType)   == "string"   and vIndexType or false;
@@ -294,7 +294,7 @@ local type = {
 
                     --check the value type
                     if (sValueType and type(v) ~= sValueType) then
-                        sError = sError.."\nValues must be of type "..sValueType..". Type given: "..type(v)..".";
+                        sError = sError.."\nValues must be of type "..sValueType..". Type given: "..type(v).." at index "..tostring(k)..'.';
                         bConditionMet = false;
                     end
 
