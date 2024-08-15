@@ -518,7 +518,7 @@ return class("Dox",
     refresh__FNL = function(this, cdat)
         cdat.pri.refresh();
     end,
-    setBuilder__FNL = function(this, cdat, eBuilder)
+    setBuilder__FNL = function(this, cdat, eBuilder)--TODO what is this?
         assert(type.isa(eBuilder, Dox.BUILDER), "Error setting Dox Builder.\nExpected type DoxBuilder (subclass). Got type "..type(eBuilder)..'.');
         cdat.pri.builder = eBuilder;
     end,

@@ -54,11 +54,32 @@ local sDoxIgnoreAllFile = ".doxignoreall"; --ignores all files current and subdi
 
 local oDoxLua = DoxLua("LuaEx");
 local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx");
-local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects"
-oDoxLua.importDirectory(pImport, true);
---oDoxLua.setBuilder();
+
+local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\LuaEx";
+
+
+
+--oDoxLua.importDirectory(pImport, true);
+
+local function printfile(pFile)
+    print(pFile)
+end
+
+local function importFiles(pDir)
+
+    for _, pFile in pairs(io.listfiles(pDir, printfile, "lua")) do
+        oDoxLua.importFile(pFile, true);
+        --print(pFile);
+    end
+
+end
+
+local tFolders = io.listdirs(pImport, true, importFiles);
+
+oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export();
+
 
 --used for creating DoxLuaComments.lua template file
 for oBlockTag in oDoxLua.blockTags() do
