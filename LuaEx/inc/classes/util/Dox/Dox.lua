@@ -336,11 +336,11 @@ return class("Dox",
     end,
 },--protected
 {--public
-    addMimeType = function(this, cdat, oDoxMime)
+    addMimeType__FNL = function(this, cdat, oDoxMime)
         type.assert.custom(oDoxMime, "DoxMime");
         pri.mimeTypes.add(oDoxMime.getName(), oDoxMime);
     end,
-    blockTags = function(this, cdat)
+    blockTags__FNL = function(this, cdat)
         local tBlockTags    = cdat.pri.blockTags;
         local nIndex        = 0;
         local nMax          = #tBlockTags;
@@ -377,13 +377,13 @@ return class("Dox",
 
         writeFile(pOut, pri.output);
     end,
-    getOutput = function(this, cdat)
+    getOutput__FNL = function(this, cdat)
         return cdat.pri.output;
     end,
     getLanguage__FNL = function(this, cdat)
         return cdat.pri.syntax;
     end,
-    getMimeTypes = function(this, cdat)
+    getMimeTypes__FNL = function(this, cdat)
         --return clone(cdat.pri.mimeTypes);--TODO this must return an iterator
         return cdat.pri.mimeTypes;
     end,
@@ -399,7 +399,7 @@ return class("Dox",
     getTagOpen__FNL = function(this, cdat)
         return cdat.pri.tagOpen;
     end,
-    importDirectory__FNL = function(this, cdat, pDir, bRecursion)
+    --[[importDirectory__FNL = function(this, cdat, pDir, bRecursion)
         type.assert.string(pDir, "%S+");
         local bRecurse = bRecursion;
 
@@ -422,8 +422,48 @@ return class("Dox",
         end
 
         cdat.pri.refresh();
-    end,
+    end,]]
     importFile__FNL = function(this, cdat, pFile, bSkipRefresh)
+        type.assert.string(pFile, "%S+");
+
+        --get the path parts (to find the filetype)
+        local tParts    = io.splitpath(pFile);
+        --TODO THROW ERROR ON tParts Fail
+        local sExt = tParts.extension:lower();
+        local oActiveDoxMime;
+
+        for sExt, oDoxMime in cdat.pri.mimeTypes() do
+
+            if (sExt == oDoxMime.getName()) then
+
+                oActiveDoxMime = oDoxMime;
+                break;
+            end
+
+        end
+
+        if (oActiveDoxMime) then
+            local hFile = io.open(pFile, "r");
+
+            if not (hFile) then
+                error("Error importing file to Dox.\nCould not open file: '"..pFile.."'.");
+            else
+
+                local sContent = hFile:read("*all");
+                cdat.pub.importString(sContent, oActiveDoxMime, true);
+                --cdat.pri.extractBlockStrings(sContent);
+                hFile:close();
+
+                if not (bSkipRefresh) then
+                    cdat.pri.refresh();
+                end
+
+            end
+
+        end
+
+    end,
+    importFiles__FNL = function(this, cdat, tFiles, bSkipRefresh)
         type.assert.string(pFile, "%S+");
 
         --get the path parts (to find the filetype)
@@ -475,10 +515,10 @@ return class("Dox",
         end
 
     end,
-    refresh = function(this, cdat)
-        dat.pri.refresh();
+    refresh__FNL = function(this, cdat)
+        cdat.pri.refresh();
     end,
-    setBuilder = function(this, cdat, eBuilder)
+    setBuilder__FNL = function(this, cdat, eBuilder)
         assert(type.isa(eBuilder, Dox.BUILDER), "Error setting Dox Builder.\nExpected type DoxBuilder (subclass). Got type "..type(eBuilder)..'.');
         cdat.pri.builder = eBuilder;
     end,

@@ -16,7 +16,7 @@ Fields marked as read-only cannot be modified once set. This, of course, exclude
 Class methods cannot be overriden except by subclasses and only if they're not marked as final by the parent class.
 </p>
 <h4>Encapsulation</h4>
-<p>Class tables' access is appropriately restricted to prevent incidental access. Each class method (and metamethods) are infused with two arguments. The first is the class object itself so each methods has access to the protected and public fields and methods of the class. The second is the class data table which is indexed by five tables:
+<p>Class tables' access is appropriately restricted to prevent incidental access. Each class method (and metamethod) is infused with two arguments. The first is the class object itself so each method has access to the protected and public fields and methods of the class. The second is the class data table which is indexed by five tables:
 <ul>
     <li><b>met</b></li> (class metamethods)
     <li><b>pri</b></li> (class private fields and methods)
@@ -32,7 +32,7 @@ To facilitate a class's instances accessing and mutating each other (as is commo
 </p>
 <h4>Inheritance</h4>
 <br><p>Subclasses can be created by declaring the Parent class in the class arguments.</p>
-<p>Subclasses will inherit all protected and public fields and methods from the parent class and may access them as if they were its own.</p>
+<p>Each subclasses will inherit all protected and public fields and methods from the parent class and may access them as if they were its own.</p>
 <p>Parent methods can be overriden by the child class unless they are marked as final in the parent class.
 <h5>Restrictions on Inheritance</h5>
 <ol>
