@@ -62,12 +62,12 @@ local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\LuaEx";
 --oDoxLua.importDirectory(pImport, true);
 
 local function printfile(pFile)
-    print(pFile)
+    --print(pFile)
 end
 
 local function importFiles(pDir)
 
-    for _, pFile in pairs(io.listfiles(pDir, printfile, "lua")) do
+    for _, pFile in pairs(io.listfiles(pDir, false, printfile, "lua")) do
         oDoxLua.importFile(pFile, true);
         --print(pFile);
     end
@@ -80,18 +80,7 @@ oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export();
 
-
---used for creating DoxLuaComments.lua template file
-for oBlockTag in oDoxLua.blockTags() do
-    local nX = 0;
-
-    for sAlias in oBlockTag.aliases() do
-        nX = nX + 1;
-
-        if (nX == 1) then
-            --print("@"..sAlias);
-        end
-
-    end
-
-end
+local sTest = "the way and the word - a tale of a wizard's malice";
+local sNewTest, nWords, tWords = sTest:capall();
+print(sNewTest); --> The Way And The Word - A Tale Of A Wizard's Malice
+print("Word count: "..nWords);

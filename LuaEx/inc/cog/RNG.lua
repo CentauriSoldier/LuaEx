@@ -252,6 +252,7 @@ return class("RNG",
 
         if (nAttempts == 1) then
             nRoll = rand(1, 100);
+            bSuccess = nRoll <= nChance;
         else
             local nNewRoll;
 

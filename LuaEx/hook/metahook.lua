@@ -4,22 +4,22 @@ local getmetatable = getmetatable;
 local setmetatable = setmetatable;
 
 function sealmetatable(tInput)
-	local bRet = false;
+    local bRet = false;
 
-	if (rawtype(tInput) == "table") then
-		local tMeta 	= getmetatable(tInput);
-		local sMetaType = rawtype(tInput);
-		local bIsNil 	= sMetaType == "nil";
+    if (rawtype(tInput) == "table") then
+        local tMeta 	= getmetatable(tInput);
+        local sMetaType = rawtype(tInput);
+        local bIsNil 	= sMetaType == "nil";
 
-		if (sMetaType == "table" or bIsNil) then
-			tMeta = bIsNil and {} or tMeta;
-			tMeta.__metatable = false;
-			rawsetmetatable(tInput, tMeta);
-		end
+        if (sMetaType == "table" or bIsNil) then
+            tMeta = bIsNil and {} or tMeta;
+            tMeta.__metatable = false;
+            rawsetmetatable(tInput, tMeta);
+        end
 
-	end
+    end
 
-	return bRet;
+    return bRet;
 end
 
 rawgetmetatable = getmetatable;

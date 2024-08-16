@@ -1,6 +1,7 @@
 local string    = string;
 local table     = table;
 local execute   = os.execute;
+local io        = io;
 
 -- Define the os type
 local _     = package.config:sub(1, 1);
@@ -13,6 +14,7 @@ local _bOSIsUnix        = _sOSType == "unix";
 local _bOSIsUnknown     = _sOSType == "unknown";
 local _sParent          = "..";
 local _pRoot            = ".";
+
 
 local function splitpath(sPath)--TODO fix
     local tRet = {
@@ -61,125 +63,36 @@ local function splitpath(sPath)--TODO fix
 end
 
 
-
-
--- Function to execute a shell command and return output as a table of lines
-local function exec_command(cmd)
-    local output = {}
-    local handle = io.popen(cmd)
-    if handle then
-        for line in handle:lines() do
-            table.insert(output, line)
-        end
-        handle:close()
-    end
-    return output
-end
-
--- Function to get the list of items in a directory
-local function list_directory_items(path)
-
-    if (_bOSIsWindows) then
-        return exec_command('dir /b /a "' .. path .. '"')
-    else
-        return exec_command('ls -A "' .. path .. '"')
-    end
-end
-
--- Function to check if a path is a directory
-local function is_directory(path)
-
-    if (_bOSIsWindows) then
-        local result = os.execute('if exist "' .. path .. '" (echo 1) else (echo 0)')
-        return result == 0
-    else
-        local stat = exec_command('stat -c %F "' .. path .. '"')
-        return stat[1] == "directory"
-    end
-end
-
--- Function to get file attributes
-local function get_file_attributes(path)
-
-    if (_bOSIsWindows) then
-        -- Use 'dir' to get attributes
-        local attributes = exec_command('dir "' .. path .. '"')
-        for _, line in ipairs(attributes) do
-            if line:find("<DIR>") then
-                return "directory"
-            end
-        end
-        return "file"
-    else
-        -- Use 'stat' to get attributes
-        local stat = exec_command('stat -c %F "' .. path .. '"')
-        return stat[1] or "unknown"
-    end
-end
-
--- Subroutine to traverse a directory and return two tables: files and directories
-function traverse_directory(path, Recurse)
-    local files = {}
-    local directories = {}
-
-    local items = list_directory_items(path)
-    for _, item in ipairs(items) do
-        if item ~= "." and item ~= ".." then
-            local full_path = path .. (detect_os() == "Windows" and "\\" or "/") .. item
-            local file_type = get_file_attributes(full_path)
-
-            -- Debug print to help diagnose the file type
-            --print("Item:", full_path, "Type:", file_type)
-
-            if file_type == "directory" or is_directory(full_path) then
-                table.insert(directories, full_path)
-            elseif file_type == "file" then
-                table.insert(files, full_path)
-            end
-        end
+--[[!
+    @fqxn LuaEx.Lua Hooks.io.listdirs
+    @desc Lists all directories in a given path (optionally recursively).
+    @param string sPath The path which to search for directories.
+    @param boolean|nil bRecursive Whether to recurse through subdirectories.
+    @param function|nil fCallback The function to call when a directory is found.
+    <br>This function must accept a string as its first argument which will be the full path to the directory found.
+    @ret table tDirectories A numerically-indexed table whose values are full paths of the found directories.
+    @ex
+    local function printdir(pDir)
+        print(pDir);
     end
 
-    return files, directories
-end
+    local tDirectories = io.listdirs("C:\\Windows\\System32\\Speech", true, printdir);
 
--- Example usage
---local path = "."  -- Change this to the directory you want to traverse
---local files, directories = traverse_directory(path)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- Execute a shell command and return output as a table of lines
-local function exec_command(cmd)
-    local output = {}
-    local handle = io.popen(cmd)
-    if handle then
-        for line in handle:lines() do
-            table.insert(output, line)
-        end
-        handle:close()
-    end
-    return output
-end
-
--- List directories in the given path
-function io.listdirs(sPath, bRecursive, callback)
+    --\[\[ Output->
+    C:\Windows\System32\Speech\Common
+    C:\Windows\System32\Speech\Engines
+    C:\Windows\System32\Speech\SpeechUX
+    C:\Windows\System32\Speech\Common\en-US
+    C:\Windows\System32\Speech\Engines\SR
+    C:\Windows\System32\Speech\Engines\TTS
+    C:\Windows\System32\Speech\Engines\SR\en-US
+    C:\Windows\System32\Speech\SpeechUX\en-US
+    \]\]
+!]]
+function listdirs(sPath, bRecursive, fCallback)
     local tRet = {};
     local sCommand;
-    local bHasCallback = type(callback) == "function";
+    local bHasCallback = type(fCallback) == "function";
     local sRecurse = '';
 
     if _bOSIsWindows then
@@ -192,9 +105,11 @@ function io.listdirs(sPath, bRecursive, callback)
         error("Error getting list of directories. Unsupported operating system.");
     end
 
-    local tOutput = exec_command(sCommand);
+    local uOutput = io.popen(sCommand);
 
-    for nLine, sLine in ipairs(tOutput) do
+    if (uOutput) then
+
+        for sLine in uOutput:lines() do
         -- Normalize path separators for Windows
         local pDir = _bOSIsWindows and sLine:gsub(__, _) or sLine;
         -- Remove the trailing path separator if present
@@ -203,60 +118,93 @@ function io.listdirs(sPath, bRecursive, callback)
         -- Store the directory
         table.insert(tRet, pDir)
 
-        -- Invoke the callback function if provided
-        if (bHasCallback) then
-            callback(pDir);
+            -- Invoke the callback function if provided
+            if (bHasCallback) then
+                fCallback(pDir, false); --adding false for io.list callback
+            end
+
         end
+
     end
 
     return tRet;
 end
 
--- List files in the given path
-function io.listfiles(sPath, fCallback, ...)
-    local tRet = {};
-    local sCommand;
-    local tTypes = {...} or arg;
-    local nTypes = #tTypes;
-    local bCheckTypes = nTypes > 0;
-    local bHasCallback = type(fCallback) == "function"
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.io.listfiles
+    @desc Lists all files in a given path (optionally recursively).
+    @param string sPath The path which to search for directories.
+    @param boolean|nil bRecursive Whether to recurse through subdirectories.
+    @param function|nil fCallback The function to call when a file is found.
+    <br>This function must accept a string as its first argument which will be the full path to the file found.
+    @ret table tDirectories A numerically-indexed table whose values are full paths of the found directories.
+    @ex
+    local function printfile(pFile)
+        print(pFile);
+    end
+
+    local tDirectories = io.listfiles("C:\\Windows\\System32", false, printfile, "exe");
+    --\[\[ Output->
+    C:\Windows\System32\agentactivationruntimestarter.exe
+    C:\Windows\System32\AgentService.exe
+    C:\Windows\System32\AggregatorHost.exe
+    C:\Windows\System32\aitstatic.exe
+    ...
+    \]\]
+!]]
+function listfiles(sPath, bRecursive, fCallback, ...)
+    local tRet          = {};
+    local sCommand      = '';
+    local tTypes        = {...} or arg;
+    local bCheckTypes   = #tTypes > 0;
+    local bHasCallback  = type(fCallback) == "function";
+    local sRecursion    = '';
 
     if _bOSIsWindows then
-        sCommand = 'dir "'..sPath..'" /b /a-d 2>nul'
+        --sCommand = 'dir "'..sPath..'" /b /a-d 2>nul'
+        sRecursion = bRecursive and ' /s' or ''
+        sCommand = 'dir "'..sPath..'" /b /a-d' .. sRecursion .. ' 2>nul'
     elseif _bOSIsUnix then
-        sCommand = 'find "'..sPath..'" -maxdepth 1 -type f 2>/dev/null'
+        --sCommand = 'find "'..sPath..'" -maxdepth 1 -type f 2>/dev/null'
+        sRecursion = bRecursive and '' or ' -maxdepth 1'
+        sCommand = 'find "'..sPath..'"' .. sRecursion .. ' -type f 2>/dev/null'
     else
         error("Error getting list of files. Unsupported operating system.");
     end
 
-    local tOutput = exec_command(sCommand);
-    for nLine, sLine in ipairs(tOutput) do
+    local uOutput = io.popen(sCommand);
 
-        local pFile = _bOSIsWindows and sPath.._..sLine:gsub(__, _) or sLine;
-        local bInclude = not bCheckTypes;
+    if (uOutput) then
 
-        if not (bInclude) then
-            local sFiletype = splitpath(pFile).extension:lower();
+        for sLine in uOutput:lines() do
+            local pFile = (_bOSIsWindows and not bRecursive) and sPath.._..sLine:gsub(__, _) or sLine;
+            local bInclude = not bCheckTypes;
 
-            for nArg, sArg in ipairs(tTypes) do
-                local sArgLower = sArg:lower();
+            if not (bInclude) then
+                local sFiletype = splitpath(pFile).extension:lower();
 
-                if (sArgLower == sFiletype) then
-                    bInclude = true;
-                    break;
+                for nArg, sArg in ipairs(tTypes) do
+                    local sArgLower = sArg:lower();
+
+                    if (sArgLower == sFiletype) then
+                        bInclude = true;
+                        break;
+                    end
+
                 end
 
             end
 
-        end
+            if (bInclude) then
 
-        if (bInclude) then
+                if (bHasCallback) then
+                    fCallback(pFile, true); --adding true for io.list callback
+                end
 
-            if (bHasCallback) then
-                fCallback(pFile);
+                table.insert(tRet, pFile);
             end
 
-            table.insert(tRet, pFile);
         end
 
     end
@@ -265,8 +213,40 @@ function io.listfiles(sPath, fCallback, ...)
 end
 
 
+--[[!
+    @fqxn LuaEx.Lua Hooks.io.list
+    @desc Lists all files and directories in a given path (optionally recursively).
+    @param string sPath The path which to search for files and directories.
+    @param boolean|nil bRecursive Whether to recurse through subdirectories.
+    @param function|nil fCallback The function to call when a file or directory is found.
+    <br>This function must accept a string as its first argument which will be the full path to the item found.
+    <br>This function must accept a boolean as its second argument which indicates whether the item found is a file (true if a file) or a directory (false if a directory).
+    @ret table tItems A table whose keys are strings (directories, files) whose values are numerically-indexed table whose values are full paths of the found files and directories.
+    @ex
+    local function printitem(pFile, bIsFile)
+        print("Is File: "..tostring(bIsFile), pFile);
+    end
 
-
+    local tItems = io.list("C:\\Windows\\System32", true, printitem, "exe");
+    --\[\[ Output->
+    Is File: false	C:\Windows\System32\0409
+    Is File: false	C:\Windows\System32\AdvancedInstallers
+    Is File: false	C:\Windows\System32\am-et
+    Is File: false	C:\Windows\System32\AppLocker
+    ...
+    Is File: true	C:\Windows\System32\agentactivationruntimestarter.exe
+    Is File: true	C:\Windows\System32\AgentService.exe
+    Is File: true	C:\Windows\System32\AggregatorHost.exe
+    Is File: true	C:\Windows\System32\aitstatic.exe
+    ...
+    \]\]
+!]]
+function io.list(sPath, bRecursive, fCallback, ...)
+    return {
+        directories = listdirs(sPath, bRecursive, fCallback),
+        files       = listfiles(sPath, bRecursive, fCallback, ...),
+    };
+end
 
 
 
@@ -298,7 +278,7 @@ end
 
 -- Determine the operating system type
 --TODO remove this if the other works fine
-function io.list(sPath, bRecursive, nType, tFileTypes)
+local function iolistold(sPath, bRecursive, nType, tFileTypes)
     local sCommand;
     local tFilters;
     local bFilters          = false;
@@ -404,6 +384,7 @@ end
 
 
 
+
 function io.normalizepath(path)
     -- Split the path into components
     local parts = {}
@@ -461,11 +442,6 @@ function io.fileFind(path)
     return execute(command)
 end
 
-function io.fileList(path)
-    local command = (_ == "\\") and ('dir "'..path..'\\*.*" /b /a-d 2>nul'):gsub("\\\\", "\\") or ('find "'..path..'" -maxdepth 1 ! -type d 2>/dev/null'):gsub("//", "/")
-    return execute(command)
-end
-
 -- File Searching
 function io.findAll(str, path)
     if path then
@@ -495,7 +471,7 @@ end
 
 -- File Information
 function io.type(filename)
-    return io.open(filename):read("*a")
+    return io.open(filename):read("*a");
 end
 
 -- Define the function for file permission (Windows-specific)
@@ -545,12 +521,12 @@ function io.rmdir(path)
 end
 
 -- Alias creation
-io.dirFind      = io.dirList
-io.fileFind     = io.fileList
 io.splitpath    = splitpath;
+io.listfiles    = listfiles;
+io.listdirs     = listdirs;
 --io.dir      = io.list
 --io.ls       = io.list
-io.dir          = traverse_directory;
-io.ls           = traverse_directory;
+--io.dir          = io.listfiles;
+--io.ls           = traverse_directory;
 
 return io;

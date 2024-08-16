@@ -435,7 +435,6 @@ return class("Dox",
         for sExt, oDoxMime in cdat.pri.mimeTypes() do
 
             if (sExt == oDoxMime.getName()) then
-
                 oActiveDoxMime = oDoxMime;
                 break;
             end
@@ -464,38 +463,42 @@ return class("Dox",
 
     end,
     importFiles__FNL = function(this, cdat, tFiles, bSkipRefresh)
-        type.assert.string(pFile, "%S+");
+        type.assert.table(tFiles, "number", "string", 1);
 
-        --get the path parts (to find the filetype)
-        local tParts    = io.splitpath(pFile);
-        --TODO THROW ERROR ON tParts Fail
-        local sExt = tParts.extension:lower();
-        local oActiveDoxMime;
+        for nIndex, pFile in pairs(tFiles) do
+            type.assert.string(pFile, "%S+");
 
-        for sExt, oDoxMime in cdat.pri.mimeTypes() do
+            --get the path parts (to find the filetype)
+            local tParts    = io.splitpath(pFile);
+            --TODO THROW ERROR ON tParts Fail
+            local sExt = tParts.extension:lower();
+            local oActiveDoxMime;
 
-            if (sExt == oDoxMime.getName()) then
+            for sExt, oDoxMime in cdat.pri.mimeTypes() do
 
-                oActiveDoxMime = oDoxMime;
-                break;
+                if (sExt == oDoxMime.getName()) then
+                    oActiveDoxMime = oDoxMime;
+                    break;
+                end
+
             end
 
-        end
+            if (oActiveDoxMime) then
+                local hFile = io.open(pFile, "r");
 
-        if (oActiveDoxMime) then
-            local hFile = io.open(pFile, "r");
+                if not (hFile) then
+                    error("Error importing file to Dox.\nCould not open file: '"..pFile.."'.");
+                else
 
-            if not (hFile) then
-                error("Error importing file to Dox.\nCould not open file: '"..pFile.."'.");
-            else
+                    local sContent = hFile:read("*all");
+                    cdat.pub.importString(sContent, oActiveDoxMime, true);
+                    --cdat.pri.extractBlockStrings(sContent);
+                    hFile:close();
 
-                local sContent = hFile:read("*all");
-                cdat.pub.importString(sContent, oActiveDoxMime, true);
-                --cdat.pri.extractBlockStrings(sContent);
-                hFile:close();
+                    if not (bSkipRefresh) then
+                        cdat.pri.refresh();
+                    end
 
-                if not (bSkipRefresh) then
-                    cdat.pri.refresh();
                 end
 
             end
