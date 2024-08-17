@@ -300,4 +300,14 @@ function string.uuid(bUppercase)
 end
 
 
+function string.isuuid(sInput)
+    -- UUID pattern based on tUUIDSequence
+    local sPattern = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$"
+
+    -- Check if the input matches the pattern
+    return sInput:match(sPattern) ~= nil
+end
+
+
+
 return string;

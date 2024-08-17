@@ -260,7 +260,7 @@ Variables are prefixed with the following lower-case symbols based on their type
 *d*	|	**classaide**
 *e*	|	**enum**  
 *f*	| 	**function**  
-*h*	|	**file\window\etc. handle** *(number)*  
+*h*	|	**file\window\etc. handle** *(number)*
 *n*	|	**number**  
 *p*	|	**file\dir path** *(string)*  
 *r*	|	**struct**  
@@ -268,7 +268,8 @@ Variables are prefixed with the following lower-case symbols based on their type
 *s*	|	**string**  
 *t*	|	**table**  
 *u*	| 	**userdata**  
-*v*	|	**variable/unknown type**  
+*v*	|	**variable/unknown type**
+*w*	|	**environment table** *(table)*  
 *x*	|	**factory**  
 *z*	|	**type** *(string)* (e.g., "string", "table", etc.)  
 
@@ -276,6 +277,9 @@ Types ignored by this convention are types **nil** and **null** since prefixing 
 
 ###### Exceptions:
 In **for loops**, sometimes '*x*' is used to indicate active index while 'k' and 'v' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.
+
+Global variables that are directory paths begin with **_** and ***do not*** have a variable prefix.
+E.g., _Scripts
 
 In class methods, the first two arguments--the instance object and the class data table respectively) are written as '*this*' and '*cdat*' while the third argument in a child class constructor—the parent constructor method—is written as '*super*'.  
 Additionally, In any method that accepts the input of another class instance, the variable is written as '*other*' (or as '*left*' and '*right*' in metamethods). This intentional and obvious deviation from convention makes these variables stand out clearly.  
