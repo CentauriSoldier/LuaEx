@@ -5,9 +5,9 @@ local assert = assert; ---TODO localize all called functions
     <h1>Type Overhaul</h1>
     <p>Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. The Lua <b>type</b> function has been recast as a table (although it's still called as a function). These changed are explained in detail below.</p>
     <h1>Custom Types</h1>
-    <p>Custom types may be create by adding the __type key to a table's metatable and setting the value to a string. This may also be done by using the table.settype() function. Once set, get the type using the type function.
+    <p>Custom types may be create by adding the <strong>__type</strong> key to a table's metatable and setting the value to a string. This may also be done by using the table.settype() function. Once set, get the type using the type function.
     <br><br>
-    Additionally, subtypes may be created by adding a __subtype key to a table's metatable and setting the value to a string. This may also be done by using the table.setsubtype() function. Once set, get the subtype using the type.sub or subtype function.</p>
+    Additionally, subtypes may be created by adding a <strong>__subtype</strong> key to a table's metatable and setting the value to a string. This may also be done by using the table.setsubtype() function. Once set, get the subtype using the type.sub or subtype function.</p>
 !]]
 
 

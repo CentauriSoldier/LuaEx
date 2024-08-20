@@ -1,13 +1,19 @@
 --load in the builder's required files
 local _pRequirePath     = "LuaEx.inc.classes.util.Dox.Builders.HTML.Data";
-local _sBanner          = require(_pRequirePath..".Banner");
+--local _sBanner          = require(_pRequirePath..".Banner");
 local _sCSS             = require(_pRequirePath..".CSS");
 local _sHTML            = require(_pRequirePath..".HTML")
 local _sJS              = require(_pRequirePath..".JS");
 local _tPrismLanguages  = require(_pRequirePath..".PrismLanguages");
 local _sPrismStable     = "1.29.0"; --TODO allow theme change
 local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
-local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};
+local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};--why is this not eing used? If not, delete it.
+
+--TODO clean this up (once working)
+local sExampleCopyButton = [[<button class="copy-to-clipboard-button" type="button" data-copy-state="copy">
+    <span>Copy</span>
+</button>
+]]
 
 return class("DoxBuilderHTML",
 {--METAMETHODS
@@ -101,7 +107,13 @@ return class("DoxBuilderHTML",
 
         -- Generate the script tags
         local scripts = {}
+        --insert the main prism js script
         table.insert(scripts, '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable});
+
+        --insert the js toolbar script
+        table.insert(scripts, '<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/toolbar/prism-toolbar.js"></script>');--TODO use stable insertion for static value at '1.20.0'
+
+        --insert the various languages
         for lang, _ in pairs(tFoundLanguages) do
             table.insert(scripts, string.format('<script src="%s%s.min.js"></script>', prismBaseURL, lang))
         end
@@ -133,7 +145,7 @@ return class("DoxBuilderHTML",
         pro.blockWrapper.open       = '<div class="container-fluid">';
         pro.blockWrapper.close      = '</div>';
         pro.exampleWrapper.open     = '<pre><code class=\"language-';
-        pro.exampleWrapper.close    = '</code></pre>';
+        pro.exampleWrapper.close    = '</code></pre>'..sExampleCopyButton;
     end,
     build = function(this, cdat, sTitle, tFinalizedData)
         type.assert.string(sTitle);
@@ -142,7 +154,7 @@ return class("DoxBuilderHTML",
         --update and write the html
         local sHTML = _sHTML % {__DOX__CSS__ = _sCSS};
         sHTML = sHTML % {
-            __DOX_BANNER__URL__     = _sBanner:gsub("\n", ''), --TODO allow custom banner
+            --__DOX_BANNER__URL__     = _sBanner:gsub("\n", ''), --TODO allow custom banner
             __DOX__TITLE__          = sTitle,
             __DOX__PRISM_CSS__      = _sPrismCSS,
         };

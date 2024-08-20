@@ -2,161 +2,325 @@ return [[
     :root {
             --banner-height: 10vh;
             --base-font-size: 16px; /* Define a base font size */
-        }
 
-        @media (min-width: 576px) {
-            body {
-                font-size: calc(var(--base-font-size) * 1.1);
-            }
-        }
+            /* Color Scheme */
+            --title-heading: #93B3A3;
+            --navbackground: #3F3F3F;
+            --navlink: #F0DFAF;
+            --navlinkhover: #7F9F7F;
+            --sectiontitle: #2E4340;
+            --sectiontitlebg: #CCDC90;
+            --sectioncontent: #DCDCCC;
+    }
 
-        @media (min-width: 768px) {
-            body {
-                font-size: calc(var(--base-font-size) * 1.2);
-            }
-        }
+    /*Section for setting viewport sizes
+     ██████╗ ███╗   ███╗███████╗██████╗ ██╗ █████╗
+    ██╔═══██╗████╗ ████║██╔════╝██╔══██╗██║██╔══██╗
+    ██║██╗██║██╔████╔██║█████╗  ██║  ██║██║███████║
+    ██║██║██║██║╚██╔╝██║██╔══╝  ██║  ██║██║██╔══██║
+    ╚█║████╔╝██║ ╚═╝ ██║███████╗██████╔╝██║██║  ██║
+     ╚╝╚═══╝ ╚═╝     ╚═╝╚══════╝╚═════╝ ╚═╝╚═╝  ╚═╝*/
 
-        pre {
-            white-space: pre-wrap; !important
-        }
+    @media (min-width: 0px) {
+        html { font-size: 10px; }
+        #DOX_navmenu .nav-link { font-size: 12px; }
 
-        /* CSS to style the "Copy to Clipboard" button */
-        .copy-to-clipboard-button {
-            background-color: #4CAF50; /* Green background */
-            color: white; /* White text */
-            padding: 8px 12px; /* Padding */
-            border: none; /* No border */
-            cursor: pointer; /* Pointer cursor */
-            border-radius: 4px; /* Rounded corners */
-            margin-left: 8px; /* Margin for spacing */
-        }
+    }
+    @media (min-width: 300px) {
+        html { font-size: 12px; }
+        #DOX_navmenu .nav-link { font-size: 13px; }
 
-        .copy-to-clipboard-button:hover {
-            background-color: #45a049; /* Darker green on hover */
-        }
+    }
+    @media (min-width: 576px) {
+        html { font-size: 13px; }
+        #DOX_navmenu .nav-link { font-size: 14px; }
 
-        .copy-to-clipboard-button:active {
-            background-color: #3e8e41; /* Even darker green on click */
-        }
+    }
+    @media (min-width: 768px) {
+        html { font-size: 14px; }
+        #DOX_navmenu .nav-link { font-size: 15px; }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            /* Add overflow:overflow: hidden;  hidden to prevent overflow issues */
-            font-size: var(--base-font-size);
-        }
+    }
+    @media (min-width: 992px) {
+        html { font-size: 15px; }
+        #DOX_navmenu .nav-link { font-size: 16px; }
 
-        .scrollable-div {
-            max-height: 200px; /* Adjust the height as needed */
-        }
+    }
+    @media (min-width: 1200px) {
+        html { font-size: 16px; }
+        #DOX_navmenu .nav-link { font-size: 18px; }
+    }
 
-        #DOX_navmenu .nav-link {
 
-            padding: 10px 15px; /* Adjust padding */
-            color: #555; /* Text color */
-            transition: color 0.3s; /* Smooth transition for color change */
-        }
+    /* General styles for the DOX_intro container
+    ██╗███╗   ██╗████████╗██████╗  ██████╗
+    ██║████╗  ██║╚══██╔══╝██╔══██╗██╔═══██╗
+    ██║██╔██╗ ██║   ██║   ██████╔╝██║   ██║
+    ██║██║╚██╗██║   ██║   ██╔══██╗██║   ██║
+    ██║██║ ╚████║   ██║   ██║  ██║╚██████╔╝
+    ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ */
 
-        #DOX_navmenu .nav-link:hover {
-            color: #007bff; /* Hover color */
-            text-decoration: none; /* Remove underline on hover */
-        }
 
-        #DOX_navmenu .disabledlink {
-            color: #ccc; /* Disabled link color */
-            cursor: not-allowed; /* Change cursor on disabled link */
-            pointer-events: none; /* Disable click events on disabled link */
-        }
+    .DOX_intro {
+        color: var(--sectioncontent); /* Text color for all text within the container */
+        background-color: var(--navbackground); /* Background color for the container */
+    }
 
-        /* General font scaling for headings and other elements */
-        h1, h2, h3, h4, h5, h6,
-        .breadcrumb, .breadcrumb-wrapper, .topbar,
-        .sidebar, .list-group-item, .footer {
-            font-size: calc(1vw + 1vh + 0.3vmin);
-        }
+    .DOX_intro p {
+        color: #7F9F7F; /* Specific text color for paragraphs */
+        font-weight: bold;
+    }
 
-        /* Specific adjustments for individual elements */
-        .breadcrumb {
-            background: none;
-            margin-bottom: 4px;
-        }
+    .DOX_intro h1, .DOX_intro strong {
+        color: #8CD0D3 !important; /* Ensure this color is applied */
+    }
 
-        .breadcrumb-wrapper {
-            background-color: #ffc107;
-            padding: 5px 20px;
-        }
+    .DOX_intro a {
+        color: #EFEF8F; /* Specific text color for links */
+        background-color: var(--linkbackground); /* Background color for links if needed */
+    }
 
-        .sidebar-wrapper {
-            height: calc(100vh - 126px); /* Adjusted height */
-            overflow-y: auto; /* Add scrollbar if content exceeds height */
-        }
+    .DOX_intro * {
+        background-color: inherit; /* Inherit background color from the container */
+        color: inherit; /* Inherit text color from the container */
+    }
 
-        .sidebar {
-            background-color: #343a40;
-            color: white;
-            padding: 10px;
-        }
 
-        .content-wrapper {
-            padding: 0 20px;
-        }
+    /*
+    ████████╗██╗████████╗██╗     ███████╗
+    ╚══██╔══╝██║╚══██╔══╝██║     ██╔════╝
+       ██║   ██║   ██║   ██║     █████╗
+       ██║   ██║   ██║   ██║     ██╔══╝
+       ██║   ██║   ██║   ███████╗███████╗
+       ╚═╝   ╚═╝   ╚═╝   ╚══════╝╚══════╝*/
+    #title {
+        font-family: 'Arial', sans-serif; /* Specify your preferred font-family */
+        font-size: 2.5rem; /* Adjust font size as needed */
+        font-weight: bold; /* Make the text bold */
+        color: var(--title-heading); /* Use Zenburn color for the title text */
+        text-align: center; /* Center-align the text */
+        margin-bottom: 3px; /* Add some bottom margin for spacing */
+    }
 
-        .scrollable-list {
-            overflow-y: auto;
-            white-space: nowrap;
-        }
+    #titlebg {
+        background: linear-gradient(180deg,
+            #0F0F0F, /* Even darker gray */
+            var(--navbackground)
+        );
+        color: #F0E8C0; /* Light color for text to ensure readability */
+        padding: 4px; /* Optional padding for better spacing */
+    }
 
-        .list-group {
-            display: flex;
-            padding: 0;
-        }
+    p.title.fst-italic {
+        margin: 0; /* Remove margin from paragraphs with both 'title' and 'fst-italic' classes */
+    }
 
-        .list-group-item {
-            flex: 0 0 auto;
-            margin-right: 10px; /* Adjust spacing between items */
-        }
+    p.title.fst-italic {
+        color: var(--sectioncontent);
+    }
 
-        .disabledlink {
-            pointer-events: none;
-            color: white;
-        }
+    a.title.fst-italic {
+        color: var(--navlink);
+        text-decoration: underline; /* Optional: adds underline to links */
+    }
 
-        #banner {
-            background-image: url('${__DOX_BANNER__URL__}');
-            background-repeat: repeat; /* Repeat the background image */
-            background-size: auto; /* Use original image size */
-            padding: 10px; /* Add padding for spacing */
-            opacity: 0.9; /* Set opacity (0 = fully transparent, 1 = fully opaque) */
-        }
+    .d-flex {
+        margin: 0; /* Ensure flex container has no additional margin */
+    }
 
-        #title {
-            font-family: 'Arial', sans-serif; /* Specify your preferred font-family */
-            font-size: 2.5rem; /* Adjust font size as needed */
-            font-weight: bold; /* Make the text bold */
-            color: #3366cc; /* Choose a nice color for the text */
-            text-align: center; /* Center-align the text */
-            margin-bottom: 20px; /* Add some bottom margin for spacing */
-        }
+    /*
+     ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗
+    ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║
+    ██║  ███╗██║     ██║   ██║██████╔╝███████║██║
+    ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║
+    ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗
+     ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝*/
 
-        #titlebg {
-            background-color: rgba(200, 200, 200, 0.8); /* Background color with 50% transparency */
-            border-radius: 10px; /* Rounded corners */
-            padding: 20px; /* Add padding for spacing */
-        }
+     /* Global styles for all anchor tags */
+    a {
+        color: var(--navlink); /* Default link color */
+        /*text-decoration: none;  Remove underline from links */
+        transition: color 0.3s, text-decoration 0.3s; /* Smooth transition for color and text decoration changes */
+    }
 
-        .custom-section {
-          margin: 20px 0;
-        }
+    /* Hover state for links */
+    a:hover {
+        color: var(--navlinkhover);
+        text-decoration: underline; /* Underline on hover */
+    }
 
-        .section-title {
-          background-color: #007bff; /* Blue color for the title bar */
-          color: #fff; /* White text color */
-          padding: 10px; /* Adjust padding as needed */
-          font-weight: bold; /* Make the title bold */
-        }
+    /* Active state for links (when clicked) */
+    a:active {
+        color: #003d7a; /* Color when the link is actively being clicked TODO set active var */
+    }
 
-        .section-content {
-          padding: 10px; /* Adjust padding as needed */
-          border: 1px solid #ccc; /* Add border for content area */
-        }
+
+
+    pre {
+        white-space: pre-wrap; !important
+    }
+
+    /* CSS to style the "Copy to Clipboard" button */
+    .copy-to-clipboard-button {
+        background-color: #4CAF50; /* Green background */
+        color: white; /* White text */
+        padding: 8px 12px; /* Padding */
+        border: none; /* No border */
+        cursor: pointer; /* Pointer cursor */
+        border-radius: 4px; /* Rounded corners */
+        margin-left: 8px; /* Margin for spacing */
+    }
+
+    .copy-to-clipboard-button:hover {
+        background-color: #45a049; /* Darker green on hover */
+    }
+
+    .copy-to-clipboard-button:active {
+        background-color: #3e8e41; /* Even darker green on click */
+    }
+
+    body, html {
+        margin: 0;
+        padding: 0;
+        /* Add overflow:overflow: hidden;  hidden to prevent overflow issues */
+        font-size: var(--base-font-size);
+    }
+
+    .scrollable-div {
+        max-height: 200px; /* Adjust the height as needed */
+    }
+
+    #DOX_navmenu_wrapper {
+        background-color: #FFF;
+    }
+
+    #DOX_navmenu {
+        background-color: var(--navbackground);
+        list-style-type: none; /* Remove bullets from the list */
+        padding: 0; /* Remove default padding */
+        margin: 0; /* Remove default margin */
+    }
+
+    /* #DOX_navmenu nav-item {}*/
+
+    #DOX_navmenu .nav-link {
+
+        display: block; /* Ensure full width */
+        padding: 10px 15px; /* Adjust padding */
+        color: var(--navlink); /* Text color */
+        transition: color 0.3s; /* Smooth color transition */
+        white-space: normal; /* Allow text to wrap */
+        overflow-wrap: break-word; /* Break long words */
+        word-break: break-word; /* Break long words if necessary */
+
+    }
+
+    #DOX_navmenu .nav-link:hover {
+        color: var(--navlinkhover); /* Hover color */
+        text-decoration: none; /* Remove underline on hover */
+    }
+
+    #DOX_navmenu .disabledlink {
+        color: #ccc; /* Disabled link color */
+        cursor: not-allowed; /* Change cursor on disabled link */
+        pointer-events: none; /* Disable click events on disabled link */
+    }
+
+    /* General font scaling for headings and other elements
+    h1, h2, h3, h4, h5, h6,
+    .breadcrumb, .breadcrumb-wrapper, .topbar,
+    .sidebar, .list-group-item, .footer {
+        font-size: calc(1vw + 1vh + 0.3vmin);
+    }*/
+
+    /* Specific adjustments for individual elements */
+    #DOX_breadcrumb-wrapper {
+        background-color: var(--navbackground);
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: '>'; /* Changes the separator to '>' */
+        color: var(--navlinkhover); /* Optional: set the color */
+    }
+
+    .breadcrumb-item.active {
+        color: var(--navlinkhover);
+    }
+
+    .breadcrumb a {
+        color: var(--navlink);
+    }
+
+    .breadcrumb a:hover {
+        color: var(--navlinkhover);
+    }
+
+    .breadcrumb {
+        background: none;
+        margin: 4px;
+    }
+
+    .breadcrumb-wrapper {
+        background-color: var(--navbackground);
+        padding: 5px 20px;
+    }
+
+    .sidebar-wrapper {
+        height: calc(100vh - 126px); /* Adjusted height */
+        overflow-y: auto; /* Add scrollbar if content exceeds height */
+    }
+
+    .sidebar {
+        background-color: var(--navbackground);
+        color: white;
+        padding: 10px;
+    }
+
+    .content-wrapper {
+        padding: 0 20px;
+    }
+
+    .scrollable-list {
+        overflow-y: auto;
+        white-space: nowrap;
+    }
+
+    .list-group {
+        display: flex;
+        padding: 0;
+    }
+
+    .list-group-item {
+        flex: 0 0 auto;
+        margin-right: 10px; /* Adjust spacing between items */
+    }
+
+    .disabledlink {
+        pointer-events: none;
+        color: white;
+    }
+
+
+
+    .custom-section {
+      margin: 20px 0;
+    }
+
+    #DOX_main_panel {
+        background-color: var(--navbackground);
+    }
+
+    .section-title {
+        background-color: var(--sectiontitlebg);
+        color: var(--sectiontitle);
+        padding: 10px; /* Adjust padding as needed */
+        font-weight: bold; /* Make the title bold */
+    }
+
+    .section-content {
+        color: var(--sectioncontent);
+        background-color: var(--navbackground);
+        padding: 10px; /* Adjust padding as needed */
+        border: 1px solid #ccc; /* Add border for content area */
+    }
 ]];

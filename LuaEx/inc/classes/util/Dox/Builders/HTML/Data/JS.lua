@@ -93,26 +93,28 @@ const userData = {
 const doxData = {
     "Modules": {
         "value": `
-        <div class="container">
+        <div class="DOX_intro container">
             <div class="row">
                 <div class="col-lg-12">
-                    <div class="welcome-message p-5 text-center bg-light rounded">
-                        <h1 class="text-primary">Welcome to Dox: The Lua-based Documentation System!</h1>
-                        <p class="lead">With Dox, you can effortlessly organize and navigate through your project's documentation, making it easier for your team and users to find the information they need.</p>
-                        <p class="lead">Explore its features to see how Dox can streamline your documentation process and enhance collaboration:</p>
+                    <div class="p-5 text-center rounded">
+                        <h1 class="DOX_intro">Welcome to Dox: The Lua-based Documentation System!</h1>
+                        <p class="DOX_intro lead">With Dox, you can effortlessly organize and navigate through your project's documentation, making it easier for your team and users to find the information they need.</p>
+                        <p class="DOX_intro lead">Explore its features to see how Dox can streamline your documentation process and enhance collaboration:</p>
                         <ul class="list-unstyled">
-                            <li><i class="fas fa-angle-double-right text-primary"></i> Simple to Use</li>
-                            <li><i class="fas fa-angle-double-right text-primary"></i> Efficient Sidebar Navigation</li>
-                            <li><i class="fas fa-angle-double-right text-primary"></i> Dynamic Content Updates</li>
-                            <li><i class="fas fa-angle-double-right text-primary"></i> Customizable Styling</li>
-                            <li><i class="fas fa-angle-double-right text-primary"></i> Responsive Design for Any Device</li>
-                            <li><i class="fas fa-angle-double-right text-primary"></i> Document Any <em>(Even A Custom)</em> Language</li>
-                            <li><i class="fas fa-angle-double-right text-primary"></i> Free forever, Public Domain Code</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Simple to Use</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Easy Sidebar Navigation</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Breadcrumb Navigation</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Dynamic Content Updates</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Customizable Styling</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Responsive Design for Any Device</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Document Any Language <em>(Even A Custom One)</em></li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Uses <a href="https://prismjs.com/" target="_blank">Prism</a> For Beautiful Code Examples</li>
+                            <li><i class="DOX_intro fas fa-angle-double-right"></i> Free Forever, Public Domain Code</li>
                         </ul>
                         <br>
                         <strong>Download LuaEx <em>(containing Dox)</em></strong>
                         <br>
-                        <a href="https://github.com/CentauriSoldier/LuaEx" target="_blank">https://github.com/CentauriSoldier/LuaEx</a>
+                        <a class="DOX_intro" href="https://github.com/CentauriSoldier/LuaEx" target="_blank">https://github.com/CentauriSoldier/LuaEx</a>
                     </div>
                 </div>
             </div>
@@ -151,7 +153,7 @@ class Dox {
                         if (strippedString !== '') {
                             const sFQXN = "Modules." + strippedString;
 
-                            if (this.setActiveFQXN(sFQXN)) {                                
+                            if (this.setActiveFQXN(sFQXN)) {
                                 this.updatePage();
                             }
                         }

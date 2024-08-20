@@ -55,10 +55,16 @@ local sDoxIgnoreAllFile = ".doxignoreall"; --ignores all files current and subdi
 local oDoxLua = DoxLua("LuaEx");
 local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx");
 
-local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\LuaEx";
+local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\LuaEx";
 
 
-
+--[[
+takem from HTML.lua in the style section
+.sidebar {
+    height: 100vh;
+    overflow-y: auto;
+}
+]]
 --oDoxLua.importDirectory(pImport, true);
 
 local function printfile(pFile)
@@ -79,8 +85,3 @@ local tFolders = io.listdirs(pImport, true, importFiles);
 oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export();
-
-local sTest = "the way and the word - a tale of a wizard's malice";
-local sNewTest, nWords, tWords = sTest:capall();
-print(sNewTest); --> The Way And The Word - A Tale Of A Wizard's Malice
-print("Word count: "..nWords);

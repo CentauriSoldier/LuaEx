@@ -403,61 +403,61 @@ return class("Protean",
 },
 {--STATIC PUBLIC
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.VALUE_BASE
+    @fqxn LuaEx.Classes.Protean.Fields.VALUE_BASE
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     VALUE_BASE__RO              = _nValueBase,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.VALUE_FINAL
+    @fqxn LuaEx.Classes.Protean.Fields.VALUE_FINAL
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     VALUE_FINAL__RO             = _nValueFinal,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.BASE_BONUS
+    @fqxn LuaEx.Classes.Protean.Fields.BASE_BONUS
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     BASE_BONUS__RO              = _nBaseBonus,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.BASE_PENALTY
+    @fqxn LuaEx.Classes.Protean.Fields.BASE_PENALTY
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     BASE_PENALTY__RO            = _nBasePenalty,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.MULTIPLICATIVE_BONUS
+    @fqxn LuaEx.Classes.Protean.Fields.MULTIPLICATIVE_BONUS
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     MULTIPLICATIVE_BONUS__RO    = _nMultBonus,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.MULTIPLICATIVE_PENALTY
+    @fqxn LuaEx.Classes.Protean.Fields.MULTIPLICATIVE_PENALTY
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     MULTIPLICATIVE_PENALTY__RO  = _nMultPenalty,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.ADDATIVE_BONUS
+    @fqxn LuaEx.Classes.Protean.Fields.ADDATIVE_BONUS
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     ADDATIVE_BONUS__RO          = _nAddBonus,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.ADDATIVE_PENALTY
+    @fqxn LuaEx.Classes.Protean.Fields.ADDATIVE_PENALTY
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     ADDATIVE_PENALTY__RO        = _nAddPenalty,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.LIMIT_MIN
+    @fqxn LuaEx.Classes.Protean.Fields.LIMIT_MIN
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
     LIMIT_MIN__RO               = _nLimitMin,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.LIMIT_MAX
+    @fqxn LuaEx.Classes.Protean.Fields.LIMIT_MAX
     @desc An alias for the number referring this specific value category. Used in Protean operations.
     @return nCategory number The value category number.
     !]]
@@ -532,7 +532,7 @@ return class("Protean",
 },
 {--PUBLIC
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.Protean
+    @fqxn LuaEx.Classes.Protean.Methods.Protean
     @desc The constructor for the Protean class.
     @param nBaseValue number This value is <code>Vb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap</code> and where Vf is the calculated, final value. If set to nil, it will default to 0.
     @param nBaseBonus number/nil This value is Bb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
@@ -589,7 +589,7 @@ return class("Protean",
         calculateFinalValue(this, cdat);
     end,
     --[[!
-    @fqxn LuaEx.Classes.Component.Protean.adjust
+    @fqxn LuaEx.Classes.Protean.Methods.adjust
     @desc Adjusts the given value by the amount input. Note: if using an external table which contains the base value, and the rawtype provided is ProteanValue.Base, nil will be returned. An external base value cannot be adjusted from inside the Protean	object (although the base bonus and base penalty may be).
     @note If only one parameter is given, it is assumed that the base value is intended to be adjusted using the value input.
     @param nType number The type of value to adjust.
@@ -621,7 +621,7 @@ return class("Protean",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.calculateFinalValue
+        @fqxn LuaEx.Classes.Protean.Methods.calculateFinalValue
         @desc Calculates the final value of the Protean. This is done on-change by default so that the final value (when requested) is always up-to-date and accurate. There is no need to call this unless auto-calculate has been disabled. In that case, this serves an external utility function to perform the normally-internal operation of calculating and updating the final value.
         @return nValue number The calculated final value.
     !]]
@@ -632,7 +632,7 @@ return class("Protean",
 
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.get
+        @fqxn LuaEx.Classes.Protean.Methods.get
         @desc Gets the value of the given value type. Note: if the type provided is ProteanValue.Final and MIN or MAX limits have been set, the returned value will fall within the confines of those paramter(s).
         @note If no parameter is given, the base value is returned.
         @param nType number The type of value to adjust.
@@ -665,7 +665,7 @@ return class("Protean",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.getLinkerID
+        @fqxn LuaEx.Classes.Protean.Methods.getLinkerID
         @desc Gets this Protean's linkerID.
         @return nID number The ID of the linker;
     !]]
@@ -674,7 +674,7 @@ return class("Protean",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.isAutoCalculated
+        @fqxn LuaEx.Classes.Protean.Methods.isAutoCalculated
         @desc Determines whether or not auto-calculate is active.
         @return bActive boolean Whether or not auto-calculate occurs on value change.
     !]]
@@ -683,7 +683,7 @@ return class("Protean",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.isCallbackActive
+        @fqxn LuaEx.Classes.Protean.Methods.isCallbackActive
         @desc Determines whether or not the callback is called on change.
         @return bActive boolean Whether or not the callback is called on value change.
     !]]
@@ -699,7 +699,7 @@ return class("Protean",
         return cdat.pri.isCallbackToggleLocked;
     end,
 
-    --@fqxn LuaEx.Classes.Component.Protean
+    --@fqxn LuaEx.Classes.Protean
     isLinked = function(this, cdat)
         return cdat.pri.isLinked;
     end,
@@ -713,7 +713,7 @@ return class("Protean",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.setAutoCalculate
+        @fqxn LuaEx.Classes.Protean.Methods.setAutoCalculate
         @desc By default, the final value is calculated whenever a change is made to a value; however, this method gives the power of that choice to the client. If disabled, the client will need to call calculateFinalValue to update the final value.
         @param bAutoCalculate boolean Whether or not the objects should auto-calculate the final value.
         @return oProtean Protean This Protean object.
@@ -724,7 +724,7 @@ return class("Protean",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.setCallback
+        @fqxn LuaEx.Classes.Protean.Methods.setCallback
         @desc Set the given function as this objects's onChange callback which is called whenever a change occurs (if active).
         @param fCallback function The callback function (which must accept the Protean object as its first parameter)
         @param bDoNotSetActive boolean If true, the function is not set to active, otherwise (even with nil value) the function is set to active.
@@ -751,7 +751,7 @@ return class("Protean",
 
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.setCallbackActive
+        @fqxn LuaEx.Classes.Protean.Methods.setCallbackActive
         @desc Set the object's callback function (if any) to active/inactive. If active, it will fire whenever a change is made while nothing will occur if it is inactive.
         @param bActive boolean A boolean value indicating whether or no the callback function should be called.
         @return oProtean Protean This Protean object.
@@ -778,7 +778,7 @@ return class("Protean",
 
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.setLimitMax
+        @fqxn LuaEx.Classes.Protean.Methods.setLimitMax
         @desc Tells the Protean whether to enable the maximum limiter.
         @param bLimit boolean|nil If true, will enable the limiter, if not, it will disable it.
         @return oProtean Protean This Protean object.
@@ -790,7 +790,7 @@ return class("Protean",
 
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.setLimitMin
+        @fqxn LuaEx.Classes.Protean.Methods.setLimitMin
         @desc Tells the Protean whether to enable the minimum limiter.
         @param bLimit boolean|nil If true, will enable the limiter, if not, it will disable it.
         @return oProtean Protean This Protean object.
@@ -802,7 +802,7 @@ return class("Protean",
 
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.setLinker
+        @fqxn LuaEx.Classes.Protean.Methods.setLinker
         @desc Links or unlinks this object based on the input.
         @param vLinkerID number If this is a number, the object will be linked to the provided linerkID (if valid). If the input linkerID is invalid, a proper one will be created. If the linkerID is nil, the object will be unlinked (if already linked).
         @return oProtean Protean This Protean object.
@@ -824,7 +824,7 @@ return class("Protean",
 
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Protean.set
+        @fqxn LuaEx.Classes.Protean.Methods.set
         @desc Set the given value type to the value input. Note: if this object is linked, and the type provided is ProteanValue.Base, this linker's base value will also change, affecting every other linked object's base value.
         @note If only one parameter is given, it is assumed that the base value is intended to be set using the value input.
         @param nType number The type of value to adjust.

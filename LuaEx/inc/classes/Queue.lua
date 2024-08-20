@@ -94,7 +94,7 @@ return class("Queue",
     @fqxn LuaEx.Classes.Queue.Methods.clear
     @scope public
     @desc Removes all items from the Queue.
-    ret Queue The Queue object after clearing all items.
+    @ret Queue The Queue object after clearing all items.
     !]]
     clear = function(this, cdat)
        cdat.pri.count  = 0;

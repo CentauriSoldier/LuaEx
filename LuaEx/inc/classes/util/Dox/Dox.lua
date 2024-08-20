@@ -12,6 +12,8 @@ local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags")
 --TODO Allow internal anchor links
 --TODO allow MoTD, custom banners etc.
 --TODO ad dtooltip with @des info (if available) in sidemenu items
+--TODO ERROR FIX paramters are not showing in order
+--TODO combine params into one section
 
 local assert    = assert;
 local class     = class;

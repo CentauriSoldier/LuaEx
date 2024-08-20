@@ -6,8 +6,12 @@ local rawtype	= rawtype;
 local string 	= string;
 local table     = table;
 
-local _sUUIDLength 	= 16;
-local _sUUIDBlocks	= 5;
+--UUID values
+local _tCharsLower	 = {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};
+local _tCharsUpper	 = {"7","F","1","E","3","C","6","B","5","9","A","4","8","D","0","2"};
+local _sUUIDLength 	 = #_tCharsLower;
+local _tUUIDSequence = {8, 4, 4, 4, 12};
+local _sUUIDBlocks	 = #_tUUIDSequence;
 
 
 --[[!
@@ -50,37 +54,34 @@ end
     @param string sInput The string to capatalize.
     @param string|nil sDelimiter The delmiter between words (a blank space by default).
     @ret string sModifiedInput Returns the modified input string.
-    @ret number nWords The total number of words capatalized.
-    @ret table sadasd s
+    @ret number nItems The total number of items capatalized (or attempted to be capatalized).
+    @ret table tItems A numerically-indexed table whose values are the items found.
     @ex
-    TODO FINISH
+    local sTest = "the way and the word - a tale of a wizard's malice";
+    local sNewTest, nItems, tItems = sTest:capall();
+    print(sNewTest); --> The Way And The Word - A Tale Of A Wizard's Malice
+    print("Item count: "..nItems); --Item count: 12
 !]]
 function string.capall(sInput, sDelimiter)
     local sRet = "";
-    local tWords = nil;
-    local nWords = nil;
-    local totable = string.totable;
+    local tItems = nil;
+    local nItems = nil;
     sDelimiter = rawtype(sDelimiter) == "string" and sDelimiter or " ";
 
     if (sInput:gsub("%s", "") ~= "") then
-        tWords = totable(sInput, sDelimiter);--TODO could this use %s to find any space character?
-        nWords = #tWords;
+        tItems = string.totable(sInput, sDelimiter);
+        nItems = #tItems;
 
-            for nIndex, sWord in pairs(tWords) do
-                local sSpace = " ";
-
-                if nIndex == nWords then
-                    sSpace = "";
-                end
-
-            local sFirstLetter = string.upper(string.sub(sWord, 1, 1));
+        for nIndex, sWord in pairs(tItems) do
+            local sSpace = (nIndex == nItems) and "" or ' ';
+            local sFirstLetter = (string.sub(sWord, 1, 1)):upper();
             local sRightSide = string.sub(sWord, 2);
             sRet = sRet..sFirstLetter..sRightSide..sSpace;
         end
 
     end
 
-    return sRet, nWords, tWords;
+    return sRet, nItems, tItems;
 end
 
 
@@ -92,31 +93,33 @@ end
     @ex
     local sTest1 = "     ";
     local sTest2 = " a    ";
-    print("sTest1 is blank: "..sTest1:isempty()); --> sTest1 is blank: true
-    print("sTest2 is blank: "..sTest2:isempty()); --> sTest2 is blank: false
+    print("sTest1 is empty: "..tostring(sTest1:isempty())); --> sTest1 is empty: true
+    print("sTest2 is empty: "..tostring(sTest2:isempty())); --> sTest2 is empty: false
 !]]
 function string.isempty(sInput)
     return sInput:find("[%S]+") == nil;
 end
 
 
---[[!TODO FINISH
+--[[!
     @fqxn LuaEx.Lua Hooks.string.iskeyword
     @desc Determines whether a string is keyword.
     @param string sInput The string to capatalize.
     @ret boolean Returns true if empty, false otherwise.
     @ex
-    local sTest1 = "     ";
-    local sTest2 = " a    ";
-    print("sTest1 is keyword: "..sTest1:isempty()); --> sTest1 is blank: true
-    print("sTest2 is keyword: "..sTest2:isempty()); --> sTest2 is blank: false
+    local sTest1 = "end";
+    local sTest2 = "class";
+    local sTest3 = "classes";
+    print("sTest1 is keyword: "..tostring(sTest1:iskeyword())); --> sTest1 is keyword: true
+    print("sTest2 is keyword: "..tostring(sTest2:iskeyword())); --> sTest2 is keyword: true
+    print("sTest3 is keyword: "..tostring(sTest3:iskeyword())); --> sTest3 is keyword: false
 !]]
 function string.iskeyword(sInput)
     local bRet = false;
 
-    for x = 1, tLuaEX.__KEYWORDS_COUNT__ do
+    for x = 1, tLuaEX.__keywords__count__ do
 
-        if sInput == tLuaEX.__KEYWORDS__[x] then
+        if sInput == tLuaEX.__keywords__[x] then
             bRet = true;
             break;
         end
@@ -134,11 +137,29 @@ end
     @ex
     local sTest1 = "1a2sASd";
     local sTest2 = "234.67";
-    print("sTest1 is numeric: "..sTest1:isnumeric()); --> sTest1 is numeric: false
-    print("sTest2 is numeric: "..sTest2:isnumeric()); --> sTest2 is numeric: true
+    print("sTest1 is numeric: "..tostring(sTest1:isnumeric())); --> sTest1 is numeric: false
+    print("sTest2 is numeric: "..tostring(sTest2:isnumeric())); --> sTest2 is numeric: true
 !]]
 function string.isnumeric(sInput)
     return type(sInput) == "string" and sInput:gsub("[%d%.]", "") == "";
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.isuuid
+    @desc Determin wether a string is a uuid (as created by <a href="#LuaEx.Lua Hooks.string.uuid">string.uuid</a>).</b>
+    @param string sInput The string to check.
+    @ret boolean bIsUUID True if it's a UUID, false otherwise.
+    @ex
+    print("Is UUID: "..tostring(string.isuuid("6430425f-dfe0-d7c8-cf55-dc0f133e07ef"))); --> true
+    print("Is UUID: "..tostring(string.isuuid("6430425f-Adfe0-d7c8-cf55-dc0f133e07ef"))); --> false
+    print("Is UUID: "..tostring(string.isuuid("z430425f-dfe0-d7c8-cf55-dc0f133e07ef"))); --> false
+!]]
+function string.isuuid(sInput)
+    -- UUID pattern based on _tUUIDSequence
+    local sPattern = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$";
+    -- Check if the input matches the pattern
+    return sInput:match(sPattern) ~= nil;
 end
 
 
@@ -154,10 +175,10 @@ end
     local sTest3 = "end";
     local sTest4 = "enum";
 
-    print("sTest1 is variable compliant: "..sTest1:isvariablecompliant()); --> sTest1 is variable compliant: false
-    print("sTest2 is variable compliant: "..sTest2:isvariablecompliant()); --> sTest2 is variable compliant: true
-    print("sTest3 is variable compliant: "..sTest3:isvariablecompliant()); --> sTest3 is variable compliant: false
-    print("sTest4 is variable compliant: "..sTest4:isvariablecompliant()); --> sTest4 is variable compliant: false
+    print("sTest1 is variable compliant: "..tostring(sTest1:isvariablecompliant())); --> sTest1 is variable compliant: false
+    print("sTest2 is variable compliant: "..tostring(sTest2:isvariablecompliant())); --> sTest2 is variable compliant: true
+    print("sTest3 is variable compliant: "..tostring(sTest3:isvariablecompliant())); --> sTest3 is variable compliant: false
+    print("sTest4 is variable compliant: "..tostring(sTest4:isvariablecompliant())); --> sTest4 is variable compliant: false
     print("sTest4 is variable compliant (skipping keywords): "..sTest4:isvariablecompliant(true)); --> sTest4 is variable compliant (skipping keywords): true
 !]]
 function string.isvariablecompliant(sInput, bSkipKeywordCheck)
@@ -166,9 +187,9 @@ function string.isvariablecompliant(sInput, bSkipKeywordCheck)
 
     --make certain it's not a keyword
     if (not bSkipKeywordCheck) then
-        for x = 1, tLuaEX.__KEYWORDS_COUNT__ do
+        for x = 1, tLuaEX.__keywords__count__ do
 
-            if sInput == tLuaEX.__KEYWORDS__[x] then
+            if sInput == tLuaEX.__keywords__[x] then
                 bIsKeyWord = true;
                 break;
             end
@@ -273,20 +294,16 @@ end
     @fqxn LuaEx.Lua Hooks.string.uuid
     @desc Creates a Universally Unique Identifier in the following format:
     <br><b>6430425f-dfe0-d7c8-cf55-dc0f133e07ef</b>
-    @param boolean|nil bUppercase Whether to make the string uppcase (lowercase by default).
     @ret string sUUID A Universally Unique Identifier in the following format:
     <br><b>6430425f-dfe0-d7c8-cf55-dc0f133e07ef</b>
     @ex
     print(string.uuid()) --> 6430425f-dfe0-d7c8-cf55-dc0f133e07ef (a string in this format)
 !]]
-local tUUIDSequence = {8, 4, 4, 4, 12};
 function string.uuid(bUppercase)
     local sRet 			= "";
-    local tCharsLower	= {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};--must be equal to _sUUIDLength
-    local tCharsUpper	= {"7","F","1","E","3","C","6","B","5","9","A","4","8","D","0","2"};
-    local tChars = bUppercase and tCharsUpper or tCharsLower;
+    local tChars = bUppercase and _tCharsUpper or _tCharsLower;
 
-    for nBlock, nBlockCharCount in pairs(tUUIDSequence) do
+    for nBlock, nBlockCharCount in pairs(_tUUIDSequence) do
         local sDash = nBlock < _sUUIDBlocks and "-" or "";
 
         for x = 1, nBlockCharCount do
@@ -298,16 +315,6 @@ function string.uuid(bUppercase)
 
     return sRet
 end
-
-
-function string.isuuid(sInput)
-    -- UUID pattern based on tUUIDSequence
-    local sPattern = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$"
-
-    -- Check if the input matches the pattern
-    return sInput:match(sPattern) ~= nil
-end
-
 
 
 return string;

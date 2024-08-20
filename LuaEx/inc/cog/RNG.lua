@@ -103,7 +103,7 @@ return class("RNG",
     --[[!
     @fqxn LuaEx.CoG.Classes.RNG.Methods.drawCard
     @vis Static Public
-    @desc Generates a percentage value.
+    @desc Draws a card from a pre-built deck.
     @param boolean|nil bUnshuffled Whether to draw randomly from an unshuffled deck (defaults to false).
     @param boolean|nil bExcludeJokers Whether to prevent drawing jokers (defaults to false).
     @ret table tCard A table with the following format.
@@ -233,8 +233,6 @@ return class("RNG",
     @fqxn LuaEx.CoG.Classes.RNG.Methods.rollPercentage
     @vis Static Public
     @desc Rolls a percentage chance based on the input value.
-    <br>The number of sides on the dice is determined by the <strong><em>nSides</em></strong> parameter (defaults to 6).
-    <br>The number of dice to roll is determined by the <strong><em>nDice</em></strong> parameter (defaults to 1).
     <br>The number of attempts is determined by the <strong><em>nAttempts</em></strong> parameter (defaults to 1).
     <br> If the number of attempts is set to a value greater than 1, the roll will happen that many times or until it is successful (if successful before the number of attempts runs out).
     @param number|nil nChance The percentage chance at success (defaults to 100).

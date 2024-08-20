@@ -22,7 +22,6 @@ local _tClassRequirements   = {
 
 
 --🆂🆃🅰🆁🆃 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂-----------------------------------------------
-_bRunDoxOnLuaEx = false;--set this to false in production environments
 
 --[[🅲🅻🅰🆂🆂 🅻🅾🅰🅳 🆅🅰🅻🆄🅴🆂
 🅽🅾🆃🅴: setting a Class Load Value
@@ -54,8 +53,18 @@ local tClassLoadValues = {
 --if (type(loadstring) ~= "function" and type(load) == "function") then
 --    loadstring = load;
 --end
-
-
+--[[
+local assert        = assert;
+local debug         = debug;
+local error         = error;
+local ipairs        = ipairs;
+local rawset        = rawset;
+local require       = require;
+local setmetatable  = setmetatable;
+local table         = table;
+local string        = string;
+local type          = type;
+]]
 --TODO I think I need to do this with table.unpack
 
 --enforce the class loading system to prevent errors
@@ -98,20 +107,20 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 };
 
 --create the 'protected' table used by LuaEx
-local tLuaEx = {
+local tLuaEx = {--TODO fix inconsistency in naming and underscores
         --__config, --set below
         __metaguard  = {"class", "classfactory", "enum", "enumfactory", "struct", "structfactory"}, --these metatables are protected from modification and general access
-        __KEYWORDS__	= setmetatable({}, {--TODO uncap these...
+        __keywords__	= setmetatable({}, {
             __index 	= tKeyWords,
             __newindex 	= function(t, k)
-                error("Attempt to perform illegal operation: adding keyword to __KEYWORDS__ table.");
+                error("Attempt to perform illegal operation: adding keyword to __keywords__ table.");
             end,
             __pairs		= function (t)
                 return next, tKeyWords, nil;
             end,
             __metatable = false,
         }),
-        __KEYWORDS_COUNT__ = #tKeyWords,
+        __keywords__count__ = #tKeyWords,
         _VERSION = "LuaEx 0.81",
         --_SOURCE_PATH = getsourcepath(),
 };
@@ -131,7 +140,7 @@ _G.luaex = setmetatable({},
 });
 
 --warn the user if debug is missing
-assert(type(debug) == "table", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
+assert((type(debug) == "table" and type(debug.getinfo) == "function"), "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
 
 --TODO execute this without using/modifying the packagepath if possible (loadfile)
 --determine the call location
@@ -194,9 +203,6 @@ string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");
 base64 		= require("LuaEx.lib.base64");
 
---import external libraries
-
-
 --import serialization
 serializer  = require("LuaEx.util.serializer");
 
@@ -214,12 +220,6 @@ cloner.registerFactory(structfactory);
 --aliases
 serialize   = serializer.serialize;
 deserialize = serializer.deserialize;
-
---prep for loading the class system (if instructed by the user)
-
---class, interface, iCloneable, iSerializable, iShape = nil;
---Queue, Stack, Ssset = nil;
---dox, doxLua, potentiometer, point, line, shape, circle = nil;
 
 --import the class system
 if (tClassLoadValues[_nClassSystem]) then
@@ -375,43 +375,6 @@ unpack = unpack or table.unpack;--TODO move this to table hook
 
 ]]
 
-if (_bRunDoxOnLuaEx) then
-    --sSourccePath = "";
-
-    function getsourcepath()
-        --determine the call location
-        local sPath = debug.getinfo(1, "S").source;
-        --remove the calling filename
-        local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
-        --make a pattern to account for case
-        local sFilename = "";
-        for x = 1, #sFilenameRAW do
-            local sChar = sFilenameRAW:sub(x, x);
-
-            if (sChar:find("[%a]")) then
-                sFilename = sFilename.."["..sChar:upper()..sChar:lower().."]";
-            else
-                sFilename = sFilename..sChar;
-            end
-
-        end
-        sPath = sPath:gsub("@", ""):gsub(sFilename, "");
-        --remove the "/" at the end
-        sPath = sPath:sub(1, sPath:len() - 1);
-
-        return sPath;
-    end
-
-    --determine the call location
-     sSourcePath = getsourcepath();
-
-    local oDoxLua = DoxLua("LuaEx");
-    local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\LuaEx");
-    local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\LuaEx\\";
-    oDoxLua.importDirectory(pImport, true);
-    oDoxLua.setOutputPath(pHTML);
-    oDoxLua.export();
-end
 
 --TODO FINISH return the package path to its original state
 
