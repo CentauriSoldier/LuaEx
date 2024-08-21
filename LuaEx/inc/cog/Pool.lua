@@ -6,8 +6,8 @@ local type				= type;
 --TODO NEXT LEFT OFF HERE Do events on other items (onFull, Empty etc.)
 --CLASS-LEVEL ENUMS                                       Note: AVAILABLE, CYCLE and RESERVED are calculated values and cannot be set directly
 --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Enums.ASPECT
-    @desc Used in class method for setting/getting values.
+    @fqxn CoG.Classes.Pool.Enums.ASPECT
+    @desc Used in class methods for setting/getting values.
     <ul>
         <li><b class="text-primary">AVAILABLE</b>
             <p>Used for getting the total <b>Available</b> (<i>Max - Reserved</i>).
@@ -52,8 +52,8 @@ local type				= type;
 local _eAspect      = enum("Pool.ASPECT",   {"AVAILABLE", "CURRENT", "CYCLE", "RESERVED", "MAX", "CYCLE_FLAT", "CYCLE_PERCENT", "RESERVED_FLAT", "RESERVED_PERCENT"},
                                             {"available", "current", "cycle", "reserved", "max", "cycle_flat", "cycle_percent", "reserved_flat", "reserved_percent"}, true);
 --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Enums.MODIFIER
-    @desc Used in class methods for getting/setting modifier values of <a href="#LuaEx.Classes.CoG.Pool.Enums.ASPECT" target="_blank">ASPECTS</a>.
+    @fqxn CoG.Classes.Pool.Enums.MODIFIER
+    @desc Used in class methods for getting/setting modifier values of <a href="#CoG.Classes.Pool.Enums.ASPECT" target="_blank">ASPECTS</a>.
     <ul>
         <li><b class="text-primary">BASE</b>
             <p></p>
@@ -91,8 +91,8 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
                                                 "ADDITIVE_BONUS",       "ADDITIVE_PENALTY"},
                                                 {1, 2, 3, 4, 5, 6, 7, 8, 9}, true);
 --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Enums.EVENT
-    @desc <p>Used in class method for setting/getting events.
+    @fqxn CoG.Classes.Pool.Enums.EVENT
+    @desc <p>Used in class methods for setting/getting events.
     <br><b>Note</b>: events fire only if an event callback function has been set and only if the event is active.
     <br><b>Note</b>: events that trigger because of a change in the <b>Current</b> value, proccess before the <b>ON_CYCLE</b> event (if active).</p>
     <br><br>
@@ -583,7 +583,7 @@ end
 
 
 --[[!
-    @fqxn LuaEx.Classes.CoG.Pool
+    @fqxn CoG.Classes.Pool
     @author Centauri Soldier
     @desc <h2>Pool</h2><h3>Utility class used to keep track of things like Health, Magic, etc.</h3><p>You can operate on <strong>Pool</strong> objects using some math operators.</p>
     <b>TODO</b>
@@ -744,7 +744,7 @@ return class("Pool",
 {--PUBLIC
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.Pool
+    @fqxn CoG.Classes.Pool.Methods.Pool
     @desc The constructor for the <b>Pool</b> class.
     @param number|nil nMax The maximum value of the Pool (minimum 1).
     @param number|nil nCurrent The current value of the Pool (minimum 0, maximum nMax).
@@ -779,7 +779,7 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.cycle
+    @fqxn CoG.Classes.Pool.Methods.cycle
     @desc Causes the Pool to cycle based on the cycle value (after all modifiers have been applied).
     <br>This is used for things like regeneration of mana, regen and/or poisoning of life, consumption of fuel, etc.
     @param number|nil nMultiple If a number is provided, it will cycle the number of times input, otherwise, once.
@@ -817,9 +817,9 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.isEmpty
+    @fqxn CoG.Classes.Pool.Methods.isEmpty
     @desc Determines whether the Pool is empty.
-    <br>This is true when the current value is less or equal to 0.
+    <br>This is true when the current value is less than or equal to 0.
     @ret boolean bEmpty True if the Pool is empty, false otherwise.
     !]]
     isEmpty = function(this, cdat)
@@ -828,9 +828,9 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.isFull
+    @fqxn CoG.Classes.Pool.Methods.isFull
     @desc Determines whether the Pool is full.
-    <br>This is true when the current value is (<em>greater than or</em>) equal to the maximum value.
+    <br>This is true when the current value is (<em>greater than or</em>) equal to the TODO value.
     @ret boolean bEmpty True if the Pool is full, false otherwise.
     !]]
     isFull = function(this, cdat)
@@ -838,13 +838,19 @@ return class("Pool",
     end,
 
 
+    --[[!
+    @fqxn CoG.Classes.Pool.Methods.isLow
+    @desc Determines whether the Pool is low.
+    <br>This is true when the current value is (<em>greater than or</em>) equal to the TODO value.
+    @ret boolean bEmpty True if the Pool is low, false otherwise.
+    !]]
     isLow = function(this, cdat)
         return cdat.pro.isLow;
     end,
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.get
+    @fqxn CoG.Classes.Pool.Methods.get
     @desc TODO
     @ex TODO
     @param Pool.ASPECT|nil eAspect If provided, this refers to the aspect of the pool to get such as MAX or CYCLE.
@@ -887,7 +893,7 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.set
+    @fqxn CoG.Classes.Pool.Methods.set
     @desc TODO
     @ex TODO
     @param number nValue The value to which the item should be set.
@@ -901,7 +907,7 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.setEmpty
+    @fqxn CoG.Classes.Pool.Methods.setEmpty
     @desc Set the Pool to empty (if not already empty).
     @ret Pool oPool The Pool object.
     !]]
@@ -917,7 +923,7 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.setEventActive
+    @fqxn CoG.Classes.Pool.Methods.setEventActive
     @desc Enables\disables an event from triggering.
     <br>Note: this does not affect any current callback function for this event, it simply makes<br>
     the event dormant until manually reactivated.
@@ -939,7 +945,7 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.setEventCallback
+    @fqxn CoG.Classes.Pool.Methods.setEventCallback
     @desc Sets a callback function for the specified event. The funciton will fire whenever the event is triggered.
     @param Pool.EVENT eEvent The event for which the function should be called.
     @param function|nil fCallback The callback function.
@@ -973,7 +979,7 @@ return class("Pool",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CoG.Pool.Methods.setFull
+    @fqxn CoG.Classes.Pool.Methods.setFull
     @desc Sets Pool's current value to the maximum available (if not already that high).
     <br>Note: this is not the same as the maximum value.
     <br>For instance, if 20% of a Pool (whose max is 100) is reserved, the value would be set to 80.

@@ -1,5 +1,5 @@
 --[[!
-    @fqxn LuaEx.CoG.Config
+    @fqxn CoG.Config
     @desc <p>This table (found in the directory <strong><em>LuaEx/inc/cog/config.lua</em></strong>) is for the user to edit (pre-runtime).
     <br>It is available at runtime by accessing the global variable:
     <br><strong><em>luaex.cog.config</strong></em>

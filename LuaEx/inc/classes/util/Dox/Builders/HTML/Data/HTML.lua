@@ -48,12 +48,12 @@ return [[
 
         <div class="row">
             <!-- Sidebar Wrapper - Column 1 -->
-            <div id=="DOX_navmenu_wrapper" class="col-2 sidebar">
+            <div id="DOX_navmenu_wrapper" class="col-auto sidebar">
                 <ul id="DOX_navmenu" class="nav flex-column"></ul>
             </div>
 
             <!-- Main Panel - Column 3 -->
-            <div id="DOX_main_panel" class="col-10 p-0 m-0">
+            <div id="DOX_content_wrapper" class="col p-0 m-0">
 
                 <!-- Content -->
                 <!-- <div id="DOX_content" class="scrollable-div overflow-auto border"></div>-->

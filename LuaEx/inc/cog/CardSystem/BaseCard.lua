@@ -1,9 +1,9 @@
-return class("MyClass",
+return class("BaseCard",
 {--METAMETHODS
 
 },
 {--STATIC PUBLIC
-    --MyClass = function(stapub) end,
+    --BaseCard = function(stapub) end,
 },
 {--PRIVATE
 
@@ -12,7 +12,7 @@ return class("MyClass",
 
 },
 {--PUBLIC
-    MyClass = function(this, cdat)
+    BaseCard = function(this, cdat)
 
     end,
 },

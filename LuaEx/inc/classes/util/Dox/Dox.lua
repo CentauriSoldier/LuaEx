@@ -25,11 +25,10 @@ local type      = type;
 local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
 
-
 --[[!
-    @fqxn LuaEx.Classes.Utility.Dox.Functions.escapePattern
+    @fqxn Dox.Functions.escapePattern
     @desc Escapes special characters in a string so it can be used in a Lua pattern match.
-    <br>Used by the <a href="#Classes.Utility.Dox.Methods.extractBlockStrings">extractBlockStrings</a> method.
+    <br>Used by the <a href="#Classes.Dox.Methods.extractBlockStrings">extractBlockStrings</a> method.
     @vis local
     @param string pattern A string containing the pattern to be escaped.
     @ret Returns the escaped string with special characters prefixed by a `%`.
@@ -52,25 +51,21 @@ end
 ██████╔╝╚██████╔╝██╔╝ ██╗
 ╚═════╝  ╚═════╝ ╚═╝  ╚═╝]]
 --[[!
-@fqxn LuaEx.Classes.Utility.Dox
+@fqxn Dox
 @desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
 <br><br>
-<strong>Note</strong>: Dox is intended only to be used by being subclassed.
-<br>Subclasses of Dox (called parsers), provide the required parameters to
-<br>properly parse comments blocks for specific languages.
+Note: Dox is intended only to be used by being subclassed. Subclasses of Dox (called parsers), provide the required parameters to properly parse comments blocks for specific languages.
 <br>Running Dox stand-alone without subclassing it will yield unpredictable results.
---...Meta End
+<br>--...Meta End
 @ex
     --\[\[!
-        \@fqxn LuaEx.Classes.Utility.Dox
-        \@desc &lt;sMARKtrong&gt;Dox&lt;/strong&gt; auto-generates documentation for code by reading and parsing comment blocks.
+        \@fqxn Dox
+        \@desc &lt;strong&gt;Dox&lt;/strong&gt; auto-generates documentation for code by reading and parsing comment blocks.
         <br>&lt;br&gt;
-        <br>&lt;br&gt;&lt;strong&gt;Note&lt;/strong&gt;: Dox is intended only to be used by being subclassed.
-        <br>&lt;br&gt;Subclasses of Dox (called parsers), provide the required parameters to
-        <br>&lt;br&gt;properly parse comments blocks for specific languages.
+        <br>&lt;br&gt;Note:Dox is intended only to be used by being subclassed. Subclasses of Dox (called parsers), provide the required parameters to properly parse comments blocks for specific languages.
         <br>&lt;br&gt;Running Dox stand-alone without subclassing it will yield unpredictable results.
-        \@tex --Many Wow! How Yay! Much Meta!
-        --...Meta End
+        \@ex --Many Wow! How Yay! Much Meta!
+        <br>&lt;br&gt;--...Meta End
     !\]\]
 @ex
 --for this example, we're using Lua
@@ -79,13 +74,27 @@ end
 local oDoxLua = DoxLua("MyProject");
 
 --import a directory recursively (read & parse files)
-oDoxLua.importDirectory(pPathToMyProject, true);
+local pImport = "C:\\Path\\To\\My\\Project"
+
+local function importFiles(pDir)
+
+    for _, pFile in pairs(io.listfiles(pDir, false, nil, "lua")) do
+        oDoxLua.importFile(pFile, true); --don't refresh the data until we're done importing
+        --print(pFile);
+    end
+
+end
+
+local tFolders = io.listdirs(pImport, true, importFiles); --set recursion to true
 
 --set the output path
 oDoxLua.setOutputPath("C:\\Users\\MyUsername\\MyProject");
 
 --\[\[we don't need to set a Dox.BUILDER since it defaults
     to Dox.BUILDER.HTML and that's what we want\]\]
+
+--refresh the data
+oDoxLua.refresh();
 
 --export html help file.
 oDoxLua.export(); --profit!
@@ -103,13 +112,13 @@ return class("Dox",
     SYNTAX  = _eSyntax,
 },
 {--private
-    --[[@qxn Classes.Utility.Dox.Properties]]
+    --[[@qxn Classes.Dox.Fields]]
     blockOpen           = "",
     blockClose          = "",
     blockTags           = {},
     blockStrings        = {};
     builder             = null,
-    --[[!@fqxn LuaEx.Classes.Utility.Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
+    --[[!@fqxn Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
     finalized           = {}; --this is the final, processed data (updated using the refresh() method)
     html                = "", --this is updated on refresh
     mimeTypes           = SortedDictionary(), --TODO throw error on removal of last item
@@ -127,7 +136,7 @@ return class("Dox",
     tagOpen             = "",
     title               = "",
     --[[!
-    @fqxn LuaEx.Classes.Utility.Dox.Methods.extractBlockStrings
+    @fqxn Dox.Methods.extractBlockStrings
     @vis private
     @desc Extracts Dox comment blocks from a string input and stores them for later processing.
     @par string sInput The string from which the comment blocks should be extracted.
@@ -162,7 +171,7 @@ return class("Dox",
         local nStart          = 1;
         local nEnd            = -1;
         local tContent        = {};
-
+        local oBuilder        = cdat.pri.builder.value;
         -- Iterate over the number of columns
         for x = 1, nColumnCount - 1 do
             -- Find the index of the next space
@@ -191,10 +200,19 @@ return class("Dox",
             sTableDataItems = sTableDataItems.."   "..sWrapFront..tContent[x]..sWrapBack.."";
         end
 
-        --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder
-        return [[<div class="custom-section"><div class="section-title">${display}</div><div class="section-content">${content}</div></div>]] %
+        local sDisplay = oBlockTag.getDisplay();
+        local sID = "";
+
+        if (sDisplay == "Example") then
+            sDisplay = sDisplay.." "..oBuilder.getCopyToClipboardButton();
+            sID = ' id="'..string.uuid()..'"'
+        end
+
+        --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder -- be sure to send in the display and UUID
+        return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] %
         {
-            display = oBlockTag.getDisplay(),
+            id = sID,
+            display = sDisplay,
             content = sTableDataItems,--TODO break up content into columns as needed
         };
     end,
@@ -202,7 +220,7 @@ return class("Dox",
         local pri = cdat.pri;
     end,
     --[[!
-    @fqxn LuaEx.Classes.Utility.Dox.Methods.refresh
+    @fqxn Dox.Methods.refresh
     @desc Refreshes the finalized data
     !]]
     refresh = function(this, cdat)

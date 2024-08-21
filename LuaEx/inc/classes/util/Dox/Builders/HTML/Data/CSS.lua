@@ -1,6 +1,5 @@
 return [[
     :root {
-            --banner-height: 10vh;
             --base-font-size: 16px; /* Define a base font size */
 
             /* Color Scheme */
@@ -20,11 +19,9 @@ return [[
     ██║██║██║██║╚██╔╝██║██╔══╝  ██║  ██║██║██╔══██║
     ╚█║████╔╝██║ ╚═╝ ██║███████╗██████╔╝██║██║  ██║
      ╚╝╚═══╝ ╚═╝     ╚═╝╚══════╝╚═════╝ ╚═╝╚═╝  ╚═╝*/
-
     @media (min-width: 0px) {
         html { font-size: 10px; }
         #DOX_navmenu .nav-link { font-size: 12px; }
-
     }
     @media (min-width: 300px) {
         html { font-size: 12px; }
@@ -59,8 +56,6 @@ return [[
     ██║██║╚██╗██║   ██║   ██╔══██╗██║   ██║
     ██║██║ ╚████║   ██║   ██║  ██║╚██████╔╝
     ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ */
-
-
     .DOX_intro {
         color: var(--sectioncontent); /* Text color for all text within the container */
         background-color: var(--navbackground); /* Background color for the container */
@@ -84,7 +79,6 @@ return [[
         background-color: inherit; /* Inherit background color from the container */
         color: inherit; /* Inherit text color from the container */
     }
-
 
     /*
     ████████╗██╗████████╗██╗     ███████╗
@@ -125,8 +119,9 @@ return [[
     }
 
     .d-flex {
-        margin: 0; /* Ensure flex container has no additional margin */
+        margin: 0; /* Ensure flex container has no additional margin TODO set this class to the proper subclass*/
     }
+
 
     /*
      ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗
@@ -135,8 +130,13 @@ return [[
     ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║
     ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗
      ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝*/
+     body, html {
+         margin: 0;
+         padding: 0;
+         font-size: var(--base-font-size);
+         background-color: var(--navbackground);
+     }
 
-     /* Global styles for all anchor tags */
     a {
         color: var(--navlink); /* Default link color */
         /*text-decoration: none;  Remove underline from links */
@@ -154,11 +154,20 @@ return [[
         color: #003d7a; /* Color when the link is actively being clicked TODO set active var */
     }
 
-
-
     pre {
         white-space: pre-wrap; !important
     }
+
+
+
+
+
+
+
+
+
+
+
 
     /* CSS to style the "Copy to Clipboard" button */
     .copy-to-clipboard-button {
@@ -173,35 +182,39 @@ return [[
 
     .copy-to-clipboard-button:hover {
         background-color: #45a049; /* Darker green on hover */
+        transition: color 0.3s; /* Smooth color transition */
     }
 
     .copy-to-clipboard-button:active {
         background-color: #3e8e41; /* Even darker green on click */
     }
 
-    body, html {
-        margin: 0;
-        padding: 0;
-        /* Add overflow:overflow: hidden;  hidden to prevent overflow issues */
-        font-size: var(--base-font-size);
-    }
+
 
     .scrollable-div {
         max-height: 200px; /* Adjust the height as needed */
     }
 
+
+    /*
+    ███╗   ██╗ █████╗ ██╗   ██╗    ███╗   ███╗███████╗███╗   ██╗██╗   ██╗
+    ████╗  ██║██╔══██╗██║   ██║    ████╗ ████║██╔════╝████╗  ██║██║   ██║
+    ██╔██╗ ██║███████║██║   ██║    ██╔████╔██║█████╗  ██╔██╗ ██║██║   ██║
+    ██║╚██╗██║██╔══██║╚██╗ ██╔╝    ██║╚██╔╝██║██╔══╝  ██║╚██╗██║██║   ██║
+    ██║ ╚████║██║  ██║ ╚████╔╝     ██║ ╚═╝ ██║███████╗██║ ╚████║╚██████╔╝
+    ╚═╝  ╚═══╝╚═╝  ╚═╝  ╚═══╝      ╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝ ╚═════╝ */
     #DOX_navmenu_wrapper {
-        background-color: #FFF;
+        background-color:var(--navbackground);
+        margin: 0px;
+        padding: 0px;
     }
 
     #DOX_navmenu {
         background-color: var(--navbackground);
-        list-style-type: none; /* Remove bullets from the list */
-        padding: 0; /* Remove default padding */
-        margin: 0; /* Remove default margin */
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
     }
-
-    /* #DOX_navmenu nav-item {}*/
 
     #DOX_navmenu .nav-link {
 
@@ -265,6 +278,7 @@ return [[
         padding: 5px 20px;
     }
 
+    /*
     .sidebar-wrapper {
         height: calc(100vh - 126px); /* Adjusted height */
         overflow-y: auto; /* Add scrollbar if content exceeds height */
@@ -275,7 +289,7 @@ return [[
         color: white;
         padding: 10px;
     }
-
+*/
     .content-wrapper {
         padding: 0 20px;
     }
@@ -306,7 +320,7 @@ return [[
       margin: 20px 0;
     }
 
-    #DOX_main_panel {
+    #DOX_content_wrapper {
         background-color: var(--navbackground);
     }
 

@@ -135,7 +135,7 @@ class Dox {
             this.activeFQXN = "Modules";
             this.previousFQXN = "";
             // Initialize link click event listener (for handling anchor links)
-            document.body.addEventListener('click', (event) => {
+            /*document.body.addEventListener('click', (event) => {
                 const target = event.target;
 
                 if (target && target.tagName === 'A') {
@@ -148,6 +148,26 @@ class Dox {
                     )) {
                         event.preventDefault(); // Prevent default link behavior
                         const anchorIndex = target.href.indexOf('#');
+                        const strippedString = target.href.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
+
+                        if (strippedString !== '') {
+                            const sFQXN = "Modules." + strippedString;
+
+                            if (this.setActiveFQXN(sFQXN)) {
+                                this.updatePage();
+                            }
+                        }
+                    }
+                }
+            });*/
+            document.body.addEventListener('click', (event) => {
+                const target = event.target;
+
+                if (target && target.tagName === 'A') {
+                    const anchorIndex = target.href.indexOf('#');
+
+                    if (anchorIndex !== -1) { // It's an internal link
+                        event.preventDefault(); // Prevent default link behavior
                         const strippedString = target.href.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
 
                         if (strippedString !== '') {
@@ -179,7 +199,6 @@ class Dox {
     byID(sID) {
         return document.getElementById(sID);
     }
-
 
     getPropertyByPath(obj, path, property) {
         const parts = path.split('.');
@@ -395,6 +414,28 @@ class Dox {
         history.pushState({ activeFQXN: this.getActiveFQXN() }, '');
     }
 
+
+    static copyToClipboard(button) {
+        // Get the parent element's id
+        var parentId = button.parentElement.id;
+
+        // Select the section content div that is a sibling of the section-title div
+        var sectionContent = button.parentElement.nextElementSibling;
+
+        // Find the code block inside the section-content div
+        var codeBlock = sectionContent.querySelector('pre code').innerText;
+
+        // Create a temporary textarea element to copy the text
+        var textarea = document.createElement('textarea');
+        textarea.value = codeBlock;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        // Optionally, show an alert or some feedback
+        // alert('Code copied to clipboard!');
+    }
 
 }
 ]];

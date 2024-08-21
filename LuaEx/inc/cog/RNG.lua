@@ -8,63 +8,13 @@ local _nDefaultDieSides     = 6;
 local _n100                 = 100;
 local _nDefaultCheckSides   = 20;
 
-local _nCardCount           = 52;
-local _nCardCountWithJokers = 54;
 
-local _tSuits   = { "Spades", "Hearts", "Diamonds", "Clubs"};
-local _tValues  = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven",
-                    "Eight", "Nine", "Ten", "Jack", "Queen", "King"};
 
-local function createDeck(bShuffle, bRemoveJokers)
-    local tRet = {};
-
-    for _, sSuit in ipairs(_tSuits) do
-
-        for nValue, sValue in ipairs(_tValues) do
-            local tCard = {
-                name    = sValue .. " of " .. sSuit,--TODO ordinal indexs
-                suit    = sSuit,
-                value   = nValue,
-            };
-            tRet[#tRet + 1] = tCard;
-        end
-
-    end
-
-    if not (bRemoveJokers) then
-
-        for x = 1, 2 do
-            local tCard = {
-                value   = 0,
-                suit    = "None",
-                name    = "Joker"
-            };
-            tRet[#tRet + 1] = tCard;
-        end
-
-    end
-
-    if (bShuffle) then
-
-        for x = #tRet, 2, -1 do
-            local y = rand(x);
-            tRet[x], tRet[y] = tRet[y], tRet[x];
-        end
-
-    end
-
-    return tRet;
-end
-
-local _tShuffledDeck             = createDeck(true);
-local _tUnshuffledDeck           = createDeck();
-local _tShuffledDeckNoJokers     = createDeck(true, true);
-local _tUnshuffledDeckNoJokers   = createDeck(false, true);
-
-local _tBooleans = {true, false}
+local _tBooleans    = {true, false};
+local _tBipolar     = {-1, 1};
 
 --[[!
-@fqxn LuaEx.CoG.Classes.RNG
+@fqxn CoG.Classes.RNG
 @desc A static helper class for rolling dice, drawing cards, etc.
 !]]
 return class("RNG",
@@ -73,84 +23,53 @@ return class("RNG",
 },
 {--STATIC PUBLIC
     --[[!
-    @fqxn LuaEx.CoG.Classes.RNG.Methods.boolean
+    @fqxn CoG.Classes.RNG.Methods.binary
+    @vis Static Public
+    @desc Generates a random value of 0 or 1.
+    @ret number 0 or 1.
+    @ex
+    print(tostring(RNG.binary())) --randomly, 0 or 1
+    !]]
+    binary = function()
+        return rand(0, 1);
+    end,
+    --[[!
+    @fqxn CoG.Classes.RNG.Methods.bipolar
+    @vis Static Public
+    @desc Generates a random value of -1 or 1.
+    @ret number -1 or 1.
+    @ex
+    print(tostring(RNG.bipolar())) --randomly, -1 or 1
+    !]]
+    bipolar = function()
+        return _tBipolar[rand(1, 2)];
+    end,
+    --[[!
+    @fqxn CoG.Classes.RNG.Methods.boolean
     @vis Static Public
     @desc Generates a random boolean value.
     @ret boolean bFlag Randomly, true or false.
+    @ex
+    print(tostring(RNG.boolean())) --randomly, true or false
     !]]
     boolean = function()
         return _tBooleans[rand(1, 2)];
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.RNG.Methods.createDeck
-    @vis Static Public
-    @desc Generates a random boolean value.
-    @param boolean|nil bShuffle Whether the deck should be suffled
-    (defaults to false).
-    @param boolean|nil bRemoveJokers Whether to remove the jokers from the deck
-    (defaults to false).
-    @ret table tDeck A numerically-indexed table whose values are subtables with the following format:
-    <br>
-    <pre><code class="language-lua">
-    {
-        name    = (string) Name of the card.
-        suit    = (string) Name of the card's suit.
-        value   = (number) Value of the card.
-    }
-    </code></pre>
-    !]]
-    createDeck = createDeck,
-    --[[!
-    @fqxn LuaEx.CoG.Classes.RNG.Methods.drawCard
-    @vis Static Public
-    @desc Draws a card from a pre-built deck.
-    @param boolean|nil bUnshuffled Whether to draw randomly from an unshuffled deck (defaults to false).
-    @param boolean|nil bExcludeJokers Whether to prevent drawing jokers (defaults to false).
-    @ret table tCard A table with the following format.
-    <br>
-    <pre><code class="language-lua">
-    {
-        name    = (string) Name of the card.
-        suit    = (string) Name of the card's suit.
-        value   = (number) Value of the card.
-    }
-    </code></pre>
-    !]]
-    drawCard = function(bUnshuffled, bExcludeJokers)
-        local tCard;
-
-        if (bUnshuffled) then
-
-            if (bExcludeJokers) then
-                tCard = _tUnshuffledDeckNoJokers[rand(1, _nCardCount)];
-            else
-                tCard = _tUnshuffledDeck[rand(1, _nCardCountWithJokers)];
-            end
-
-        else
-
-            if (bExcludeJokers) then
-                tCard = _tShuffledDeckNoJokers[rand(1, _nCardCount)];
-            else
-                tCard = _tShuffledDeck[rand(1, _nCardCountWithJokers)];
-            end
-
-        end
-
-        return tCard;
-    end,
-    --[[!
-    @fqxn LuaEx.CoG.Classes.RNG.Methods.percent
+    @fqxn CoG.Classes.RNG.Methods.percent
     @vis Static Public
     @desc Generates a percentage value.
     @param boolean|nil bFloat Whether the result should be a float from 0.01-1 or an int from 1-100 (defaults to false).
-    @ret number nPercent An int or float value from 1-100 or 0.01-1 respectively.
+    @ex
+    print(tostring(RNG.percent(true)))  --generates a random float from 0.01-1 (inclusive).
+    print(tostring(RNG.percent()))      --generates a random int from 1-100 (inclusive).
+    @ret number nPercent An int or float value from 1-100 or 0.01-1 respectively (inclusive).
     !]]
     percent = function(bFloat)
         return bFloat and (rand(1, 100) / 100) or rand(1, 100);
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.RNG.Methods.rollCheck
+    @fqxn CoG.Classes.RNG.Methods.rollCheck
     @vis Static Public
     @desc Determines whether a check is made based on the input. Often used for things like stat checks. The check will be successful if the number rolled by the function is equal to or higher than the <strong><em>nCheck</em></strong> parameter.
     @param number|nil nSides The number of sides the check die will be (defaults to 20).
@@ -167,7 +86,7 @@ return class("RNG",
         return nRoll >= nCheck, nRoll, nRoll - nCheck;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.RNG.Methods.rollDice
+    @fqxn CoG.Classes.RNG.Methods.rollDice
     @vis Static Public
     @desc Rolls a number of dice, returning the sum total of the roll.
     <br>The number of sides on the dice is determined by the <strong><em>nSides</em></strong> parameter (defaults to 6).
@@ -230,7 +149,7 @@ return class("RNG",
         return nGrandTotal;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.RNG.Methods.rollPercentage
+    @fqxn CoG.Classes.RNG.Methods.rollPercentage
     @vis Static Public
     @desc Rolls a percentage chance based on the input value.
     <br>The number of attempts is determined by the <strong><em>nAttempts</em></strong> parameter (defaults to 1).

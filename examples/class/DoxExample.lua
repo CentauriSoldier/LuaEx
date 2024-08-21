@@ -51,21 +51,11 @@ local sDoxIgnoreFile 	= ".doxignore";    --ignores all files in current director
 local sDoxIgnoreSubFile = ".doxignoresub"; --ignores all files in sub directories
 local sDoxIgnoreAllFile = ".doxignoreall"; --ignores all files current and subdirectories
 
-
 local oDoxLua = DoxLua("LuaEx");
 local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx");
 
 local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\LuaEx";
 
-
---[[
-takem from HTML.lua in the style section
-.sidebar {
-    height: 100vh;
-    overflow-y: auto;
-}
-]]
---oDoxLua.importDirectory(pImport, true);
 
 local function printfile(pFile)
     --print(pFile)

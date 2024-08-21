@@ -1,5 +1,5 @@
 --[[!
-    @fqxn LuaEx.CoG.Systems.AStar
+    @fqxn CoG.Classes.AStar
     @desc <p>AStar is an versatile A* pathfinding system designed for detailed game development.
     It has weighted <a href="#LuaEx.CoG.Classes.AStarNode">Nodes</a> that respond to the
     <a href="#LuaEx.CoG.Classes.AStarRover">Rovers</a> moving through them. That is, a
@@ -174,7 +174,7 @@ AStarUtil = {
                     ██║░░██║██████╔╝██║░░░░░███████╗╚█████╔╝░░░██║░░░
                     ╚═╝░░╚═╝╚═════╝░╚═╝░░░░░╚══════╝░╚════╝░░░░╚═╝░░░]]
 --[[!
-@fqxn LuaEx.CoG.Classes.AStarAspect
+@fqxn CoG.Classes.AStarAspect
 @desc TODO
 !]]
 AStarAspect = class("AStarAspect",
@@ -186,17 +186,17 @@ AStarAspect = class("AStarAspect",
 },
 {--PRIVATE
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarAspect.getImpactor
+    @fqxn CoG.Classes.AStarAspect.getImpactor
     @desc TODO
     !]]
     Impactor__autoRF	= null,--a percentage referencing the extremity of the aspect (0%-100%)
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarAspect.getName
+    @fqxn CoG.Classes.AStarAspect.getName
     @desc TODO
     !]]
     Name__autoRF        = null,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarAspect.getOwner
+    @fqxn CoG.Classes.AStarAspect.getOwner
     @desc TODO
     !]]
     Owner__autoRF       = null,
@@ -238,18 +238,18 @@ AStarLayer = class("AStarLayer",
 },
 {--PRIVATE
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.getID
+    @fqxn CoG.Classes.AStarLayer.getID
     @desc TODO
     !]]
     ID__autoRF	  = null,
     --config 	= oConfig,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.getOwner
+    @fqxn CoG.Classes.AStarLayer.getOwner
     @desc TODO
     !]]
     Owner__autoRF = null,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.getName
+    @fqxn CoG.Classes.AStarLayer.getName
     @desc TODO
     !]]
     Name__autoRF  = null,
@@ -261,7 +261,7 @@ AStarLayer = class("AStarLayer",
 },
 {--PUBLIC
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.AStarLayer
+    @fqxn CoG.Classes.AStarLayer.AStarLayer
     @desc TODO
     !]]
     AStarLayer = function(this, cdat, oAStarMap, nLayerID, oConfig, nWidth, nHeight)
@@ -290,7 +290,7 @@ AStarLayer = class("AStarLayer",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.containsRoverAt
+    @fqxn CoG.Classes.AStarLayer.containsRoverAt
     @desc TODO
     !]]
     containsRoverAt = function(this, cdat, oRover, nX, nY)
@@ -305,7 +305,7 @@ AStarLayer = class("AStarLayer",
         return bRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.createRoverAt
+    @fqxn CoG.Classes.AStarLayer.createRoverAt
     @desc TODO
     !]]
     createRoverAt = function(this, cdat, nX, nY)--TODO assert
@@ -320,7 +320,7 @@ AStarLayer = class("AStarLayer",
 
 
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.getNode
+    @fqxn CoG.Classes.AStarLayer.getNode
     @desc TODO
     !]]
     getNode = function(this, cdat, nX, nY)
@@ -333,7 +333,7 @@ AStarLayer = class("AStarLayer",
     end,
 
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.getNodes
+    @fqxn CoG.Classes.AStarLayer.getNodes
     @desc TODO
     !]]
     getNodes = function(this, cdat)
@@ -342,7 +342,7 @@ AStarLayer = class("AStarLayer",
 
 
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.hasNode
+    @fqxn CoG.Classes.AStarLayer.hasNode
     @desc TODO
     !]]
     hasNode = function(this, cdat, oNode)
@@ -351,7 +351,7 @@ AStarLayer = class("AStarLayer",
     end,
 
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayer.hasNodeAt
+    @fqxn CoG.Classes.AStarLayer.hasNodeAt
     @desc TODO
     !]]
     hasNodeAt = function(this, cdat, nX, nY)
@@ -372,7 +372,7 @@ nil    --interface(s) (either nil, or interface(s))
     ███████╗██║░░██║░░░██║░░░███████╗██║░░██║  ╚█████╔╝╚█████╔╝██║░╚███║██║░░░░░██║╚██████╔╝
     ╚══════╝╚═╝░░╚═╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝  ░╚════╝░░╚════╝░╚═╝░░╚══╝╚═╝░░░░░╚═╝░╚═════╝░]]
 --[[!
-@fqxn LuaEx.CoG.Classes.AStarLayerConfig
+@fqxn CoG.Classes.AStarLayerConfig
 @desc TODO
 !]]
 local AStarLayerConfig = class("AStarLayerConfig",
@@ -385,7 +385,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
 {--PRIVATE
     aspects         = {}, --TODO make decoy table for this
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayerConfig.getName
+    @fqxn CoG.Classes.AStarLayerConfig.getName
     @desc TODO
     !]]
     Name__autoRF	= null,
@@ -395,7 +395,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
 },
 {--PUBLIC
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayerConfig.AStarLayerConfig
+    @fqxn CoG.Classes.AStarLayerConfig.AStarLayerConfig
     @desc TODO
     !]]
     AStarLayerConfig = function(this, cdat, sName, ...)
@@ -413,21 +413,21 @@ local AStarLayerConfig = class("AStarLayerConfig",
         end
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayerConfig.getAspect
+    @fqxn CoG.Classes.AStarLayerConfig.getAspect
     @desc TODO
     !]]
     getAspect = function(this, cdat, sAspect)--TODO CHECK TYPE AND UPPER THIS PARAMETER
         return cdat.pri.aspects[sAspect] or nil;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayerConfig.getAspects
+    @fqxn CoG.Classes.AStarLayerConfig.getAspects
     @desc TODO
     !]]
     getAspects = function(this, cdat)
         return cdat.pri.aspects; --TODO decoy this
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarLayerConfig.hasAspect
+    @fqxn CoG.Classes.AStarLayerConfig.hasAspect
     @desc TODO
     !]]
     hasAspect = function(this, cdat, sAspect)--TODO CHECK TYPE AND UPPER THIS PARAMETER
@@ -448,7 +448,7 @@ nil    --interface(s) (either nil, or interface(s))
                     ██║░╚═╝░██║██║░░██║██║░░░░░
                     ╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░░░░]]
 --[[!
-@fqxn LuaEx.CoG.Classes.AStarMap
+@fqxn CoG.Classes.AStarMap
 @desc TODO
 !]]
 AStarMap = class("AStarMap",
@@ -473,34 +473,34 @@ AStarMap = class("AStarMap",
 },
 {--PRIVATE
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getLayers
+    @fqxn CoG.Classes.AStarMap.getLayers
     @desc TODO
     !]]
     Layers__autoAF	= {},--(ORDERED BY ID)
     layersDecoy		= {},--a decoy table for returning layers to the client
     layersByName	= {},
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getName
+    @fqxn CoG.Classes.AStarMap.getName
     @desc TODO
     !]]
     Name__autoRF	= null,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getOwner
+    @fqxn CoG.Classes.AStarMap.getOwner
     @desc TODO
     !]]
     Owner__autoRF	= null,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getType
+    @fqxn CoG.Classes.AStarMap.getType
     @desc TODO
     !]]
     Type__autoRF	= null,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getWidth
+    @fqxn CoG.Classes.AStarMap.getWidth
     @desc TODO
     !]]
     Width__autoRF	= null,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getHeight
+    @fqxn CoG.Classes.AStarMap.getHeight
     @desc TODO
     !]]
     Height__autoRF  = null,
@@ -510,7 +510,7 @@ AStarMap = class("AStarMap",
 },
 {--PUBLIC
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.AStarMap
+    @fqxn CoG.Classes.AStarMap.AStarMap
     @desc TODO
     !]]
     AStarMap = function(this, cdat, oAStar, sName, nMapType, tLayerConfigs, nWidth, nHeight, ...)
@@ -547,7 +547,7 @@ AStarMap = class("AStarMap",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getLayer
+    @fqxn CoG.Classes.AStarMap.getLayer
     @desc TODO
     !]]
     getLayer = function(this, cdat, sLayer)
@@ -555,7 +555,7 @@ AStarMap = class("AStarMap",
         return cdat.pri.layersByName[sLayer:upper()] or nil;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getNode
+    @fqxn CoG.Classes.AStarMap.getNode
     @desc TODO
     !]]
     getNode = function(this, cdat, sLayer, nX, nY)
@@ -567,7 +567,7 @@ AStarMap = class("AStarMap",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.Classes.AStarMap.getSize
+    @fqxn CoG.Classes.AStarMap.getSize
     @desc TODO
     !]]
     getSize = function(this, cdat)
@@ -588,7 +588,7 @@ nil    --interface(s) (either nil, or interface(s))
                     ██║░╚███║╚█████╔╝██████╔╝███████╗
                     ╚═╝░░╚══╝░╚════╝░╚═════╝░╚══════╝]]
 --[[!
-@fqxn LuaEx.CoG.Classes.AStarNode
+@fqxn CoG.Classes.AStarNode
 @desc TODO
 !]]
 AStarNode = class("AStarNode",
@@ -1333,7 +1333,7 @@ nil    --interface(s) (either nil, or interface(s))
                 ╚═╝░░╚═╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚═╝░░╚═╝]]
 
 --[[!
-@fqxn LuaEx.CoG.Classes.AStar
+@fqxn CoG.Classes.AStar
 @desc stuff
 !]]
 return class("AStar",

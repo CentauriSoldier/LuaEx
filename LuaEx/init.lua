@@ -142,7 +142,8 @@ _G.luaex = setmetatable({},
 --warn the user if debug is missing
 assert((type(debug) == "table" and type(debug.getinfo) == "function"), "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
 
---TODO execute this without using/modifying the packagepath if possible (loadfile)
+--store the original package path;
+local sOriginalPackagePath = package.path;
 --determine the call location
 local sPath = debug.getinfo(1, "S").source;
 --remove the calling filename
@@ -375,8 +376,8 @@ unpack = unpack or table.unpack;--TODO move this to table hook
 
 ]]
 
-
---TODO FINISH return the package path to its original state
-
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?\
+
+--restore the original package path;
+package.path = sOriginalPackagePath;

@@ -9,12 +9,6 @@ local _sPrismStable     = "1.29.0"; --TODO allow theme change
 local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
 local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};--why is this not eing used? If not, delete it.
 
---TODO clean this up (once working)
-local sExampleCopyButton = [[<button class="copy-to-clipboard-button" type="button" data-copy-state="copy">
-    <span>Copy</span>
-</button>
-]]
-
 return class("DoxBuilderHTML",
 {--METAMETHODS
 
@@ -139,13 +133,16 @@ return class("DoxBuilderHTML",
 },
 {--PUBLIC
     DoxBuilderHTML = function(this, cdat, super)
-        super(DoxBuilder.MIME.HTML);
+        local sCopyToClipBoardButton = '<button class="copy-to-clipboard-button" onclick="Dox.copyToClipboard(this)">Copy</button>';
+        super(DoxBuilder.MIME.HTML, sCopyToClipBoardButton);
         local pro = cdat.pro;
 
         pro.blockWrapper.open       = '<div class="container-fluid">';
         pro.blockWrapper.close      = '</div>';
         pro.exampleWrapper.open     = '<pre><code class=\"language-';
-        pro.exampleWrapper.close    = '</code></pre>'..sExampleCopyButton;
+        pro.exampleWrapper.close    = '</code></pre>';
+        pro.exampleWrapper.close    = pro.exampleWrapper.close..
+        '';
     end,
     build = function(this, cdat, sTitle, tFinalizedData)
         type.assert.string(sTitle);

@@ -1,5 +1,5 @@
 --[[!
-@fqxn LuaEx.Classes.Component.Potentiometer
+@fqxn LuaEx.Classes.Potentiometer
 @author Centauri Soldier
 @copyright Public Domain
 @description
@@ -370,7 +370,7 @@ return class("Potentiometer",
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.Component.Potentiometer.serialize
+        @fqxn LuaEx.Classes.Potentiometer.serialize
         @desc Serializes the object's data.
         @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
         @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
