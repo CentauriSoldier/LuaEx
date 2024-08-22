@@ -159,34 +159,36 @@ return [[
     }
 
 
-
-
-
-
-
-
-
-
-
-
+    /*
+     ██████╗████████╗ ██████╗    ██████╗ ██╗   ██╗████████╗████████╗ ██████╗ ███╗   ██╗
+    ██╔════╝╚══██╔══╝██╔════╝    ██╔══██╗██║   ██║╚══██╔══╝╚══██╔══╝██╔═══██╗████╗  ██║
+    ██║        ██║   ██║         ██████╔╝██║   ██║   ██║      ██║   ██║   ██║██╔██╗ ██║
+    ██║        ██║   ██║         ██╔══██╗██║   ██║   ██║      ██║   ██║   ██║██║╚██╗██║
+    ╚██████╗   ██║   ╚██████╗    ██████╔╝╚██████╔╝   ██║      ██║   ╚██████╔╝██║ ╚████║
+     ╚═════╝   ╚═╝    ╚═════╝    ╚═════╝  ╚═════╝    ╚═╝      ╚═╝    ╚═════╝ ╚═╝  ╚═══╝*/
     /* CSS to style the "Copy to Clipboard" button */
     .copy-to-clipboard-button {
-        background-color: #4CAF50; /* Green background */
-        color: white; /* White text */
-        padding: 8px 12px; /* Padding */
-        border: none; /* No border */
-        cursor: pointer; /* Pointer cursor */
-        border-radius: 4px; /* Rounded corners */
-        margin-left: 8px; /* Margin for spacing */
+        background-color: #262626;
+        color: #9FAFAF;
+        padding: 4px 8px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-left: 10px;
+        font-weight:bold;
     }
 
     .copy-to-clipboard-button:hover {
-        background-color: #45a049; /* Darker green on hover */
-        transition: color 0.3s; /* Smooth color transition */
+        background-color: #2F2F2F;
+        color: #C3BF9F;
+        transition: color 0.3s;
+        font-weight:bold;
     }
 
     .copy-to-clipboard-button:active {
-        background-color: #3e8e41; /* Even darker green on click */
+        background-color: #CCDC90;
+        color: #000D18;
+        font-weight:bold;
     }
 
 

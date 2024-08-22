@@ -54,7 +54,7 @@ local sDoxIgnoreAllFile = ".doxignoreall"; --ignores all files current and subdi
 local oDoxLua = DoxLua("LuaEx");
 local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx");
 
-local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\GitHub\\LuaEx";
+local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\LuaEx";
 
 
 local function printfile(pFile)
