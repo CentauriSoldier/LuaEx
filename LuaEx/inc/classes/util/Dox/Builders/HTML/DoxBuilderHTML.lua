@@ -8,6 +8,8 @@ local _tPrismLanguages  = require(_pRequirePath..".PrismLanguages");
 local _sPrismStable     = "1.29.0"; --TODO allow theme change
 local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
 local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};--why is this not eing used? If not, delete it.
+local _sDefaultFilename = "index";
+
 
 return class("DoxBuilderHTML",
 {--METAMETHODS
@@ -134,7 +136,7 @@ return class("DoxBuilderHTML",
 {--PUBLIC
     DoxBuilderHTML = function(this, cdat, super)
         local sCopyToClipBoardButton = '<button class="copy-to-clipboard-button" onclick="Dox.copyToClipboard(this)">Copy</button>';
-        super(DoxBuilder.MIME.HTML, sCopyToClipBoardButton);
+        super(DoxBuilder.MIME.HTML, sCopyToClipBoardButton, _sDefaultFilename);
         local pro = cdat.pro;
 
         pro.blockWrapper.open       = '<div class="container-fluid">';

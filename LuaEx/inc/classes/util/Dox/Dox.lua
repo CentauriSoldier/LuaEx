@@ -22,7 +22,7 @@ local string    = string;
 local table     = table;
 local type      = type;
 
-local eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
+local _eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
 
 --[[!
@@ -54,17 +54,18 @@ end
 @fqxn Dox
 @desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
 <br><br>
-Note: Dox is intended only to be used by being subclassed. Subclasses of Dox (called parsers), provide the required parameters to properly parse comments blocks for specific languages.
-<br>Running Dox stand-alone without subclassing it will yield unpredictable results.
+Note: Dox is intended only to be used by being subclassed.
+<br>Subclasses of Dox (called parsers), provide the required parameters to properly parse comments blocks for specific languages.
+<br><a href="https://imgflip.com/i/910ysh"><img style="width: 200px; height: 200px" class="rounded float-left img-thumbnail" src="https://i.imgflip.com/910ysh.jpg" title="made at imgflip.com"/></a>
 <br>--...Meta End
 @ex
     --\[\[!
         \@fqxn Dox
         \@desc &lt;strong&gt;Dox&lt;/strong&gt; auto-generates documentation for code by reading and parsing comment blocks.
         <br>&lt;br&gt;
-        <br>&lt;br&gt;Note:Dox is intended only to be used by being subclassed. Subclasses of Dox (called parsers), provide the required parameters to properly parse comments blocks for specific languages.
-        <br>&lt;br&gt;Running Dox stand-alone without subclassing it will yield unpredictable results.
-        \@ex --Many Wow! How Yay! Much Meta!
+        <br>&lt;br&gt;Note:Dox is intended only to be used by being subclassed.
+        <br>&lt;br&gt;Subclasses of Dox (called parsers), provide the required parameters to properly parse comments blocks for specific languages.
+        \@ex&lt;br&gt;--Many Wow! How Yay! Much Meta!
         <br>&lt;br&gt;--...Meta End
     !\]\]
 @ex
@@ -108,7 +109,7 @@ return class("Dox",
 {--static public
     --TODO move this out to the builder section and call it in
     BUILDER = enum("Dox.BUILDER", {"HTML"}, {DoxBuilderHTML()}, true),
-    OUTPUT  = eOutputType,
+    OUTPUT  = _eOutputType,
     SYNTAX  = _eSyntax,
 },
 {--private
@@ -375,13 +376,16 @@ return class("Dox",
         end
 
     end,
-    export__FNL = function(this, cdat, sFilename, bPulsar) --TODO puslar snippets
+    export__FNL = function(this, cdat, sFilename, bPulsar) --TODO FINISH puslar snippets/intellisense
         local pri           = cdat.pri;
         local eBuilder      = pri.builder;
         local cBuilder      = pri.builder.value;
         local eBuilderMime  = cBuilder.getMime();
-        local sFilename     = (rawtype(sFilename) == "string" and string.isfilesafe(sFilename)) and
-                              sFilename or pri.title; --TODO ensure title is filesafe or use "index"
+
+        --get or create the filename (or use the builder's default)
+        sFilename = (rawtype(sFilename) == "string" and string.isfilesafe(sFilename))   and
+                    sFilename                                                           or
+                    (pri.title:isfilesafe() and pri.title or cBuilder.getDefaultFilename());
 
 
         --TODO use proper directory separator

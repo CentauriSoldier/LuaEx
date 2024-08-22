@@ -192,7 +192,6 @@ end
     <li><strong>__FNL</strong> The Final Directive</li>
     <li><strong>__RO</strong> The Read-only Directive</li>
 </ul>
-<br><br>
 <hr>
 <h3>Auto Directives</h3>
 <p>Auto directives may be applied only to class members that are fields, never methods.
@@ -237,7 +236,7 @@ Enabled__autoR_is = true
 <p>
 Adding the __FNL directive to the end of a method name prevents it from being overridden by a child class.
 <pre><code class="language-lua">
-MyMethod_FNL = function() end
+MyMethod__FNL = function() end
 </code></pre>
 </p>
 <h3>Read-only Directive</h3>
@@ -2050,7 +2049,7 @@ return rawsetmetatable({}, {
     @param interface|table|nil The interface (or numerically-indexed table of interface) this class implements (or nil, if none).
     @param boolean bIsFinal Whether this class is final.
     @scope global
-    @desc Builds a class.<br>Note: every method within the static public, private, protected and public tables must accept the instance object and class data table as their first and second arguments respectively.<br>Note: all metamethod within the metamethods table also accept the class instance and cdat table but may also accept a second item depending on if the metamethod is using binary operators such as +, %, etc.<br>Note: The class data table is indexed my pri (private members), pro (protected members), pub (public members) and ins (for all class instances of this class type) and each grants access to the items in that table.<br>Note: to prevent fatal conflicts within the code, all class members are strongly typed. No member's type may be changed with the exception of the null type. Types may be set to and from null; however, items which begin as null, once set to another type, cannot be changed from that type to another non-null type. Items that begins as a type and are then set to null, may be changed back to that original type only. In addition, no class member may be set to nil.<br>Class methods cannot be changed to other methods but may be overridden by methods of the same name within child classes. The one exception to this is methods which have the _FNL suffix added to their name. These methods are final and may not be overridden. Note: though the _FNL suffix appears within the method name in the class table, that suffix is removed during class creation. That is, a method such as, MyMethod_FNL will be called as MyMethod(), leaving off the _FNL suffix during calls to that method. _FNL (and other such suffixes that may be added in the future) can be thought of as a directive to the class building code which, after it renames the method to remove the suffix, marks it as final within the class code to prevent overrides.
+    @desc Builds a class.<br>Note: every method within the static public, private, protected and public tables must accept the instance object and class data table as their first and second arguments respectively.<br>Note: all metamethod within the metamethods table also accept the class instance and cdat table but may also accept a second item depending on if the metamethod is using binary operators such as +, %, etc.<br>Note: The class data table is indexed my pri (private members), pro (protected members), pub (public members) and ins (for all class instances of this class type) and each grants access to the items in that table.<br>Note: to prevent fatal conflicts within the code, all class members are strongly typed. No member's type may be changed with the exception of the null type. Types may be set to and from null; however, items which begin as null, once set to another type, cannot be changed from that type to another non-null type. Items that begins as a type and are then set to null, may be changed back to that original type only. In addition, no class member may be set to nil.<br>Class methods cannot be changed to other methods but may be overridden by methods of the same name within child classes. The one exception to this is methods which have the __FNL suffix added to their name. These methods are final and may not be overridden. Note: though the __FNL suffix appears within the method name in the class table, that suffix is removed during class creation. That is, a method such as, MyMethod_FNL will be called as MyMethod(), leaving off the __FNL suffix during calls to that method. __FNL (and other such suffixes that may be added in the future) can be thought of as a directive to the class building code which, after it renames the method to remove the suffix, marks it as final within the class code to prevent overrides.
     @ret class The class object.
     !]]
     __call 		= kit.build,
