@@ -375,14 +375,17 @@ return class("Dox",
         end
 
     end,
-    export__FNL = function(this, cdat, bPulsar) --TODO puslar snippets
+    export__FNL = function(this, cdat, sFilename, bPulsar) --TODO puslar snippets
         local pri           = cdat.pri;
         local eBuilder      = pri.builder;
         local cBuilder      = pri.builder.value;
         local eBuilderMime  = cBuilder.getMime();
+        local sFilename     = (rawtype(sFilename) == "string" and string.isfilesafe(sFilename)) and
+                              sFilename or pri.title; --TODO ensure title is filesafe or use "index"
+
 
         --TODO use proper directory separator
-        local pOut = pri.OutputPath.."\\"..pri.title.."."..eBuilderMime.value;
+        local pOut = pri.OutputPath.."\\"..sFilename.."."..eBuilderMime.value;
         pri.output = cBuilder.build(pri.title, pri.finalized);--TODO clone table?
 
         local function writeFile(pFile, sContent)

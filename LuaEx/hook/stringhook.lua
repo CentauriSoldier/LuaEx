@@ -101,6 +101,69 @@ function string.isempty(sInput)
 end
 
 
+
+
+
+
+--TODO clean this up and write docs (also allow the user to tell which OS to check)
+--TODO if it's blank
+function string.isfilesafe(name)
+    -- Define invalid characters for Windows and Linux
+    local invalid_chars_windows = '[<>:"/\\|?*%c]'
+    local invalid_chars_linux = '[/%c]'
+
+    -- Determine the platform based on the directory separator
+    local dir_separator = package.config:sub(1, 1)
+    local invalid_chars
+
+    if dir_separator == '\\' then
+        -- Windows
+        invalid_chars = invalid_chars_windows
+    else
+        -- Linux/Unix
+        invalid_chars = invalid_chars_linux
+    end
+
+    -- Check for invalid characters
+    if name:match(invalid_chars) then
+        return false, "Name contains invalid characters"
+    end
+
+    -- Check for reserved filenames on Windows
+    if dir_separator == '\\' then
+        local reserved_names = {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+        }
+
+        for _, reserved in ipairs(reserved_names) do
+            if name:upper() == reserved then
+                return false, "Name is a reserved word on Windows"
+            end
+        end
+    end
+
+    -- Check for names that are too long (Windows limit is 255 characters)
+    if #name > 255 then
+        return false, "Name is too long"
+    end
+
+    -- Check for empty names
+    if name == "" then
+        return false, "Name is empty"
+    end
+
+    -- If all checks pass, the name is safe
+    return true, "Name is filesafe"
+end
+
+
+
+
+
+
+
 --[[!
     @fqxn LuaEx.Lua Hooks.string.iskeyword
     @desc Determines whether a string is keyword.

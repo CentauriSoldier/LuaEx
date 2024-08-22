@@ -54,7 +54,7 @@ local sDoxIgnoreAllFile = ".doxignoreall"; --ignores all files current and subdi
 local oDoxLua = DoxLua("LuaEx");
 local pImport = io.normalizepath(sSourcePath.."\\..\\..\\LuaEx");
 
-local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\LuaEx";
+local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\Github\\LuaEx\\docs";
 
 
 local function printfile(pFile)
@@ -74,4 +74,4 @@ local tFolders = io.listdirs(pImport, true, importFiles);
 
 oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
-oDoxLua.export();
+oDoxLua.export("index");
