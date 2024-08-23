@@ -1,12 +1,12 @@
---[[*
-@authors Centauri Soldier
+--[[!
+@fqxn LuaEx.Classes.Geometry.Point
+@author Centauri Soldier
 @copyright Public Domain
 @description
     <h2>Point</h2>
     <p>This is a basic Point class.</p>
 @license <p>The Unlicense<br>
 <br>
-@moduleid Point
 @version 1.2
 @versionhistory
 <ul>
@@ -27,7 +27,7 @@
     </li>
 </ul>
 @website https://github.com/CentauriSoldier
-*]]
+!]]
 
 constant("QUADRANT_I",      "I");
 constant("QUADRANT_II",     "II");
@@ -49,12 +49,11 @@ local math          = math;
 
 return class("Point",
 {--metamethods
-    --[[
+    --[[!
+    @fqxn LuaEx.Classes.Geometry.Point.Metamethods.__add
     @desc Adds two Points together.
-    @func __add
-    @mod Point
     @ret oPoint Point A new Point with the values of the two Points added together. If an incorrect paramters is passed, a new Point with the values of the correct paramter (the Point) is returned.
-    ]]
+    !]]
     __add = function(this, other, cdat)
 
         if (type(this) == "Point" and type(other) == "Point") then
@@ -167,13 +166,12 @@ return class("Point",
     test__AUTORA = 45,
 },
 {--public
-    --[[
-    @fqxn LuaEx.Classes.Line.Point
+    --[[!
+    @fqxn LuaEx.Classes.Geometry.Point.Methods.Point
     @desc This is the constructor for the Point class.
-    @mod Point
     @param nX number The x value. If nil, it defaults to 0.
     @param nY number The y value. If nil, it defaults to 0.
-    ]]
+    !]]
     Point = function(this, cdat, nX, nY)
         local pri = cdat.pri;
         pri.X = rawtype(nX) == "number" and nX or pri.X;

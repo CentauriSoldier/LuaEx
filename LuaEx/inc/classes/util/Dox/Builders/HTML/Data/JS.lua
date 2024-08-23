@@ -123,7 +123,7 @@ const doxData = {
         "subtable": userData
     }
 };
-
+//—©_END_DOX_DEFAULT_INTRO_©—
 
 class Dox {
 

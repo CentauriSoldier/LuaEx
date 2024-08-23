@@ -19,30 +19,61 @@ return class("DoxBuilderHTML",
 
 },
 {--PRIVATE
-    buildJS = function(this, cdat, tFinalizedData)
+    buildJS = function(this, cdat, sIntro, tFinalizedData)
         local sRet          = "";
         local pri           = cdat.pri;
-        local lineNumber    = 0;
+        local nLine         = 0; --TODO QUESTION is this used?
         local bFound        = false;
+        local bIntro        = (rawtype(sIntro) == "string" and sIntro:find("%S+") ~= nil);
+        local sIntro        = bIntro and sIntro or "";
+        local sStartRead    = bIntro and "//—©_END_DOX_DEFAULT_INTRO_©—" or "//—©_END_DOX_TESTDATA_©—";
+--
+        --if a proper intro string has been provided, prep it
+        if (bIntro) then
+            sIntro = [[
+
+    const doxData = {
+        "Modules": {
+            "value": `
+
+            <div class="DOX_intro container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="p-5 rounded">
+
+        ]]..sIntro:gsub("`", "\\`"):gsub("${", "\\${")..[[
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        `,
+        "subtable": userData
+        }
+    };
+
+    ]];
+        end
 
         -- Read the input text line by line (split by newline character)
-        for line in _sJS:gmatch("[^\r\n]+") do
-            lineNumber = lineNumber + 1
+        for sLine in _sJS:gmatch("[^\r\n]+") do
+            nLine = nLine + 1;
 
             -- Check if the search string is in the current line
             if bFound then
-                sRet = sRet .. line .. "\n"
-            elseif string.find(line, "//—©_END_DOX_TESTDATA_©—", 1, true) then
-                bFound = true
+                sRet = sRet .. sLine .. "\n";
+            elseif string.find(sLine, sStartRead, 1, true) then
+                bFound = true;
             end
         end
 
         if not bFound then
-            return nil, "String not found in the input"
+            return nil, "String not found in the input." --TODO better error message
         end
 
-        local sJSON = pri.buildJSONTable(tFinalizedData);
-        return sJSON.."\n\n"..sRet;
+        local sUserData = "const userData = "..pri.buildJSONTable(tFinalizedData);
+        return sUserData.."\n\n"..sIntro.."\n\n"..sRet;
     end,
     buildJSONTable = function(this, cdat, tFinalizedData) --TODO clean up
         local pri        = cdat.pri;
@@ -65,7 +96,7 @@ return class("DoxBuilderHTML",
                     local value = subtable();
                     local subtableResult = processTable(subtable, indent .. "    ")
                     local newstring = indent .. '"' .. key .. '": {\n' ..
-                                      indent .. '    "value": "' .. pri.prepJSONString(value) .. '",\n' ..
+                                      indent .. '    "value": `' .. pri.prepJSONString(value):gsub('`', "\\`"):gsub("${", "\\${") .. '`,\n' ..
                                       indent .. '    "subtable": ' .. (next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null") .. '\n' ..
                                       indent .. '}'
                     table.insert(result, newstring)
@@ -146,7 +177,7 @@ return class("DoxBuilderHTML",
         pro.exampleWrapper.close    = pro.exampleWrapper.close..
         '';
     end,
-    build = function(this, cdat, sTitle, tFinalizedData)
+    build = function(this, cdat, sTitle, sIntro, tFinalizedData)
         type.assert.string(sTitle);
         local pri        = cdat.pri;
 
@@ -159,7 +190,7 @@ return class("DoxBuilderHTML",
         };
 
         --inject the javascript
-        sHTML = sHTML % {__DOX__INTERNAL_JS__ = "const userData = "..pri.buildJS(tFinalizedData)};
+        sHTML = sHTML % {__DOX__INTERNAL_JS__ = pri.buildJS(sIntro, tFinalizedData)};
 
         --insert the prism scripts for the found languages
         local sPrismScripts = pri.generatePrismScripts(sHTML);

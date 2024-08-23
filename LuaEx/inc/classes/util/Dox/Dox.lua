@@ -3,17 +3,16 @@ local _pStaticsRequirePath  = "LuaEx.inc.classes.util.Dox.Statics";
 local _eSyntax              = require(_pStaticsRequirePath..".DoxSyntaxEnum");
 local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags");
 
---FIX copy button missing!
 --TODO @inheritdoc if possible...
 --TODO allow user to suround content block with (optional tags) tags...
 --TODO color dead anchor links
 --TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
 --TODO parse sinlge-line comments too
---TODO Allow internal anchor links
 --TODO allow MoTD, custom banners etc.
---TODO ad dtooltip with @des info (if available) in sidemenu items
+--TODO add tooltip with @des info (if available) in sidemenu items
 --TODO ERROR FIX paramters are not showing in order
 --TODO combine params into one section
+--TODO make website create a proper anchor tag
 
 local assert    = assert;
 local class     = class;
@@ -117,11 +116,12 @@ return class("Dox",
     blockOpen           = "",
     blockClose          = "",
     blockTags           = {},
-    blockStrings        = {};
+    blockStrings        = {},
     builder             = null,
     --[[!@fqxn Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
     finalized           = {}; --this is the final, processed data (updated using the refresh() method)
     html                = "", --this is updated on refresh
+    Intro__auto_F       = "", --the custom welcome message (if any)
     mimeTypes           = SortedDictionary(), --TODO throw error on removal of last item
     name                = "",
     output              = "",
@@ -390,7 +390,7 @@ return class("Dox",
 
         --TODO use proper directory separator
         local pOut = pri.OutputPath.."\\"..sFilename.."."..eBuilderMime.value;
-        pri.output = cBuilder.build(pri.title, pri.finalized);--TODO clone table?
+        pri.output = cBuilder.build(pri.title, pri.Intro, pri.finalized);--TODO clone table?
 
         local function writeFile(pFile, sContent)
             local hFile = io.open(pFile, "w");

@@ -44,6 +44,7 @@ end
 --[[NOTE
 To make this example work, you'll need to delete/rename dox ingore files in the LuaEx folders or change the input path to your own
 documented code files.
+Make it work for linux and windows
 ]]
 
 --ignore files cause dox to ignore files/folders where the files are found
@@ -72,6 +73,19 @@ end
 
 local tFolders = io.listdirs(pImport, true, importFiles);
 
+local pIntro = io.normalizepath(sSourcePath.."\\..\\..\\docs\\intro.lua");
+
+local fIntro = loadfile(pIntro);
+
+if (type(fIntro) ~= "function") then
+    error("Error reading Luax intro file.");
+end
+
+local sContent = fIntro();
+
+--load LuaEx's intro message
+oDoxLua.setIntro(sContent);
+--refresh the dox content
 oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export("index");
