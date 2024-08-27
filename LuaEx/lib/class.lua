@@ -1,5 +1,5 @@
 --[[!
-@fqxn LuaEx.Libraries.class
+@fqxn LuaEx.Class System
 @author Centauri Soldier
 @copyright See LuaEx License
 @desc
@@ -9,7 +9,7 @@
     </p>
 @features
 <h4>Strongly Typed</h4>
-<p>Fields that are set in classes remain the type with which they were intialized. The only expection to this is the <a href="#LuaEx.Libraries.null">null</a> value. Any field set to null in its declaration can be changed to any other type once. Once the type has been set, it cannot be changed again. This allows field types be to set during contruction or on first mutation.
+<p>Fields that are set in classes remain the type with which they were intialized. The only expection to this is the <a href="#LuaEx.Class System.null">null</a> value. Any field set to null in its declaration can be changed to any other type once. Once the type has been set, it cannot be changed again. This allows field types be to set during contruction or on first mutation.
 <br><br>
 Fields marked as read-only cannot be modified once set. This, of course, excludes fields initialized as null. They can be set once and only once from the null value to something else.
 <br><br>
@@ -181,9 +181,9 @@ end
                     ██████╔╝██║██║  ██║███████╗╚██████╗   ██║   ██║ ╚████╔╝ ███████╗███████║
                     ╚═════╝ ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝   ╚═╝   ╚═╝  ╚═══╝  ╚══════╝╚══════╝]]
 --[[!
-@fqxn LuaEx.Libraries.class.Directives
+@fqxn LuaEx.Class System.Directives
 @desc Directives provide a way for classes to set methods as final,
-<br>set values as read only and create <a href="#LuaEx.Libraries.class.Properties">Properties</a>.
+<br>set values as read only and create <a href="#LuaEx.Class System.class.Properties">Properties</a>.
 <br><br>
 <h3>List of Base Directives</h3>
 <ul>
@@ -248,8 +248,8 @@ MyField_RO = 12,
 </p>
 !]]
 --[[!
-@fqxn LuaEx.Libraries.class.Properties
-@desc Properties are fields which have accessor/mutator methods auto-created by using <a href="#LuaEx.Libraries.class.Directives">Directives</a>.
+@fqxn LuaEx.Class System.class.Properties
+@desc Properties are fields which have accessor/mutator methods auto-created by using <a href="#LuaEx.Class System.Directives">Directives</a>.
 !]]
 local _sDirectiveAutoUpper  = "__AUTO";
 local _sDirectiveAutoLower  = "__auto";
@@ -277,10 +277,7 @@ local class = {
     },
 };
 
---[[!
-    @fqxn LuaEx.Libraries.instance
-    @desc Stuff here
-!]]
+
 local instance = {
     repo = {
         --TODO do I need these?
@@ -291,10 +288,7 @@ local instance = {
     },
 };
 
---[[!
-    @fqxn LuaEx.Libraries.kit
-    @desc Stuff here
-!]]
+
 local kit = {
     --trackers, repo & other properties
     count  = 0, --keep track of the total number of class kits
@@ -493,13 +487,17 @@ end
                                 ██║     ██║     ██╔══██║╚════██║╚════██║
                                 ╚██████╗███████╗██║  ██║███████║███████║
                                 ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝]]
+                                --[[!
+                                @fqxn LuaEx.Class System.class
+                                @desc The table containing the class functions and data.
+                                !]]
 
 --TODO ERROR BUG FIX interfaces are throwing an error for missing metamethods even though parents have them
 --[[!
-@fqxn LuaEx.Libraries.class.Functions.build
+@fqxn LuaEx.Class System.class.Functions.build
 @param table tKit The kit that is to be built.
 @scope local
-@desc Builds a complete class object given the <a href="#LuaEx.Libraries.kit">kit</a> table. This is called by kit.build().
+@desc Builds a complete class object given the <a href="#LuaEx.Class System.kit">kit</a> table. This is called by kit.build().
 @ret class A class object.
 !]]
 function class.build(tKit)
@@ -720,10 +718,13 @@ end
                     ██║██║╚██╗██║╚════██║   ██║   ██╔══██║██║╚██╗██║██║     ██╔══╝
                     ██║██║ ╚████║███████║   ██║   ██║  ██║██║ ╚████║╚██████╗███████╗
                     ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝]]
-
+                    --[[!
+                        @fqxn LuaEx.Class System.instance
+                        @desc The table containing all functions and data relating to and dealing with instantiation.
+                    !]]
 
 --[[!
-@fqxn LuaEx.Libraries.instance.Functions.build
+@fqxn LuaEx.Class System.instance.Functions.build
 @param table tKit The kit from which the instance is to be built.
 @param table tParentActual The (actual) parent instance table (if any).
 @scope local
@@ -788,7 +789,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.instance.Functions.prepClassData
+@fqxn LuaEx.Class System.instance.Functions.prepClassData
 @param table tInstance The (actual) instance table.
 @scope local
 @desc Creates and prepares the decoy and actual class data tables for use by the instance input.
@@ -889,7 +890,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.instance.Functions.setClassDataMetatable
+@fqxn LuaEx.Class System.instance.Functions.setClassDataMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -1041,7 +1042,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.instance.Functions.setMetatable
+@fqxn LuaEx.Class System.instance.Functions.setMetatable
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -1101,7 +1102,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.instance.Functions.wrapMetamethods
+@fqxn LuaEx.Class System.instance.Functions.wrapMetamethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @desc Wraps all the instance metamethods so they have access to the instance object (decoy) and the class data.
@@ -1151,7 +1152,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.instance.Functions.wrapMethods
+@fqxn LuaEx.Class System.instance.Functions.wrapMethods
 @param table tInstance The (actual) instance table.
 @param table tClassData The (decoy) class data table.
 @scope local
@@ -1227,10 +1228,39 @@ end
                                             ██╔═██╗ ██║   ██║
                                             ██║  ██╗██║   ██║
                                             ╚═╝  ╚═╝╚═╝   ╚═╝ ]]
+                                        --[[!
+                                            @fqxn LuaEx.Class System.kit
+                                            @desc The table containing all the functions and data relating to and dealing with class kits.
+                                            <br>
+                                            <h1>Kits</h1>
+                                            Kits are used in the class building process. When a class is created by the user, the parameters of that class are stored in a kit. The class is then constructed from the kit and any parent kits.
+                                            <br>This approach facilitates inheritance while mitigating any issues with shared tables that shouldn't be shared. It also permits classes to retain private methods and still properly function within scope when that class is extended.
+                                            <br>Essentially, kits solve the problems that arise from inheritance in Lua. Kits are the building blocks of all classes and are where all class data is stored.
+                                            <br>
+                                            <strong>Note</strong>: the class data stored in kits is strictly managed and controlled to prevent incidental access and modification out of scope.
 
+                                            <h1>Kit Usage</h1>
+                                            Kits are first created by a call to <a href="#LuaEx.Class System.kit.Functions.build">kit.build</a>. The globally-available alias to this function is <strong>class</strong>.
+
+                                            Once a call to class has been made, the class building process begins.
+                                            Below is the order in which events occur.
+
+                                            <ol>
+                                                <li>The class name is validated by <a href="#LuaEx.Class%20System.kit.Functions.validateName">kit.validateName</a> to ensure it's variable-safe and doesn't already exist.</li>
+                                                <li>The <a href="#LuaEx.Class%20System.kit.Functions.validateTables">kit.validateTables</a> check the validity of the tables containing the metamethods as well as the static public, private, protected, and public class members.</li>
+                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateInterfaces">kit.validateInterfaces</a></li>
+                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
+                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
+                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
+                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
+
+                                                (sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
+                                                kit.validateInterfaces(sName, tInterfaces);
+                                            </ol>
+                                        !]]
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.build
+@fqxn LuaEx.Class System.kit.Functions.build
 @param string sName The name of the class kit. This must be a unique, variable-compliant name.
 @param table tMetamethods A table containing all class metamethods.
 @param table tStaticPublic A table containing all static public class members.
@@ -1387,7 +1417,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.getDirectiveInfo
+@fqxn LuaEx.Class System.kit.Functions.getDirectiveInfo
 @param string sCAI The visibility name.
 @param string sKey The key as it was written in the class.
 @param any vItem The item associated with the class member key.
@@ -1573,7 +1603,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.processConstructor
+@fqxn LuaEx.Class System.kit.Functions.processConstructor
 @param table tKit The kit upon which to operate.
 @scope local
 @desc Configures and validates the kit's constructor method.
@@ -1623,7 +1653,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.processDirectives
+@fqxn LuaEx.Class System.kit.Functions.processDirectives
 @param table tKit The kit upon which to operate.
 @scope local
 @desc Prepares all directives dictated by the class.
@@ -1727,7 +1757,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.processFinality
+@fqxn LuaEx.Class System.kit.Functions.processFinality
 @param table tKit The kit to check.
 @scope local
 @desc Determines whether the class is final or limited and, if so, sets the limitations or finality.
@@ -1777,7 +1807,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.processInitialIsAChecks
+@fqxn LuaEx.Class System.kit.Functions.processInitialIsAChecks
 @param table tKit The kit to check.
 @scope local
 @desc Sets up the kit's isAChecks table with initial values (of potential class items)
@@ -1805,7 +1835,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.processInterfaces
+@fqxn LuaEx.Class System.kit.Functions.processInterfaces
 @param table tKit The kit for which the interfaces should be processed.
 @param table tInterfaces The table of interfaces to enforce.
 Note: must be at least an entry table.
@@ -1825,7 +1855,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.setParent
+@fqxn LuaEx.Class System.kit.Functions.setParent
 @param table tKit The kit to check.
 @scope local
 @desc Checks whether a class kit is allowed to be extended and sets the kit's parent if so.
@@ -1877,7 +1907,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.shadowCheck
+@fqxn LuaEx.Class System.kit.Functions.shadowCheck
 @param table tKit The kit the check for member shadowing.
 @scope local
 @desc Ensures there is no member shadowing happening in the class.
@@ -1926,7 +1956,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.validateInterfaces
+@fqxn LuaEx.Class System.kit.Functions.validateInterfaces
 @param table The varargs table.
 @scope local
 @desc Checks to see if the args input are all valid interfaces.
@@ -1945,7 +1975,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.validateName
+@fqxn LuaEx.Class System.kit.Functions.validateName
 @param string sName The name to be checked.
 @scope local
 @desc Ensure the class name is a variable-compliant string.
@@ -1958,7 +1988,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Libraries.kit.Functions.validateTables
+@fqxn LuaEx.Class System.kit.Functions.validateTables
 @param string sName The class name.
 @param table tMetamethods The metamethods input table.
 @param table tStaticPublic The static public input table.
@@ -2038,7 +2068,7 @@ local tClassActual = {
 
 return rawsetmetatable({}, {
     --[[!
-    @fqxn LuaEx.Libraries.class.Functions.class
+    @fqxn LuaEx.Class System.class.Functions.class
     @param string sClass The name of the class. Note: this must be a unique, variable-compliant string.
     @param table tMetamethods A table containing the class metamethods. Note: undeclared metamethods in this class, if present in a parent class, are automatically inherited.
     @param table tStaticPublic A table containing static public class members.

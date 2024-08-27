@@ -95,7 +95,50 @@ of the global environment.
 ]]
 
 --							🆂🅴🆃🆄🅿 🅻🆄🅰🅴🆇 🅿🅰🆃🅷 & 🅼🅴🆃🅰🆃🅰🅱🅻🅴
-
+--[[!
+    @fqxn LuaEx.Keywords
+    @des A list of all keywords (or types) used in Lua and LuaEx.
+    <br>
+    <h1>Lua</h1>
+    <ul>
+        <li>and</li>
+        <li>break</li>
+        <li>do</li>
+        <li>else</li>
+        <li>elseif</li>
+        <li>end</li>
+        <li>false</li>
+        <li>for</li>
+        <li>function</li>
+        <li>if</li>
+        <li>in</li>
+        <li>local</li>
+        <li>nil</li>
+        <li>not</li>
+        <li>or</li>
+        <li>repeat</li>
+        <li>return</li>
+        <li>then</li>
+        <li>true</li>
+        <li>until</li>
+        <li>while</li>
+    </ul>
+    <h1>LuaEx</h1>
+    <ul>
+        <li>array</li>
+        <li>arrayfactory</li>
+        <li>class</li>
+        <li>classfactory</li>
+        <li>constant</li>
+        <li>enum</li>
+        <li>enumfactory</li>
+        <li>interface</li>
+        <li>null</li>
+        <li>struct</li>
+        <li>structfactory</li>
+        <li>structfactorybuilder</li>
+    </ul>
+!]]
 --list all keywords
 local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
                     "false", 	"for", 		"function", "if", 		"in", 		"local",

@@ -246,7 +246,7 @@ Retaining simplicity of the code is also a primary goal of this module. The code
 #### Conventional Consistency
 This project is made to be consistent both with Lua's naming & coding conventions as well as internally.  
 While my own convention uses (dromedary) [*camelCase*](https://en.wikipedia.org/wiki/Camel_case) and *PascalCase*, I defer to **Lua's** convention where appropriate.  
-What that means is, everything that's hooked directly into **Lua** or creates new base types (*e.g.*, ***table.clone***, ***rawtype***, **enums**, **arrays**, **structs**), respects the *alllowercase* convention used by **Lua**; however, for any items which do not the convention is *camelCase* (e.g., functions) and *PascalCase* (e.g., classes).
+What that means is, everything that's hooked directly into **Lua** or creates new base types (*e.g.*, ***table.clone***, ***rawtype***, **enums**, **arrays**, **structs**), respects the *alllowercase* convention used by **Lua**; however, for any items which do not, the convention is *camelCase* (e.g., functions) and *PascalCase* (e.g., classes).
 This helps maintain expectations of the user while accessing **Lua** items while still allowing me to adhere to my own convention for things outside of **Lua's** core.
 
 #### Naming Conventions
@@ -254,16 +254,16 @@ This helps maintain expectations of the user while accessing **Lua** items while
 
 <details>
 <summary>🆅🅸🅴🆆 🅲🅾🅽🆅🅴🅽🆃🅸🅾🅽🆂</summary>  
+
 Variables are prefixed with the following lower-case symbols based on their type/application and appear to be PascalCase *after* the prefix. Combined with the prefix, this makes them camelCase.
 
 *_* |   **file-scoped local variables** *e.g.,* ```local _nMaxUnits = 12;```  
 *a* |   **array**  
 *b*	|	**boolean**  
-*c*	|	**class**
-*d*	|	**classaide**
+*c*	|	**class**  
 *e*	|	**enum**  
 *f*	| 	**function**  
-*h*	|	**file\window\etc. handle** *(number)*
+*h*	|	**file\window\etc. handle** *(number)*  
 *n*	|	**number**  
 *p*	|	**file\dir path** *(string)*  
 *r*	|	**struct**  
@@ -271,7 +271,7 @@ Variables are prefixed with the following lower-case symbols based on their type
 *s*	|	**string**  
 *t*	|	**table**  
 *u*	| 	**userdata**  
-*v*	|	**variable/unknown type**
+*v*	|	**variable/unknown type**  
 *w*	|	**environment table** *(table)*  
 *x*	|	**factory**  
 *z*	|	**type** *(string)* (e.g., "string", "table", etc.)  
@@ -303,7 +303,7 @@ The only *limited* exceptions made are for new features (*whose developments are
 Simply put, things are intended to be intuitive.
 
 #### User Feedback
-While I develop LuaEx for my own projects, it's also designed to be used by others.  
+While I develop **LuaEx** for my own projects, it's also designed to be used by others.  
 For their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
 
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
