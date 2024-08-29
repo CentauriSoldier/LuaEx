@@ -1,3 +1,7 @@
+--[[!
+@fqxn Dox.Builders.HTML.Data.HTML
+@des The core HTML code that is modified by the builder when creating the final HTML document.
+!]]
 return [[
 <!DOCTYPE html>
 <html lang="en">

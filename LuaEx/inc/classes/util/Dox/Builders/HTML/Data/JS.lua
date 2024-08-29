@@ -1,3 +1,7 @@
+--[[!
+@fqxn Dox.Builders.HTML.Data.JS
+@des The core Javascript code that is used when creating the final HTML document.
+!]]
 return [[
 const userData = {
     "ModuleA": {
@@ -160,7 +164,7 @@ class Dox {
                     }
                 }
             });*/
-            document.body.addEventListener('click', (event) => {
+            /*document.body.addEventListener('click', (event) => {
                 const target = event.target;
 
                 if (target && target.tagName === 'A') {
@@ -169,6 +173,29 @@ class Dox {
                     if (anchorIndex !== -1) { // It's an internal link
                         event.preventDefault(); // Prevent default link behavior
                         const strippedString = target.href.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
+
+                        if (strippedString !== '') {
+                            const sFQXN = "Modules." + strippedString;
+
+                            if (this.setActiveFQXN(sFQXN)) {
+                                this.updatePage();
+                            }
+                        }
+                    }
+                }
+            });*/
+            document.body.addEventListener('click', (event) => {
+                const target = event.target;
+
+                if (target && target.tagName === 'A') {
+                    // Replace spaces with %20 in the href attribute
+                    //const updatedHref = target.href.replace(/ /g, '%20');
+                    const updatedHref = target.href.replace(' ', '%20');
+                    const anchorIndex = updatedHref.indexOf('#');
+
+                    if (anchorIndex !== -1) { // It's an internal link
+                        event.preventDefault(); // Prevent default link behavior
+                        const strippedString = updatedHref.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
 
                         if (strippedString !== '') {
                             const sFQXN = "Modules." + strippedString;
@@ -314,13 +341,13 @@ class Dox {
             li.className = 'breadcrumb-item';
 
             if (nIndex === tParts.length - 1) {
-                li.textContent = part;
+                li.textContent = part.replace("%20", " ");
                 li.className += ' active';
                 li.setAttribute('aria-current', 'page');
             } else {
                 const a = document.createElement('a');
                 a.href = '#';
-                a.textContent = part;
+                a.textContent = part.replace("%20", " ");
                 a.onclick = () => {
                     const newPath = tParts.slice(0, nIndex + 1).join('.');
                     if (this.fqxnIsValid(newPath)) {
@@ -355,7 +382,7 @@ class Dox {
                     const a = document.createElement('a');
                     a.href = '#';
                     a.className = 'nav-link';
-                    a.textContent = key;
+                    a.textContent = key.replace("%20", " ");
 
                     const sTestFQXN = `${this.getActiveFQXN()}.${key}`;
 
@@ -386,7 +413,7 @@ class Dox {
                         const a = document.createElement('a');
                         a.href = '#';
                         a.className = 'nav-link';
-                        a.textContent = key;
+                        a.textContent = key.replace("%20", " ");
 
                         const sTestFQXN = `${sActiveFQXN.split('.').slice(0, -1).join('.')}.${key}`;
 

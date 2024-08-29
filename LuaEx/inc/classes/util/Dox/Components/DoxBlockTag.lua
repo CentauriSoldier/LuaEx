@@ -1,5 +1,5 @@
 --[[!
-    @fqxn LuaEx.Classes.Utility.Dox.Components.DoxBlockTag
+    @fqxn Dox.Components.DoxBlockTag
     @des Used to create BlockTags used in a Dox parser.<br>While Dox ships with many pre-made BlockTags, users may also create and add their own by subclassing Dox.
     @ex
     local bRequired         = true;

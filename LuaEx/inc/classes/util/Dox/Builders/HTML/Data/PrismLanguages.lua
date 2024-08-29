@@ -1,6 +1,7 @@
---[[
-    @fqxn LuaEx.Classes.Utility.Dox.
-]]
+--[[!
+@fqxn Dox.Builders.HTML.Data.Prism Languages
+@des A list of all Prism.js laguage names used when showing example code in the final HTML document.
+!]]
 return {
     abap                = "abap",
     abnf                = "abnf",

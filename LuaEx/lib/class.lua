@@ -1246,13 +1246,13 @@ end
                                             Below is the order in which events occur.
 
                                             <ol>
-                                                <li>The class name is validated by <a href="#LuaEx.Class%20System.kit.Functions.validateName">kit.validateName</a> to ensure it's variable-safe and doesn't already exist.</li>
-                                                <li>The <a href="#LuaEx.Class%20System.kit.Functions.validateTables">kit.validateTables</a> check the validity of the tables containing the metamethods as well as the static public, private, protected, and public class members.</li>
-                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateInterfaces">kit.validateInterfaces</a></li>
-                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
-                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
-                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
-                                                <li><a href="#LuaEx.Class%20System.kit.Functions.validateName"></a></li>
+                                                <li>The class name is validated by <a href="#LuaEx.Class System.kit.Functions.validateName">kit.validateName</a> to ensure it's variable-safe and doesn't already exist.</li>
+                                                <li>The <a href="#LuaEx.Class System.kit.Functions.validateTables">kit.validateTables</a> check the validity of the tables containing the metamethods as well as the static public, private, protected, and public class members.</li>
+                                                <li><a href="#LuaEx.Class System.kit.Functions.validateInterfaces">kit.validateInterfaces</a></li>
+                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
+                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
+                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
+                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
 
                                                 (sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
                                                 kit.validateInterfaces(sName, tInterfaces);

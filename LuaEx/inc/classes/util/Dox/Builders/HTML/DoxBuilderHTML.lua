@@ -7,7 +7,7 @@ local _sJS              = require(_pRequirePath..".JS");
 local _tPrismLanguages  = require(_pRequirePath..".PrismLanguages");
 local _sPrismStable     = "1.29.0"; --TODO allow theme change
 local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
-local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};--why is this not eing used? If not, delete it.
+local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};--why is this not being used? If not, delete it.
 local _sDefaultFilename = "index";
 
 
@@ -94,9 +94,11 @@ return class("DoxBuilderHTML",
                 for _, key in ipairs(sortedKeys) do
                     local subtable = t[key]
                     local value = subtable();
+                    --prep the value
+                    value = pri.prepJSONString(value):gsub('`', "\\`"):gsub("${", "\\${");
                     local subtableResult = processTable(subtable, indent .. "    ")
-                    local newstring = indent .. '"' .. key .. '": {\n' ..
-                                      indent .. '    "value": `' .. pri.prepJSONString(value):gsub('`', "\\`"):gsub("${", "\\${") .. '`,\n' ..
+                    local newstring = indent .. '"' .. key:gsub(" ", "%%20") .. '": {\n' ..
+                                      indent .. '    "value": `' .. value .. '`,\n' ..
                                       indent .. '    "subtable": ' .. (next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null") .. '\n' ..
                                       indent .. '}'
                     table.insert(result, newstring)

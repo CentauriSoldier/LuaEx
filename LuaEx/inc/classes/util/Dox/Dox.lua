@@ -25,6 +25,22 @@ local _eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
 
 --[[!
+@fqxn Dox.Glossary
+@desc This contains terms and definitions not otherwise found in the Dox documentation.
+!]]
+
+--[[!
+@fqxn Dox.Glossary.FQXN
+@desc This is the Fully Qualified Dox Name of a given item.
+<br>For example, the FQXN of this specific document item that you're reading now is <strong>Dox.Glossary.FQXN</strong>.
+<br>
+<br>FQXNs are used to not only arrange documentation hierarchically, but also to create internal anchor links. For example, to link to this documentation item, a link is created as follows:
+<br>&lt;a href=&quot;#Dox.Glossary.FQXN&quot;&gt;Dox.Glossary.FQXN&lt;/a&gt;
+<br><br>
+<strong>Note</strong>: Whether FQXNs may contain spaces is up to each <a href="#Dox.Components.DoxBuilder">DoxBuilder</a>.<br>For example, the <a href="#Dox.Components.DoxBuilderHTML">DoxBuilderHTML</a> allows spaces seemlessly in FQXNs and handles them at several points in the code so the links still function properly while maintaining the visual spaces in the FQXN names.
+!]]
+
+--[[!
     @fqxn Dox.Functions.escapePattern
     @desc Escapes special characters in a string so it can be used in a Lua pattern match.
     <br>Used by the <a href="#Classes.Dox.Methods.extractBlockStrings">extractBlockStrings</a> method.
@@ -241,6 +257,7 @@ return class("Dox",
 
             for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do
 
+                --create the active table if it doesn't exist
                 if not (tActive[sFQXN]) then
                     tActive[sFQXN] = setmetatable({}, {
                         __call = function(t)

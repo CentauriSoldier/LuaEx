@@ -1,3 +1,9 @@
+--TODO implement themes system
+
+--[[!
+@fqxn Dox.Builders.HTML.Data.CSS
+@des The core Cascading Style Sheet code that is used when creating the final HTML document.
+!]]
 return [[
     :root {
             --base-font-size: 16px; /* Define a base font size */
