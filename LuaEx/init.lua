@@ -28,7 +28,7 @@ local _tClassRequirements   = {
         to true will cause its required
         _tClassRequirements to be loaded
         as well.]]
-local tClassLoadValues = {
+local _tClassLoadValues = {
     [_nClassSystem]         = true,  --should LuaEx load the class system?
     [_nBasicClasses]        = true,  --load basic classes (set, queue, stack, dox, etc.)?
     [_nComponentClasses]    = true,  --component class (potentiometer, protean, etc.)?
@@ -37,6 +37,7 @@ local tClassLoadValues = {
     [_nCoGClasses]          = true,  --(Code of Gaming) game system classes
 };
 
+local _bUseBootDirectives = true;
 
 --🅴🅽🅳 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂---------------------------------------------------
 
@@ -68,15 +69,15 @@ local type          = type;
 --TODO I think I need to do this with table.unpack
 
 --enforce the class loading system to prevent errors
---for x = #tClassLoadValues, 1, -1 do
-for x = 1, #tClassLoadValues do
+--for x = #_tClassLoadValues, 1, -1 do
+for x = 1, #_tClassLoadValues do
 
-    if tClassLoadValues[x] then
+    if _tClassLoadValues[x] then
 
         for _, nRequirementIndex in ipairs(_tClassRequirements[x]) do
-            tClassLoadValues[nRequirementIndex] = true;
+            _tClassLoadValues[nRequirementIndex] = true;
         --for x2 = 1, x - 1 do
-        --    tClassLoadValues[x2] = true;
+        --    _tClassLoadValues[x2] = true;
         --end
         --break;
         end
@@ -151,6 +152,7 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 
 --create the 'protected' table used by LuaEx
 local tLuaEx = {--TODO fix inconsistency in naming and underscores
+        __isbooting = type(_bUseBootDirectives) == "boolean" and _bUseBootDirectives or false,
         --__config, --set below
         __metaguard  = {"class", "classfactory", "enum", "enumfactory", "struct", "structfactory"}, --these metatables are protected from modification and general access
         __keywords__	= setmetatable({}, {
@@ -266,7 +268,7 @@ serialize   = serializer.serialize;
 deserialize = serializer.deserialize;
 
 --import the class system
-if (tClassLoadValues[_nClassSystem]) then
+if (_tClassLoadValues[_nClassSystem]) then
     interface	= require("LuaEx.lib.interface");
     class 		= require("LuaEx.lib.class");
     --🆁🅴🅶🅸🆂🆃🅴🆁 🆃🅷🅴 🅲🅻🅰🆂🆂 🅵🅰🅲🆃🅾🆁🆈 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
@@ -279,7 +281,7 @@ if (tClassLoadValues[_nClassSystem]) then
 
     --🅸🅼🅿🅾🆁🆃 🅲🅻🅰🆂🆂🅴🆂
 
-    if (tClassLoadValues[_nBasicClasses]) then
+    if (_tClassLoadValues[_nBasicClasses]) then
         --primitive
         local pPrimitives   = "LuaEx.inc.primitives";
         line                = require(pPrimitives..".line");
@@ -295,12 +297,12 @@ if (tClassLoadValues[_nClassSystem]) then
         Set                 = require(pClasses..".Set");
         SortedDictionary    = require(pClasses..".SortedDictionary");
 
-        if (tClassLoadValues[_nComponentClasses]) then
+        if (_tClassLoadValues[_nComponentClasses]) then
             --component classes
             Potentiometer   = require(pClasses..".component.Potentiometer");
             Protean         = require(pClasses..".component.Protean");
 
-            if (tClassLoadValues[_nGeometryClasses]) then
+            if (_tClassLoadValues[_nGeometryClasses]) then
                 --geometry classes
                 Point   = require(pClasses..".geometry.Point");
                 Line    = require(pClasses..".geometry.Line");
@@ -311,7 +313,7 @@ if (tClassLoadValues[_nClassSystem]) then
                 --solids
                 Solid   = require(pClasses..".geometry.solids.Solid");
 
-                if (tClassLoadValues[_nCoGClasses]) then
+                if (_tClassLoadValues[_nCoGClasses]) then
                     local pCoG      = "LuaEx.inc.cog";
 
                     --create the CoG table
@@ -347,7 +349,7 @@ if (tClassLoadValues[_nClassSystem]) then
 
             end
 
-            if (tClassLoadValues[_nUtilClasses]) then
+            if (_tClassLoadValues[_nUtilClasses]) then
                 pDox                    = pClasses..".util.Dox";
                 local pDoxBuilders      = pDox..".Builders";
                 local pDoxComponents    = pDox..".Components";
@@ -365,36 +367,36 @@ if (tClassLoadValues[_nClassSystem]) then
 
                 --require Dox and Dox parsers (subclasses)
                 Dox                     = require(pDox..".Dox");
-                DoxAssemblyNASM         = require(pDoxParsers..".DoxAssemblyNASM")
+                DoxAssemblyNASM         = require(pDoxParsers..".DoxAssemblyNASM");
                 DoxAutoPlayMediaStudio  = require(pDoxParsers..".DoxAutoPlayMediaStudio");
-                DoxC                    = require(pDoxParsers..".DoxC")
-                DoxCSharp               = require(pDoxParsers..".DoxCSharp")
-                DoxCPlusPlus            = require(pDoxParsers..".DoxCPlusPlus")
-                DoxCSS                  = require(pDoxParsers..".DoxCSS")
-                DoxDart                 = require(pDoxParsers..".DoxDart")
-                DoxElm                  = require(pDoxParsers..".DoxElm")
-                DoxFSharp               = require(pDoxParsers..".DoxFSharp")
-                DoxFortran              = require(pDoxParsers..".DoxFortran")
-                DoxGo                   = require(pDoxParsers..".DoxGo")
-                DoxGroovy               = require(pDoxParsers..".DoxGroovy")
-                DoxHaskell              = require(pDoxParsers..".DoxHaskell")
-                DoxHTML                 = require(pDoxParsers..".DoxHTML")
-                DoxJava                 = require(pDoxParsers..".DoxJava")
-                DoxJavaScript           = require(pDoxParsers..".DoxJavaScript")
-                DoxJulia                = require(pDoxParsers..".DoxJulia")
-                DoxKotlin               = require(pDoxParsers..".DoxKotlin")
+                DoxC                    = require(pDoxParsers..".DoxC");
+                DoxCSharp               = require(pDoxParsers..".DoxCSharp");
+                DoxCPlusPlus            = require(pDoxParsers..".DoxCPlusPlus");
+                DoxCSS                  = require(pDoxParsers..".DoxCSS");
+                DoxDart                 = require(pDoxParsers..".DoxDart");
+                DoxElm                  = require(pDoxParsers..".DoxElm");
+                DoxFSharp               = require(pDoxParsers..".DoxFSharp");
+                DoxFortran              = require(pDoxParsers..".DoxFortran");
+                DoxGo                   = require(pDoxParsers..".DoxGo");
+                DoxGroovy               = require(pDoxParsers..".DoxGroovy");
+                DoxHaskell              = require(pDoxParsers..".DoxHaskell");
+                DoxHTML                 = require(pDoxParsers..".DoxHTML");
+                DoxJava                 = require(pDoxParsers..".DoxJava");
+                DoxJavaScript           = require(pDoxParsers..".DoxJavaScript");
+                DoxJulia                = require(pDoxParsers..".DoxJulia");
+                DoxKotlin               = require(pDoxParsers..".DoxKotlin");
                 DoxLua                  = require(pDoxParsers..".DoxLua");
-                DoxMatlab               = require(pDoxParsers..".DoxMatlab")
-                DoxObjectiveC           = require(pDoxParsers..".DoxObjectiveC")
-                DoxPerl                 = require(pDoxParsers..".DoxPerl")
-                DoxPHP                  = require(pDoxParsers..".DoxPHP")
-                DoxPython               = require(pDoxParsers..".DoxPython")
-                DoxRuby                 = require(pDoxParsers..".DoxRuby")
-                DoxRust                 = require(pDoxParsers..".DoxRust")
-                DoxScala                = require(pDoxParsers..".DoxScala")
-                DoxSwift                = require(pDoxParsers..".DoxSwift")
-                DoxTypeScript           = require(pDoxParsers..".DoxTypeScript")
-                DoxXML                  = require(pDoxParsers..".DoxXML")
+                DoxMatlab               = require(pDoxParsers..".DoxMatlab");
+                DoxObjectiveC           = require(pDoxParsers..".DoxObjectiveC");
+                DoxPerl                 = require(pDoxParsers..".DoxPerl");
+                DoxPHP                  = require(pDoxParsers..".DoxPHP");
+                DoxPython               = require(pDoxParsers..".DoxPython");
+                DoxRuby                 = require(pDoxParsers..".DoxRuby");
+                DoxRust                 = require(pDoxParsers..".DoxRust");
+                DoxScala                = require(pDoxParsers..".DoxScala");
+                DoxSwift                = require(pDoxParsers..".DoxSwift");
+                DoxTypeScript           = require(pDoxParsers..".DoxTypeScript");
+                DoxXML                  = require(pDoxParsers..".DoxXML");
 
 
 
@@ -418,6 +420,132 @@ unpack = unpack or table.unpack;--TODO move this to table hook
 ![LuaEx](https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png)
 
 ]]
+
+
+if (_bUseBootDirectives and 1 == 5) then--TODO FINISH move to ext file
+
+    local function isdirectory(path)
+        local p = io.popen('cd "' .. path .. '" 2>nul && echo ok')
+        local result = p:read("*a")
+        p:close()
+        return result:match("ok") ~= nil
+    end
+
+    local function removeFilename(pDir)
+        local sRet = pDir;
+
+        local nPos = pDir:match(".*\\()");
+
+        if (nPos) then
+            sRet = pDir:sub(1, nPos - 2);
+            sRet = sRet:gsub("\\%?", ' ');
+        end
+
+        return sRet;
+    end
+
+
+    local tDirs             = string.totable(package.path, ';');
+    local tPathsToSearch    = {};
+    local nPathsToSearch    = 0;
+
+    if not (type(tDirs) == "table") then
+        --TODO THROW ERROR
+    end
+
+    --find and store the legitmate directory paths
+    for _, pDirRaw in pairs(tDirs) do
+        local pDir = io.normalizepath(removeFilename(pDirRaw)):trim();
+
+        if (isdirectory(pDir) and
+            pDir ~= "\\" and pDir ~= "\\." and
+            (tPathsToSearch[pDir] == nil)) then
+            tPathsToSearch[pDir] = true;
+            nPathsToSearch = nPathsToSearch + 1;
+        end
+
+    end
+
+    local tClasses = {};
+    local tClassesIndexer = {};
+    local tClassesByName = {};
+
+    local function getIndex(sName)
+
+    end
+
+    if (nPathsToSearch > 0) then
+
+        local function addClassFile(pFile)
+
+            if (tClassesIndexer[pFile] == nil) then
+                local tParts = io.splitpath(pFile);
+
+                if (tParts) then
+                    local sName = tParts.filename;
+                    local nIndex = #tClasses + 1;
+
+                    tClassesByName[sName] = {
+                        index = nIndex,
+                        path = pFile,
+                    };
+
+                    tClassesIndexer[pFile] = {
+                        index = nIndex,
+                        name = sName,
+                    };
+
+                    tClasses[nIndex] = {
+                        name = sName,
+                        path = pFile,
+                    };
+                end
+
+            end
+
+        end
+
+        for pDir, _ in pairs(tPathsToSearch) do
+            listfiles(pDir, true, addClassFile, 'class');
+        end
+
+    end
+
+    local nSafety   = math.factorial(#tClasses);
+    local fLoader   = nil;
+    local bSuccess  = true;
+    local sMessage  = "";
+
+    --attempt to load the classes
+    for nID, tClassInfo in ipairs(tClasses) do
+        local sClass    = tClassInfo.name;
+        local pFile     = tClassInfo.path;
+
+        fLoader, sMessage = loadfile(tClassInfo.path);
+
+        if not (fLoader) then
+            error("Error loading class, '"..sClass.."'\n"..sMessage);
+        end
+
+        bSuccess, sMessage = pcall(fLoader);
+
+        if not (bSuccess) then
+            local nGlobalErrorStart = sMessage:find("attempt to call a nil value (global '");
+
+            if nGlobalErrorStart then
+                local nIndex = tClassesIndexer[pFile].index;
+                --print(nIndex, sMessage);
+
+            else
+                error("Error loading class, '"..sClass.."'\n"..sMessage);
+            end
+
+        end
+
+    end
+
+end
+
 
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?\

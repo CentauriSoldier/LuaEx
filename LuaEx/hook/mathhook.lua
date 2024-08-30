@@ -282,6 +282,17 @@ function math.clamp(nValue, nMinValue, nMaxValue)
     return nRet;
 end
 
+
+function math.factorial(nVal)
+    local nRet = 1;
+
+    for x = 2, nVal do
+        nRet = nRet * x;
+    end
+
+    return nRet;
+end
+
 --TODO put a safety switch in here
 --gets the largest rectangle will fit within the given rectangle (then, optionally, scales it and centers it if requested)
 --[[function math.fitrect(tContainer, tOriginal, nScale, bCenter)

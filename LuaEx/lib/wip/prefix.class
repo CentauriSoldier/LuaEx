@@ -1,0 +1,24 @@
+local k = test();
+
+return class("prefix",
+{--METAMETHODS
+
+},
+{--STATIC PUBLIC
+    --prefix = function(stapub) end,
+},
+{--PRIVATE
+
+},
+{--PROTECTED
+
+},
+{--PUBLIC
+    prefix = function(this, cdat)
+
+    end,
+},
+nil,   --extending class
+false, --if the class is final (or (if a table is provided) limited to certain subclasses)
+nil    --interface(s) (either nil, or interface(s))
+);
