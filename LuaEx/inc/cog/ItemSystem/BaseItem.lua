@@ -19,11 +19,12 @@ return class("BaseItem",
 {--PRIVATE
 },
 {--PROTECTED
-    Name__autoAF            = "",
-    Quest__autoAFis         = false,
-    Removable__autoAFis     = true,
-    Sellable__autoAFis      = true,
-    Tradable__autoAFis      = true,
+    Equipable__autoA_is     = false,
+    Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
+    Quest__autoA_is         = false,
+    Removable__autoA_is     = true,
+    Sellable__autoA_is      = true,
+    Tradable__autoA_is      = true,
     TagSystem__autoAF       = null,
 
     BaseItem = function(this, cdat, sName)
