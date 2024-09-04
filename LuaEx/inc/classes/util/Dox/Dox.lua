@@ -3,16 +3,13 @@ local _pStaticsRequirePath  = "LuaEx.inc.classes.util.Dox.Statics";
 local _eSyntax              = require(_pStaticsRequirePath..".DoxSyntaxEnum");
 local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags");
 
---TODO @inheritdoc if possible...
 --TODO allow user to suround content block with (optional tags) tags...
 --TODO color dead anchor links
 --TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
 --TODO parse sinlge-line comments too
---TODO allow MoTD, custom banners etc.
 --TODO add tooltip with @des info (if available) in sidemenu items
 --TODO ERROR FIX paramters are not showing in order
 --TODO combine params into one section
---TODO make website create a proper anchor tag
 
 local assert    = assert;
 local class     = class;
@@ -241,8 +238,9 @@ return class("Dox",
     @desc Refreshes the finalized data
     !]]
     refresh = function(this, cdat)
-        local pri = cdat.pri;
+        local pri           = cdat.pri;
         local tBlockWrapper = pri.builder.value.getBlockWrapper();
+        local tInheritDocs  = {};
 
         --reset the finalized data table
         pri.finalized = {};
@@ -270,13 +268,19 @@ return class("Dox",
                 tActive = tActive[sFQXN];
             end
 
-
-            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder
+            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder ....<- was this TODO  message already dealth with? This code below seems fine...
             --create the content string
             local sContent = tBlockWrapper.open;
 
             --build the row (block item)
             for oBlockTag, sRawInnerContent in oBlock.items() do
+
+                --check for inheritdoc
+                if (oBlockTag.getDisplay() == "Inheritdoc") then
+                    --store the table index with the value of the inner content to be processed later
+                    tInheritDocs[tActive] = sRawInnerContent;
+                end
+
                 local sInnerContent = pri.processBlockItem(oBlockTag, sRawInnerContent);
                 sContent = sContent..sInnerContent;
             end
@@ -286,7 +290,37 @@ return class("Dox",
                 __call = function(t)
                     return sContent..tBlockWrapper.close;
                 end,
-            })
+            });
+
+        end
+
+        --check for and apply inherited docs
+        for tTargetIndex, sLinkRaw in pairs(tInheritDocs) do
+
+            --create the potential link
+            local tLink  = string.totable(sLinkRaw, '.');
+            --build the index to validate
+            local tIndex = pri.finalized;
+
+            --check the link's validity as it's built
+            for __, sFQXN in pairs(tLink) do
+
+                if (tIndex[sFQXN] == nil) then
+                    error("Error creating dox block. TODO"); --TODO FINISH ERROR
+                end
+
+                tIndex = tIndex[sFQXN];
+            end
+
+            --get the replacement content
+            local sFinalizedContent = tIndex();
+
+            --if no error was thrown, the index is valid. Set the new content
+            setmetatable(tTargetIndex, {
+                __call = function(t)
+                    return sFinalizedContent;
+                end,
+            });
 
         end
 

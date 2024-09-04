@@ -1,5 +1,5 @@
 --[[!
-@fqxn Dox.Components.DoxBuilder
+@fqxn Dox.Builders.DoxBuilder
 @desc This is the class (when subclassed) that builds the output using Dox's finalized data.
 !]]
 return class("DoxBuilder",
@@ -39,7 +39,7 @@ return class("DoxBuilder",
         pro.defaultFilename         = sDefaultFilename;
     end,
     --[[!
-    @fqxn Dox.Components.DoxBuilder.Methods.build
+    @fqxn Dox.Builders.DoxBuilder.Methods.build
     @desc This is the build method that does the heavy lifting in building the output file.
     <br><br>After the basic <em>this</em> and <em>cdat</em> parameters, this method must accept the following parameters in the following order:
     <ol>
@@ -55,6 +55,11 @@ return class("DoxBuilder",
     getCopyToClipboardButton = function(this, cdat)
         return cdat.pro.copyToClipboardButton;
     end,
+    --[[!
+    @fqxn Dox.Builders.DoxBuilder.Methods.getDefaultFilename
+    @desc Returns the default filename of the final ouput document that is used if one is not provided by the user.
+    @ret string sFilename The default filename.
+    !]]
     getDefaultFilename = function(this, cdat)
         return cdat.pro.defaultFilename;
     end,

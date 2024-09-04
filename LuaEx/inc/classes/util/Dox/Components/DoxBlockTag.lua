@@ -126,7 +126,7 @@ return class("DoxBlockTag",
     isRequired = function(this, cdat)
         return cdat.pri.required;
     end,
-    clone = function(this, cdat) --OMG TODO
+    clone = function(this, cdat) --OMG TODO QUESTION, Why is this here? Is this old? I have a clone metamethod
         return this;
     end,
     getDisplay = function(this, cdat)

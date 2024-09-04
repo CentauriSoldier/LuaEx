@@ -59,6 +59,7 @@ return {
     DoxBlockTag({"uses"},                               "Uses",                 -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"features"},                           "Features",             -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -_bMultipleAllowed),
+    DoxBlockTag({"inheritdoc"},                         "Inheritdoc",           -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"security"},                           "Security",             -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"performance"},                        "Performance",          -_bRequired,    -_bMultipleAllowed),

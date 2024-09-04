@@ -33,7 +33,8 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Bugfix:  Dox "Copy" button not working.
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
 - Change:  Dox CSS redesigned to be more functional and aesthetically pleasing.
-- Feature: Dox Fully Qualified Dox Names (fqxn) may now contain spaces.
+- Feature: Dox now has an ***@inheritdoc*** tag that allows inheritance of docs from one **fqxn** to another.
+- Feature: Dox Fully Qualified Dox Names (**fqxn**) may now contain spaces.
 - Feature: Dox now allows custom intro page message.
 - Feature: Subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
 - Feature Added several class-level checks:
