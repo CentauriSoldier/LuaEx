@@ -57,7 +57,7 @@ return class("DoxBlock",
 
             --get the alias
             local sAlias = sItem:match("%S+");
-            
+
             --validate the item alias
             if not (sAlias) then
                 error("Error creating DoxBlock object: malformed block item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
@@ -205,6 +205,22 @@ return class("DoxBlock",
 
         sortItems();
     end,
+    eachItem = function(this, cdat)
+        local tItems = cdat.pri.items;
+        local nIndex    = 0;
+        local nMax      = #tItems;
+
+        return function()
+            nIndex = nIndex + 1;
+
+            if (nIndex <= nMax) then
+                local tItem = tItems[nIndex];
+                return clone(tItem.blockTag), tItem.content;
+            end
+
+        end
+
+    end,
     fqxn = function(this, cdat)
         local tFQXN = cdat.pri.fqxn;
         local nIndex    = 0;
@@ -224,22 +240,6 @@ return class("DoxBlock",
         local tItems = cdat.pri.items;
         local tItem = tItems[nIndex];--TODO error check
         return clone(tItem.blockTag), tItem.content;
-    end,
-    items = function(this, cdat)
-        local tItems = cdat.pri.items;
-        local nIndex    = 0;
-        local nMax      = #tItems;
-
-        return function()
-            nIndex = nIndex + 1;
-
-            if (nIndex <= nMax) then
-                local tItem = tItems[nIndex];
-                return clone(tItem.blockTag), tItem.content;
-            end
-
-        end
-
     end,
 },
 nil,   --extending class

@@ -17,7 +17,7 @@ return class("DoxBlockTag",
     __clone = function(this, cdat)
         local pri = cdat.pri;
         return DoxBlockTag( clone(pri.aliases), pri.display, pri.required,
-                            pri.multipleAllowed, pri.columnCount - 1,
+                            pri.multipleAllowed, pri.combined, pri.columnCount - 1,
                             table.unpack(pri.columnWrappers));
     end,
     __eq = function(left, right, cdat)
@@ -54,13 +54,15 @@ return class("DoxBlockTag",
         return  bAliasesMatch                               and
                 pri.display         == opri.display         and
                 pri.required        == opri.required        and
-                pri.multipleAllowed == pri.multipleAllowed;
+                pri.multipleAllowed == opri.multipleAllowed and
+                pri.combined        == opri.combined;
     end,
     __tostring = function(this, cdat)--TODO add column info
         local pri = cdat.pri;
         local sRet = "Display: "..pri.display;
         sRet = sRet.."\nRequired: "..pri.required;
         sRet = sRet.."\nMultiple Allowed: "..pri.multipleAllowed;
+        sRet = sRet.."\nCombined: "..pri.combined;
         sRet = sRet.."\nAliases:";
 
         for _, sAlias in pairs(pri.aliases) do
@@ -77,6 +79,7 @@ return class("DoxBlockTag",
     aliases             = {},
     columnCount         = 1,  --NOTE: this does NOT include the tag column.
     columnWrappers      = {}, --NOTE: this does NOT include the tag column. That wrapper is set in Dox.
+    combined            = false,
     display             = "",
     --items_AUTO          = 0,
     multipleAllowed     = false,
@@ -86,12 +89,13 @@ return class("DoxBlockTag",
 
 },
 {--public
-    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, nExtraColumns, ...)
+    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, bCombined, nExtraColumns, ...)
         local pri = cdat.pri;
         type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.");
 
         pri.display         = sDisplay;
         pri.multipleAllowed = type(bMultipleAllowed)   == "boolean"  and bMultipleAllowed    or false;
+        pri.combined        = type(bCombined)          == "boolean"  and bCombined           or false;
         pri.required        = type(bRequired)          == "boolean"  and bRequired           or false;
 
         for _, sAlias in ipairs(tAliases) do
@@ -119,6 +123,9 @@ return class("DoxBlockTag",
             pri.columnWrappers[nColumn] = clone(tFormat);
         end
 
+    end,
+    isCombined = function(this, cdat)
+        return cdat.pri.combined;
     end,
     isMultipleAllowed = function(this, cdat)
         return cdat.pri.multipleAllowed;

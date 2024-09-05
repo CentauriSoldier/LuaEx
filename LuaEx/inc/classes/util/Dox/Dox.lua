@@ -8,8 +8,6 @@ local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags")
 --TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
 --TODO parse sinlge-line comments too
 --TODO add tooltip with @des info (if available) in sidemenu items
---TODO ERROR FIX paramters are not showing in order
---TODO combine params into one section
 
 local assert    = assert;
 local class     = class;
@@ -222,9 +220,7 @@ return class("Dox",
             sID = ' id="'..string.uuid()..'"'
         end
 
-        --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder -- be sure to send in the display and UUID
-        return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] %
-        {
+        return {
             id = sID,
             display = sDisplay,
             content = sTableDataItems,--TODO break up content into columns as needed
@@ -239,7 +235,9 @@ return class("Dox",
     !]]
     refresh = function(this, cdat)
         local pri           = cdat.pri;
-        local tBlockWrapper = pri.builder.value.getBlockWrapper();
+        local oBuilder      = pri.builder.value;
+        local tBlockWrapper = oBuilder.getBlockWrapper();
+        local sNewLine      = oBuilder.getNewLine();
         local tInheritDocs  = {};
 
         --reset the finalized data table
@@ -268,21 +266,74 @@ return class("Dox",
                 tActive = tActive[sFQXN];
             end
 
-            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder ....<- was this TODO  message already dealth with? This code below seems fine...
-            --create the content string
-            local sContent = tBlockWrapper.open;
+            --local tCombinedBlockItems   = {};
+            local tToCombine = {};
 
-            --build the row (block item)
-            for oBlockTag, sRawInnerContent in oBlock.items() do
+            --check for and concat combineable items
+            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
+                local bIsCombined = oBlockTag.isCombined();
 
-                --check for inheritdoc
-                if (oBlockTag.getDisplay() == "Inheritdoc") then
-                    --store the table index with the value of the inner content to be processed later
-                    tInheritDocs[tActive] = sRawInnerContent;
+                if (bIsCombined) then
+                    local sDisplay  = oBlockTag.getDisplay();
+
+                    --create the blocktag index if it doesn't exist
+                    if (tToCombine[sDisplay] == nil) then
+                        tToCombine[sDisplay] = {};
+                    end
+
+                    --append the item to be combined
+                    tToCombine[sDisplay][#tToCombine[sDisplay] + 1] = pri.processBlockItem(oBlockTag, sRawInnerContent);
                 end
 
-                local sInnerContent = pri.processBlockItem(oBlockTag, sRawInnerContent);
-                sContent = sContent..sInnerContent;
+            end
+
+
+
+            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder ....<- was this TODO message already dealth with? This code below seems fine...
+            --create the content string
+            local sContent = tBlockWrapper.open;
+            --keep track of combined items so they don't duplicated
+            local tCompletedDisplays = {};
+
+            --build the row (block item)
+            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
+                local sDisplay      = oBlockTag.getDisplay();
+                --TODO BUG FIX The HTML CANNOT be here...it has to be gotten from the DoxBuilder -- be sure to send in the display and UUID
+                local sInnerContent = "";
+
+                --check for inheritdoc
+                if (sDisplay == "Inheritdoc") then
+                    --store the table index with the value of the inner content to be processed later
+                    tInheritDocs[tActive] = sRawInnerContent;
+                else
+
+                    if not (tCompletedDisplays[sDisplay]) then
+                        --TODO note somewhere that combined items cannot have IDs (they are simply blank...all non examples are...but code should have IDs!!!! TODO that)
+                        --process combineable items
+                        if (oBlockTag.isCombined()) then
+                            local sCombinedContent = "";
+
+                            local nMaxItems = #tToCombine[sDisplay];
+                            for nIndex, tBlockItemData in ipairs(tToCombine[sDisplay]) do
+                                local sNewLine = nIndex < nMaxItems and sNewLine or ""; --TODO FINISH get new line string from builder
+                                sCombinedContent = sCombinedContent..tBlockItemData.content..sNewLine;
+                            end
+
+                            sInnerContent = [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = "", display = sDisplay, content = sCombinedContent};
+
+                            --delete the entry since we're done processing this display item
+                            tCompletedDisplays[sDisplay] = true;
+
+                        else --process non-combineable items
+                            local tBlockItemData = pri.processBlockItem(oBlockTag, sRawInnerContent);
+                            sInnerContent = [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = tBlockItemData.id, display = tBlockItemData.display, content = tBlockItemData.content};
+                        end
+
+                        sContent = sContent..sInnerContent;
+                    end
+
+                end
+
             end
 
             --set the call to get the content
@@ -364,7 +415,7 @@ return class("Dox",
         --create and inject the example block tag (language-specific)
         local tExampleWrapper = pri.builder.value.getExampleWrapper(eSyntax);
         table.insert(pri.blockTags, _nExampleInsertPoint,
-            DoxBlockTag({"ex", "example"}, "Example", false, true, 0,
+            DoxBlockTag({"ex", "example"}, "Example", false, true, false, 0,
                         {tExampleWrapper.open, tExampleWrapper.close})
         );
 

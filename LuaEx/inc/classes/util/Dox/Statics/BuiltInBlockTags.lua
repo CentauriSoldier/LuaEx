@@ -5,9 +5,10 @@
 !]]
 local _bRequired            = true;
 local _bMultipleAllowed     = true;
+local _bCombined            = true;
 
 return {
-    --TODO allow modification and ordering --TODO add a bCombine Variable for block tags with (or using) plural form
+    --TODO allow modification and ordering
     --[[!
         @fqxn LuaEx.Classes.Utility.Dox.Statics.BlockTags.FQXN
         @desc   Display: FQXN<br>
@@ -35,7 +36,7 @@ return {
               Multiple Allowed: <b>false</b><br>
               #Items: <b>1</b>
     !]]
-    DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -_bMultipleAllowed,   0,  {"<em>", "</em>"}),
+    DoxBlockTag({"scope"},                              "Scope",                -_bRequired,    -_bMultipleAllowed,   -_bCombined,   0,  {"<em>", "</em>"}),
     --[[!
         @fqxn LuaEx.Classes.Utility.Dox.Statics.BlockTags.Visibility
         @desc Display: Visibility<br>
@@ -48,31 +49,31 @@ return {
     DoxBlockTag({"des", "desc", "description"},         "Description",          -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"note"},                               "Note",                 -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"summary"},                            "Summary",              -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"parameter", "param", "par"},          "Parameter",            -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),--TODO move this builder, add functionin blocktag to allow adding/changing
+    DoxBlockTag({"parameter", "param", "par"},          "Parameter(s)",         -_bRequired,    _bMultipleAllowed,     _bCombined, 2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),--TODO move this builder, add functionin blocktag to allow adding/changing
     DoxBlockTag({"field"},                              "Field",                -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"prop", "property"},                   "Property",             -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"throws"},                             "Throws",               -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"return", "ret"},                      "Return",               -_bRequired,    _bMultipleAllowed,    2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
+    DoxBlockTag({"return", "ret"},                      "Return(s)",            -_bRequired,    _bMultipleAllowed,     _bCombined, 2,  {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     --NOTE: RESERVED FOR Example Block Tag (inserted during class contruction)
-    DoxBlockTag({"code"},                               "Code",                 -_bRequired,    _bMultipleAllowed,    0,  {"<pre>", "</pre>"}),
-    DoxBlockTag({"requires"},                           "Requires",             -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"uses"},                               "Uses",                 -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"code"},                               "Code",                 -_bRequired,    _bMultipleAllowed,      -_bCombined, 0,  {"<pre>", "</pre>"}),
+    DoxBlockTag({"requires"},                           "Requires",             -_bRequired,    _bMultipleAllowed,      _bCombined),
+    DoxBlockTag({"uses"},                               "Uses",                 -_bRequired,    _bMultipleAllowed,      _bCombined),
     DoxBlockTag({"features"},                           "Features",             -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"parent"},                             "Parent",               -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"inheritdoc"},                         "Inheritdoc",           -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"interface"},                          "Interface",            -_bRequired,    _bMultipleAllowed),
     DoxBlockTag({"security"},                           "Security",             -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"performance"},                        "Performance",          -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"planned"},                            "Planned Features",     -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"todo"},                               "TODO",                 -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"issue"},                              "Issue",                -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"bug"},                                "Bug",                  -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"planned"},                            "Planned Features",     -_bRequired,    -_bMultipleAllowed,     _bCombined),
+    DoxBlockTag({"todo"},                               "TODO",                 -_bRequired,   _bMultipleAllowed,      _bCombined),
+    DoxBlockTag({"issue"},                              "Issue(s)",             -_bRequired,   _bMultipleAllowed,      _bCombined),
+    DoxBlockTag({"bug"},                                "Bug(s)",               -_bRequired,   _bMultipleAllowed,      _bCombined),
     DoxBlockTag({"since"},                              "Since",                -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"deprecated"},                         "Depracated",           -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"changelog", "versionhistory"},        "Changelog",            -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"version", "ver"},                     "Version",              -_bRequired,    -_bMultipleAllowed),
-    DoxBlockTag({"see"},                                "See",                  -_bRequired,    _bMultipleAllowed),
-    DoxBlockTag({"author"},                             "Author",               -_bRequired,    _bMultipleAllowed),
+    DoxBlockTag({"see"},                                "See",                  -_bRequired,    _bMultipleAllowed,      _bCombined),
+    DoxBlockTag({"author"},                             "Author(s)",            -_bRequired,    _bMultipleAllowed,      _bCombined),
     DoxBlockTag({"email"},                              "Email",                -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"license"},                            "License",              -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag({"www", "web", "website"},              "Website",              -_bRequired,    -_bMultipleAllowed),

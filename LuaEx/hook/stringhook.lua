@@ -13,6 +13,7 @@ local _sUUIDLength 	 = #_tCharsLower;
 local _tUUIDSequence = {8, 4, 4, 4, 12};
 local _sUUIDBlocks	 = #_tUUIDSequence;
 
+local _bOSIsWindows  = package.config:sub(1, 1) == "\\";
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.cap
@@ -89,7 +90,7 @@ end
     @fqxn LuaEx.Lua Hooks.string.isempty
     @desc Determines whether a string is empty (blank or space-only characters).
     @param string sInput The string to capatalize.
-    @ret boolean Returns true if empty, false otherwise.
+    @ret boolean bIsEmpty Returns true if empty, false otherwise.
     @ex
     local sTest1 = "     ";
     local sTest2 = " a    ";
@@ -105,63 +106,49 @@ end
 
 
 
---TODO clean this up and write docs (also allow the user to tell which OS to check)
---TODO if it's blank
-function string.isfilesafe(name)
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.isfilesafe
+    @desc Determines whether a string is safe for use as a file name.
+    @param string sInput The string to check.
+    @ret boolean bSafe Returns true if file-safe, false otherwise.
+    @ex
+    TODO
+!]]
+function string.isfilesafe(sName)
+    local bRet = true;
+
     -- Define invalid characters for Windows and Linux
-    local invalid_chars_windows = '[<>:"/\\|?*%c]'
-    local invalid_chars_linux = '[/%c]'
-
-    -- Determine the platform based on the directory separator
-    local dir_separator = package.config:sub(1, 1)
-    local invalid_chars
-
-    if dir_separator == '\\' then
-        -- Windows
-        invalid_chars = invalid_chars_windows
-    else
-        -- Linux/Unix
-        invalid_chars = invalid_chars_linux
-    end
+    local tInvalidChars = _bOSIsWindows and '[<>:"/\\|?*%c]' or '[/%c]';
 
     -- Check for invalid characters
-    if name:match(invalid_chars) then
-        return false, "Name contains invalid characters"
+    if sName:match(tInvalidChars) then
+        bRet = false;
     end
 
     -- Check for reserved filenames on Windows
-    if dir_separator == '\\' then
-        local reserved_names = {
+    if (_bOSIsWindows and bRet) then
+        local tReservedNames = {
             "CON", "PRN", "AUX", "NUL",
             "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
             "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
-        }
+        };
 
-        for _, reserved in ipairs(reserved_names) do
-            if name:upper() == reserved then
-                return false, "Name is a reserved word on Windows"
+        local sNameUpper = sName:upper();
+
+        for _, sReserved in ipairs(tReservedNames) do
+
+            if (sNameUpper == sReserved) then
+                bRet = false;
+                break;
             end
+
         end
+
     end
 
-    -- Check for names that are too long (Windows limit is 255 characters)
-    if #name > 255 then
-        return false, "Name is too long"
-    end
-
-    -- Check for empty names
-    if name == "" then
-        return false, "Name is empty"
-    end
-
-    -- If all checks pass, the name is safe
-    return true, "Name is filesafe"
+    -- Check for names that are too long (limit is 255 characters) TODO move magic number
+    return bRet and (#sName <= 255) and (sName ~= "");
 end
-
-
-
-
-
 
 
 --[[!
@@ -316,7 +303,7 @@ end
     @ex
     local sTest = "     |Inner String|      ";
     print(sTest:trim()); -->|Inner String|
-    @www Code by <a href="https://snippets.bentasker.co.uk">https://snippets.bentasker.co.uk</a>
+    @www Code by <a href="https://snippets.bentasker.co.uk" target="_blank">https://snippets.bentasker.co.uk</a>
 !]]
 function string.trim(sInput)
   return sInput:match'^()%s*$' and '' or sInput:match'^%s*(.*%S)';
@@ -331,7 +318,7 @@ end
     @ex
     local sTest = "     |Inner String|      ";
     print(sTest:trimleft()); -->|Inner String|      <--string ends here
-    @www Code by <a href="https://snippets.bentasker.co.uk">https://snippets.bentasker.co.uk</a>
+    @www Code by <a href="https://snippets.bentasker.co.uk" target="_blank">https://snippets.bentasker.co.uk</a>
 !]]
 function string.trimleft(sInput)
   return sInput:match'^%s*(.*)';
@@ -346,7 +333,7 @@ end
     @ex
     local sTest = "     |Inner String|      ";
     print(sTest:trimright()); -->     |Inner String|
-    @www Code by <a href="https://snippets.bentasker.co.uk">https://snippets.bentasker.co.uk</a>
+    @www Code by <a href="https://snippets.bentasker.co.uk" target="_blank">https://snippets.bentasker.co.uk</a>
 !]]
 function string.trimright(sInput)
   return sInput:match'^(.*%S)%s*$';

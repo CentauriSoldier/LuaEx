@@ -169,7 +169,7 @@ return class("DoxBuilderHTML",
 {--PUBLIC
     DoxBuilderHTML = function(this, cdat, super)
         local sCopyToClipBoardButton = '<button class="copy-to-clipboard-button" onclick="Dox.copyToClipboard(this)">Copy</button>';
-        super(DoxBuilder.MIME.HTML, sCopyToClipBoardButton, _sDefaultFilename);
+        super(DoxBuilder.MIME.HTML, sCopyToClipBoardButton, _sDefaultFilename, "<br>");
         local pro = cdat.pro;
 
         pro.blockWrapper.open       = '<div class="container-fluid">';

@@ -33,6 +33,8 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Bugfix:  Dox "Copy" button not working.
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
 - Change:  Dox CSS redesigned to be more functional and aesthetically pleasing.
+- Feature: Dox now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
+- Feature: ***DoxBlockTags*** can now be set to combined.
 - Feature: Dox now has an ***@inheritdoc*** tag that allows inheritance of docs from one **fqxn** to another.
 - Feature: Dox Fully Qualified Dox Names (**fqxn**) may now contain spaces.
 - Feature: Dox now allows custom intro page message.

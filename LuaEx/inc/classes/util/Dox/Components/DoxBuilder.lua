@@ -23,9 +23,10 @@ return class("DoxBuilder",
         open = "",
         close = "",
     },
+    newLine = "",
 },
 {--PUBLIC
-    DoxBuilder = function(this, cdat, eMime, sCopyToClipBoardButton, sDefaultFilename)
+    DoxBuilder = function(this, cdat, eMime, sCopyToClipBoardButton, sDefaultFilename, sNewLine)
         type.assert.custom(eMime, "DoxBuilder.MIME");
         type.assert.string(sDefaultFilename, "%S+");
         assert(sDefaultFilename:isfilesafe(), "Error creating DoxBuilder. Default filename must be a file-safe string.");
@@ -37,6 +38,7 @@ return class("DoxBuilder",
         pri.mime                    = eMime;
         pro.copyToClipboardButton   = sCopyToClipBoardButton;
         pro.defaultFilename         = sDefaultFilename;
+        pro.newLine                 = rawtype(sNewLine) == "string" and sNewLine or "\n";
     end,
     --[[!
     @fqxn Dox.Builders.DoxBuilder.Methods.build
@@ -68,6 +70,9 @@ return class("DoxBuilder",
     end,
     getMime = function(this, cdat)
         return cdat.pri.mime;
+    end,
+    getNewLine = function(this, cdat)
+        return cdat.pro.newLine;
     end,
     getExampleWrapper = function(this, cdat, eSyntax)
         type.assert.custom(eSyntax, "Dox.SYNTAX");
