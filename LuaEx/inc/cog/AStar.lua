@@ -1,8 +1,8 @@
 --[[!
-    @fqxn CoG.Classes.AStar
+    @fqxn CoG.AStar.AStar
     @desc <p>AStar is an versatile A* pathfinding system designed for detailed game development.
-    It has weighted <a href="#LuaEx.CoG.Classes.AStarNode">Nodes</a> that respond to the
-    <a href="#LuaEx.CoG.Classes.AStarRover">Rovers</a> moving through them. That is, a
+    It has weighted <a href="#LuaEx.CoG.AStar.AStarNode">Nodes</a> that respond to the
+    <a href="#LuaEx.CoG.AStar.AStarRover">Rovers</a> moving through them. That is, a
     <b>Node's</b> weight is based not only on the <b>Node</b> properties but also on the
     <b>Rover's</b> affinities or aversions to that node.
     <br>For example, a human walking on solid, flat ground would move much faster than if he were
@@ -11,20 +11,20 @@
     The system uses various private, public and publicly-available classes.
     <h4>Private Classes</h4>
     <ul>
-        <li><a href="#LuaEx.CoG.Classes.AStarAspect">AStarAspect</a></li>
-        <li><a href="#LuaEx.CoG.Classes.AStarLayer">AStarLayer</a></li>
-        <li><a href="#LuaEx.CoG.Classes.AStarMap">AStarMap</a></li>
-        <li><a href="#LuaEx.CoG.Classes.AStarNode">AStarNode</a></li>
-        <li><a href="#LuaEx.CoG.Classes.AStarRover">AStarRover</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStarAspect">AStarAspect</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStarLayer">AStarLayer</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStarMap">AStarMap</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStarNode">AStarNode</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStarRover">AStarRover</a></li>
     </ul>
     <h4>Public Classes</h4>
     <ul>
-        <li><a href="#LuaEx.CoG.Classes.AStar">AStar</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStar">AStar</a></li>
     </ul>
     <h4>Publicly-available Classes</h4>
     <ul>
-        <li><a href="#LuaEx.CoG.Classes.AStarLayerConfig">AStarLayerConfig</a></li>
-        <li><a href="#LuaEx.CoG.Classes.AStarPath">AStarPath</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStarLayerConfig">AStarLayerConfig</a></li>
+        <li><a href="#LuaEx.CoG.AStar.AStarPath">AStarPath</a></li>
     </ul>
     These two classes are available in <b>AStar's</b> static public table.
     <b>AStar.LayerConfig</b>
@@ -174,7 +174,7 @@ AStarUtil = {
                     ██║░░██║██████╔╝██║░░░░░███████╗╚█████╔╝░░░██║░░░
                     ╚═╝░░╚═╝╚═════╝░╚═╝░░░░░╚══════╝░╚════╝░░░░╚═╝░░░]]
 --[[!
-@fqxn CoG.Classes.AStarAspect
+@fqxn CoG.AStar.AStarAspect
 @desc TODO
 !]]
 AStarAspect = class("AStarAspect",
@@ -186,17 +186,17 @@ AStarAspect = class("AStarAspect",
 },
 {--PRIVATE
     --[[!
-    @fqxn CoG.Classes.AStarAspect.getImpactor
+    @fqxn CoG.AStar.AStarAspect.getImpactor
     @desc TODO
     !]]
     Impactor__autoRF	= null,--a percentage referencing the extremity of the aspect (0%-100%)
     --[[!
-    @fqxn CoG.Classes.AStarAspect.getName
+    @fqxn CoG.AStar.AStarAspect.getName
     @desc TODO
     !]]
     Name__autoRF        = null,
     --[[!
-    @fqxn CoG.Classes.AStarAspect.getOwner
+    @fqxn CoG.AStar.AStarAspect.getOwner
     @desc TODO
     !]]
     Owner__autoRF       = null,
@@ -238,18 +238,18 @@ AStarLayer = class("AStarLayer",
 },
 {--PRIVATE
     --[[!
-    @fqxn CoG.Classes.AStarLayer.getID
+    @fqxn CoG.AStar.AStarLayer.getID
     @desc TODO
     !]]
     ID__autoRF	  = null,
     --config 	= oConfig,
     --[[!
-    @fqxn CoG.Classes.AStarLayer.getOwner
+    @fqxn CoG.AStar.AStarLayer.getOwner
     @desc TODO
     !]]
     Owner__autoRF = null,
     --[[!
-    @fqxn CoG.Classes.AStarLayer.getName
+    @fqxn CoG.AStar.AStarLayer.getName
     @desc TODO
     !]]
     Name__autoRF  = null,
@@ -261,7 +261,7 @@ AStarLayer = class("AStarLayer",
 },
 {--PUBLIC
     --[[!
-    @fqxn CoG.Classes.AStarLayer.AStarLayer
+    @fqxn CoG.AStar.AStarLayer.AStarLayer
     @desc TODO
     !]]
     AStarLayer = function(this, cdat, oAStarMap, nLayerID, oConfig, nWidth, nHeight)
@@ -290,7 +290,7 @@ AStarLayer = class("AStarLayer",
 
     end,
     --[[!
-    @fqxn CoG.Classes.AStarLayer.containsRoverAt
+    @fqxn CoG.AStar.AStarLayer.containsRoverAt
     @desc TODO
     !]]
     containsRoverAt = function(this, cdat, oRover, nX, nY)
@@ -305,7 +305,7 @@ AStarLayer = class("AStarLayer",
         return bRet;
     end,
     --[[!
-    @fqxn CoG.Classes.AStarLayer.createRoverAt
+    @fqxn CoG.AStar.AStarLayer.createRoverAt
     @desc TODO
     !]]
     createRoverAt = function(this, cdat, nX, nY)--TODO assert
@@ -320,7 +320,7 @@ AStarLayer = class("AStarLayer",
 
 
     --[[!
-    @fqxn CoG.Classes.AStarLayer.getNode
+    @fqxn CoG.AStar.AStarLayer.getNode
     @desc TODO
     !]]
     getNode = function(this, cdat, nX, nY)
@@ -333,7 +333,7 @@ AStarLayer = class("AStarLayer",
     end,
 
     --[[!
-    @fqxn CoG.Classes.AStarLayer.getNodes
+    @fqxn CoG.AStar.AStarLayer.getNodes
     @desc TODO
     !]]
     getNodes = function(this, cdat)
@@ -342,7 +342,7 @@ AStarLayer = class("AStarLayer",
 
 
     --[[!
-    @fqxn CoG.Classes.AStarLayer.hasNode
+    @fqxn CoG.AStar.AStarLayer.hasNode
     @desc TODO
     !]]
     hasNode = function(this, cdat, oNode)
@@ -351,7 +351,7 @@ AStarLayer = class("AStarLayer",
     end,
 
     --[[!
-    @fqxn CoG.Classes.AStarLayer.hasNodeAt
+    @fqxn CoG.AStar.AStarLayer.hasNodeAt
     @desc TODO
     !]]
     hasNodeAt = function(this, cdat, nX, nY)
@@ -372,7 +372,7 @@ nil    --interface(s) (either nil, or interface(s))
     ███████╗██║░░██║░░░██║░░░███████╗██║░░██║  ╚█████╔╝╚█████╔╝██║░╚███║██║░░░░░██║╚██████╔╝
     ╚══════╝╚═╝░░╚═╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝  ░╚════╝░░╚════╝░╚═╝░░╚══╝╚═╝░░░░░╚═╝░╚═════╝░]]
 --[[!
-@fqxn CoG.Classes.AStarLayerConfig
+@fqxn CoG.AStar.AStarLayerConfig
 @desc TODO
 !]]
 local AStarLayerConfig = class("AStarLayerConfig",
@@ -385,7 +385,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
 {--PRIVATE
     aspects         = {}, --TODO make decoy table for this
     --[[!
-    @fqxn CoG.Classes.AStarLayerConfig.getName
+    @fqxn CoG.AStar.AStarLayerConfig.getName
     @desc TODO
     !]]
     Name__autoRF	= null,
@@ -395,7 +395,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
 },
 {--PUBLIC
     --[[!
-    @fqxn CoG.Classes.AStarLayerConfig.AStarLayerConfig
+    @fqxn CoG.AStar.AStarLayerConfig.AStarLayerConfig
     @desc TODO
     !]]
     AStarLayerConfig = function(this, cdat, sName, ...)
@@ -413,21 +413,21 @@ local AStarLayerConfig = class("AStarLayerConfig",
         end
     end,
     --[[!
-    @fqxn CoG.Classes.AStarLayerConfig.getAspect
+    @fqxn CoG.AStar.AStarLayerConfig.getAspect
     @desc TODO
     !]]
     getAspect = function(this, cdat, sAspect)--TODO CHECK TYPE AND UPPER THIS PARAMETER
         return cdat.pri.aspects[sAspect] or nil;
     end,
     --[[!
-    @fqxn CoG.Classes.AStarLayerConfig.getAspects
+    @fqxn CoG.AStar.AStarLayerConfig.getAspects
     @desc TODO
     !]]
     getAspects = function(this, cdat)
         return cdat.pri.aspects; --TODO decoy this
     end,
     --[[!
-    @fqxn CoG.Classes.AStarLayerConfig.hasAspect
+    @fqxn CoG.AStar.AStarLayerConfig.hasAspect
     @desc TODO
     !]]
     hasAspect = function(this, cdat, sAspect)--TODO CHECK TYPE AND UPPER THIS PARAMETER
@@ -448,7 +448,7 @@ nil    --interface(s) (either nil, or interface(s))
                     ██║░╚═╝░██║██║░░██║██║░░░░░
                     ╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░░░░]]
 --[[!
-@fqxn CoG.Classes.AStarMap
+@fqxn CoG.AStar.AStarMap
 @desc TODO
 !]]
 AStarMap = class("AStarMap",
@@ -473,34 +473,34 @@ AStarMap = class("AStarMap",
 },
 {--PRIVATE
     --[[!
-    @fqxn CoG.Classes.AStarMap.getLayers
+    @fqxn CoG.AStar.AStarMap.getLayers
     @desc TODO
     !]]
     Layers__autoAF	= {},--(ORDERED BY ID)
     layersDecoy		= {},--a decoy table for returning layers to the client
     layersByName	= {},
     --[[!
-    @fqxn CoG.Classes.AStarMap.getName
+    @fqxn CoG.AStar.AStarMap.getName
     @desc TODO
     !]]
     Name__autoRF	= null,
     --[[!
-    @fqxn CoG.Classes.AStarMap.getOwner
+    @fqxn CoG.AStar.AStarMap.getOwner
     @desc TODO
     !]]
     Owner__autoRF	= null,
     --[[!
-    @fqxn CoG.Classes.AStarMap.getType
+    @fqxn CoG.AStar.AStarMap.getType
     @desc TODO
     !]]
     Type__autoRF	= null,
     --[[!
-    @fqxn CoG.Classes.AStarMap.getWidth
+    @fqxn CoG.AStar.AStarMap.getWidth
     @desc TODO
     !]]
     Width__autoRF	= null,
     --[[!
-    @fqxn CoG.Classes.AStarMap.getHeight
+    @fqxn CoG.AStar.AStarMap.getHeight
     @desc TODO
     !]]
     Height__autoRF  = null,
@@ -510,7 +510,7 @@ AStarMap = class("AStarMap",
 },
 {--PUBLIC
     --[[!
-    @fqxn CoG.Classes.AStarMap.AStarMap
+    @fqxn CoG.AStar.AStarMap.AStarMap
     @desc TODO
     !]]
     AStarMap = function(this, cdat, oAStar, sName, nMapType, tLayerConfigs, nWidth, nHeight, ...)
@@ -547,7 +547,7 @@ AStarMap = class("AStarMap",
 
     end,
     --[[!
-    @fqxn CoG.Classes.AStarMap.getLayer
+    @fqxn CoG.AStar.AStarMap.getLayer
     @desc TODO
     !]]
     getLayer = function(this, cdat, sLayer)
@@ -555,7 +555,7 @@ AStarMap = class("AStarMap",
         return cdat.pri.layersByName[sLayer:upper()] or nil;
     end,
     --[[!
-    @fqxn CoG.Classes.AStarMap.getNode
+    @fqxn CoG.AStar.AStarMap.getNode
     @desc TODO
     !]]
     getNode = function(this, cdat, sLayer, nX, nY)
@@ -567,7 +567,7 @@ AStarMap = class("AStarMap",
 
     end,
     --[[!
-    @fqxn CoG.Classes.AStarMap.getSize
+    @fqxn CoG.AStar.AStarMap.getSize
     @desc TODO
     !]]
     getSize = function(this, cdat)
@@ -588,7 +588,7 @@ nil    --interface(s) (either nil, or interface(s))
                     ██║░╚███║╚█████╔╝██████╔╝███████╗
                     ╚═╝░░╚══╝░╚════╝░╚═════╝░╚══════╝]]
 --[[!
-@fqxn CoG.Classes.AStarNode
+@fqxn CoG.AStar.AStarNode
 @desc TODO
 !]]
 AStarNode = class("AStarNode",
@@ -1333,7 +1333,7 @@ nil    --interface(s) (either nil, or interface(s))
                 ╚═╝░░╚═╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚═╝░░╚═╝]]
 
 --[[!
-@fqxn CoG.Classes.AStar
+@fqxn CoG.AStar.AStar
 @desc stuff
 !]]
 return class("AStar",

@@ -1,12 +1,11 @@
 --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.Item
+    @fqxn CoG.ItemSystem.BaseItem
     @desc STUFF HERE
-    @parent <a href="#LuaEx.CoG.Object">Object</a>
 !]]
 return class("BaseItem",
 {--METAMETHODS
     __clone = function(this, cdat)
-        local oNew = BaseItem();
+        local oNew = BaseItem(); --TODO FINISH
         --print(type(oNew))
         return oNew;
     end,

@@ -2,7 +2,41 @@
 local class = class;
 
 --[[!
-@fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Functions
+    @fqxn CoG.ItemSystem
+    @desc The item system is designed to be used for inventories, equipment, and other such applications.
+    <br>
+    <hr>
+    <h4>Components</h4>
+    <ul>
+        <li>
+            <h6><a href="#CoG.ItemSystem.BaseItem">BaseItem</a><h6>
+            <p>The entire system is predecated on the <b>BaseItem</b> which must be extended in order to be used.</p>
+        </li>
+            <h6><a href="#CoG.ItemSystem.ItemSystem">ItemSystem</a><h6>
+            <p>The <b>ItemSytem</b> is used to create systems such as inventories.
+            <br>It has obligatory methods such as those used to add, remove, count and check for the existence of items.
+            <br>It is suitable for many purposes as-is and may be extended for futher customization.</p>
+        <li>
+            <h6><a href="#CoG.ItemSystem.ItemStashSystem">ItemStashSystem</a><h6>
+            <p>This system has virtual tabs that each contain an <b>ItemSystem</b> and is designed to used for things like inventory pages or a player's item stash.</p>
+        </li>
+        <li>
+            <h6><a href="#CoG.ItemSystem.ItemSlot">ItemSlot</a><h6>
+            <p>Allows the containment of items as well specifiying which subtypes of items may be contained inside.
+            <br>This permits/restricts the containment of specific <b>BaseItem</b> subclasses within an <b>ItemSlot</b>.</p>
+        </li>
+        <li>
+            <h6><a href="#CoG.ItemSystem.ItemSlotSystem">ItemSlotSystem</a><h6>
+            <p>This operates much like the <b>ItemSystem</b> except that instead of hosting items, it hosts <b>ItemSlots</b>.
+            <br>This is designed to be used for things like player equipment systems or other such applications where one may wish to restict the type of items permitted in a given <b>ItemSlot</b>.</p>
+        </li>
+    </ul>
+!]]
+
+
+--[[!
+@fqxn CoG.ItemSystem.ItemSystem.Functions.validateItemInput
+@vis static private
 @desc TODO
 @ex TODO
 !]]
@@ -26,16 +60,15 @@ end
 
 
 --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem
-    @desc STUFF HERE
-    @parent <a href="#LuaEx.CoG.Component">Component</a>
+    @fqxn CoG.ItemSystem.ItemSystem
+    @desc STUFF HERE    
 !]]
 return class("ItemSystem",
 {--METAMETHODS
     --TODO clone
 
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.removeItemSlot
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.removeItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -57,7 +90,7 @@ return class("ItemSystem",
 },
 {--PUBLIC
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.ItemSystem
+    @fqxn CoG.ItemSystem.ItemSystem.ItemSystem
     @desc The constructor for the <b>ItemSystem</b>.
     @ex TODO
     !]]
@@ -91,7 +124,7 @@ return class("ItemSystem",
 
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.addItem
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.addItem
     @desc TODO
     @ex TODO
     !]]
@@ -113,7 +146,7 @@ return class("ItemSystem",
     clear = function()
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.containsItem
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.containsItem
     @desc TODO
     @ex TODO
     !]]
@@ -135,7 +168,7 @@ return class("ItemSystem",
         return bRet, nRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.containsItemAt
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.containsItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -154,7 +187,7 @@ return class("ItemSystem",
         return bRet;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.getItemAt
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.getItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -164,7 +197,7 @@ return class("ItemSystem",
         return pro.items[nIndex];
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.getItemCount
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.getItemCount
     @desc TODO
     @ex TODO
     !]]
@@ -172,7 +205,7 @@ return class("ItemSystem",
         return #cdat.pro.items;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.getOwner
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.getOwner
     @desc TODO
     @ex TODO
     !]]
@@ -180,7 +213,7 @@ return class("ItemSystem",
         return cdat.pro.owner;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.iterator
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.iterator
     @desc TODO
     @ex TODO
     !]]
@@ -189,7 +222,7 @@ return class("ItemSystem",
         return next, tItems, nil;
     end,
     --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSystem.Methods.swapItems
+    @fqxn CoG.ItemSystem.ItemSystem.Methods.swapItems
     @desc TODO
     @ex TODO
     !]]

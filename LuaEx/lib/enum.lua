@@ -8,6 +8,7 @@ local rawget		= rawget;
 local rawset		= rawset;
 local string		= string;
 local setmetatable 	= setmetatable;
+local subtype       = subtype;
 local tostring 		= tostring;
 local type 			= type;
 --TODO consider the value of using __pairs/__ipairs metamethods.
@@ -232,7 +233,6 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
 
             --pull the meta table from the embedded enum
             tItemMeta = getmetatable(vValue);
-
         else
 
             tItemMeta.__newindex 	= modifyError;
@@ -252,8 +252,17 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
         tItemMeta.__clone       = function()
             return tItemDecoy;
         end
-        tItemMeta.__serialize       = function()
+        tItemMeta.__serialize   = function()
             return sEnumName..'.'..sItem;
+        end
+
+        tItemMeta.__eq          = function(left, right)
+            return left.value == right.value;
+        end
+
+        tItemMeta.__lt          = function(left, right)
+            --TODO ERROR CHECK?
+            return left.value < right.value;
         end
 
         --set the item's metatable

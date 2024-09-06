@@ -29,17 +29,65 @@ local function updateSystem(this, cdat)
     end
 
 end
-
+--[[!
+    @fqxn CoG.XPSystem
+    @desc An experience tracker and leveling system.
+!]]
 return class("XPSystem",
 {--METAMETHODS
     __clone = function(this, cdat)
-
+            --TODO
     end,
     __serialize = function(this, cdat)
-
+--TODO
     end,
 },
 {--STATIC PUBLIC
+    --[[!
+        @fqxn CoG.XPSystem.Enums.TYPE
+        @desc Dictates the mathematical mechanisms used to calucalte required experience per level.
+        <h4>Values</h4>
+        <ol>
+            <li>
+                <h6>LINEAR</h6>
+                if (eType == eTrackerType.LINEAR) then
+                    nCurrentXP = nCurrentXP + nProgression;
+                elseif (eType == eTrackerType.LOGARITHMIC) then
+                    nCurrentXP = nLevelOneXP + (nProgression * math.log(nLevel))
+                elseif (eType == eTrackerType.EXPONENTIAL) then
+                    nCurrentXP = nCurrentXP * nProgression;
+                elseif (eType == eTrackerType.QUADRATIC) then
+                    nCurrentXP = nLevelOneXP + (nProgression * (nLevel^2))
+                elseif (eType == eTrackerType.CUBIC) then
+                    nCurrentXP = nLevelOneXP + (nProgression * (nLevel^3))
+                elseif (bIsStep) then
+                    local nCurrentStep = math.floor((nLevel - 1) / nStepSize);
+                    local nCurrentStepValue = nLevelOneXP + (nProgression * nCurrentStep);
+                    local nLastLevelXP = pri.levelBounds[nLevel - 1];
+                    nCurrentXP = nCurrentStepValue + nLastLevelXP;
+                end
+                <p></p>
+            </li>
+                <h6>LOGARITHMIC</h6>
+                <p></p>
+            <li>
+                <h6>EXPONENTIAL</h6>
+                <p></p>
+            </li>
+            <li>
+                <h6>QUADRATIC</h6>
+                <p></p>
+            </li>
+            <li>
+                <h6>CUBIC</h6>
+                <p></p>
+            </li>
+            <li>
+                <h6>STEP</h6>
+                <p></p>
+            </li>
+        </ol>
+    !]]
     TYPE = enum("XPSystem.TYPE", {"LINEAR", "LOGARITHMIC", "EXPONENTIAL", "QUADRATIC", "CUBIC", "STEP"}, nil, true),
     --XPSystem = function(stapub) end,
 },

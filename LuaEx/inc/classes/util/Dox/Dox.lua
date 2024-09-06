@@ -8,6 +8,8 @@ local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags")
 --TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
 --TODO parse sinlge-line comments too
 --TODO add tooltip with @des info (if available) in sidemenu items
+--TODO allow custom BlockTag sort order (in what order items are displayed in the ourput)
+--TODO allow escaping . in FQXN
 
 local assert    = assert;
 local class     = class;
@@ -109,6 +111,10 @@ oDoxLua.refresh();
 
 --export html help file.
 oDoxLua.export(); --profit!
+@prifi string blockOpen Set during contruction, this is the string that tells Dox when to <strong>start</strong> reading a <a href="#Dox.Components.DoxBlock">DoxBlock</a>.
+@prifi string blockClose Set during contruction, this is the string that tells Dox when to <strong>stop</strong> reading a <a href="#Dox.Components.DoxBlock">DoxBlock</a>.
+@prifi table blockTags A complete list of <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a> available to the instance.
+<br>It's built during construction by first importing all built-in <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a>, then by creating and inserting the example <strong>BlockTags</strong> and finally by inputting all input varargs (input <strong>BlockTags</strong>) if any are provided.--TODO FINISH
 !]]
 return class("Dox",
 {--metamethods
@@ -463,7 +469,12 @@ return class("Dox",
         type.assert.custom(oDoxMime, "DoxMime");
         pri.mimeTypes.add(oDoxMime.getName(), oDoxMime);
     end,
-    blockTags__FNL = function(this, cdat)
+    --[[!
+    @fqxn Dox.Methods.eachBlockTag
+    @desc Returns an iterator that returns each <a href="#Dox.Components.DoxBlockTag">DoxBlockTag</a> available to the instance.
+    @return function fIterator The iterator.
+    !]]
+    eachBlockTag__FNL = function(this, cdat)
         local tBlockTags    = cdat.pri.blockTags;
         local nIndex        = 0;
         local nMax          = #tBlockTags;

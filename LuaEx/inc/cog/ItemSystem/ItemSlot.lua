@@ -4,7 +4,7 @@ local oItemPlaceholder;
 
 
 --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlot.isAllowedItem
+    @fqxn CoG.ItemSystem.ItemSlot.Functions.isAllowedItem
     @scope Local
     @desc Designed
 !]]
@@ -30,9 +30,8 @@ local function isAllowedItem(this, cdat, vInput)
 end
 
 --[[!
-    @fqxn LuaEx.CoG.Systems.ItemSystem.ItemSlot
-    @desc Designed to hold and manage Items.
-    @parent <a href="#LuaEx.CoG.Entity">Entity</a>
+    @fqxn CoG.ItemSystem.ItemSlot
+    @desc Designed to hold and manage <a href="#GoG.ItemSystem.BaseItem">BaseItems</a>.
 !]]
 return class("ItemSlot",
 {--METAMETHODS

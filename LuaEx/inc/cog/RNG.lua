@@ -14,7 +14,7 @@ local _tBooleans    = {true, false};
 local _tBipolar     = {-1, 1};
 
 --[[!
-@fqxn CoG.Classes.RNG
+@fqxn CoG.RNG
 @desc A static helper class for rolling dice, drawing cards, etc.
 !]]
 return class("RNG",
@@ -23,7 +23,7 @@ return class("RNG",
 },
 {--STATIC PUBLIC
     --[[!
-    @fqxn CoG.Classes.RNG.Methods.binary
+    @fqxn CoG.RNG.Methods.binary
     @vis Static Public
     @desc Generates a random value of 0 or 1.
     @ret number 0 or 1.
@@ -34,7 +34,7 @@ return class("RNG",
         return rand(0, 1);
     end,
     --[[!
-    @fqxn CoG.Classes.RNG.Methods.bipolar
+    @fqxn CoG.RNG.Methods.bipolar
     @vis Static Public
     @desc Generates a random value of -1 or 1.
     @ret number -1 or 1.
@@ -45,7 +45,7 @@ return class("RNG",
         return _tBipolar[rand(1, 2)];
     end,
     --[[!
-    @fqxn CoG.Classes.RNG.Methods.boolean
+    @fqxn CoG.RNG.Methods.boolean
     @vis Static Public
     @desc Generates a random boolean value.
     @ret boolean bFlag Randomly, true or false.
@@ -56,7 +56,7 @@ return class("RNG",
         return _tBooleans[rand(1, 2)];
     end,
     --[[!
-    @fqxn CoG.Classes.RNG.Methods.percent
+    @fqxn CoG.RNG.Methods.percent
     @vis Static Public
     @desc Generates a percentage value.
     @param boolean|nil bFloat Whether the result should be a float from 0.01-1 or an int from 1-100 (defaults to false).
@@ -69,7 +69,7 @@ return class("RNG",
         return bFloat and (rand(1, 100) / 100) or rand(1, 100);
     end,
     --[[!
-    @fqxn CoG.Classes.RNG.Methods.rollCheck
+    @fqxn CoG.RNG.Methods.rollCheck
     @vis Static Public
     @desc Determines whether a check is made based on the input. Often used for things like stat checks. The check will be successful if the number rolled by the function is equal to or higher than the <strong><em>nCheck</em></strong> parameter.
     @param number|nil nSides The number of sides the check die will be (defaults to 20).
@@ -86,7 +86,7 @@ return class("RNG",
         return nRoll >= nCheck, nRoll, nRoll - nCheck;
     end,
     --[[!
-    @fqxn CoG.Classes.RNG.Methods.rollDice
+    @fqxn CoG.RNG.Methods.rollDice
     @vis Static Public
     @desc Rolls a number of dice, returning the sum total of the roll.
     <br>The number of sides on the dice is determined by the <strong><em>nSides</em></strong> parameter (defaults to 6).
@@ -149,7 +149,7 @@ return class("RNG",
         return nGrandTotal;
     end,
     --[[!
-    @fqxn CoG.Classes.RNG.Methods.rollPercentage
+    @fqxn CoG.RNG.Methods.rollPercentage
     @vis Static Public
     @desc Rolls a percentage chance based on the input value.
     <br>The number of attempts is determined by the <strong><em>nAttempts</em></strong> parameter (defaults to 1).

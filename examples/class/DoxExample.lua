@@ -91,3 +91,7 @@ oDoxLua.setIntro(sContent);
 oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export("index");
+
+for v in oDoxLua.eachBlockTag() do
+
+end

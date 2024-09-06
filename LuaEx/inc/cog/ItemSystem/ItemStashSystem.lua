@@ -66,7 +66,7 @@ return class("ItemStashSystem",
     getTabCount = function(this, cdat)
         return #cdat.pri.tabs;
     end,
-    iterator = function(this, cdat)
+    eachTab = function(this, cdat)
         local tTabs     = cdat.pri.tabs;
         local nIndex    = 0;
         local nMax      = #tTabs;

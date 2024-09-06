@@ -3,10 +3,10 @@
     @des Used to create BlockTags used in a Dox parser.<br>While Dox ships with many pre-made BlockTags, users may also create and add their own by subclassing Dox.
     @ex
     local bRequired         = true;
-    local bMultipleAllowed  = true;
-    local oFQXN = DoxBlockTag({"fqxn"}, "FQXN", bRequired, -bMultipleAllowed);
-    @author <a href="https://github.com/CentauriSoldier" target="_blank">Centauri Soldier</a>
-    @github <a href="https://github.com/CentauriSoldier/LuaEx" target="_blank">Visit the LuaEx Github</a>
+    local bMultipleAllowed  = false;
+    local bCombined         = false;
+    local oFQXN             = DoxBlockTag({"fqxn"}, "FQXN", bRequired, bMultipleAllowed, bCombined);
+    --TODO more examples
 !]]
 
 --TODO localization
@@ -94,9 +94,9 @@ return class("DoxBlockTag",
         type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.");
 
         pri.display         = sDisplay;
-        pri.multipleAllowed = type(bMultipleAllowed)   == "boolean"  and bMultipleAllowed    or false;
-        pri.combined        = type(bCombined)          == "boolean"  and bCombined           or false;
-        pri.required        = type(bRequired)          == "boolean"  and bRequired           or false;
+        pri.multipleAllowed = type(bMultipleAllowed)   == "boolean"  and bMultipleAllowed                       or false;
+        pri.combined        = type(bCombined)          == "boolean"  and (bCombined and pri.multipleAllowed)    or false;
+        pri.required        = type(bRequired)          == "boolean"  and bRequired                              or false;
 
         for _, sAlias in ipairs(tAliases) do
             type.assert.string(sAlias, "^[^%s]+$", "Block tag must be a non-blank string containing no space characters.");
@@ -124,21 +124,46 @@ return class("DoxBlockTag",
         end
 
     end,
+    --[[!
+    @fqxn Dox.Components.DoxBlockTag.Methods.isCombined
+    @desc Determines whether all items using this block tag will be combined into one section in the final output.
+    <br><strong>Note</strong>: Even if this is set to true upon creation, it will logically auto-set to false if multiple of this <strong>BlockTag</strong> are not allowed.
+    @return boolean bCombined Returns true if combined, false otherwise.
+    !]]
     isCombined = function(this, cdat)
         return cdat.pri.combined;
     end,
+    --[[!
+    @fqxn Dox.Components.DoxBlockTag.Methods.isMultipleAllowed
+    @desc Determines whether multiple of this <strong>BlockTag</strong> are allowed.
+    @return boolean bCombined Returns true if multiple are allowed, false otherwise.
+    !]]
     isMultipleAllowed = function(this, cdat)
         return cdat.pri.multipleAllowed;
     end,
+    --[[!
+    @fqxn Dox.Components.DoxBlockTag.Methods.isRequired
+    @desc Determines whether this <strong>BlockTag</strong> is required in every block.
+    @return boolean bRequired Returns true if it's required, false otherwise.
+    !]]
     isRequired = function(this, cdat)
         return cdat.pri.required;
     end,
-    clone = function(this, cdat) --OMG TODO QUESTION, Why is this here? Is this old? I have a clone metamethod
-        return this;
-    end,
+    --[[!
+    @fqxn Dox.Components.DoxBlockTag.Methods.getDisplay
+    @desc Gets the display title of this <strong>BlockTag</strong>.
+    @return boolean bRequired Returns true if it's required, false otherwise.
+    !]]
     getDisplay = function(this, cdat)
         return cdat.pri.display;
     end,
+    --[[!
+    @fqxn Dox.Components.DoxBlockTag.Methods.getColumnCount
+    @desc Gets the total number of text columns in this <strong>BlockTag</strong>.
+    <br>For example, the Return(s) <strong>BlockTag</strong> has three total columns:
+    <br>The first for the type, the second for example variable name, the third for the description of the return value.
+    @return number nColumns The number of the columns in this <strong>BlockTag</strong>.
+    !]]
     getColumnCount = function(this, cdat)
         return cdat.pri.columnCount;
     end,
@@ -152,6 +177,12 @@ return class("DoxBlockTag",
 
         return tRet;
     end,
+    --[[!
+    @fqxn Dox.Components.DoxBlockTag.Methods.hasAlias
+    @desc Determines whether a given alias exists in this <strong>BlockTag</strong>.
+    @param string sAlias The alias to check.
+    @return boolean bExists Returns true if the input alias exists, false otherwise.
+    !]]
     hasAlias = function(this, cdat, sInputRaw)
         local bRet      = false;
         local sInput    = sInputRaw:lower();
@@ -167,7 +198,12 @@ return class("DoxBlockTag",
 
         return bRet;
     end,
-    aliases = function(this, cdat)
+    --[[!
+    @fqxn Dox.Methods.eachAlias
+    @desc Returns an iterator that returns each alias in this <strong>BlockTag</strong>.
+    @return function fIterator The iterator.
+    !]]
+    eachAlias = function(this, cdat)
         local nIndex    = 0;
         local tAliases  = cdat.pri.aliases;
         local nMax      = #tAliases;

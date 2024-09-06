@@ -10,6 +10,9 @@
     </p>
 !]]
 return {
+    Affix = {
+        maxTier = TIER.VI,
+    },
     AStar = {
         nodeEdges = {
             entry   = {},

@@ -316,6 +316,9 @@ if (_tClassLoadValues[_nClassSystem]) then
                 if (_tClassLoadValues[_nCoGClasses]) then
                     local pCoG      = "LuaEx.inc.cog";
 
+                    --load the enums
+                    require(pCoG..".Enums");
+
                     --create the CoG table
                     local tCoG = table.setreadonly(
                     {
@@ -328,6 +331,8 @@ if (_tClassLoadValues[_nClassSystem]) then
 
                     Scaler          = require(pCoG..".Scaler");
                     RNG             = require(pCoG..".RNG");
+
+                    Affix           = require(pCoG..".Affix");
 
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");

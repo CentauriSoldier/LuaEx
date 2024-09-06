@@ -116,7 +116,7 @@ return class("TagSystem",
 
         return bRet;
     end,
-    iterator = function(this, cdat)--lua 5.1 compat
+    eachTag = function(this, cdat)--lua 5.1 compat
         local pri           = cdat.pri;
         local tTags         = pri.tags;
         local tSortedTags   = pri.sortedTags;
