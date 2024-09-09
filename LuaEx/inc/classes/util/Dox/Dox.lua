@@ -363,7 +363,7 @@ return class("Dox",
             for __, sFQXN in pairs(tLink) do
 
                 if (tIndex[sFQXN] == nil) then
-                    error("Error creating dox block. TODO"); --TODO FINISH ERROR
+                    error("Error creating inherited dox block. FQXN, '${fqxn}', is nil.\nThis is likey caused by the docs to be inherited, not existing.\nPlease check that the doc link exists." % {fqxn = sFQXN}); --TODO FINISH ERROR
                 end
 
                 tIndex = tIndex[sFQXN];
@@ -563,7 +563,7 @@ return class("Dox",
 
         cdat.pri.refresh();
     end,]]
-    importFile__FNL = function(this, cdat, pFile, bSkipRefresh)
+    importFile__FNL = function(this, cdat, pFile)--, bSkipRefresh)
         type.assert.string(pFile, "%S+");
 
         --get the path parts (to find the filetype)
@@ -593,16 +593,16 @@ return class("Dox",
                 --cdat.pri.extractBlockStrings(sContent);
                 hFile:close();
 
-                if not (bSkipRefresh) then
-                    cdat.pri.refresh();
-                end
+                --if not (bSkipRefresh) then
+                --    cdat.pri.refresh();
+                --end
 
             end
 
         end
 
     end,
-    importFiles__FNL = function(this, cdat, tFiles, bSkipRefresh)
+    importFiles__FNL = function(this, cdat, tFiles)--, bSkipRefresh)
         type.assert.table(tFiles, "number", "string", 1);
 
         for nIndex, pFile in pairs(tFiles) do
@@ -635,9 +635,9 @@ return class("Dox",
                     --cdat.pri.extractBlockStrings(sContent);
                     hFile:close();
 
-                    if not (bSkipRefresh) then
-                        cdat.pri.refresh();
-                    end
+                    --if not (bSkipRefresh) then
+                    --    cdat.pri.refresh();
+                    --end
 
                 end
 
@@ -646,16 +646,16 @@ return class("Dox",
         end
 
     end,
-    importString__FNL = function(this, cdat, sInput, oDoxMime, bSkipRefresh)
+    importString__FNL = function(this, cdat, sInput, oDoxMime)--, bSkipRefresh)
         --TODO assert mime object
         type.assert.string(sInput);
         local sWorking = sInput;
 
         cdat.pri.extractBlockStrings(sWorking, oDoxMime);
 
-        if not (bSkipRefresh) then
-            cdat.pri.refresh();
-        end
+        --if not (bSkipRefresh) then
+        --    cdat.pri.refresh();
+        --end
 
     end,
     refresh__FNL = function(this, cdat)

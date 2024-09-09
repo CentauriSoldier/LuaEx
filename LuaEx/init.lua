@@ -406,7 +406,8 @@ if (_tClassLoadValues[_nClassSystem]) then
 
 
                 --ini
-                Ini    = require(pClasses..".util.Ini"); --TODO need to finish OrderedSet first
+                Ini     = require(pClasses..".util.Ini"); --TODO need to finish OrderedSet first
+                BaseLog = require(pClasses..".util.BaseLog");
             end
 
         end

@@ -1,4 +1,4 @@
-local _tCoGConfig   = rawget(_G, "luaex").cog.config;
+local _tCoGConfig   = luaex.cog.config;
 local _eMaxTier     = _tCoGConfig.Affix.maxTier;
 
 local class         = class;
@@ -105,7 +105,7 @@ return class("Affix",
     --[[!
     @fqxn CoG.Affix.Methods.eachCompatibleClass
     @desc An iterator that iterates over each class with which this affix is compatible.
-    @ret function fIterator The iterator function.        
+    @ret function fIterator The iterator function.
     !]]
     eachCompatibleClass = function()
         return next, cdat.pri.appliesTo, nil;
