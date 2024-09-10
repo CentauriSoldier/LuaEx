@@ -331,7 +331,7 @@ if (_tClassLoadValues[_nClassSystem]) then
 
                     Scaler          = require(pCoG..".Scaler");
                     RNG             = require(pCoG..".RNG");
-
+                    EventSystem     = require(pCoG..".EventSystem");
                     Affix           = require(pCoG..".Affix");
 
                     --interfaces
