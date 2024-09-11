@@ -951,7 +951,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                     tNextParent = tNextParent.parent;
                 end
 
-                --TODO DIRECTIVE TEST
+                --TODO DIRECTIVE TEST FINISH LEFT OFF HERE
                --ensure this isn't a read-only field
                 local tROField      = tInstance.readOnlyFields[sCAI] and
                                       tInstance.readOnlyFields[sCAI][k];
@@ -1658,8 +1658,9 @@ end
 @scope local
 @desc Prepares all directives dictated by the class.
 !]]
-local _tDirectiveVisibilites = {"met", "stapub", "pri", "pro", "pub"};
-function kit.processDirectives(tKit) --TODO set to local after test
+local _tDirectiveVisibilites        = {"met", "stapub", "pri", "pro", "pub"};
+local _tReadOnlyFieldVisibilites    = {"pro", "pub"};
+function kit.processDirectives(tKit)
 
     for _, sCAI in pairs(_tDirectiveVisibilites) do
 
@@ -1697,6 +1698,23 @@ function kit.processDirectives(tKit) --TODO set to local after test
 
         end
 
+    end
+
+    --adopt parents' read-only fields
+    local tParent = tKit.parent;
+
+    while (tParent) do
+
+        for sCAI, tReadOnlyFields in pairs(tParent.readOnlyFields) do
+
+            for sKey, tData in pairs(tReadOnlyFields) do
+                print(sCAI, sKey, tData.fixed)
+                tKit.readOnlyFields[sCAI][sKey] = tData;
+            end
+
+        end
+
+        tParent = tParent.parent
     end
 
 
@@ -1740,7 +1758,7 @@ function kit.processDirectives(tKit) --TODO set to local after test
             if (tDirective.setter) then
                 --set the placeholder
                 tKit.pub[tDirective.setter] = _fAutoPlaceHolder;
-
+--TODO LEFT OFF HERE ...create an else where we set a finalmethodeven if there is no setter but setter is final...
                 --set the method as final (or not)
                 if (tDirective.setterIsFinal) then
                     tKit.finalMethodNames.pub[tDirective.setter] = true;
@@ -1751,7 +1769,6 @@ function kit.processDirectives(tKit) --TODO set to local after test
         end
 
     end
-
 
 end
 

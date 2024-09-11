@@ -212,6 +212,8 @@ local null		        = 	require("LuaEx.lib.null");
                             rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
 array                   =   require("LuaEx.lib.array");
 enum			        = 	require("LuaEx.lib.enum");
+event			        = 	require("LuaEx.lib.event");
+eventrix    	        = 	require("LuaEx.lib.eventrix");
 local tStruct           = 	require("LuaEx.lib.struct");
 struct                  =   tStruct.struct;
 structfactory           =   tStruct.structfactory;
@@ -330,8 +332,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     rawset(tLuaEx, "cog", tCoG);
 
                     Scaler          = require(pCoG..".Scaler");
-                    RNG             = require(pCoG..".RNG");
-                    EventSystem     = require(pCoG..".EventSystem");
+                    RNG             = require(pCoG..".RNG");                    
                     Affix           = require(pCoG..".Affix");
 
                     --interfaces

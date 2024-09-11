@@ -27,12 +27,15 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
+- Bugfix:  **class** kits not adopting parents' protected and public read-only values.
 - Bugfix:  **Structfactory** not properly cloning itself.
 - Bugfix:  **Structs** not properly cloning internal objects.
 - Bugfix:  Instance returns in parent class were not properly returning child instance when subclassed.
 - Bugfix:  Dox "Copy" button not working.
 - Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
 - Change:  Dox CSS redesigned to be more functional and aesthetically pleasing.
+- Feature: Added new **event** type.
+- Feature: Added new **eventrix** type to manage **event** objects.
 - Feature: Enum items now have ***__eq*** and ***__lt*** metamethods.
 - Feature: Dox now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
 - Feature: ***DoxBlockTags*** can now be set to combined.
@@ -269,22 +272,25 @@ Variables are prefixed with the following lower-case symbols based on their type
 *e*	|	**enum**  
 *f*	| 	**function**  
 *h*	|	**file\window\etc. handle** *(number)*  
+*j*	|	**event**  
+*k*	|	**eventrix**  
 *n*	|	**number**  
+*o*	|	**class\other** *(object)*  
 *p*	|	**file\dir path** *(string)*  
 *r*	|	**struct**  
-*o*	|	**class\other** *(object)*  
 *s*	|	**string**  
 *t*	|	**table**  
 *u*	| 	**userdata**  
 *v*	|	**variable/unknown type**  
 *w*	|	**environment table** *(table)*  
 *x*	|	**factory**  
+*y*	|	**subtype**  *(string)*  
 *z*	|	**type** *(string)* (e.g., "string", "table", etc.)  
 
 Types ignored by this convention are types **nil** and **null** since prefixing such a variable type would, generally, serve no real purpose.
 
 ###### Exceptions:
-In **for loops**, sometimes '*x*' is used to indicate active index while 'k' and 'v' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.
+In **for loops**, sometimes '*x*' is used to indicate active index while '*k*' and '*v*' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.
 
 Global variables that are directory paths begin with **_** and ***do not*** have a variable prefix.
 E.g., _Scripts

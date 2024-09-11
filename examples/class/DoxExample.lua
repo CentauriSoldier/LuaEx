@@ -95,3 +95,81 @@ oDoxLua.export("index");
 for v in oDoxLua.eachBlockTag() do
 
 end
+
+
+
+--[[!
+    @fqxn CoG.ItemSystem.BaseItem
+    @desc STUFF HERE
+!]]
+test = class("test",
+{--METAMETHODS
+    __clone = function(this, cdat)
+        local oNew = BaseItem(); --TODO FINISH
+        --print(type(oNew))
+        return oNew;
+    end,
+},
+{--STATIC PUBLIC
+    --BaseItem = function(stapub)
+    --end,
+    --enum("Item.ACTION", {"DISCARD"}, nil, true),
+},
+{--PRIVATE
+},
+{--PROTECTED
+    Cat__autoRF        = "stuff here",
+
+},
+{--PUBLIC
+    k__RO = 54,
+    test = function(this, cdat)
+        local pro = cdat.pro;
+
+    end,
+},
+nil,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
+
+
+test2 = class("test2",
+{--METAMETHODS
+    __clone = function(this, cdat)
+        local oNew = BaseItem(); --TODO FINISH
+        --print(type(oNew))
+        return oNew;
+    end,
+},
+{--STATIC PUBLIC
+    --BaseItem = function(stapub)
+    --end,
+    --enum("Item.ACTION", {"DISCARD"}, nil, true),
+},
+{--PRIVATE
+},
+{--PROTECTED
+    --Cat__autoRA        = "stuff here 2",
+
+},
+{--PUBLIC
+    test2 = function(this, cdat,super)
+        local pro = cdat.pro;
+        --pro.Cat = "XDS";
+        super(0)
+    end,
+    setCat = function(this, cdat)
+        --cdat.pro.Cat ="AWWEQ#E"
+    end,
+},
+test,   --extending class
+false, --if the class is final
+nil    --interface(s) (either nil, or interface(s))
+);
+
+local t2 = test2();
+t2.setCat()
+print(t2.getCat())
+
+print(t2.k)
