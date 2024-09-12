@@ -27,23 +27,24 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
+- Bugfix:  **Dox** displaying parameters, returns and other combined tags out of order.
 - Bugfix:  **class** kits not adopting parents' protected and public read-only values.
 - Bugfix:  **Structfactory** not properly cloning itself.
 - Bugfix:  **Structs** not properly cloning internal objects.
-- Bugfix:  Instance returns in parent class were not properly returning child instance when subclassed.
-- Bugfix:  Dox "Copy" button not working.
-- Change:  Dox now places all output into a single HTML file instead of using a separate *.js* file.
-- Change:  Dox CSS redesigned to be more functional and aesthetically pleasing.
-- Feature: Added new **event** type.
-- Feature: Added new **eventrix** type to manage **event** objects.
-- Feature: Enum items now have ***__eq*** and ***__lt*** metamethods.
-- Feature: Dox now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
-- Feature: ***DoxBlockTags*** can now be set to combined.
-- Feature: Dox now has an ***@inheritdoc*** tag that allows inheritance of docs from one **fqxn** to another.
-- Feature: Dox Fully Qualified Dox Names (**fqxn**) may now contain spaces.
-- Feature: Dox now allows custom intro page message.
-- Feature: Subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
-- Feature Added several class-level checks:
+- Bugfix:  instance returns in parent class were not properly returning child instance when subclassed.
+- Bugfix:  **Dox** "Copy" button not working.
+- Change:  **Dox** now places all output into a single HTML file instead of using a separate *.js* file.
+- Change:  **Dox** CSS redesigned to be more functional and aesthetically pleasing.
+- Feature: added new **event** type.
+- Feature: added new **eventrix** type to manage **event** objects.
+- Feature: **enum** items now have ***__eq*** and ***__lt*** metamethods.
+- Feature: **Dox** now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
+- Feature: ***DoxBlockTags*** can now be set to *combined* which places all items using that tag into one section.
+- Feature: **Dox** now has an ***@inheritdoc*** tag that allows inheritance of docs from one **fqxn** to another.
+- Feature: **Dox** Fully Qualified Dox Names (**fqxn**) may now contain spaces.
+- Feature: **Dox** now allows custom intro page message.
+- Feature: subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
+- Feature added several class-level checks:
     - **class.of**
     - **class.getname**
     - **class.getbase**
@@ -58,17 +59,17 @@ From here on out, all modules of **LuaEx** will be available in the global envir
     - **class.isinstanceof**
     - **class.isparent**
     - **class.isparentorself**    
-- Feature: Classes now fully respect polymorphism in assignment operation type checking.
+- Feature: **classes** now fully respect polymorphism in assignment operation type checking.
 - Feature: The class constructor may now be either private, protected or public.
-- Feature: Classes now have an *optional* static constructor using the class name as the static method name.
-- Feature: Dox comment blocks can now use anchor links (*#*) to other FQXNs.
+- Feature: **classes** now have an *optional* static constructor using the class name as the static method name.
+- Feature: **Dox** comment blocks can now use internal anchor links (*#*) to other FQXNs.
 - Feature: added Dox output back navigation.
-- Feature: Dox now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
+- Feature: **Dox** now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
 - Feature: added a "Copy" (to clipboard) button to all user-created code blocks.
 - Feature: added a **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
-- Feature: **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the Dox subclass being used.
+- Feature: **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the **Dox** subclass being used.
 - Feature: **prism.js** scripts are automatically added to Dox's finalized HTML output based on the languages used in the documentation.
-- Feature: added Dox parsers (subclasses) for several new languages.
+- Feature: added **Dox** parsers (subclasses) for several new languages.
 
 **v0.90**
 - Bugfix:  error in ***type.assert.table*** where value type was showing as index type, resulting in false negatives.
@@ -79,7 +80,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Feature: added several new features to **Dox** and prepped it for major updates in future releases.
 - Feature: added ***type.assert.function***.
 - Feature: all items in tables are now properly cloned.
-- Feature: class tables are now cloned so class instances may now start with clonable objects as default properties.
+- Feature: **class** tables are now cloned so class instances may now start with clonable objects as default properties.
 
 **v0.83**
 - Bugfix:   various, minor bugs.

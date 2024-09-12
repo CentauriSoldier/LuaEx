@@ -27,7 +27,7 @@ local tKeyWords = {"and", "break", "do", "else", "elseif", "end",
                    --LuaEx keywords
                    "class","constant","enum"
                };
-local nKeywords = #tKeyWords;
+local nKeywords = #tKeyWords;--TODO BUG FIX FINISH remove this entry and get the list fromt he main lua table!!!!
 
 --keys are enum decoy tables and values are actual. This is used to embed enums.
 local tEnumDecoyActualRepo 	= {};

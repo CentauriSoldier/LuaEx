@@ -1,7 +1,5 @@
 --[[!
 @fqxn LuaEx.Class System
-@author Centauri Soldier
-@copyright See LuaEx License
 @desc
     <h3>Lua's (<i>pseudo</i>) Object Oriented Programming</h3>
     <p>The class module aims to bring a simple-to-use, fully functional, OOP class system to Lua to the extent that such a feat is possible.
@@ -49,6 +47,7 @@ To facilitate a class's instances accessing and mutating each other (as is commo
 <ul>
     <li>
         <b>0.8</b>
+        <p>Change: All future changelog notes can be found in LuaEx's changelog.</>
         <p>Feature: subclassing can now be controlled with whitelists or blacklists.</p>
         <p>Feature: added several class-level methods.</p>
         <p>Feature: added a static initializer to classes (uses a method of the class name in the static public table).</p>
@@ -243,7 +242,7 @@ MyMethod__FNL = function() end
 <p>
 By adding the __RO directive to the end of a field name, it becomes read-only and may not be interally or externally modified.
 <pre><code class="language-lua">
-MyField_RO = 12,
+MyField__RO = 12,
 </code></pre>
 </p>
 !]]
@@ -320,11 +319,19 @@ _fAutoPlaceHolder = function() end;
 byName              = TODO,
 isbase              = TODO,
 isinstanceof        = TODO,
-issibling           = TODO,--maybe not this one...
+issibling, is cousin           = TODO,--maybe not this one...
 getbase             = TODO,
 getName             = TODO]]
 --TODO use error instead of assert so error level can be set (or can it be on assert?)..assert is slower...
 --can i get rid of rawtype and just use ~= nil?
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.ischild
+@desc Determines if a class object is a child (however far removed) of another class object.
+@param class cChild The potential child class to check.
+@param class cParent The potential parent class to check.
+@ret boolean bIsChild True if it's a child, false otherwise.
+!]]
 local function ischild(vChild, vParent)
     local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
                                 class.repo.byObject[vChild]                 or nil;
@@ -336,6 +343,13 @@ local function ischild(vChild, vParent)
               (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil") );
 end
 
+--[[!
+@fqxn LuaEx.Class System.class.Methods.ischildorself
+@desc Determines if a class object is a child of another class object or is that class itself.
+@param class cChild The potential child class to check.
+@param class cParent The potential parent (or self) class to check.
+@ret boolean bIsChildOrSelf True if it's a child or self, false otherwise.
+!]]
 local function ischildorself(vChild, vParent)
     local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
                                 class.repo.byObject[vChild]                 or nil;
@@ -347,6 +361,13 @@ local function ischildorself(vChild, vParent)
            (tParentKit and (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil"));
 end
 
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isdirectchild
+@desc Determines if a class object is a direct descendant of another class object.
+@param class cChild The potential child class to check.
+@param class cParent The potential parent class to check.
+@ret boolean bIsDirectChild True if it's a direct descendant, false otherwise.
+!]]
 local function isdirectchild(vChild, vParent)
     local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
                                 class.repo.byObject[vChild]                 or nil;
@@ -357,6 +378,7 @@ local function isdirectchild(vChild, vParent)
             (tChildKit ~= tParentKit)   and
             (rawtype(tParentKit.children.direct.byObject[vChild]) ~= "nil");
 end
+
 
 
 local function isinlineage(vChild, vParent)
@@ -405,14 +427,35 @@ local function isdirectparent(vParent, vChild)
             (tParentKit and (rawtype(tParentKit.children.direct.byObject[vChild]) ~= "nil"));
 end
 
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.is
+@desc Determines if something is a class object.
+@param any vValue The item to check.
+@ret boolean bIsClass True if it's a class, false otherwise.
+!]]
 local function is(vClass)
     return rawtype(class.repo.byObject[vClass]) ~= "nil";
 end
 
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isinstance
+@desc Determines if something is an instance object of any class.
+@param any vValue The item to check.
+@ret boolean bIsInstance True if it's an instance of a class, false otherwise.
+!]]
 local function isinstance(vInstance)
     return rawtype(instance.repo.byObject[vInstance]) ~= "nil";
 end
 
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.of
+@desc Gets the class object of an instance object.
+@param instance oInstance The instance object for which to find the class.
+@ret class|nil cClass The class of the instance object or nil if the input is invalid.
+!]]
 local function of(vInstance)
     local cRet;
 
@@ -423,6 +466,13 @@ local function of(vInstance)
     return cRet;
 end
 
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.getname
+@desc Gets the class name of a class.
+@param class cClass The class for which to get the name.
+@ret string|nil sClass The name of the class or nil if the input is invalid.
+!]]
 local function getname(vClass)
     local tKit = rawtype(   class.repo.byObject[vClass]) ~= "nil"    and
                             class.repo.byObject[vClass]              or nil
@@ -1271,7 +1321,7 @@ end
 @param boolean|table|nil vLimitationsOrFinal A boolean value indicating whether this class is final, nil indicating false, or a numerically-indexed table of strings whose values are class names to which subclasses should be limited.
 @param interface|nil The interface(s) this class implements (or nil, if none). This is a cararg table, so many or none may be entered.
 @scope local
-@desc Imports a kit for later use in building class objects
+@desc Imports a kit for later use in building class objects.
 @ret class Class Returns the class returned from the kit.build() tail call.
 !]]
 function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic, cExtendor, vFinality, ...)

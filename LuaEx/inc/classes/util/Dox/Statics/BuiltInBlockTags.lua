@@ -1,5 +1,5 @@
 --[[!
-    @fqxn LuaEx.Classes.Utility.Dox.Statics.BlockTags
+    @fqxn Dox.Statics.BlockTags
     @desc This is a list of all built-in <a href="#Classes.Utility.Dox.BlockTag">BlockTags</a>.
     <br>While subclasses (parsers) <i>may</i> provide their own, additional BlockTags, these are always guaranteed to be available.
 !]]

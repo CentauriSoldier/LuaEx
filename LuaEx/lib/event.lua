@@ -5,6 +5,14 @@ local type      = type;
 local unpack    = table.unpack;
 local remove    = table.remove;
 
+--[[
+@fqxn LuaEx.Events
+@desc The events system is designed to provide a simple-to-use, safe event system for your code.
+<br>Event hooks are executed in the environment set during event registration or the default environment if one is not set during registration.
+<br>Each event system can be created with a default environment in which all not-otherwise-specified hooks will fire.
+<br>Note: The <a href="#LuaEx.Events">eventrix</a> class (which handles events) is <b>not</b> static. You may create as many eventrixes as you wish since each one must be instantiated.
+]]
+
 local tArgDummy = {}; --used when no input args exist in the fire method
 
 local function hookError(sMethod, zHook)

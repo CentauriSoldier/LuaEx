@@ -177,7 +177,7 @@ return class("DoxBlock",
             end
             return mapping
         end
-
+--[[
         -- Custom sorting function
         local function customSort(a, b, mapping)
             local displayA = a.blockTag:getDisplay()
@@ -197,13 +197,48 @@ return class("DoxBlock",
 
         -- Function to sort pri.items based on tSortOrder
         local function sortItems()
-            local mapping = createSortMapping(tSortOrder)
+            local mapping = createSortMapping(tSortOrder)--TODO FINISH BUG FIX This sorting is arbitrarily causing parameters to show in the wrong order. Try to create a sorting method that accounts for combined items and doesn't sort them or at least sorts them while keeping them in the same order relative to themelves.
             table.sort(pri.items, function(a, b)
                 return customSort(a, b, mapping)
             end)
         end
 
-        sortItems();
+        sortItems();]]
+        -- Add index to each item to maintain original order
+        local function addIndexToItems(items)
+            for i, item in ipairs(items) do
+                item.originalIndex = i
+            end
+        end
+
+        -- Custom sorting function with stable sort
+        local function customSort(a, b, mapping)
+            local displayA = a.blockTag:getDisplay()
+            local displayB = b.blockTag:getDisplay()
+
+            local indexA = mapping[displayA] or math.huge
+            local indexB = mapping[displayB] or math.huge
+
+            if indexA == indexB then
+                -- If indices are the same, maintain original order
+                return a.originalIndex < b.originalIndex
+            else
+                -- Otherwise, sort based on indices
+                return indexA < indexB
+            end
+        end
+
+        -- Function to sort pri.items based on tSortOrder
+        local function sortItems()
+            addIndexToItems(pri.items)  -- Add index to items
+            local mapping = createSortMapping(tSortOrder)
+
+            table.sort(pri.items, function(a, b)
+                return customSort(a, b, mapping)
+            end)
+        end
+
+        sortItems()
     end,
     eachItem = function(this, cdat)
         local tItems = cdat.pri.items;

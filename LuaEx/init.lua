@@ -133,6 +133,8 @@ of the global environment.
         <li>constant</li>
         <li>enum</li>
         <li>enumfactory</li>
+        <li>event</li>
+        <li>eventrix</li>
         <li>interface</li>
         <li>null</li>
         <li>struct</li>
@@ -146,7 +148,9 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
                     "nil", 		"not", 		"or", 		"repeat", 	"return", 	"then",
                     "true", 	"until", 	"while",
                     --LuaEx keywords/types
-                    "constant", 	"enum", "enumfactory",	"struct",	"null",	"class",	"interface",
+                    "constant", 	"enum", "enumfactory",
+                    "event", "eventrix",
+                    "struct",	"null",	"class",	"interface",
                     "array", "arrayfactory", "classfactory", "structfactory", "structfactorybuilder"
 };
 
@@ -166,7 +170,7 @@ local tLuaEx = {--TODO fix inconsistency in naming and underscores
             __metatable = false,
         }),
         __keywords__count__ = #tKeyWords,
-        _VERSION = "LuaEx 0.81",
+        _VERSION = "LuaEx 0.90",
         --_SOURCE_PATH = getsourcepath(),
 };
 
@@ -252,18 +256,19 @@ table		= require("LuaEx.hook.tablehook");
 base64 		= require("LuaEx.lib.base64");
 
 --import serialization
-serializer  = require("LuaEx.util.serializer");
+serializer  = require("LuaEx.lib.serializer");
 
 --import cloner
-cloner      = require("LuaEx.util.cloner");
+cloner      = require("LuaEx.lib.cloner");
 clone       = cloner.clone;
 
 --🆁🅴🅶🅸🆂🆃🅴🆁 🅻🆄🅰🅴🆇 🅵🅰🅲🆃🅾🆁🅸🅴🆂 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
 cloner.registerFactory(array);
 cloner.registerFactory(enum);
+cloner.registerFactory(event);
+cloner.registerFactory(eventrix);
 cloner.registerFactory(struct);
 cloner.registerFactory(structfactory);
---cloner.registerFactory();
 
 --aliases
 serialize   = serializer.serialize;
@@ -332,14 +337,19 @@ if (_tClassLoadValues[_nClassSystem]) then
                     rawset(tLuaEx, "cog", tCoG);
 
                     Scaler          = require(pCoG..".Scaler");
-                    RNG             = require(pCoG..".RNG");                    
-                    Affix           = require(pCoG..".Affix");
+                    RNG             = require(pCoG..".RNG");
 
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");
                     IConsumable     = require(pCoG..".Interfaces.IConsumable");
 
                     TagSystem       = require(pCoG..".TagSystem");
+
+                    --affix system
+                    local pAffixSystem  = pCoG..".AffixSystem";
+                    Affix               = require(pAffixSystem..".Affix");
+                    Affixory            = require(pAffixSystem..".Affixory");
+
                     Pool            = require(pCoG..".Pool");
                     StatusSystem    = require(pCoG..".StatusSystem");
                     AStar           = require(pCoG..".AStar");

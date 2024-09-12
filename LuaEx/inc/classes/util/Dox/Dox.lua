@@ -10,6 +10,7 @@ local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags")
 --TODO add tooltip with @des info (if available) in sidemenu items
 --TODO allow custom BlockTag sort order (in what order items are displayed in the ourput)
 --TODO allow escaping . in FQXN
+--TODO fix bug in fqxns with multiple-spaces
 
 local assert    = assert;
 local class     = class;
