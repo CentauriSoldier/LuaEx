@@ -95,6 +95,10 @@ local function event(eIDInput, wTarget)
             return tRet;
         end,
 
+        getHookCount = function()
+            return #tHookOrder;
+        end,
+
         getID = function()
             return eID;
         end,

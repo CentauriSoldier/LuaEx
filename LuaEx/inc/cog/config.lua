@@ -11,7 +11,7 @@
 !]]
 return {
     Affix = {
-        maxTier = TIER.VI,
+        maxTier = TIER.VI, --TODO move this to rarity
     },
     AStar = {
         nodeEdges = {
@@ -21,6 +21,10 @@ return {
     },
     Pool = {
 
+    },
+    Rarity = {
+        Colors  = {"#bbbbbb", "#0000b3", "#a7a000", "#00c202", "#ba0000", "#CF7136"},
+        LEVEL   = enum("Rarity.LEVEL",  {"COMMON",  "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "SINGULAR"}, nil, true),
     },
     StatusSystem = {
         EFFECT = {
