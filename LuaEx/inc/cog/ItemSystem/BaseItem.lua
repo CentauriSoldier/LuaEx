@@ -58,9 +58,15 @@ return class("BaseItem",
     end,
 },
 {--PUBLIC
-    applyAffix = function(this, cdat, oAffix, vEventID)
+    applyAffix = function(this, cdat, oAffix, eEventID, wEnv)
         local bRet = false;
         local pro = cdat.pro;
+        --local yID = subtype(eIDInput);
+
+        --if not (yID == "enumitem") then--or zID == "string") then
+            --error("Error creating event. Event ID must be of type string or subtype enumitem. Type/subtype given: ${type}/${subtype}." % {type = zID, subtype = yID});
+            --error("Error applying affix. Event ID must be of subtype enumitem. Subtype given: ${subtype}." % {subtype = yID});
+        --end
 
         validateAffix(oAffix);
 
@@ -77,8 +83,11 @@ return class("BaseItem",
                                   Rarity.getSuffixCount(eRarity);
         local tAffixes          = bIsPrefix and pro.prefixes or pro.suffixes;
 
-        if (#tAffixes < nMaxAffixes and eAffixTier <= eMaxTier) then
-            --apply the affix to the item LEFT OFF HERE deal with the event iD AND CLASS CHECK!!!
+        if (#tAffixes < nMaxAffixes and
+            eAffixTier <= eMaxTier  and
+            oAffix.isCompatibleWithClass(class.of(this))) then
+            --apply the affix to the item
+
             bRet = true;
         end
 
