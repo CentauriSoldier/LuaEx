@@ -1,3 +1,8 @@
+--[[!
+@fqxn LuaEx.Libraries.Eventrix
+@desc The eventrix object is designed to be an event system that can be used locally and/or globally.
+!]]
+local rawtype   = rawtype;
 local subtype   = subtype;
 local table     = table;
 local type      = type;
@@ -6,50 +11,98 @@ local unpack    = table.unpack;
 local remove    = table.remove;
 
 
-
-                                            --[[
-                                            ███████╗██╗   ██╗███████╗███╗   ██╗████████╗
-                                            ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝
-                                            █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║
-                                            ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║
-                                            ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║
-                                            ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ]]
-
-
-
 local tArgDummy = {}; --used when no input args exist in the fire method
 
 local function hookError(sMethod, zHook)
-    error("Error in event method, '${method}'. Hook must be of type function. Type given: ${type}." % {method = sMethod, type = zHook}, 3);
+    error("Error in eventrix method, '${method}'. Hook must be of type function. Type given: ${type}." % {method = sMethod, type = zHook}, 3);
 end
 
-local function event(eIDInput, wTarget)
-    local tEventDecoy   = {};
-    local yID           = subtype(eIDInput);
+local function eventError(sMethod, yEvent)
+    error("Error in eventrix method, '${method}'. Event ID must be of type enumitem. Type given: ${type}." % {method = sMethod, type = yEvent}, 3);
+end
 
-    if not (yID == "enumitem") then--or zID == "string") then
-        error("Error creating event. Event ID must be of subtype enumitem. Subtype given: ${subtype}." % {subtype = yID}, 3);
-    end
+local function eventrix(wTarget)
+    local tEventrixDecoy    = {};
+    local wDefault          = type(wTarget) == "table" and wTarget or _ENV;
 
-    --create the event's fields
-    local bIsActive     = true;
-    local wDefault      = type(wTarget) == "table" and wTarget or _ENV;
-    local eID           = eIDInput;
-    local tHooks        = {};
-    local tHookOrder    = {};
+    --create the eventrix's fields
+    local tEvents        = {};
 
-    --setup the event actual table
-    local tEvent        = {
-        ,
+    --setup the eventrix's actual table
+    local tEventrix        = {
+        addHook = function(eEventID, fHook, wTarget)
+            local zHook = rawtype(fHook);
+            local yID   = subtype(eEventID);
 
-        fire = function(...)
-            tRet = {};
+            if not (yID == "enumitem") then
+                eventError("addHook", yID);
+            end
 
-            if (bIsActive) then--fire only if the event is active
-                local tArgs     = {...} or arg;
+            if (zHook ~= "function") then
+                hookError("addHook", zHook);
+            end
+
+            --add the event if it doesn't exist
+            if (tEvents[eEventID] == nil) then
+                tEvents[eEventID] = {
+                    isActive    = true,
+                    hooks       = {},
+                    hookOrder   = {},
+                };
+            end
+
+            local tEvent = tEvents[eEventID];
+
+            --add the hook
+            if (tEvent.hooks[fHook] == nil) then
+
+                tEvent.hookOrder[#tHookOrder + 1] = fHook;
+
+                tEvent.hooks[fHook] = {
+                    isActive = true,
+                    env      = type(wTarget) == "table" and wTarget or wDefault,
+                };
+
+            end
+
+            return tEventDecoy;
+        end,
+
+        getHookCount = function(eEventID)
+            local yID = subtype(eEventID);
+
+            if (yID ~= "enumitem") then
+                eventError("getHookCount", yID);
+            end
+
+            return tEvents[eEventID] ~= nil and #tEvents[eEventID].hookOrder or -1;
+        end,
+
+        eventExists = function(eEventID)
+            local yID = subtype(eEventID);
+
+            if not (yID == "enumitem") then
+                eventError("eventExists", yID);
+            end
+
+            return tEvents[eEventID] ~= nil;
+        end,
+
+        fire = function(eEventID, ...)
+            local tRet  = {};
+            local yID   = subtype(eEventID);
+
+            if not (yID == "enumitem") then
+                eventError("fire", yID);
+            end
+
+            if (tEvents[eEventID] ~= nil and tEvents[eEventID].isActive) then--fire only if the event is active
                 local tInput;
+                local tArgs     = {...} or arg;
+                local tEvent    = tEvents[eEventID];
+                local tHooks    = tEvent.hooks;
 
-                for nIndex, fHook in ipairs(tHookOrder) do
+                for nIndex, fHook in ipairs(tEvent.hookOrder) do
                     local tHook = tHooks[fHook];
 
                     if (tHook.isActive) then --fire the hook only if it's active
@@ -76,232 +129,116 @@ local function event(eIDInput, wTarget)
             return tRet;
         end,
 
-        getHookCount = function()
-            return #tHookOrder;
-        end,
+        isEventActive = function(eEventID)
+            local yID   = subtype(eEventID);
 
-        getID = function()
-            return eID;
-        end,
-
-        isActive = function()
-            return bIsActive;
-        end,
-
-        isHookActive = function(fHook)
-            zHook = type(fHook);
-
-            if (zHook ~= "function") then
-                hookError("addHook", zHook);
+            if not (yID == "enumitem") then
+                eventError("isEventActive", yID);
             end
 
-            return tHooks[fHook].isActive;
+            return tEvents[eEventID] ~= nil and tEvents[eEventID].isActive;
         end,
 
-        hookExists = function(fHook)
-            return fHook ~= nil and tHooks[fHook] ~= nil;
+        isHookActive = function(eEventID, fHook)
+            local bRet  = false;
+            local yID   = subtype(eEventID);
+            local zHook = rawtype(fHook);
+
+            if not (yID == "enumitem") then
+                eventError("isHookActive", yID);
+            end
+
+            if (zHook ~= "function") then
+                hookError("isHookActive", zHook);
+            end
+
+            if (tEvents[eEventID]) then
+                local tHooks = tEvents[eEventID].hooks;
+                bRet = tHooks[fHook] ~= nil and tHooks[fHook].isActive;
+            end
+
+            return bRet;
         end,
 
-        removeHook = function(fHook)
-            zHook = type(fHook);
+        removeEvent = function(eEventID)
+            local yID = subtype(eEventID);
+
+            if not (yID == "enumitem") then--or zID == "string") then
+                eventError("removeEvent", zHook);
+            end
+
+            if (tEvents[eEventID] ~= nil) then
+                tEvents[eEventID] = nil;
+            end
+
+            return tEventrixDecoy;
+        end,
+
+
+        removeHook = function(eEventID, fHook) --TODO
+            local yID   = subtype(eEventID);
+            local zHook = rawtype(fHook);
+
+            if not (yID == "enumitem") then
+                eventError("removeHook", yID);
+            end
 
             if (zHook ~= "function") then
                 hookError("removeHook", zHook);
             end
 
-            --remove the hook
-            if (tHooks[fHook] ~= nil) then
+            if (tEvents[eEventID] ~= nil) then
+                local tEvent        = tEvents[eEventID];
+                local tHooks        = tEvent.hooks;
+                local tHookOrder    = tEvent.hookOrder;
 
-                for nIndex, fExistingHook in pairs(tHookOrder) do
+                if (tHooks[fHook] ~= nil) then
 
-                    if (fHook == fExistingHook) then
-                        remove(tHookOrder, nIndex);
-                        break;
+                    for nIndex, fExistingHook in ipairs(tHookOrder) do
+
+                        if (fHook == fExistingHook) then
+                            remove(tHookOrder, nIndex);
+                            tHooks[fHook] = nil;
+                            break;
+                        end
+
                     end
 
                 end
 
-                tHooks[fHook] = nil;
             end
 
-            return tEventDecoy;
+            return tEventrixDecoy;
         end,
 
-        setActive = function(bFlag)
-            bIsActive = type(bFlag) == "boolean" and bFlag or false;
-            return tEventDecoy;
-        end,
-
-        setHookActive = function(fHook, bFlag)
-            zHook = type(fHook);
-
-            if (zHook ~= "function") then
-                hookError("addHook", zHook);
-            end
-
-            tHooks[fHook].isActive = type(bFlag) == "boolean" and bFlag or false;
-            return tEventDecoy;
-        end,
-
-
-        toggleActive = function()
-            bIsActive = not bIsActive;
-            return tEventDecoy;
-        end,
-
-
-        toggleHookActive = function(fHook)
-            zHook = type(fHook);
-
-            if (zHook ~= "function") then
-                hookError("addHook", zHook);
-            end
-
-            tHooks[fHook].isActive = not tHooks[fHook].isActive;
-            return tEventDecoy;
-        end,
-    };
-
-    --setup the event's metatable
-    local tEventMeta    = {
-        --__call = function(t, ...)
-
-        --end,
-        __serialize = function()
-            --TODO CLONE TOO
-        end,
-        __index = function(t, k)
-            return tEvent[k] or nil;
-        end,
-        __newindex = function(t, k, v) end,
-        __subtype   = "event", --put here for quick checking in eventrix
-        __type      = "event",
-    };
-
-    setmetatable(tEventDecoy, tEventMeta);
-    return tEventDecoy;
-end
-
-                                            --[[
-                                            ███████╗██╗   ██╗███████╗███╗   ██╗████████╗██████╗ ██╗██╗  ██╗
-                                            ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔══██╗██║╚██╗██╔╝
-                                            █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ██████╔╝██║ ╚███╔╝
-                                            ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██╔══██╗██║ ██╔██╗
-                                            ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ██║  ██║██║██╔╝ ██╗
-                                            ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝]]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-local function eventError(sMethod, zEvent)
-    error("Error in eventrix method, '${method}'. Event must be of type string or event. Type given: ${type}." % {method = sMethod, type = zEvent});
-end
-
-local function eventrix(wTarget)
-    local wDefault      = type(wTarget) == "table" and wTarget or _ENV;
-    local tEventrixDecoy   = {};
-
-    --create the eventrix's fields
-    local tEvents        = {};
-    --local tEventsByID    = {};
-
-    --setup the eventrix's actual table
-    local tEventrix        = {
-        addHook = function(eEventID, fHook, wTarget)
-            local zHook = type(fHook);
+        setEventActive = function(eEventID, bFlag)
             local yID   = subtype(eEventID);
 
-            if not (yID == "enumitem") then--or zID == "string") then
-                error("Error adding hook to eventrix. Event ID must be of subtype enumitem. Subtype given: ${subtype}." % {subtype = yID}, 3);
+            if not (yID == "setEventActive") then
+                eventError("setEventActive", yID);
+            end
+
+            if (tEvents[eEventID] ~= nil) then
+                tEvents[eEventID].isActive = rawtype(bFlag) == "boolean" and bFlag or false;
+            end
+
+            return tEventrixDecoy;
+        end,
+
+        setHookActive = function(eEventID, fHook, bFlag)
+            local yID   = subtype(eEventID);
+            local zHook = rawtype(fHook);
+
+            if not (yID == "enumitem") then
+                eventError("setHookActive", yID);
             end
 
             if (zHook ~= "function") then
-                hookError("addHook", zHook);
+                hookError("setHookActive", zHook);
             end
 
-            --add the event if it doesn't exist
-            if (tEvents[eEventID] == nil) then
-                tEvents[eEventID] = {
-                    hooks       = {},
-                    hookOrder   = {},
-                };
-            end
-
-            local tEvent = tEvents[eEventID];
-
-            --add the hook
-            if (tEvent.hooks[fHook] == nil) then
-
-                tEvent.hookOrder[#tHookOrder + 1] = fHook;
-
-                tEvent.hooks[fHook] = {
-                    isActive = true,
-                    env      = type(wTarget) == "table" and wTarget or wDefault,
-                };
-
-            end
-
-            return tEventDecoy;
-        end
-
-        getHookCount = function(eEventID)
-            local nRet = 0;
-            local yEvent = subtype(eEventID);
-
-            if (yEvent ~= "enumitem") then
-                error("Error getting event from eventrix. Event ID must be of subtype enumitem. Got subtype, ${subtype}." % {subtype = yEvent});
-            end
-
-            if (tEventsByID[eEventID]) then
-                nRet = #tEventsByID[eEventID].hookOrder;
-            end
-
-            return nRet;
-        end,
-
-        eventExists = function(eEventID)
-            local yID   = subtype(eEventID);
-
-            if not (yID == "enumitem") then--or zID == "string") then
-                error("Error adding hook to eventrix. Event ID must be of subtype enumitem. Subtype given: ${subtype}." % {subtype = yID}, 3);
-            end
-
-            return tEvents[eEventID] ~= nil;
-        end,
-
-        remove = function(vEventOrID)
-            local yEvent = subtype(vEventOrID);
-
-            if (yEvent == "event") then --search by event
-
-                if (tEvents[vEventOrID] ~= nil) then
-                    tEvents[vEventOrID]             = nil;
-                    tEventsByID[vEventOrID.getID()] = nil;
-                end
-
-            elseif (yEvent == "enumitem") then --search by event ID
-
-                if (tEventsByID[vEventOrID] ~= nil) then
-                    tEvents[tEventsByID[vEventOrID]] = nil;
-                    tEventsByID[vEventOrID] = nil;
-                end
-
-            else
-                error("Error getting event from eventrix. Input must be of subtype event or enumitem. Got subtype, ${subtype}" % {subtype = yEvent});
+            if (tEvents[eEventID] ~= nil and tEvents[eEventID].hooks[fHook] ~= nil) then
+                tEvents[eEventID].hooks[fHook].isActive = rawtype(bFlag) == "boolean" and bFlag or false;
             end
 
             return tEventrixDecoy;
@@ -326,7 +263,7 @@ end
 
 
 
-
+--TODO FINISH clone and de/serialize
 local tEventrixFactory        = {};
 local tEventrixFactoryDecoy   = {};
 local tEventrixFactoryMeta    = {
