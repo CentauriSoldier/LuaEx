@@ -216,7 +216,7 @@ local null		        = 	require("LuaEx.lib.null");
                             rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
 array                   =   require("LuaEx.lib.array");
 enum			        = 	require("LuaEx.lib.enum");
-event			        = 	require("LuaEx.lib.event");
+--event			        = 	require("LuaEx.lib.event");
 eventrix    	        = 	require("LuaEx.lib.eventrix");
 local tStruct           = 	require("LuaEx.lib.struct");
 struct                  =   tStruct.struct;

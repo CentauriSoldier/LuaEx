@@ -30,18 +30,27 @@ return class("BaseItem",
 {--PRIVATE
 },
 {--PROTECTED
+    eventrix__RO            = null,
     prefixes                = {},
     suffixes                = {},
+    Consumable__autoA_is    = false,
     Description__autoA_     = "",
+    --Durable__autoA_is        TODO use a number value - -1 means inf
     Equipable__autoA_is     = false,
-    Eventrix__autoAF        = null,
+    --Exclusive__autoA_is only one allowed at a time
+    --Inimitable__autoA_is TODO prevents copying or not
     Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
     Quest__autoA_is         = false,
     Rarity__auto__          = false,
     Removable__autoA_is     = true,
+    --Repairable__autoA_is  TODO
     Sellable__autoA_is      = true,
+    Stackable__autoA_is     = false,
     TagSystem__autoAF       = null,
     Tradable__autoA_is      = true,
+    --Upgradeable__autoA_is  --TODO
+    --Value__autoA_  TODO
+    --Weight__autoA_ TODO
 
     BaseItem = function(this, cdat, sName, sDescription, eRarity)
         local pro = cdat.pro;
@@ -87,7 +96,7 @@ return class("BaseItem",
             eAffixTier <= eMaxTier  and
             oAffix.isCompatibleWithClass(class.of(this))) then
             --apply the affix to the item
-
+            --pro.Eventrix.addHook(eEventID, wEnv); TODO 
             bRet = true;
         end
 

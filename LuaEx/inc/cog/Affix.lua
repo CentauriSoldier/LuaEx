@@ -5,9 +5,6 @@ an affix (equipment):
 Applies to Rings, Boots, Belts and Armour
 Grants +20% to Max Life.
 Needs the life pool as input.
-
-
-
 ]]
 
 local _tCoGConfig   = luaex.cog.config;
@@ -63,8 +60,8 @@ return class("Affix",
     Type__autoR_ = null,
 },
 {--PROTECTED
-    activator__autoRF   = null,
-    deactivator__autoRF = null,
+    Activator__autoRF   = null,
+    Deactivator__autoRF = null,
     --[[!
     @fqxn CoG.Affix System.Affix.Methods.getName
     @desc Gets the name of the affix..
