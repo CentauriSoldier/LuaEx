@@ -22,7 +22,7 @@ local function placeholder() end
 return class("Affix",
 {--METAMETHODS
     --[[!
-    @fqxn CoG.Affix System.Affix.Metamethods.__pairs
+    @fqxn CoG.Affix.Metamethods.__pairs
     @desc Iterates over the compatible classes table.
     !]]
     __pairs = function(this, cdat)
@@ -34,8 +34,8 @@ return class("Affix",
         stapub.MAX_TIER = _eMaxTier;
     end,
     --[[!
-    @fqxn CoG.Affix System.Affix.Enums.TYPE
-    @desc Used for setting an <a href="#CoG.AffixSystem.Affix.Methods.Affix">Affix's</a> type.
+    @fqxn CoG.Affix.Enums.TYPE
+    @desc Used for setting an <a href="#CoG.Affix.Methods.Affix">Affix's</a> type.
     <hr>
     <ul>
         <li><b>PREFIX</b></li>
@@ -45,40 +45,40 @@ return class("Affix",
     TYPE = _eType,
 },
 {--PRIVATE
-    appliesTo    = {},
+    activator__RO   = null,
+    deactivator__RO = null,
+    appliesTo       = {},
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.getTier
+    @fqxn CoG.Affix.Methods.getTier
     @desc Gets the <a href="#CoG.Enums.TIER">TIER</a> of the affix.
     @ret TIER eTier The <b>TIER</b> of the affix.
     !]]
     Tier__autoR_ = null,
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.getType
-    @desc Gets the <a href="#CoG.Affix System.Affix.Enums.TYPE">TYPE</a> of affix this is.
+    @fqxn CoG.Affix.Methods.getType
+    @desc Gets the <a href="#CoG.Affix.Enums.TYPE">TYPE</a> of affix this is.
     @ret Affix.TYPE eType The <b>TYPE</b> of the affix.
     !]]
     Type__autoR_ = null,
 },
 {--PROTECTED
-    Activator__autoRF   = null,
-    Deactivator__autoRF = null,
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.getName
+    @fqxn CoG.Affix.Methods.getName
     @desc Gets the name of the affix..
     @ret string sName The name of the affix.
     !]]
     Name__autoRA        = null,
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.getDescription
+    @fqxn CoG.Affix.Methods.getDescription
     @desc Gets the description of the affix..
     @ret string sDescription The description of the affix.
     !]]
     Description__RA     = null,--TODO update links in docs below...
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.Affix
+    @fqxn CoG.Affix.Methods.Affix
     @desc The constructor for the Affix class.
     @vis Protected
-    @param Affix.TYPE eType The type of the affix <em>(either <a href="#CoG.Affix System.Affix.Enums.TYPE.PREFIX">PREFIX</a> or <a href=".Affix.Enums.TYPE.SUFFIX">SUFFIX</a>)</em>.
+    @param Affix.TYPE eType The type of the affix <em>(either <a href="#CoG.Affix.Enums.TYPE.PREFIX">PREFIX</a> or <a href=".Affix.Enums.TYPE.SUFFIX">SUFFIX</a>)</em>.
     @param string sName The name of the affix. It should be a unique name among other affixes.
     @param string sDescription The description of the affix. It should explain precisely what the affix does.
     @param TIER eTier The <a href="#CoG.Enums.TIER">TIER</a> of the affix.
@@ -92,6 +92,8 @@ return class("Affix",
         type.assert.custom(eType, "Affix.TYPE");
         type.assert.string(sName, "%S+");
         type.assert.custom(eTier, "TIER");
+        type.assert["function"](fActivator);
+        type.assert["function"](fDeactivator);
 
         if (eTier > _eMaxTier) then
             error("Error creating Affix.\nMax TIER is "..tostring(eMaxTier)..'. TIER given: '..tostring(eTier)..'.');
@@ -99,8 +101,8 @@ return class("Affix",
 
         pri.Tier            = eTier;
         pri.Type            = eType;
-        pro.activator       = fActivate;
-        pro.deactivator     = fDeactivate;
+        pri.activator       = fActivator;
+        pri.deactivator     = fDeactivator;
 
         local tMyAppliesTo = pri.appliesTo;
 
@@ -113,20 +115,20 @@ return class("Affix",
 },
 {--PUBLIC
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.eachCompatibleClass
+    @fqxn CoG.Affix.Methods.eachCompatibleClass
     @desc An iterator that iterates over each class with which this affix is compatible.
     @ret function fIterator The iterator function.
     !]]
-    eachCompatibleClass = function()
+    eachCompatibleClass__FNL = function()
         return next, cdat.pri.appliesTo, nil;
     end,
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.isCompatibleWithClass
+    @fqxn CoG.Affix.Methods.isCompatibleWithClass
     @desc Determines whether this affix can be used with a given class.
     @param class cType The class to check.
     @ret boolean bIsCompatible True if compatible, false otherwise.
     !]]
-    isCompatibleWithClass = function(this, cdat, cType)
+    isCompatibleWithClass__FNL = function(this, cdat, cType)
         local bRet = class.is(cType);
 
         if (bRet) then
@@ -145,20 +147,33 @@ return class("Affix",
         return bRet;
     end,
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.isPrefix
+    @fqxn CoG.Affix.Methods.isPrefix
     @desc Determines whether this affix is a prefix.
     @ret boolean bIsPrefix True if it's a prefix, false otherwise.
     !]]
-    isPrefix = function(this, cdat)
+    isPrefix__FNL = function(this, cdat)
         return cdat.pri.Type == _eType.PREFIX;
     end,
     --[[!
-    @fqxn CoG.Affix System.Affix.Methods.isSuffix
+    @fqxn CoG.Affix.Methods.isSuffix
     @desc Determines whether this affix is a suffix.
     @ret boolean bIsSuffix True if it's a suffix, false otherwise.
     !]]
-    isSuffix = function(this, cdat)
+    isSuffix__FNL = function(this, cdat)
         return cdat.pri.Type == _eType.SUFFIX;
+    end,
+    --must accept object which contains it (and any varargs), may return any events and functions
+    onApply__FNL = function(this, cdat, oCoGObject, ...)
+        return cdat.pri.activator(oCoGObject, ...);
+        --[[return {
+            [EQUIPMENT.ON_EQUIP] = function(oCoGObject, ...)
+
+            end,
+        };]]
+    end,
+    --must accept object which contains it (and any varargs), returns nothing
+    onRemove__FNL = function(this, cdat, oCoGObject, ...)
+        return cdat.pri.deactivator(oCoGObject, ...);
     end,
 },
 nil,   --extending class

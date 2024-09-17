@@ -265,7 +265,7 @@ clone       = cloner.clone;
 --🆁🅴🅶🅸🆂🆃🅴🆁 🅻🆄🅰🅴🆇 🅵🅰🅲🆃🅾🆁🅸🅴🆂 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
 cloner.registerFactory(array);
 cloner.registerFactory(enum);
-cloner.registerFactory(event);
+--cloner.registerFactory(event);
 cloner.registerFactory(eventrix);
 cloner.registerFactory(struct);
 cloner.registerFactory(structfactory);
@@ -346,16 +346,19 @@ if (_tClassLoadValues[_nClassSystem]) then
                     TagSystem       = require(pCoG..".TagSystem");
 
                     --affix system
-                    local pAffixSystem  = pCoG..".AffixSystem";
-                    Affix               = require(pAffixSystem..".Affix");
-                    Affixory            = require(pAffixSystem..".Affixory");
+                    --local pAffixSystem  = pCoG..".AffixSystem";
+                    Affix               = require(pCoG..".Affix");
+                    --Affixory            = require(pAffixSystem..".Affixory");
 
                     Pool            = require(pCoG..".Pool");
                     StatusSystem    = require(pCoG..".StatusSystem");
                     AStar           = require(pCoG..".AStar");
 
+                    --objects
+                    local pCoGObjects = pCoG..".Objects";
+
                     --item system
-                    local pItemSystem = pCoG..".ItemSystem";
+                    local pItemSystem = pCoGObjects..".ItemSystem";
                     BaseItem        = require(pItemSystem..".BaseItem");
                     ItemSlot        = require(pItemSystem..".ItemSlot");
                     ItemSlotSystem  = require(pItemSystem..".ItemSlotSystem");

@@ -163,7 +163,7 @@ test2 = class("test2",
         --cdat.pro.Cat ="AWWEQ#E"
     end,
 },
-test,   --extending class
+test,  --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
