@@ -9,10 +9,7 @@
     <br>More subtables may be added as desired.
     </p>
 !]]
-return {
-    Affix = {
-        maxTier = TIER.VI, --TODO move this to rarity
-    },
+local tConfig = {
     AStar = {
         nodeEdges = {
             entry   = {},
@@ -22,9 +19,22 @@ return {
     Pool = {
 
     },
+    BaseObject = {
+
+    },
     Rarity = {
-        Colors  = {"#bbbbbb", "#0000b3", "#a7a000", "#00c202", "#ba0000", "#CF7136"},
-        LEVEL   = enum("Rarity.LEVEL",  {"COMMON",  "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "SINGULAR"}, nil, true),
+        Affix = {
+            maxTier = TIER.VI,--must be nor higher than the max rarity tier
+        },
+        LEVEL       = {"COMMON",    "UNCOMMON",     "RARE",         "EPIC",     "LEGENDARY",    "SINGULAR"},
+        COLOR       = {"#BBBBBB",   "#0000B3",      "#AFC657",      "#00C202",  "#BA0000",      "#CF7136"},
+        CHANCE      = {100,         21,             13,             8,          5,              3},
+        MIN_TIER    = {TIER.I,      TIER.I,         TIER.I,         TIER.II,    TIER.II,        TIER.V},
+        MAX_TIER    = {TIER.I,      TIER.II,        TIER.III,       TIER.IV,    TIER.V,         TIER.VI},
+        MIN_PREFIX  = {0,           1,              1,              2,          2,              3},
+        MAX_PREFIX  = {1,           1,              2,              2,          3,              3},
+        MIN_SUFFIX  = {0,           1,              1,              3,          2,              3},
+        MAX_SUFFIX  = {1,           2,              2,              3,          3,              3},
     },
     StatusSystem = {
         EFFECT = {
@@ -95,3 +105,36 @@ return {
         },
     },
 };
+
+--[[🅳🅾 🅽🅾🆃 🅼🅾🅳🅸🅵🆈 🅱🅴🅻🅾🆆 🆃🅷🅸🆂 🅻🅸🅽🅴]]
+
+--localize
+local pairs         = pairs;
+local setmetatable  = setmetatable;
+
+--prep the metatable
+local tMeta = {
+    __newindex = function()
+        error("Error: attempt to modify read-only CoG Config table.", 2);
+    end,
+};
+
+--sets the metatable for a table recursively
+local function setMeta(tInput)
+
+    setmetatable(tInput, tMeta);
+
+    for k, v in pairs(tInput) do
+
+        if type(v) == "table" then
+            setMeta(v);
+        end
+
+    end
+
+end
+
+--restrict the config table to access only
+setMeta(tConfig);
+--return the modified table
+return tConfig;

@@ -158,7 +158,9 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 local tLuaEx = {--TODO fix inconsistency in naming and underscores
         __isbooting = type(_bUseBootDirectives) == "boolean" and _bUseBootDirectives or false,
         --__config, --set below
-        __metaguard  = {"class", "classfactory", "enum", "enumfactory", "struct", "structfactory"}, --these metatables are protected from modification and general access
+        --these metatables are protected from modification and general access
+        __metaguard  = {"class", "classfactory", "enum", "enumfactory",
+                        "eventrix", "eventrixfactory", "struct", "structfactory"},
         __keywords__	= setmetatable({}, {
             __index 	= tKeyWords,
             __newindex 	= function(t, k)
@@ -174,7 +176,8 @@ local tLuaEx = {--TODO fix inconsistency in naming and underscores
         --_SOURCE_PATH = getsourcepath(),
 };
 
-_G.luaex = setmetatable({},
+--_G.luaex = setmetatable({},
+_ENV.luaex = setmetatable({},
 {
     __index 		= tLuaEx,
     __newindex 		= function(t, k, v)
@@ -327,16 +330,18 @@ if (_tClassLoadValues[_nClassSystem]) then
                     require(pCoG..".Enums");
 
                     --create the CoG table
-                    local tCoG = table.setreadonly(
-                    {
+                    local tCoG = {
                         config  = require(pCoG..".config"),
                         --Scaler  = require(pCoG..".Scaler"),
-                    });
+                    };
+
+                    setmetatable(tCoG, {__newindex = function() end});
 
                     --import CoG's table into the luaex global table
                     rawset(tLuaEx, "cog", tCoG);
 
                     Scaler          = require(pCoG..".Scaler");
+                    Rarity          = require(pCoG..".Rarity");
                     RNG             = require(pCoG..".RNG");
 
                     --interfaces
@@ -355,13 +360,15 @@ if (_tClassLoadValues[_nClassSystem]) then
                     AStar           = require(pCoG..".AStar");
 
                     --objects
-                    local pCoGObjects = pCoG..".Objects";
+                    local pCoGObjects   = pCoG..".Objects";
+                    BaseObject          = require(pCoGObjects..".BaseObject");
+
 
                     --item system
-                    local pItemSystem = pCoGObjects..".ItemSystem";
-                    BaseItem        = require(pItemSystem..".BaseItem");
-                    ItemSlot        = require(pItemSystem..".ItemSlot");
-                    ItemSlotSystem  = require(pItemSystem..".ItemSlotSystem");
+                    local pItemSystem   = pCoGObjects..".ItemSystem";
+                    BaseItem            = require(pItemSystem..".BaseItem");
+                    ItemSlot            = require(pItemSystem..".ItemSlot");
+                    ItemSlotSystem      = require(pItemSystem..".ItemSlotSystem");
 
                     XPSystem        = require(pCoG..".XPSystem");
                 end

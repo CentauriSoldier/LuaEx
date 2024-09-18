@@ -7,8 +7,9 @@ Grants +20% to Max Life.
 Needs the life pool as input.
 ]]
 
-local _tCoGConfig   = luaex.cog.config;
-local _eMaxTier     = _tCoGConfig.Affix.maxTier;
+local _tCoGConfig       = luaex.cog.config;
+local _eMaxTier         = _tCoGConfig.Rarity.Affix.maxTier;
+local _sDefaultSortTag  = "ZZZ UNSORTED";
 
 local class         = class;
 local pairs         = pairs;
@@ -45,9 +46,15 @@ return class("Affix",
     TYPE = _eType,
 },
 {--PRIVATE
+    appliesTo       = {},
     activator__RO   = null,
     deactivator__RO = null,
-    appliesTo       = {},
+    --[[!
+    @fqxn CoG.Affix.Fields.sortTags
+    @desc A TagSystem that used to properly sort the affixes for display purposes.
+    @vis Private
+    !]]
+    sortTags__RO = null,
     --[[!
     @fqxn CoG.Affix.Methods.getTier
     @desc Gets the <a href="#CoG.Enums.TIER">TIER</a> of the affix.
@@ -85,7 +92,7 @@ return class("Affix",
     <br><strong>Note</strong>: the handler of the item/monster/etc. that hosts the affix is responsible for calling this function and determining when it should be called..
     @param table tAppliesTo The classes with which the affix is compatible. It must be a numerically-indexed table whose values are classes and there must be at least one entry.
     !]]
-    Affix = function(this, cdat, eType, sName, sDescription, eTier, tAppliesTo, fActivator, fDeactivator)
+    Affix = function(this, cdat, eType, sName, sDescription, eTier, tAppliesTo, fActivator, fDeactivator, tSortTags)
         local pri = cdat.pri;
         local pro = cdat.pro;
 
@@ -103,12 +110,28 @@ return class("Affix",
         pri.Type            = eType;
         pri.activator       = fActivator;
         pri.deactivator     = fDeactivator;
+        pro.sortTags        = TagSystem();
 
         local tMyAppliesTo = pri.appliesTo;
 
         --TODO assert tAppliesTo
         for _, cTypeAppliesTo in pairs(tAppliesTo) do
             tMyAppliesTo[cTypeAppliesTo] = true;
+        end
+
+        local oSortTags     = pro.sortTags;
+        if (type(tSortTags) == "table") then
+
+            for k, v in pairs(tSortTags) do
+
+                if (type(v) == "string") then
+                    oSortTags.add(v);
+                end
+
+            end
+
+        else
+            oSortTags.add(_sDefaultSortTag);
         end
 
     end,

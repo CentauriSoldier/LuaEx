@@ -19,7 +19,7 @@ require("LuaEx.init");
 From here on out, all modules of **LuaEx** will be available in the global environment.
 
 
-## 🆅🅴🆁🆂🅸🅾🅽 ⚗
+## 🆅🅴🆁🆂🅸🅾🅽 ⚗s
 
 #### Current Version: Beta v0.90
 <details>
@@ -27,6 +27,8 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
+- Bugfix:  The **class** system not permitting **Lua/LuaEx** keywords to be used as member names when using directives.
+- Bugfix:  **CoG** not allowing recursive access to *config* table.
 - Bugfix:  **Dox** displaying parameters, returns and other combined tags out of order.
 - Bugfix:  **class** kits not adopting parents' protected and public read-only values.
 - Bugfix:  **Structfactory** not properly cloning itself.
@@ -35,8 +37,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Bugfix:  **Dox** "Copy" button not working.
 - Change:  **Dox** now places all output into a single HTML file instead of using a separate *.js* file.
 - Change:  **Dox** CSS redesigned to be more functional and aesthetically pleasing.
-- Feature: added new **event** type.
-- Feature: added new **eventrix** type to manage **event** objects.
+- Feature: added new **eventrix** type to manage events.
 - Feature: **enum** items now have ***__eq*** and ***__lt*** metamethods.
 - Feature: **Dox** now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
 - Feature: ***DoxBlockTags*** can now be set to *combined* which places all items using that tag into one section.
@@ -68,8 +69,8 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Feature: added a "Copy" (to clipboard) button to all user-created code blocks.
 - Feature: added a **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
 - Feature: **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the **Dox** subclass being used.
-- Feature: **prism.js** scripts are automatically added to Dox's finalized HTML output based on the languages used in the documentation.
-- Feature: added **Dox** parsers (subclasses) for several new languages.
+- Feature: **prism.js** scripts are automatically added to **Dox's** finalized HTML output based on the languages used in the documentation.
+- Feature: added **Dox** **Parsers** (subclasses) for several new languages.
 
 **v0.90**
 - Bugfix:  error in ***type.assert.table*** where value type was showing as index type, resulting in false negatives.

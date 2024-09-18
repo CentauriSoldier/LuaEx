@@ -1580,8 +1580,8 @@ function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty error
     --Check for malformed/maldesigned directives
 
     -- Ensure that there is something before the auto directive
-    if bHasDirective and (sKey == "" or not sKey:isvariablecompliant()) then
-        error("There must be text before an AUTO directive declaration and the final result must be a variable-compliant string.", 5);
+    if bHasDirective and (sKey == "" or not sKey:isvariablecompliant(true)) then
+        error("There must be text before a directive declaration and the final result must be a variable-compliant string. Got '${key}'" % {key = sKey}, 5);
     end
 
     local sType         = type(vItem);--TODO can i get this as a parameter?
@@ -1758,7 +1758,7 @@ function kit.processDirectives(tKit)
         for sCAI, tReadOnlyFields in pairs(tParent.readOnlyFields) do
 
             for sKey, tData in pairs(tReadOnlyFields) do
-                print(sCAI, sKey, tData.fixed)
+                --print(sCAI, sKey, tData.fixed)
                 tKit.readOnlyFields[sCAI][sKey] = tData;
             end
 
