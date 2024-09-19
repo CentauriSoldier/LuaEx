@@ -70,14 +70,20 @@ return class("Affix",
 },
 {--PROTECTED
     --[[!
+    @fqxn CoG.Affix.Fields.journal
+    @desc A table to be used as a journal of changes the affix makes for use in undoing them upon removeal. It can be used however the subclass sees fit.
+    @vis Protected
+    !]]
+    journal = {},
+    --[[!
     @fqxn CoG.Affix.Methods.getName
-    @desc Gets the name of the affix..
+    @desc Gets the name of the affix.
     @ret string sName The name of the affix.
     !]]
     Name__autoRA        = null,
     --[[!
     @fqxn CoG.Affix.Methods.getDescription
-    @desc Gets the description of the affix..
+    @desc Gets the description of the affix.
     @ret string sDescription The description of the affix.
     !]]
     Description__RA     = null,--TODO update links in docs below...
@@ -89,10 +95,18 @@ return class("Affix",
     @param string sName The name of the affix. It should be a unique name among other affixes.
     @param string sDescription The description of the affix. It should explain precisely what the affix does.
     @param TIER eTier The <a href="#CoG.Enums.TIER">TIER</a> of the affix.
-    <br><strong>Note</strong>: the handler of the item/monster/etc. that hosts the affix is responsible for calling this function and determining when it should be called..
     @param table tAppliesTo The classes with which the affix is compatible. It must be a numerically-indexed table whose values are classes and there must be at least one entry.
+    @param function fActivator The activator function that is fired when the Affix is applied by the owner object. The activator function must accept the following parameters.
+        <ol>
+            <li>The object upon which the Affix is applied (a descendant of the BaseObject).</li>
+            <li>Any other arguments you want passed to the activator function by the object's call to its ApplyAffix method. Essentially, the object's ApplyAffix method's varargs are sent directly to the Affix's onApply method that, in turn, inputs them in this activator function allowing you to pass whatever data you want to the activator during application of the Affix.</li>
+        </ol>
+        If a return is provided by the activator function, it must be a table whose keys are enumitems and values are numerically-indexed tables with event hook function values. This tables is used by the calling object to add events to the object's eventrix during application of the Affix.
+    TODO FINISH OTHER PARAMS
+    <br><strong>Note</strong>: the handler of the item/monster/etc. that hosts the affix is responsible for calling this function and determining when it should be called.
     !]]
-    Affix = function(this, cdat, eType, sName, sDescription, eTier, tAppliesTo, fActivator, fDeactivator, tSortTags)
+    Affix = function(   this, cdat, eType, sName, sDescription, eTier,
+                        tAppliesTo, fActivator, fDeactivator, tSortTags)
         local pri = cdat.pri;
         local pro = cdat.pro;
 
@@ -112,7 +126,7 @@ return class("Affix",
         pri.deactivator     = fDeactivator;
         pro.sortTags        = TagSystem();
 
-        local tMyAppliesTo = pri.appliesTo;
+        local tMyAppliesTo  = pri.appliesTo;
 
         --TODO assert tAppliesTo
         for _, cTypeAppliesTo in pairs(tAppliesTo) do
@@ -185,6 +199,13 @@ return class("Affix",
     isSuffix__FNL = function(this, cdat)
         return cdat.pri.Type == _eType.SUFFIX;
     end,
+    --[[!
+    @fqxn CoG.Affix.Methods.onApply
+    @desc Fires the activator function provided during construction. This is called by the object to which the affix is applied. This is basically a controlled wrapper for the activator function to prevent erroneous or multiple calls.
+    @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
+    @param varargs varargs Any arguments that should be passed to the activator function from the object's <a href="#CoG.BaseObject.Methods.ApplyAffix">ApplyAffix</a> method.
+    @ret boolean bApplied True if the affix was applied, false otherwise.
+    !]]
     --must accept object which contains it (and any varargs), may return any events and functions
     onApply__FNL = function(this, cdat, oCoGObject, ...)
         return cdat.pri.activator(oCoGObject, ...);
@@ -194,9 +215,14 @@ return class("Affix",
             end,
         };]]
     end,
-    --must accept object which contains it (and any varargs), returns nothing
+    --[[!
+    @fqxn CoG.Affix.Methods.onRemove
+    @desc Fires the deactivator function provided during construction. This is called by the object from which the affix is removed. This is basically a controlled wrapper for the deactivator function to prevent erroneous or multiple calls.
+    @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
+    @param varargs varargs Any arguments that should be passed to the deactivator function.
+    !]]
     onRemove__FNL = function(this, cdat, oCoGObject, ...)
-        return cdat.pri.deactivator(oCoGObject, ...);
+        cdat.pri.deactivator(oCoGObject, ...);
     end,
 },
 nil,   --extending class

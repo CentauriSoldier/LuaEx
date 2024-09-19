@@ -32,8 +32,7 @@ return class("BaseObject",
     Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
     Rarity__auto__          = false,
     TagSystem__autoAF       = null,
-},
-{--PUBLIC
+    
     BaseObject = function(this, cdat, sName, sDescription, eRarity, wEventrix)
         local pri = cdat.pri;
         local pro = cdat.pro;
@@ -48,6 +47,12 @@ return class("BaseObject",
 
         pro.TagSystem   = TagSystem();
     end,
+},
+{--PUBLIC
+    --[[!
+    @fqxn CoG.BaseObject.Methods.ApplyAffix
+    @des stuff
+    !]]
     applyAffix__FNL = function(this, cdat, oAffix, eEventID, wEnv, ...)
         local bRet      = false;
         local pri       = cdat.pri;
@@ -120,8 +125,8 @@ return class("BaseObject",
 
         return bRet;
     end,
-    fireEvent = function(this, cdat, eEventID)
-
+    fireEvent__FNL = function(this, cdat, eEventID, ...)
+        return cdat.pri.eventrix.fire(eEventID, ...);
     end,
     removeAffix__FNL = function(this, cdat, oAffix, ...)
         local pri           = cdat.pri;
@@ -147,7 +152,7 @@ return class("BaseObject",
 
             end
 
-            --destroy the affix's record
+            --destroy the affix's hook record
             tAffixHooks[oAffix] = nil;
 
             --remove the affix from the quick access table

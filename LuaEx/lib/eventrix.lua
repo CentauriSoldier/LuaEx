@@ -130,13 +130,14 @@ local function eventrix(wTarget)
         end,]]
 
         fire = function(eEventID, ...)
+            local bFired = false;
             local yID   = subtype(eEventID);
 
             if not (yID == "enumitem") then
                 eventError("fire", yID);
             end
 
-            if (tEvents[eEventID] ~= nil and tEvents[eEventID].isActive) then--fire only if the event is active
+            if (tEvents[eEventID] ~= nil and tEvents[eEventID].isActive) then--fire only if the event exists and is active
                 local tEvent    = tEvents[eEventID];
                 local tHooks    = tEvent.hooks;
 
@@ -144,6 +145,7 @@ local function eventrix(wTarget)
                     local tHook = tHooks[fHook];
 
                     if (tHook.isActive) then --fire the hook only if it's active
+                        bFired = true;
                         --localize the old environment
                         local tOldEnv = _ENV;
                         --localize pcall so it can be used
@@ -161,7 +163,7 @@ local function eventrix(wTarget)
 
             end
 
-            return tEventrixDecoy;
+            return bFired;
         end,
 
         isEventActive = function(eEventID)

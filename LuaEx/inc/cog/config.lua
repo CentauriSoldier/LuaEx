@@ -9,7 +9,7 @@
     <br>More subtables may be added as desired.
     </p>
 !]]
-local tConfig = {
+local tConfig = {--TODO basic things like units of measurement
     AStar = {
         nodeEdges = {
             entry   = {},
@@ -22,9 +22,13 @@ local tConfig = {
     BaseObject = {
 
     },
+    BaseVehicle = {
+        COMPONENT = {"BODY"},
+
+    },
     Rarity = {
         Affix = {
-            maxTier = TIER.VI,--must be nor higher than the max rarity tier
+            maxTier = TIER.VI,--NOTE: must be no higher than the max rarity tier
         },
         LEVEL       = {"COMMON",    "UNCOMMON",     "RARE",         "EPIC",     "LEGENDARY",    "SINGULAR"},
         COLOR       = {"#BBBBBB",   "#0000B3",      "#AFC657",      "#00C202",  "#BA0000",      "#CF7136"},
