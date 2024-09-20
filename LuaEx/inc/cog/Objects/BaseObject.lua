@@ -23,7 +23,7 @@ return class("BaseObject",
     affixDisplayOrder   = {},
     eventrix__RO        = null,
     affixHooks          = {},   --used to store hooks (for removal)
-    affixes             = {},   --used for quick, existential checks and type checks
+    affixes             = {},   --used for quick, existential, count and type checks
     orderedPrefixes     = {},   --used for setting display order
     orderedSuffixes     = {},   --used for setting display order
 },
@@ -32,7 +32,13 @@ return class("BaseObject",
     Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
     Rarity__auto__          = false,
     TagSystem__autoAF       = null,
-    
+    --[[!
+    @fqxn CoG.BaseObject.Methods.BaseObject
+    @des The constructor for this class.
+    @param string sName The name of the object.
+    @param string sDescription The description of the object.
+    @param Rarity.LEVEL eRarityLevel The <a href="#CoG.Rarity" >Rarity</a> level of the object.
+    !]]
     BaseObject = function(this, cdat, sName, sDescription, eRarity, wEventrix)
         local pri = cdat.pri;
         local pro = cdat.pro;
@@ -46,6 +52,13 @@ return class("BaseObject",
         pro.Rarity      = type(eRarity) == "Rarity.LEVEL" and eRarity or _eRarity[1];
 
         pro.TagSystem   = TagSystem();
+    end,
+    --allows child class to add hooks without counting against the affix count
+    addHook = function(this, cdat, eEventID, fHook, wTarget)
+        cdat.pri.eventrix.addHook(eEventID, fHook, wTarget);
+    end,
+    removeHook = function(this, cdat, eEventID, fHook)
+        cdat.pri.eventrix.removeHook(eEventID, fHook);
     end,
 },
 {--PUBLIC
@@ -68,7 +81,7 @@ return class("BaseObject",
             local bIsPrefix         = eAffixType == eType.PREFIX;
 
             local eRarity           = pro.Rarity;
-            local eMaxTier          = Rarity.getMaxTier(eRarity);
+            local eMaxAffixTier     = Rarity.getMaxAffixTier(eRarity);
 
             local nMaxAffixes       = bIsPrefix and
                                       Rarity.getPrefixCount(eRarity) or
@@ -76,7 +89,7 @@ return class("BaseObject",
             local tSortedAffixes    = bIsPrefix and pri.prefixes or pri.suffixes;
 
             if (#tAffixes < nMaxAffixes and
-                eAffixTier <= eMaxTier  and
+                eAffixTier <= eMaxAffixTier  and
                 oAffix.isCompatibleWithClass(class.of(this))) then
 
                 --log the affix type and store it for checks

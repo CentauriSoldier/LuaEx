@@ -21,14 +21,7 @@ local _eType = enum("Affix.TYPE", {"PREFIX", "SUFFIX"}, nil, true);
 local function placeholder() end
 
 return class("Affix",
-{--METAMETHODS
-    --[[!
-    @fqxn CoG.Affix.Metamethods.__pairs
-    @desc Iterates over the compatible classes table.
-    !]]
-    __pairs = function(this, cdat)
-        return next, cdat.pri.appliesTo, nil;
-    end,
+{--METAMETHODS    
 },
 {--STATIC PUBLIC
     Affix = function(stapub)

@@ -23,22 +23,21 @@ local tConfig = {--TODO basic things like units of measurement
 
     },
     BaseVehicle = {
-        COMPONENT = {"BODY"},
-
+        COMPONENT = {"BODY"},        
     },
     Rarity = {
         Affix = {
-            maxTier = TIER.VI,--NOTE: must be no higher than the max rarity tier
+            maxTier = TIER.VI,--NOTE: must be no higher than the rarity max affix tier
         },
-        LEVEL       = {"COMMON",    "UNCOMMON",     "RARE",         "EPIC",     "LEGENDARY",    "SINGULAR"},
-        COLOR       = {"#BBBBBB",   "#0000B3",      "#AFC657",      "#00C202",  "#BA0000",      "#CF7136"},
-        CHANCE      = {100,         21,             13,             8,          5,              3},
-        MIN_TIER    = {TIER.I,      TIER.I,         TIER.I,         TIER.II,    TIER.II,        TIER.V},
-        MAX_TIER    = {TIER.I,      TIER.II,        TIER.III,       TIER.IV,    TIER.V,         TIER.VI},
-        MIN_PREFIX  = {0,           1,              1,              2,          2,              3},
-        MAX_PREFIX  = {1,           1,              2,              2,          3,              3},
-        MIN_SUFFIX  = {0,           1,              1,              3,          2,              3},
-        MAX_SUFFIX  = {1,           2,              2,              3,          3,              3},
+        LEVEL           = {"COMMON",    "UNCOMMON",     "RARE",         "EPIC",     "LEGENDARY",    "SINGULAR"},
+        COLOR           = {"#BBBBBB",   "#0000B3",      "#AFC657",      "#00C202",  "#BA0000",      "#CF7136"},
+        CHANCE          = {100,         21,             13,             8,          5,              3},
+        MIN_AFFIX_TIER  = {TIER.I,      TIER.I,         TIER.I,         TIER.II,    TIER.II,        TIER.V},
+        MAX_AFFIX_TIER  = {TIER.I,      TIER.II,        TIER.III,       TIER.IV,    TIER.V,         TIER.VI},
+        MIN_PREFIX      = {0,           1,              1,              2,          2,              3},
+        MAX_PREFIX      = {1,           1,              2,              2,          3,              3},
+        MIN_SUFFIX      = {0,           1,              1,              3,          2,              3},
+        MAX_SUFFIX      = {1,           2,              2,              3,          3,              3},
     },
     StatusSystem = {
         EFFECT = {

@@ -255,14 +255,29 @@ local function processEnumItems(sEnumName, tEnumActual, tEnumDecoy, tItemsByOrdi
         tItemMeta.__serialize   = function()
             return sEnumName..'.'..sItem;
         end
-
+        tItemMeta.__add         = function(left, right)
+            return left.value + right.value;
+        end
+        tItemMeta.__div         = function(left, right)
+            return left.value / right.value;
+        end
         tItemMeta.__eq          = function(left, right)
             return left.value == right.value;
         end
-
         tItemMeta.__lt          = function(left, right)
-            --TODO ERROR CHECK?
             return left.value < right.value;
+        end
+        tItemMeta.__mod         = function(left, right)
+            return left.value % right.value;
+        end
+        tItemMeta.__mul         = function(left, right)
+            return left.value * right.value;
+        end
+        tItemMeta.__pow         = function(left, right)
+            return left.value ^ right.value;
+        end
+        tItemMeta.__sub         = function(left, right)
+            return left.value - right.value;
         end
 
         --set the item's metatable
