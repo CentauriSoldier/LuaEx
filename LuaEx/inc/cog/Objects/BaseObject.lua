@@ -21,13 +21,13 @@ return class("BaseObject",
 },
 {--PRIVATE
     affixDisplayOrder   = {},
-    eventrix__RO        = null,
     affixHooks          = {},   --used to store hooks (for removal)
     affixes             = {},   --used for quick, existential, count and type checks
     orderedPrefixes     = {},   --used for setting display order
     orderedSuffixes     = {},   --used for setting display order
 },
 {--PROTECTED
+    eventrix__RO            = null,
     Description__autoA_     = "",
     Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
     Rarity__auto__          = false,
@@ -52,14 +52,7 @@ return class("BaseObject",
         pro.Rarity      = type(eRarity) == "Rarity.LEVEL" and eRarity or _eRarity[1];
 
         pro.TagSystem   = TagSystem();
-    end,
-    --allows child class to add hooks without counting against the affix count
-    addHook = function(this, cdat, eEventID, fHook, wTarget)
-        cdat.pri.eventrix.addHook(eEventID, fHook, wTarget);
-    end,
-    removeHook = function(this, cdat, eEventID, fHook)
-        cdat.pri.eventrix.removeHook(eEventID, fHook);
-    end,
+    end,    
 },
 {--PUBLIC
     --[[!
