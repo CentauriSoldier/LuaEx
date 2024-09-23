@@ -6,7 +6,7 @@ Applies to Rings, Boots, Belts and Armour
 Grants +20% to Max Life.
 Needs the life pool as input.
 ]]
-
+--TODO WARNING FINISH need to do implicit/explcit mods on items
 local _tCoGConfig       = luaex.cog.config;
 local _eMaxTier         = _tCoGConfig.Rarity.Affix.maxTier;
 local _sDefaultSortTag  = "ZZZ UNSORTED";
@@ -21,7 +21,7 @@ local _eType = enum("Affix.TYPE", {"PREFIX", "SUFFIX"}, nil, true);
 local function placeholder() end
 
 return class("Affix",
-{--METAMETHODS    
+{--METAMETHODS
 },
 {--STATIC PUBLIC
     Affix = function(stapub)
