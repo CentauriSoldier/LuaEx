@@ -15,7 +15,7 @@ local tConfig = {--TODO basic things like units of measurement
             entry   = {},
             exit    = {},
         },
-    },
+    },    
     Pool = {
 
     },
@@ -23,7 +23,7 @@ local tConfig = {--TODO basic things like units of measurement
 
     },
     BaseVehicle = {
-        COMPONENT = {"BODY"},        
+        COMPONENT = {"BODY"},
     },
     Rarity = {
         Affix = {
