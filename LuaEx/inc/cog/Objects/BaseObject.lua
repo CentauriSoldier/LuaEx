@@ -52,14 +52,14 @@ return class("BaseObject",
         pro.Rarity      = type(eRarity) == "Rarity.LEVEL" and eRarity or _eRarity[1];
 
         pro.TagSystem   = TagSystem();
-    end,    
+    end,
 },
 {--PUBLIC
     --[[!
     @fqxn CoG.BaseObject.Methods.ApplyAffix
     @des stuff
     !]]
-    applyAffix__FNL = function(this, cdat, oAffix, eEventID, wEnv, ...)
+    applyAffix__FNL = function(this, cdat, oAffix, wEnv, ...)--, eEventID, wEnv, ...)
         local bRet      = false;
         local pri       = cdat.pri;
         local pro       = cdat.pro;

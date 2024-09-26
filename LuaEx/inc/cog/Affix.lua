@@ -43,6 +43,12 @@ return class("Affix",
     activator__RO   = null,
     deactivator__RO = null,
     --[[!
+    @fqxn CoG.Affix.Fields.journal
+    @desc A table to be used as a journal of changes the affix makes for use in undoing them upon removeal. It is used by the activator and deactivator functions. It's a way of preserving affix data created in these functions across sessions.
+    @vis Private
+    !]]
+    journal = {},
+    --[[!
     @fqxn CoG.Affix.Fields.sortTags
     @desc A TagSystem that used to properly sort the affixes for display purposes.
     @vis Private
@@ -62,12 +68,6 @@ return class("Affix",
     Type__autoR_ = null,
 },
 {--PROTECTED
-    --[[!
-    @fqxn CoG.Affix.Fields.journal
-    @desc A table to be used as a journal of changes the affix makes for use in undoing them upon removeal. It can be used however the subclass sees fit.
-    @vis Protected
-    !]]
-    journal = {},
     --[[!
     @fqxn CoG.Affix.Methods.getName
     @desc Gets the name of the affix.
@@ -98,7 +98,7 @@ return class("Affix",
     TODO FINISH OTHER PARAMS
     <br><strong>Note</strong>: the handler of the item/monster/etc. that hosts the affix is responsible for calling this function and determining when it should be called.
     !]]
-    Affix = function(   this, cdat, eType, sName, sDescription, eTier,
+    Affix = function(   this, cdat, eType, sName, eTier,
                         tAppliesTo, fActivator, fDeactivator, tSortTags)
         local pri = cdat.pri;
         local pro = cdat.pro;
@@ -165,7 +165,7 @@ return class("Affix",
 
             for cMyType, _ in pairs(cdat.pri.appliesTo) do
 
-                if (cType == cMyType) then
+                if (class.ischildorself(cMyType, cType)) then
                     bRet = true;
                     break;
                 end
@@ -201,12 +201,7 @@ return class("Affix",
     !]]
     --must accept object which contains it (and any varargs), may return any events and functions
     onApply__FNL = function(this, cdat, oCoGObject, ...)
-        return cdat.pri.activator(oCoGObject, ...);
-        --[[return {
-            [EQUIPMENT.ON_EQUIP] = function(oCoGObject, ...)
-
-            end,
-        };]]
+        return cdat.pri.activator(oCoGObject, cdat.pri.journal, ...);
     end,
     --[[!
     @fqxn CoG.Affix.Methods.onRemove
@@ -215,7 +210,7 @@ return class("Affix",
     @param varargs varargs Any arguments that should be passed to the deactivator function.
     !]]
     onRemove__FNL = function(this, cdat, oCoGObject, ...)
-        cdat.pri.deactivator(oCoGObject, ...);
+        cdat.pri.deactivator(oCoGObject, cdat.pri.journal, ...);
     end,
 },
 nil,   --extending class
