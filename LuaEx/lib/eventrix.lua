@@ -2,6 +2,7 @@
 @fqxn LuaEx.Libraries.Eventrix
 @desc The eventrix object is designed to be an event system that can be used locally and/or globally.
 !]]
+local envrepo   = envrepo;
 local rawtype   = rawtype;
 local subtype   = subtype;
 local table     = table;
@@ -21,16 +22,17 @@ local function eventError(sMethod, yEvent)
     error("Error in eventrix method, '${method}'. Event ID must be of type enumitem. Type given: ${type}." % {method = sMethod, type = yEvent}, 3);
 end
 
-local function eventrix(wTarget)
+local function eventrix(sEnv)
     local tEventrixDecoy    = {};
-    local wDefault          = type(wTarget) == "table" and wTarget or _ENV;
+    local wEnv              = envrepo[sEnv];
+    local wDefault          = wEnv and wEnv or _ENV;
 
     --create the eventrix's fields
     local tEvents        = {};
 
     --setup the eventrix's actual table
     local tEventrix        = {
-        addHook = function(eEventID, fHook, wTarget)
+        addHook = function(eEventID, fHook, sHookEnv)
             local zHook = rawtype(fHook);
             local yID   = subtype(eEventID);
 
@@ -51,7 +53,8 @@ local function eventrix(wTarget)
                 };
             end
 
-            local tEvent = tEvents[eEventID];
+            local tEvent    = tEvents[eEventID];
+            local eEnv      = envrepo[sHookEnv];
 
             --add the hook
             if (tEvent.hooks[fHook] == nil) then
@@ -60,7 +63,7 @@ local function eventrix(wTarget)
 
                 tEvent.hooks[fHook] = {
                     isActive = true,
-                    env      = type(wTarget) == "table" and wTarget or wDefault,
+                    env      = eEnv and eEnv or wDefault,
                 };
 
             end
@@ -305,7 +308,7 @@ local tEventrixFactory        = {};
 local tEventrixFactoryDecoy   = {};
 local tEventrixFactoryMeta    = {
     __call = function(t, ...)
-        return event(...);
+        return eventrix(...);
     end,
     __index = function(t, k)
         return tEventrix[k] or nil;

@@ -59,7 +59,7 @@ return class("BaseObject",
     @fqxn CoG.BaseObject.Methods.ApplyAffix
     @des stuff
     !]]
-    applyAffix__FNL = function(this, cdat, oAffix, wEnv, ...)--, eEventID, wEnv, ...)
+    applyAffix__FNL = function(this, cdat, oAffix, ...)--, eEventID, wEnv, ...)
         local bRet      = false;
         local pri       = cdat.pri;
         local pro       = cdat.pro;
@@ -84,6 +84,7 @@ return class("BaseObject",
             if (#tAffixes < nMaxAffixes and
                 eAffixTier <= eMaxAffixTier  and
                 oAffix.isCompatibleWithClass(class.of(this))) then
+                local sEnv = oAffix.getEnvironment();
 
                 --log the affix type and store it for checks
                 tAffixes[oAffix] = eAffixType;
@@ -117,7 +118,7 @@ return class("BaseObject",
                             tHookRecord[eEventID][fHook] = true;
 
                             --add the hook to the eventrix
-                            oEventrix.addHook(eEventID, fHook, wEnv);
+                            oEventrix.addHook(eEventID, fHook, sEnv);
                         end
 
                     end

@@ -12,6 +12,7 @@ local _eMaxTier         = _tCoGConfig.Rarity.Affix.maxTier;
 local _sDefaultSortTag  = "ZZZ UNSORTED";
 
 local class         = class;
+local envrepo       = envrepo;
 local pairs         = pairs;
 local type          = type;
 local AffixSystem   = AffixSystem;
@@ -39,9 +40,11 @@ return class("Affix",
     TYPE = _eType,
 },
 {--PRIVATE
-    appliesTo       = {},
-    activator__RO   = null,
-    deactivator__RO = null,
+    appliesTo           = {},
+    activator__RO       = null,
+    deactivator__RO     = null,
+    Environment__autoRA = null,
+    --environment     = null,
     --[[!
     @fqxn CoG.Affix.Fields.journal
     @desc A table to be used as a journal of changes the affix makes for use in undoing them upon removeal. It is used by the activator and deactivator functions. It's a way of preserving affix data created in these functions across sessions.
@@ -79,7 +82,6 @@ return class("Affix",
     @desc Gets the description of the affix.
     @ret string sDescription The description of the affix.
     !]]
-    Description__RA     = null,--TODO update links in docs below...
     --[[!
     @fqxn CoG.Affix.Methods.Affix
     @desc The constructor for the Affix class.
@@ -99,7 +101,7 @@ return class("Affix",
     <br><strong>Note</strong>: the handler of the item/monster/etc. that hosts the affix is responsible for calling this function and determining when it should be called.
     !]]
     Affix = function(   this, cdat, eType, sName, eTier,
-                        tAppliesTo, fActivator, fDeactivator, tSortTags)
+                        tAppliesTo, fActivator, fDeactivator, tSortTags, sEnv)
         local pri = cdat.pri;
         local pro = cdat.pro;
 
@@ -117,6 +119,11 @@ return class("Affix",
         pri.Type            = eType;
         pri.activator       = fActivator;
         pri.deactivator     = fDeactivator;
+
+        --set the env in which the activator/deactivator functions will fire
+        local wEnv          = envrepo[sEnv];
+        pri.Environment     = sEnv and sEnv or envrepo.getDefaultName();
+
         pro.sortTags        = TagSystem();
 
         local tMyAppliesTo  = pri.appliesTo;
@@ -194,23 +201,32 @@ return class("Affix",
     end,
     --[[!
     @fqxn CoG.Affix.Methods.onApply
-    @desc Fires the activator function provided during construction. This is called by the object to which the affix is applied. This is basically a controlled wrapper for the activator function to prevent erroneous or multiple calls.
+    @desc Fires the activator function provided during construction. This is called by the object to which the affix is applied. This is basically a controlled wrapper for the activator function to prevent erroneous or multiple calls and to restrict the environment in which the function is called.
     @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
     @param varargs varargs Any arguments that should be passed to the activator function from the object's <a href="#CoG.BaseObject.Methods.ApplyAffix">ApplyAffix</a> method.
     @ret boolean bApplied True if the affix was applied, false otherwise.
     !]]
     --must accept object which contains it (and any varargs), may return any events and functions
     onApply__FNL = function(this, cdat, oCoGObject, ...)
-        return cdat.pri.activator(oCoGObject, cdat.pri.journal, ...);
+        local pri = cdat.pri;
+        local wOldEnv = _ENV;
+        _ENV = envrepo[pri.Environment];
+        local vCallResult = pri.activator(oCoGObject, pri.journal, ...);
+        _ENV = wOldEnv;
+        return vCallResult;
     end,
     --[[!
     @fqxn CoG.Affix.Methods.onRemove
-    @desc Fires the deactivator function provided during construction. This is called by the object from which the affix is removed. This is basically a controlled wrapper for the deactivator function to prevent erroneous or multiple calls.
+    @desc Fires the deactivator function provided during construction. This is called by the object from which the affix is removed. This is basically a controlled wrapper for the deactivator function to prevent erroneous or multiple calls and to restrict the environment in which the function is called.
     @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
     @param varargs varargs Any arguments that should be passed to the deactivator function.
     !]]
     onRemove__FNL = function(this, cdat, oCoGObject, ...)
-        cdat.pri.deactivator(oCoGObject, cdat.pri.journal, ...);
+        local pri = cdat.pri;
+        local wOldEnv = _ENV;
+        _ENV = envrepo[pri.Environment];
+        pri.deactivator(oCoGObject, pri.journal, ...);
+        _ENV = wOldEnv;
     end,
 },
 nil,   --extending class
