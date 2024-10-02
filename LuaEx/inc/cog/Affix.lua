@@ -19,6 +19,18 @@ local AffixSystem   = AffixSystem;
 
 local _eType = enum("Affix.TYPE", {"PREFIX", "SUFFIX"}, nil, true);
 
+local _tBPFieldMaster = {
+    permitted   = {},
+    required    = {
+        type            = {"Affix.TYPE"},
+        tier            = {"TIER"},
+        appliesTo       = {"table"},
+        activator       = {"function"},
+        deactivator     = {"function"},
+        sortTags        = {"table"},--TODO modify class to make this permitted, not required
+    },
+};
+
 local function placeholder() end
 
 return class("Affix",
@@ -27,6 +39,7 @@ return class("Affix",
 {--STATIC PUBLIC
     Affix = function(stapub)
         stapub.MAX_TIER = _eMaxTier;
+        Blueprint.registerClass(Affix, _tBPFieldMaster);
     end,
     --[[!
     @fqxn CoG.Affix.Enums.TYPE
