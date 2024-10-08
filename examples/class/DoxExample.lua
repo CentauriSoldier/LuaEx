@@ -168,7 +168,6 @@ false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
 
-
 --local t2 = test2();
 --t2.setCat()
 --print(t2.getCat())
@@ -181,3 +180,4 @@ nil    --interface(s) (either nil, or interface(s))
 --print(type(Rarity.COLOR.COMMON))
 print(type(Rarity.LEVEL.COMMON))
 print(Rarity.getMaxAffixTier(Rarity.LEVEL.RARE) - Rarity.getMinAffixTier(Rarity.LEVEL.COMMON))
+    

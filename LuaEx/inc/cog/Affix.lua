@@ -33,13 +33,17 @@ local _tBPFieldMaster = {
 
 local function placeholder() end
 
+--[[!
+    @fqxn CoG.Affix
+    @desc TODO FINISH
+!]]
 return class("Affix",
 {--METAMETHODS
 },
 {--STATIC PUBLIC
     Affix = function(stapub)
         stapub.MAX_TIER = _eMaxTier;
-        Blueprint.registerClass(Affix, _tBPFieldMaster);
+        --Blueprint.registerClass(Affix, _tBPFieldMaster); TODO Move BP class CoG
     end,
     --[[!
     @fqxn CoG.Affix.Enums.TYPE
@@ -56,7 +60,7 @@ return class("Affix",
     appliesTo           = {},
     activator__RO       = null,
     deactivator__RO     = null,
-    Environment__autoRA = null,
+    Environment__autoRA = null, --TODO QUESTION doesn't potentially expose env/aspects it should not?
     --environment     = null,
     --[[!
     @fqxn CoG.Affix.Fields.journal
@@ -66,7 +70,7 @@ return class("Affix",
     journal = {},
     --[[!
     @fqxn CoG.Affix.Fields.sortTags
-    @desc A TagSystem that used to properly sort the affixes for display purposes.
+    @desc A TagSystem that's used to properly sort the affixes for display purposes.
     @vis Private
     !]]
     sortTags__RO = null,

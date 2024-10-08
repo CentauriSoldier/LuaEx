@@ -1,3 +1,20 @@
+--[[!
+    @fqxn LuaEx.Libraries.constant
+    @desc Creates a constant in the LuaEx library. This function validates the constant name and value
+          to ensure that the name is a valid Lua variable and that the value is not nil. It checks for
+          existing variables to prevent overwriting and enforces compliance with naming rules.
+    @param string sName The name of the constant. Must be a non-blank string that complies with Lua
+          variable naming rules.
+    @param any vVal The value to assign to the constant. Must not be nil.
+    @ex
+    -- Define a constant for the maximum number of players
+    constant("MAX_PLAYERS", 10)
+
+    -- Use the constant in your code
+    print("The maximum number of players allowed is: " .. tostring(tLuaEx.MAX_PLAYERS))
+    @return None. The constant is added to the LuaEx library.
+!]]
+--    @error Throws an error if the name is invalid, if the constant already exists, or if the value is nil.
 local tLuaEx = rawget(_G, "luaex");
 
 local assert				= assert;

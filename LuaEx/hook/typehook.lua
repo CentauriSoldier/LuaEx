@@ -135,7 +135,7 @@ debug.setmetatable(tNumberMeta, {
         if (nVal == 0) then
             bRet = false;
         elseif (nVal == 1) then
-            bRet = true;        
+            bRet = true;
         end
 
         return bRet;
