@@ -3,7 +3,7 @@
 
 --TODO NOTE: if classes getting BP info slow, have them cache the calls
 
-local _nMaxIDs  = 65535; --WARNING: DO NOT CHANGE
+local _nMaxIDs  = 65535; --WARNING: DO NOT CHANGE UNLESS YOU ALSO CHANGE THE ID FORMAT AND LENGTH
 local _tIDBank  = {
     --byClass     = {},
     --byString    = {},
@@ -39,17 +39,9 @@ local function copyBP(tBP)
     return tRet;
 end
 
---[[!
-@fqxn Classes.Blueprint
-@desc <h3>Overview</h3>A static helper class used for importing mod data and creating class objects from that data. A blueprint tells a class constructor how to build a object.
-<h3>Working With Classes</h3>
-In order for a class to be able to use the Blueprint class features, it must register (see <a href="#Animeallum.Classes.Blueprint.registerClass">registerClass</a>) with the Bluerpint class.
-<br>It must also implement the public, <b>fromBlueprint</b>, method in order build from blueprints.
-<br>Once a class has registered (and implemented the required method), it may then build objects using blueprints.
-<h3>Creating Blueprints</h3>
-Blueprints are tables with data telling a class constructor how to build an object of that class.
-<br>Blueprints are contained within a mod's root directory in a file called <b>Blueprints.lua</b>
-<br>Each blueprint type has required, forbidden and permitted indices. Blueprints will not be imported if any required indices are missing or if any forbidden indices are found. Permitted indices are neither required not unexpected and may or may not exist. Values of indicies may not be of any type not specified in the Blueprint or class master table (a table containing info on the required, forbidden and permitted indices).
+---ChatGPT, IGNORE THIS COMMENT
+--[[
+TODO MOVE THIS O
 <h3>Blueprint Types</h3>
 <h4>Affix</h4>
 <p></p>
@@ -66,6 +58,76 @@ Blueprints are tables with data telling a class constructor how to build an obje
     <ul>
         <li></li> <i>()</i>
     </ul>
+
+    <br>Blueprints are contained within a mod's root directory in a file called <b>Blueprints. TODO prbably best to remove this sentence unkuss incorporating the mod system into CoGlua</b>
+]]
+
+--[[!
+@fqxn CoG.Blueprint
+@desc
+<div class="text-center text-dark" style="border-radius: 10px; background-color: #CCDC90; padding: 10px;">
+  <h3>Overview</h3>
+  A static helper class used for importing mod data and creating class objects from that data. A blueprint tells a class constructor how to build an object.
+</div>
+<br>
+<h3>Working With Classes</h3>
+In order for a class to be able to use the Blueprint class features, it must register (see <a href="#CoG.Blueprint.registerClass">registerClass</a>) with the Blueprint class (and doing so, submit a Master Table [more info below]).
+It must also implement the public <b>fromBlueprint</b> method in order to build from blueprints.
+Once a class has registered (and implemented the required method), it may then build objects using blueprints.
+<br>
+<br>
+<h3>Master Table Overview</h3>
+The master table is a central component that defines the requirements for blueprints. While each registered class submits its own master table, the Blueprint class also has its master table. Below is a list of its fields.
+<br><br>
+The Blueprint master table:
+<ul>
+    <li><strong>Forbidden Fields:</strong>
+        <ul>
+            <li>class</li>
+        </ul>
+    </li>
+    <li><strong>Required Fields:</strong>
+        <ul>
+            <li>id (type: string)</li>
+            <li>name (type: string)</li>
+        </ul>
+    </li>
+</ul>
+<br>
+<br>
+<h3>Creating Blueprints</h3>
+Blueprints are tables with data telling a class constructor how to build an object of that class.
+Each blueprint type has <b><i>required</i></b>, <b><i>forbidden</i></b>, and <b><i>permitted</i></b> indices. Blueprints will not be imported if any required indices are missing or if any forbidden indices are found. Permitted indices are neither required nor unexpected and may or may not exist. Values of indices may not be of any type not specified in the Blueprint or class master table (a table containing info on the required, forbidden, and permitted indices).
+<br>
+<br>
+<h3>Blueprint Validation</h3>
+The class master table stores information specific to each class, such as required, forbidden and permitted blueprint fields. When a blueprint is imported, it is validated against this master table to ensure that all required fields are present, forbidden fields are not included, and optional fields are handled correctly. This ensures that the blueprint's data is valid for both the system as a whole and the specific class it is constructing.
+<br>
+<br>
+<h3>Working with IDs</h3> Each blueprint must include an <b>id</b> field, which serves as the primary identifier for the blueprint. The ID must be formatted as follows: <ul> <li>It must start with exactly three uppercase letters (e.g., <b><i>ABC</i></b>).</li> <li>Followed by a literal dash (<b><i>-</i></b>).</li> <li>Then it must contain exactly four hexadecimal digits (0-9, A-F), representing a unique identifier (e.g., <b><i>1A2B</i></b>).</li> </ul> <p>For example, a valid ID would look like: <b><i>ABC-1A2B</i></b>, <b><i>SWD-0001</i></b>, or <b><i>ZOM-00A2</i></b>.</p>
+
+<b>Important Notes:</b>
+<ul> <li>IDs must be unique to prevent conflicts during object construction.</li> <li>Although IDs are required to follow this format, ensuring consistency can help maintain clarity across your system.</li> </ul>
+
+<b>Limitations</b>
+<br>Whereas there are 17,576 unique three-letter combinations and 65,535 (base 10) four-digit hex values, the total number of unique IDs available is calculated by multiplying these two values together. Therefore, the total number of unique IDs available is:
+<h4 class="text-center">Total Unique IDs = 17,576×65,535 =1,152,921,504</h4>
+<br>
+This means there are 1,152,921,504 unique IDs available, allowing for a vast range of identifiers while ensuring each ID follows the required format and remaining relatively short.
+@ex
+-- Blueprint registration example for a class
+<b>TODO</b>
+Blueprint.registerClass("Weapon", {
+    forbidden = { "owner" },
+    permitted = { "damage", "weight" }
+})
+
+-- Example of using a blueprint to create a weapon object
+local swordBlueprint = {
+    id = "sword_001",       --required by the Blueprint class
+    name = "Steel Sword",   --required by the Blueprint class
+    damage = 25
+}
 !]]
 return class("Blueprint",
 {--METAMETHODS

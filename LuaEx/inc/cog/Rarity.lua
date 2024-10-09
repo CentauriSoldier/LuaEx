@@ -64,7 +64,7 @@ local _nRarityLevels    = #_tLevel;
         <tr>
             <td><b>Prefix and Suffix Ranges</b></td>
             <td>Defines the range of prefixes and suffixes that can be assigned to items, further diversifying their properties and effects.</td>
-        </tr>
+        </tr>        
     </tbody>
 </table>
 

@@ -173,19 +173,19 @@ return class("BaseObject",
 
 
     --TODO COMPLETE THESE
-    --[[!
+    --[[
     @fqxn CoG.Affix System.Affixory.Methods.getMaxPrefixes
     @desc Gets the maximum number of prefixes this container can hold.
     @ret int nMaxPrefixes The maximum number of prefixes.
-    !]]
+    ]]
     getMaxPrefixes = function(this, cdat)
         return cdat.pri.maxPrefixes;
     end,
-    --[[!
+    --[[
     @fqxn CoG.Affix System.Affixory.Methods.getMaxSuffixes
     @desc Gets the maximum number of suffixes this container can hold.
     @ret int nMaxSuffixes The maximum number of suffixes.
-    !]]
+    ]]
     getMaxSuffixes = function(this, cdat)
         return cdat.pri.maxSuffixes;
     end,

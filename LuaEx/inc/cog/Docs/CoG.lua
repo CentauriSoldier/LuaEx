@@ -23,6 +23,11 @@
     <li><strong>Weighted A-Star Pathfinding</strong>: An advanced pathfinding algorithm that considers both actor and terrain factors for efficient and realistic navigation.</li>
     <li><strong>Config File</strong>: A built-in configuration file that can be tailored per project to meet specific needs and adjust class behaviors.</li>
     <li><strong>Graphics Scaling Tool</strong>: A utility for scaling UI objects to fit the maximum screen size while maintaining their geometric proportions and relative positions.</li>
+    <li><strong>Mod System</strong>: Permits safe, external code loading for use in incorporating user-created mods into your game.</li>
+    <tr>
+    <li><strong>Blueprint System</strong>: Facilitates the creation of items using facory methods. Used for loading and incorporating mod data.</li>
+    <tr>
+    <li><strong>And much more...</strong></li>    
 </ul>
 
 <p>CoG is designed to be a flexible and powerful framework, offering essential tools and systems that cater to various aspects of game development.</p>

@@ -340,6 +340,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     rawset(tLuaEx, "cog", tCoG);
 
                     Scaler          = require(pCoG..".Scaler");
+                    Blueprint       = require(pCoG..".Blueprint");
                     Rarity          = require(pCoG..".Rarity");
                     RNG             = require(pCoG..".RNG");
 

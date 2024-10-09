@@ -10,6 +10,14 @@
     </p>
 !]]
 local tConfig = {--TODO basic things like units of measurement
+    app = {
+        name        = "",
+        path        = {
+            data = "",
+            save = "",
+        },        
+        --TODO save system
+    },
     AStar = {
         nodeEdges = {
             entry   = {},
