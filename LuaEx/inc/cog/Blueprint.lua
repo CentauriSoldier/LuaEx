@@ -28,7 +28,7 @@ local _tMasterTable = {
     },
 };
 
-
+--TODO what about cloning?
 local function copyBP(tBP)
     local tRet = {};
 
