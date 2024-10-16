@@ -5,11 +5,21 @@ local table     = table;
 local tonumber  = tonumber;
 local type      = type;
 
+
+local _                 = package.config:sub(1, 1);
+local _sNot_            = _ == "\\" and "/" or "\\";
+local _sInfoFilename    = lua.cog.config.Mod.infoFilename;
+
+--contains all mods in the game and is populated when a mod is created
+local _tMods = {};
+
 local _nMaxVersion = 999;
 
 return class("Mod",
 {--METAMETHODS
-
+    __pairs = function()
+        return next, _tMods, nil;
+    end,
 },
 {--STATIC PUBLIC
     MAX_VERSION_RO = _nMaxVersion,
@@ -48,7 +58,13 @@ return class("Mod",
         end
 
         -- If all checks passed, the date is valid
-        return true
+        return true;
+    end,
+    import = function(pDir)
+        error();
+    end,
+    eachMod = function() --same as __pairs (5.1 compat)
+        return next, _tMods, nil;
     end,
 },
 {--PRIVATE
@@ -67,8 +83,46 @@ return class("Mod",
 },
 {},--PROTECTED
 {--PUBLIC
-    Mod = function(this, cdat, pFolder, tModInfo)
+    Mod = function(this, cdat, pFolder)
         local pri = cdat.pri
+        type.assert.string(pFolder, "%S+", "Error importing mod. Directory must be a valid string.");
+
+        --create the mod info file path
+        local pModInfo = (pFolder.._.._sInfoFilename):gsub(_sNot_, _):gsub(_.._, _);
+        local hModInfo = io.open(pModInfo, "r");
+
+        --throw an error if the mod info file is not found or could not be opened
+        if not (hModInfo) then
+            error("Error importing mod in directory, '"..pFolder.."'. Mod info file not found.");
+        end
+
+        --read the data to string and close the file
+        local sModInfo = hModInfo:read("*all");
+        hModInfo:close();
+
+        --create the mod info loading function
+        local fModInfo, sLoadError = load(sModInfo, "ModInfoChunk ("..pFolder..")");
+        if not (fModInfo) then
+            error("Error importing mod in directory, '"..pFolder.."'. : "..sLoadError);
+        end
+
+        --create a safe env to load the modinfo
+        local wOld = _ENV;
+        _ENV = {error = error};
+
+        --attempt to load the mod info
+        local bSuccess, vModInfoOrError = pcall(fModInfo);
+
+        -- Restore the original environment
+        _ENV = wOld;
+
+        --look for errors in the mod info
+        if not (vModInfoOrError) then
+            error("Error importing mod in directory, '"..pFolder.."'. : "..vModInfoOrError);
+        end
+
+        --shorten the name for readability
+        local tModInfo = vModInfoOrError;
 
         local tAuthors      = tModInfo.authors;
         local sContact      = tModInfo.contact;
@@ -77,7 +131,7 @@ return class("Mod",
         local sName         = tModInfo.name;
         local tRequired     = tModInfo.required;
         local sReleased     = tModInfo.released;
-        local sUpdated      = tModInfo.udpated;
+        local sUpdated      = tModInfo.updated;
         local nVersion      = tModInfo.version;
         local sWebsite      = tModInfo.website;
 
@@ -143,20 +197,20 @@ return class("Mod",
         --website
         pri.Website = (rawtype(sWebsite) == "string" and sWebsite:find("%S+")) and sWebsite or '';
 
-
-
-
-
-
-
-
-
+        --register the mod
+        _tMods[#_tMods + 1] = this;
     end,
     eachAuthor = function(this, cdat)
         return next, cdat.pri.author, nil;
     end,
     eachRequired = function(this, cdat)
         return next, cdat.pri.required, nil;
+    end,
+    onActivate = function()
+        error("The onActivate method has not been implemented in the child class.");
+    end,
+    onDeactivate = function()
+        error("The onDeactivate method has not been implemented in the child class.");
     end,
 },
 nil,   --extending class

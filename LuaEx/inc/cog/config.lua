@@ -15,7 +15,7 @@ local tConfig = {--TODO basic things like units of measurement
         path        = {
             data = "",
             save = "",
-        },        
+        },
         --TODO save system
     },
     AStar = {
@@ -32,6 +32,9 @@ local tConfig = {--TODO basic things like units of measurement
     },
     BaseVehicle = {
         COMPONENT = {"BODY"},
+    },
+    Mod = {
+        infoFilename = "modinfo.lua",
     },
     Rarity = {
         Affix = {

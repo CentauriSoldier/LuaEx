@@ -343,6 +343,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     Blueprint       = require(pCoG..".Blueprint");
                     Rarity          = require(pCoG..".Rarity");
                     RNG             = require(pCoG..".RNG");
+                    Mod             = require(pCoG..".Mod");
 
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");

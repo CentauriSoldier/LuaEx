@@ -178,6 +178,36 @@ nil    --interface(s) (either nil, or interface(s))
 --print(Rarity.MIN_PREFIX.LEGENDARY.value)
 --print(Rarity.COLOR.COMMON)
 --print(type(Rarity.COLOR.COMMON))
-print(type(Rarity.LEVEL.COMMON))
-print(Rarity.getMaxAffixTier(Rarity.LEVEL.RARE) - Rarity.getMinAffixTier(Rarity.LEVEL.COMMON))
-    
+--print(type(Rarity.LEVEL.COMMON))
+--print(Rarity.getMaxAffixTier(Rarity.LEVEL.RARE) - --Rarity.getMinAffixTier(Rarity.LEVEL.COMMON))
+
+local kSys = eventrix(...);
+
+local k = 0;
+
+local function phello(...)
+    k = k + 1
+    print("hello "..k.." "..(select(1, ...) or ""));
+    return 34;
+end
+local function pdog(...)
+    print("I'm a dog "..(select(1, ...) or ""));
+    --return "YAY!"
+end
+enum("EVENT", {"BARK"});
+local eBark = EVENT.BARK;
+kSys.addHook(eBark, phello)
+kSys.addHook(eBark, pdog)
+--kSys.fire(eBark);
+
+--kSys.setHookActive(eBark, phello, true);
+--kSys.setEventActive(eBark, false);
+local i = kSys.fire(eBark, "mucho doggy!");
+--kSys.removeHook(eBark, phello);
+--print(kSys.getHookOrdinal(eBark, pdog))
+
+for k, v in pairs(i) do
+    if v == EVENTRIX_NIL then
+    print(k, v)
+end
+end
