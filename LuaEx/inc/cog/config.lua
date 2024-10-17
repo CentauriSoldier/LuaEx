@@ -33,7 +33,7 @@ local tConfig = {--TODO basic things like units of measurement
     BaseVehicle = {
         COMPONENT = {"BODY"},
     },
-    Mod = {
+    BaseMod = {
         infoFilename = "modinfo.lua",
     },
     Rarity = {
