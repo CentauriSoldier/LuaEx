@@ -24,7 +24,7 @@ return class("BaseMod",
 {--STATIC PUBLIC
     MAX_VERSION_RO = _nMaxVersion,
     --BaseMod = function(stapub) end,
-    isDateValid = function(sInput) --TODO move to string hook lib
+    isDateValid = function(sInput) --TODO move to string hook lib and cleanup
         -- Date pattern matching YYYY-MM-DD format
         local sPattern = "^%d%d%d%d%-%d%d%-%d%d$"
 
@@ -85,6 +85,7 @@ return class("BaseMod",
     Path__autoAA        = "",
     required            = {},
     Released__autoRF    = null,
+    --TODO add tags system
     Updated__autoRF     = null,
     Version__autoRF     = null,
     Website__autoRF     = null,
@@ -95,6 +96,7 @@ return class("BaseMod",
 
         --create the mod info file path
         local pModInfo = (pFolder.._.._sInfoFilename):gsub(_sNot_, _):gsub(_.._, _);
+        --attempt opening the mod info file
         local hModInfo = io.open(pModInfo, "r");
 
         --throw an error if the mod info file is not found or could not be opened
@@ -165,7 +167,7 @@ return class("BaseMod",
         pro.Description = sDescription;
 
         --uuid
-        assert(rawtype(sID) == "string" and sID:isuuid(), "Error importing mod, '"..sName.."': invalid UUID.");
+        assert(rawtype(sID) == "string" and sID:isuuid(), "Error importing mod, '"..sName.."': invalid UUID ("..sID..").");
         pro.ID = sID;
 
         --required mods

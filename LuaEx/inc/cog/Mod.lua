@@ -7,58 +7,6 @@ local Folder    = Folder;
 local File      = File;
 local pairs     = pairs;
 
-local _tMods = {
-    --[UUID] = Mod,
-};
---local _wEmpty = {}; --empty environment
-
-
-
-local function modInfoIsValid(fChunk)
-    local bRet      = rawtype(fChunk) == "function";
-    local sMessage  = "";
-    local tModInfo;
-
-    if (bRet) then
-        --save the old env and load in the safe one
-        local wOld  = _ENV;
-        _ENV        = envrepo["Mod"];
-
-        tModInfo = fChunk();
---TODO FINISH
-        bRet =
-        (rawtype(tModInfo.authors)      == "string") and
-        (rawtype(tModInfo.authors)      == "string") and
-        (rawtype(tModInfo.description)  == "string") and
-        (rawtype(tModInfo.id)           == "string") and
-        tModInfo.id:isuuid()
-        (rawtype(tModInfo.authors)      == "string") and
-        (rawtype(tModInfo.authors)      == "string") and
-        (rawtype(tModInfo.authors)      == "string") and
-        (rawtype(tModInfo.authors)      == "string") and
-        (rawtype(tModInfo.authors)      == "string")
-
-        --[[return {
-            authors     = "Frosty Frame",
-            contact     = "support@frostygrame.game",
-            description = "The base game.",
-            id          = "b941d19e-77da-9023-180d-418451c5c618",
-            name        = "Animeallum",
-            requires    = nil,
-            released    = "2024-08-15",
-            udpated     = "2024-08-15",
-            version     = 0.01,
-            website    = "www.frostyframe.game",
-        };]]
-
-        --load in the old env
-        _ENV = wOld;
-    end
-
-    return bRet, sMessage, tModInfo;
-end
-
-
 return class("Mod",
 {--METAMETHODS
 
@@ -177,7 +125,7 @@ return class("Mod",
 {},--PROTECTED
 {--PUBLIC
     Mod = function(this, cdat, pFolder)
-        super(pFolder); 
+        super(pFolder);
     end,
 },
 BaseMod, --extending class
