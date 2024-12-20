@@ -5,14 +5,16 @@ local table     = table;
 local tonumber  = tonumber;
 local type      = type;
 
+--TODO implement optional strictMode which will throw and error on mod UUID duplicate.
 
 local _                 = package.config:sub(1, 1);
 local _sNot_            = _ == "\\" and "/" or "\\";
 local _sInfoFilename    = luaex.cog.config.BaseMod.infoFilename;
 
 --contains all mods in the game and is populated when a mod is created
-local _tMods = {};
-
+local _tMods        = {};
+local _tModsByID    = {};
+local _tModIndices  = {}; --indexed by UUID, values are the mod's numeric index in the _tMods table (stored for mod overwrite scenarios)
 local _nMaxVersion = 999;
 
 return class("BaseMod",
@@ -24,53 +26,17 @@ return class("BaseMod",
 {--STATIC PUBLIC
     MAX_VERSION_RO = _nMaxVersion,
     --BaseMod = function(stapub) end,
-    isDateValid = function(sInput) --TODO move to string hook lib and cleanup
-        -- Date pattern matching YYYY-MM-DD format
-        local sPattern = "^%d%d%d%d%-%d%d%-%d%d$"
-
-        -- Check if the input matches the pattern
-        if not sInput:match(sPattern) then
-            return false
-        end
-
-        -- Extract the year, month, and day from the input
-        local year, month, day = sInput:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
-
-        -- Convert to numbers for further validation
-        year, month, day = tonumber(year), tonumber(month), tonumber(day)
-
-        -- Check for valid month and day ranges
-        if month < 1 or month > 12 then
-            return false
-        end
-
-        -- Days in each month (not accounting for leap years yet)
-        local daysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-
-        -- Adjust for leap year
-        if month == 2 and (year % 4 == 0 and (year % 100 ~= 0 or year % 400 == 0)) then
-            daysInMonth[2] = 29;
-        end
-
-        -- Check if the day is valid for the given month
-        if day < 1 or day > daysInMonth[month] then
-            return false
-        end
-
-        -- If all checks passed, the date is valid
-        return true;
-    end,
     eachMod = function() --same as __pairs (5.1 compat)
         return next, _tMods, nil;
     end,
     getByID = function(sID)
         type.assert.string(sID, "%S+");
 
-        if (_tMods[sID] == nil) then
+        if (_tModsByID[sID] == nil) then
             error("Error getting mod, '${id}'. Mod does not exist" % {id = sID});
         end
 
-        return _tMods[sID];
+        return _tModsByID[sID];
     end,
 },
 {--PRIVATE
@@ -116,7 +82,8 @@ return class("BaseMod",
 
         --create a safe env to load the modinfo
         local wOld = _ENV;
-        _ENV = {error = error};
+        local pcall = pcall;
+        _ENV = {error = error};--QUESTION do I need more things in here like tonumber, tostring, etc.?
 
         --attempt to load the mod info
         local bSuccess, vModInfoOrError = pcall(fModInfo);
@@ -125,7 +92,7 @@ return class("BaseMod",
         _ENV = wOld;
 
         --look for errors in the mod info
-        if not (vModInfoOrError) then
+        if not (bSuccess) then
             error("Error importing mod in directory, '"..pFolder.."'. : "..vModInfoOrError);
         end
 
@@ -168,7 +135,17 @@ return class("BaseMod",
 
         --uuid
         assert(rawtype(sID) == "string" and sID:isuuid(), "Error importing mod, '"..sName.."': invalid UUID ("..sID..").");
-        pro.ID = sID;
+        pro.ID = sID:lower();
+        local nModIndex = #_tMods + 1; --track this index in case of overwrites (due to duplicate UUIDs)
+
+        --check for existing UUID
+        if (_tModsByID[pro.ID]) then
+            --if the UUID exists, overwrite the existing mod and log it
+            nModIndex = _tModIndices[pro.ID];
+
+            --TODO FINISH Log duplicate UUIDs
+        end
+
 
         --required mods
         if (rawtype(tRequired) == "table") then
@@ -187,14 +164,14 @@ return class("BaseMod",
         pro.Path = pFolder;
 
         --released
-        if not (rawtype(sReleased) == "string" and BaseMod.isDateValid(sReleased)) then
+        if not (rawtype(sReleased) == "string" and sReleased:isdatevalid()) then
             error("Error importing mod, '"..sName.."': invalid release date. Date must be a string in the following format: YYYY-MM-DD");
         end
         pro.Released = sReleased;
 
         --updated
-        if not (rawtype(sUpdated) == "string" and BaseMod.isDateValid(sUpdated)) then
-            error("Error importing mod, '"..sName.."': invalid release date. Date must be a string in the following format: YYYY-MM-DD");
+        if not (rawtype(sUpdated) == "string" and sUpdated:isdatevalid()) then
+            error("Error importing mod, '"..sName.."': invalid updated date. Date must be a string in the following format: YYYY-MM-DD");
         end
         pro.Updated = sUpdated;
 
@@ -206,7 +183,9 @@ return class("BaseMod",
         pro.Website = (rawtype(sWebsite) == "string" and sWebsite:find("%S+")) and sWebsite or '';
 
         --register the mod
-        _tMods[#_tMods + 1] = this;
+        _tMods[nModIndex]       = this;
+        _tModsByID[pro.ID]      = this;
+        _tModIndices[pro.ID]    = nModIndex;
     end,
 
 },--PROTECTED

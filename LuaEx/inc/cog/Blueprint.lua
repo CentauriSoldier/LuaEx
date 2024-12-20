@@ -1,7 +1,7 @@
 --handles all mod data for class creation
 --these blueprits are used to create items
 
---TODO NOTE: if classes getting BP info slow, have them cache the calls
+--TODO NOTE: if classes getting BP info is slow, have them cache the calls
 
 local _nMaxIDs  = 65535; --WARNING: DO NOT CHANGE UNLESS YOU ALSO CHANGE THE ID FORMAT AND LENGTH
 local _tIDBank  = {
@@ -59,7 +59,7 @@ TODO MOVE THIS O
         <li></li> <i>()</i>
     </ul>
 
-    <br>Blueprints are contained within a mod's root directory in a file called <b>Blueprints. TODO prbably best to remove this sentence unkuss incorporating the mod system into CoGlua</b>
+    <br>Blueprints are contained within a mod's root directory in a file called <b>Blueprints.lua</b>
 ]]
 
 --[[!
@@ -124,7 +124,7 @@ Blueprint.registerClass("Weapon", {
 
 -- Example of using a blueprint to create a weapon object
 local swordBlueprint = {
-    id = "sword_001",       --required by the Blueprint class
+    id = "SWD-A02F",       --required by the Blueprint class
     name = "Steel Sword",   --required by the Blueprint class
     damage = 25
 }

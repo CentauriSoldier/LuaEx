@@ -102,8 +102,57 @@ function string.isempty(sInput)
 end
 
 
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.isdatevalid
+    @desc Determines whether a date given is valid.
+    @param string sInput The string to check.<br><b>Note:</b>The default pattern is YYYY-MM-DD.
+    @ret boolean bValid Returns true if the date is valid, false otherwise.
+    @ex
+    TODO
+!]]
+string.isdatevalid = function(sInput, sInpPattern)
+    -- Date pattern matching YYYY-MM-DD format
+    local sPattern = "^%d%d%d%d%-%d%d%-%d%d$";
 
+    -- Check if the input matches the pattern
+    local bRet = sInput:match(sPattern);
 
+    if (bRet) then
+        local sYear, sMonth, sDay = nil;
+        local nYear, nMonth, nDay = nil;
+
+        -- Extract the year, month, and day from the input
+        sYear, sMonth, sDay = sInput:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+        bRet = sYear and sMonth and sDay;
+
+        if (bRet) then
+            -- Convert to numbers for further validation
+            nYear, nMonth, nDay = tonumber(sYear), tonumber(sMonth), tonumber(sDay)
+            bRet = nYear and nMonth and nDay;
+        end
+
+        if (bRet) then
+            -- Check for valid month and day ranges
+            bRet = nMonth >= 1 and nMonth <= 12;
+        end
+
+        if (bRet) then
+            -- Days in each month (not accounting for leap years yet)
+            local tDaysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+            -- Adjust for leap year
+            if nMonth == 2 and (nYear % 4 == 0 and (nYear % 100 ~= 0 or nYear % 400 == 0)) then
+                tDaysInMonth[2] = 29;
+            end
+
+            -- Check if the day is valid for the given month
+            bRet = nDay > 0 and nDay <= tDaysInMonth[nMonth];
+        end
+
+    end
+
+    return bRet;
+end
 
 
 --[[!
