@@ -10,7 +10,7 @@ local _tIDBank  = {
 };
 
 --for quick, existential class checks (also contains classes' field master table)
-local _tClassMasterTable = {};
+local _tClassMaster = {};
 
 local _tBPs = {
     byClass = {}, --[class][id] = bp
@@ -18,7 +18,7 @@ local _tBPs = {
     byTier  = {}, --[tier][id]  = bp
 };
 
-local _tMasterTable = {
+local _tMaster = {
     forbidden = {
         "class"
     },
@@ -139,6 +139,7 @@ return class("Blueprint",
         for nOrdinal, eItem in TIER() do
             _tBPs.byTier[eItem] = {};
         end
+
     end,
     exists = function(sID)
         return _tBPs.byID[sID] ~= nil;
@@ -201,7 +202,6 @@ return class("Blueprint",
         -- ^        : start of the string
         -- %u%u%u  : exactly three uppercase letters (XXX)
         -- %-       : literal dash (-)
-        -- [%x]+    : one or more hexadecimal digits (0-9, A-F)
         -- %x%x%x%x : exactly four hexadecimal digits (DDDD)
         -- $        : end of the string
         return
@@ -210,20 +210,53 @@ return class("Blueprint",
         _tIDBank[sID:sub(1, 3)] ~= nil                      --and
         --_tIDBank[sID:sub(1, 3)][sID] == false; This was removed to permit overwrites (one of the points of modding)
     end,
-    import = function(cClass, tBP)
-        local sMessage = "";
-        local bRet =    type(cClass)    == "class" and --TODO break this up and adjust message
-                        type(tBP)       == "table" and
-                        _tClassMasterTable[cClass] ~= nil;
+    import = function(cClass, tBP, sModID)--TODO valiudate MOd id and use it messages
+        local sID;
+        local sMessage              = "Error importing blueprint. An unknown error occurred.";
+        local bIsClass              = type(cClass) == "class";
+        local bIsTable              = type(tBP) == "table";
+        local bClassIsRegistered    = _tClassMaster[cClass] ~= nil;
+        local bRet                  = bIsClass;
 
+--TODO FIX check fro required, permitted, etc tables. THEY  MUST EXISTS or at least need to be checked before processed here.
+        if not (bRet) then
+            sMessage = "Error importing blueprint from mod '"..sModID.."'. Argument one must be of type class. Type given: "..type(cClass);
+        end
 
-        --check that the ID is valid
         if (bRet) then
+            bRet = bIsTable;
 
-            if not (Blueprint.idIsValid(tBP.id)) then
+            if not (bIsTable) then
+                sMessage = "Error importing blueprint from mod '"..sModID.."'. Argument two must be of type table (the blueprint table). Type given: "..type(tBP);
+            end
+
+        end
+
+        if (bRet) then
+            bRet = bClassIsRegistered;
+
+            if not (bClassIsRegistered) then
+                sMessage = "Error importing blueprint from mod '"..sModID.."'. Class ,'"..class.getname(cClass).."', is not registered with the Blueprint class.";
+            end
+
+        end
+
+--TODO FINISH check for tier and validate it! If I do this, it needs to be in the master table
+
+        --check that the ID is valid TODO FINISH check this and mod id first for better error messages
+        if (bRet) then
+            sID = tBP["id"];
+
+            if (type(sID) == "string") then
+
+                if not (Blueprint.idIsValid(sID)) then
+                    bRet = false;
+                    sMessage = "Error importing blueprint '"..sID.."' from mod '"..sModID.."'. Invalid ID.\nExpected format, UUU-XXXX where U is an uppercase letter and X is a hexadecimal digit.";
+                end
+
+            else
                 bRet = false;
-                local sID = type(tBP.id) == "string" and tBP.id or "UNKNOWN"
-                sMessage = "Error loading blueprint, '"..sID.."'. Invalid ID.\nExpected format, UUU-XXXX where U is an uppercase letter and X is a hexadecimal digit.";
+                sMessage = "Error importing blueprint from mod '"..sModID.."', Missing 'id' field with value type string.";
             end
 
         end
@@ -231,12 +264,19 @@ return class("Blueprint",
         --check all master required fields compliance
         if (bRet) then
 
-            for sIndex, zExpected in pairs(_tMasterTable.required) do
-                local zGiven = type(tBP[sName]);
+            for sMasterIndex, tMasterExpected in pairs(_tMaster.required) do
+                local sIndex = tBP[sMasterIndex];
 
-                if (zGiven ~= zExpected) then
-                    bRet = false;
-                    sMessage = "Error loading blueprint. Type expected at index '${index}' is ${expected}. Type given is ${given}." % {index = sIndex, expected = zExpected, given = zGiven};
+                if (sIndex) then
+                    local zGiven = type(tBP[sName]);
+
+                    if (zGiven ~= zExpected) then
+                        bRet = false;
+                        sMessage = "Error importing blueprint '"..sID.."' from mod '"..sModID.."'. Type expected at index '${index}' is ${expected}. Type given is ${given}." % {index = sIndex, expected = zExpected, given = zGiven};
+                    end
+
+                else
+                    sMessage = "Error importing blueprint '"..sID.."' from mod '"..sModID.."'. Blueprint missing required index, '"..sMasterIndex.."'.";
                 end
 
             end
@@ -246,11 +286,11 @@ return class("Blueprint",
         --check all master forbidden fields compliance
         if (bRet) then
 
-            for _, sIndex in pairs(_tMasterTable.forbidden) do
+            for _, sIndex in pairs(_tMaster.forbidden) do
 
                 if (type(tBP[sName]) ~= nil) then
                     bRet = false;
-                    sMessage = "Error loading blueprint. Illegal index, '"..sIndex.."' found in blueprint.";
+                    sMessage = "Error importing blueprint '"..sID.."' from mod '"..sModID.."'. Illegal index, '"..sIndex.."' found in blueprint.";
                 end
 
             end
@@ -260,12 +300,12 @@ return class("Blueprint",
         --check all class required fields compliance
         if (bRet) then
 
-            for sIndex, zExpected in pairs(_tClassMasterTable.required) do
+            for sIndex, zExpected in pairs(_tClassMaster.required) do
                 local zGiven = type(tBP[sName]);
 
                 if (zGiven ~= zExpected) then
                     bRet = false;
-                    sMessage = "Error loading blueprint, '${id}'. Type expected at index '${index}' is ${expected}. Type given is ${given}." %
+                    sMessage = "Error importing blueprint '"..sID.."' from mod '"..sModID.."', '${id}'. Type expected at index '${index}' is ${expected}. Type given is ${given}." %
                                 {id = tBP.id, index = sIndex, expected = zExpected, given = zGiven};
                 end
 
@@ -276,12 +316,12 @@ return class("Blueprint",
         --check all class permitted fields compliance
         if (bRet) then
 
-            for sIndex, zExpected in pairs(_tClassMasterTable.permitted) do
+            for sIndex, zExpected in pairs(_tClassMaster.permitted) do
                 local zGiven = type(tBP[sName]);
 
                 if not (zGiven == zExpected or zGiven == nil) then
                     bRet = false;
-                    sMessage = "Error loading blueprint, '${id}'. Type expected at index '${index}' is ${expected}. Type given is ${given}." %
+                    sMessage = "Error importing blueprint '"..sID.."' from mod '"..sModID.."', '${id}'. Type expected at index '${index}' is ${expected}. Type given is ${given}." %
                                 {id = tBP.id, index = sIndex, expected = zExpected, given = zGiven};
                 end
 
@@ -292,8 +332,9 @@ return class("Blueprint",
         --import the BP
         if (bRet) then
             local sID = tBP.id;
-            _tBPs.class = cClass;
 
+            sMessage = "Blueprint imported successfully."; --TODO add BP id and MOD id
+            --_tBPs.class = cClass;
             _tBPs.byClass[cClass][sID]   = tBP;
             _tBPs.byID[sID]              = tBP;
             _tBPs.byTier[tBP.tier][sID]  = tBP;
@@ -303,9 +344,10 @@ return class("Blueprint",
     end,
     registerClass = function(cClass, sPrefix, tBPFieldMaster)--TODO return boolean
 
-        if (type(cClass) == "class" and _tClassMasterTable[cClass] == nil) then
+        if (type(cClass) == "class" and _tClassMaster[cClass] == nil) then
 
             if not (type(sPrefix) == "string" and sPrefix:match("^%a%a%a$")) then
+                error(type(sPrefix), sPrefix:match("^%a%a%a$"))
                 --TODO THROW ERROR
             end
 
@@ -313,10 +355,10 @@ return class("Blueprint",
                 --TODO THROW ERROR
             end
 
-            sPrefix = sPrefix:upper();
+            sPrefix = sPrefix:upper(); --TODO FINISH CHECK for already existing prefix
 
             --register the class and store its blueprint field master table TODO FINISH make sure it has required and permitted indices
-            _tClassMasterTable[cClass] = clone(tBPFieldMaster);
+            _tClassMaster[cClass] = clone(tBPFieldMaster);
             --create the repos
             _tBPs.byClass[cClass]   = {};
             _tBPs.byID[sPrefix]     = {};
