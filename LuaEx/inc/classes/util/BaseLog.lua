@@ -7,7 +7,8 @@ local function writeToFile(this, cdat, tEntry)
     local hFile = io.open(pro.path, "a")
 
     if hFile then
-        hFile:write(pro.dateTimeFunction()..' ['..tostring(tEntry.level).."]-> "..tEntry.message.."\n");
+        --hFile:write(pro.dateTimeFunction()..' ['..tostring(tEntry.level).."]-> "..tEntry.message.."\n");
+        hFile:write(tEntry.datetime..'['..tostring(tEntry.level).."] "..tEntry.message.."\n");
         hFile:close();
     end
 

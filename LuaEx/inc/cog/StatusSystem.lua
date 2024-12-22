@@ -7,7 +7,7 @@ return class("StatusSystem",
 {--METAMETHODS
 },
 {--STATIC PUBLIC
-    StatusSystem = function(stapub)
+    __INIT = function(stapub)
         local tEffect = luaex.cog.config["StatusSystem"].EFFECT;
 
         --create the effect enum

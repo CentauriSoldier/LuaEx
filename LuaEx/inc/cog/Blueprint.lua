@@ -3,8 +3,17 @@
 
 --TODO NOTE: if classes getting BP info is slow, have them cache the calls
 
-local _nMaxIDs  = 65535; --WARNING: DO NOT CHANGE UNLESS YOU ALSO CHANGE THE ID FORMAT AND LENGTH
-local _tIDBank  = {
+-- Pattern explanation:
+-- ^        : start of the string
+-- %u%u%u  : exactly three uppercase letters (XXX)
+-- %-       : literal dash (-)
+-- %x%x%x%x : exactly four hexadecimal digits (DDDD)
+-- $        : end of the string
+
+local _sDefaultModID    = "27a27ca4-5f85-48ea-a30d-e6ad95d89d84"; --WARNING: DO NOT CHANGE
+local _nMaxIDs          = 65535; --WARNING: DO NOT CHANGE UNLESS YOU ALSO CHANGE THE ID FORMAT AND LENGTH
+local _sIDFormat        = "^%u%u%u%-%x%x%x%x$";
+local _tIDBank          = {
     --byClass     = {},
     --byString    = {},
 };
@@ -13,9 +22,9 @@ local _tIDBank  = {
 local _tClassMaster = {};
 
 local _tBPs = {
-    byClass = {}, --[class][id] = bp
-    byID    = {}, --[id]        = bp
-    byTier  = {}, --[tier][id]  = bp
+    byClass = {}, --[class] = {[id] = {bp}
+    byID    = {}, --[id]    = {bp
+    byMod   = {}, --[mod]   = {[id] = bp}
 };
 
 local _tMaster = {
@@ -32,7 +41,7 @@ local _tMaster = {
 local function copyBP(tBP)
     local tRet = {};
 
-    for sIndex, vValue in pairs(tBP) do
+    for sIndex, vValue in pairs(tBP) do--TODO CHECKS ON INDEX AND VALUE TYPES, KILL MOD IF VIOLATIONS EXIST? Wait is this already checked on import?
         tRet[sIndex] = type(vValue) == "table" and copyBP(vValue) or vValue;
     end
 
@@ -134,13 +143,6 @@ return class("Blueprint",
 
 },
 {--STATIC PUBLIC
-    Blueprint = function(stapub)
-
-        for nOrdinal, eItem in TIER() do
-            _tBPs.byTier[eItem] = {};
-        end
-
-    end,
     exists = function(sID)
         return _tBPs.byID[sID] ~= nil;
     end,
@@ -172,45 +174,15 @@ return class("Blueprint",
 
         return tRet;
     end,
-    getAllOfTier = function(eTier)
-        local tRet = {};
-        type.assert.custom(eTier, "TIER");
-
-        for sID, tBP in pairs(_tBPs.byTier[eTier]) do
-            tRet[sID] = copyBP(tBP);
-        end
-
-        return tRet;
-    end,
-    getAllOfClassAndTier = function(cClass, eTier)
-        local tRet = {};
-        type.assert.custom(cClass, "class");
-        type.assert.custom(eTier, "TIER");
-
-        for sID, tBP in pairs(_tBPs.byClass[cClass]) do
-
-            if (tBP.tier == eTier) then
-                tRet[sID] = copyBP(tBP);
-            end
-
-        end
-
-        return tRet;
-    end,
     idIsValid = function(sID)
-        -- Pattern explanation:
-        -- ^        : start of the string
-        -- %u%u%u  : exactly three uppercase letters (XXX)
-        -- %-       : literal dash (-)
-        -- %x%x%x%x : exactly four hexadecimal digits (DDDD)
-        -- $        : end of the string
         return
-        (type(sID) == "string")                             and
-        (string.match(sID, "^%u%u%u%-%x%x%x%x$") ~= nil)    and
+        (type(sID) == "string")                 and
+        (string.match(sID, _sIDFormat) ~= nil)  and
         _tIDBank[sID:sub(1, 3)] ~= nil                      --and
         --_tIDBank[sID:sub(1, 3)][sID] == false; This was removed to permit overwrites (one of the points of modding)
     end,
-    import = function(cClass, tBP, sModID)--TODO valiudate MOd id and use it messages
+    import = function(cClass, tBP, vModID)--TODO valiudate MOd id and use it messages
+        local sModID = (type(vModID) == "string" and vModID:isuuid()) and vModID or _sDefaultModID;
         local sID;
         local sMessage              = "Error importing blueprint. An unknown error occurred.";
         local bIsClass              = type(cClass) == "class";

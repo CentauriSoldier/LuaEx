@@ -1,4 +1,8 @@
-local directive = {};
+local directive = {
+    enum = {};
+};
+
+-- Directive namespace setup
 
 
 --[[
@@ -37,7 +41,7 @@ enum CREATURE {
 }
 ]]
 
-function directive.enum(pFile)
+--[[function directive.enum(pFile)
     local eRet = nil;
     local iLines = io.lines(pFile);
 
@@ -52,7 +56,8 @@ function directive.enum(pFile)
     end
 
     return eRet;
-end
+end]]
+
 
 --CREATE A xpcall function for errors in loadstring (for values)
 
@@ -67,4 +72,4 @@ end
 
 --profit
 --directive.enum("C:\\Users\\CS\\Sync\\Projects\\GitHub\\Supremecratic\\Supremecratic\\CD_Root\\Data\\Mods\\Shipped\\Population.enum");
-return directive;
+return directive; --TODO protect this properly

@@ -22,7 +22,7 @@ Class methods cannot be overriden except by subclasses and only if they're not m
     <li><b>pub</b></li> (class public fields and methods)
     <li><b>ins</b></li> (class instances)
 </ul>
-<b>Note</b>: for obvious reasons, methods in the static public table do not get infused with these instance-specific arguments. The only method in that table that has an argument infused into it is the static constructor that has the static public table as its first argument to allow it to make changes to the static public tables upon class creation.
+<b>Note</b>: for obvious reasons, methods in the static public table do not get infused with these instance-specific arguments. The only method in that table that has an argument infused into it is the static inializer <i>(not to be confused with the static constructor)</i> that has the static public table as its first argument to allow it to make changes to the static public tables upon class creation.
 <br>
 <br>
 To facilitate a class's instances accessing and mutating each other (as is common in most other programming laguages), the <b>ins</b> table is provided. This table is indexed by class instance objects whose values are the class data of that instance. This allows other class instances input as arguments into a method to be directly manipulated (incuding private, protected, etc.) by the class method.
@@ -90,7 +90,6 @@ To facilitate a class's instances accessing and mutating each other (as is commo
 
 
 --LOCALIZATION
-
 
 local function classError(sMessage, nLevel)
     error("Error in class.\n"..sMessage, nLevel + 1);
@@ -173,6 +172,26 @@ local function isMutableStaticPublicType(sType)
 end
 
                     --[[
+                    ██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗███████╗██████╗ ███████╗
+                    ██║████╗  ██║██║╚══██╔══╝██║██╔══██╗██║     ██║╚══███╔╝██╔════╝██╔══██╗██╔════╝
+                    ██║██╔██╗ ██║██║   ██║   ██║███████║██║     ██║  ███╔╝ █████╗  ██████╔╝███████╗
+                    ██║██║╚██╗██║██║   ██║   ██║██╔══██║██║     ██║ ███╔╝  ██╔══╝  ██╔══██╗╚════██║
+                    ██║██║ ╚████║██║   ██║   ██║██║  ██║███████╗██║███████╗███████╗██║  ██║███████║
+                    ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
+                    ]]
+--[[!
+@fqxn LuaEx.Class System.Initialization
+@desc When a class is built, there is an opportunity to call a static initializer, a static constructor or both.
+<h3>The Static Initializer</h3>
+<p>The static initializer is called by creating a static public method named <b>__INIT</b>. This is called <b><i>before</i></b> the class object is created and is used to modify the static public fields and methods. Items can be added, changed or deleted from the static public table of the class at this point. The only parameter passed to the <b>__INIT</b> method is the static public table.<br><b>Note</b>: Since the class has not yet been built, this cannot remove class methods that have yet to be added during the class object's assembly or any other fields declared in the non-static portion of the class declaration.</p>
+<h3>The Static Constructor</h3>
+<p>The static constructor is called by creating a static public method having the <b><u>exact</u></b> same name as the class itself. This is called <b ><i>after</i></b> the class object is created and is used to perform static operations while having access to the fully-built class object. The only parameter passed to the static constructor method is the class object itself. <b>Note</b>: actions performed using the class object are governed as would any actions on the class object performed outside the static constructor. That is, the static constructor is given no special privileges or access to the class object.
+]]
+local _sClassStaticInitializer = "__INIT";
+
+
+
+                    --[[
                     ██████╗ ██╗██████╗ ███████╗ ██████╗████████╗██╗██╗   ██╗███████╗███████╗
                     ██╔══██╗██║██╔══██╗██╔════╝██╔════╝╚══██╔══╝██║██║   ██║██╔════╝██╔════╝
                     ██║  ██║██║██████╔╝█████╗  ██║        ██║   ██║██║   ██║█████╗  ███████╗
@@ -250,10 +269,10 @@ MyField__RO = 12,
 @fqxn LuaEx.Class System.class.Properties
 @desc Properties are fields which have accessor/mutator methods auto-created by using <a href="#LuaEx.Class System.Directives">Directives</a>.
 !]]
-local _sDirectiveAutoUpper  = "__AUTO";
-local _sDirectiveAutoLower  = "__auto";
-local _sDirectiveFNL        = "__FNL";
-local _sDirectiveRO         = "__RO";
+local _sDirectiveAutoUpper          = "__AUTO";
+local _sDirectiveAutoLower          = "__auto";
+local _sDirectiveFNL                = "__FNL";
+local _sDirectiveRO                 = "__RO";
 
             --[[
                 ███╗   ███╗ █████╗ ██╗███╗   ██╗    ████████╗ █████╗ ██████╗ ██╗     ███████╗███████╗
@@ -548,6 +567,7 @@ end
 @param table tKit The kit that is to be built.
 @scope local
 @desc Builds a complete class object given the <a href="#LuaEx.Class System.kit">kit</a> table. This is called by kit.build().
+<br>For info on class initializers and constructors, see <a href="#LuaEx.Class System.Initialization">Initialization</a>.
 @ret class A class object.
 !]]
 function class.build(tKit)
@@ -557,10 +577,10 @@ function class.build(tKit)
     --this is the actual, hidden class table referenced by the returned class object
     local tClass    = clone(tKit.stapub);   --create the static public members
 
-    --execute then delete the static constructor (if it exists)
-    if (rawtype(tClass[sName]) == "function") then
-        tClass[sName](tClass);
-        rawset(tClass, sName, nil);
+    --execute then delete the static initializer (if it exists)
+    if (rawtype(tClass[_sClassStaticInitializer]) == "function") then
+        tClass[_sClassStaticInitializer](tClass);
+        rawset(tClass, _sClassStaticInitializer, nil);
     end
 
     local tClassMeta = { --the decoy (returned class object) meta table
@@ -757,6 +777,12 @@ function class.build(tKit)
 
     --store the is function for later use in relational functions
     class.repo.isFunctions[oClass] = classis;
+
+    --execute then delete the static constructor (if it exists)
+    if (rawtype(tClass[sName]) == "function") then
+        tClass[sName](oClass);
+        rawset(tClass, sName, nil);
+    end
 
     return oClass;
 end
