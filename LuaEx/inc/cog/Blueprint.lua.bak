@@ -22,67 +22,10 @@ local _tIDBank          = {
 local _tClassMaster = {};
 
 local _tBPs = {
-    byClass = {},
-    byID    = {}, --each Id contains a table of same-ID BPs, the first being the active one, the next, being the last overwritten. This is the primary storage table to which the others tables refer
-    byMod   = {},
+    byClass = {}, --[class] = {[id] = {bp}
+    byID    = {}, --[id]    = {bp
+    byMod   = {}, --[mod]   = {[id] = bp}
 };
-
---assumes the BP has been validated
-local function createBPEntry(tBP, cClass, sModID)
-    local sBPID = tBP.id;
-
-    --create the basic BP info table
-    local tBPInfo = {
-        bp              = tBP,
-        class           = cClass,
-        modID           = sModID,
-    };
-    local tBPInfoDecoy  = {}; --for use by the byClass and byMod tables
-    local tBPInfoMeta   = {
-        __index = function(t, k)
-
-            if (tBPInfo[k]) then
-                local vRet;
-
-                --if the BP has be requested, redirect to the active BP
-                if (k == "bp") then
-                    --assumed to exist (otherwise the calling table would also be non-existent)
-                    vRet = _tBPs.byID[sBPID][1];
-                else --otherwise, send back the data requested
-                    vRet = tBPInfo[k] or nil;
-                end
-
-                return vRet;
-            end
-
-        end,
-        __newindex = function(t, k, v) end, --deadcall
-    };
-
-    setmetatable(tBPInfoDecoy, tBPInfoMeta)
-
-    --create the BP info repo subtable (if it doesn't exist)
-    if (type(_tBPs.byID[sBPID]) ~= "table") then
-        _tBPs.byID[sBPID]  = {};
-    end
-
-    --add the BP
-    table.insert(_tBPs.byID[sBPID],      tBPInfo,        1);
-    table.insert(_tBPs.byClass[cClass],  tBPInfoDecoy,   1);
-    table.insert(_tBPs.byMod[sModID],    tBPInfoDecoy,   1);
-
-end
-
---removes an entry given the BP ID
-local function removeBPEntry(sBPID)
-    table.insert(_tBPs.byID[sBPID],      tBPInfo,        1);
-    table.insert(_tBPs.byClass[cClass],  tBPInfoDecoy,   1);
-    table.insert(_tBPs.byMod[sModID],    tBPInfoDecoy,   1);
-end
-
-
---local function removeBPEntryBycClass
-
 
 local _tMaster = {
     forbidden = {
@@ -238,8 +181,7 @@ return class("Blueprint",
         _tIDBank[sID:sub(1, 3)] ~= nil                      --and
         --_tIDBank[sID:sub(1, 3)][sID] == false; This was removed to permit overwrites (one of the points of modding)
     end,
-    --TODO CHECK FOR METATABLES ON IMPORT
-    import = function(tBP, cClass, vModID)--TODO valiudate MOd id and use it messages
+    import = function(cClass, tBP, vModID)--TODO valiudate MOd id and use it messages
         local sModID = (type(vModID) == "string" and vModID:isuuid()) and vModID or _sDefaultModID;
         local sID;
         local sMessage              = "Error importing blueprint. An unknown error occurred.";
