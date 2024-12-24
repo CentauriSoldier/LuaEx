@@ -1,3 +1,13 @@
+local _tMaster = {
+    forbidden = {
+        "class"
+    },
+    required = {
+        id   = {"string"},
+        name = {"string"},
+    },
+};
+
 local function validateAffix(vAffix)
     local cAffix = class.of(vAffix);
 
@@ -190,7 +200,7 @@ return class("BaseObject",
         return cdat.pri.maxSuffixes;
     end,
 },
-nil,   --extending class
+CoG,   --extending class
 false, --if the class is final (or (if a table is provided) limited to certain subclasses)
 nil    --interface(s) (either nil, or interface(s))
 );

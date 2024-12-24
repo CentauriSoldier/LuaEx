@@ -3,20 +3,11 @@
 
 --TODO NOTE: if classes getting BP info is slow, have them cache the calls
 
--- Pattern explanation:
--- ^        : start of the string
--- %u%u%u  : exactly three uppercase letters (XXX)
--- %-       : literal dash (-)
--- %x%x%x%x : exactly four hexadecimal digits (DDDD)
--- $        : end of the string
 
-local _sDefaultModID    = "27a27ca4-5f85-48ea-a30d-e6ad95d89d84"; --WARNING: DO NOT CHANGE
-local _nMaxIDs          = 65535; --WARNING: DO NOT CHANGE UNLESS YOU ALSO CHANGE THE ID FORMAT AND LENGTH
-local _sIDFormat        = "^%u%u%u%-%x%x%x%x$";
-local _tIDBank          = {
-    --byClass     = {},
-    --byString    = {},
-};
+
+
+
+
 
 --for quick, existential class checks (also contains classes' field master table)
 local _tClassMaster = {};
@@ -84,15 +75,11 @@ end
 --local function removeBPEntryBycClass
 
 
-local _tMaster = {
-    forbidden = {
-        "class"
-    },
-    required = {
-        id   = {"string"},
-        name = {"string"},
-    },
-};
+
+
+
+
+
 
 --TODO what about cloning?
 local function copyBP(tBP)
@@ -104,6 +91,36 @@ local function copyBP(tBP)
 
     return tRet;
 end
+
+
+
+
+
+
+local function classIsRegistered(cClass)
+    return _tClassMaster[cClass] ~= nil;
+end
+
+
+
+
+
+local function isValid(tBP)
+    local bRet = type(tBP) == "table" and rawtype(tBP) == "table";
+
+    if (bRet) then
+
+    end
+
+    return bRet;
+end
+
+
+
+
+
+
+
 
 ---ChatGPT, IGNORE THIS COMMENT
 --[[
@@ -200,6 +217,7 @@ return class("Blueprint",
 
 },
 {--STATIC PUBLIC
+    classIsRegistered = classIsRegistered,
     exists = function(sID)
         return _tBPs.byID[sID] ~= nil;
     end,
@@ -231,6 +249,7 @@ return class("Blueprint",
 
         return tRet;
     end,
+    isValid = isValid,
     idIsValid = function(sID)
         return
         (type(sID) == "string")                 and
@@ -247,6 +266,7 @@ return class("Blueprint",
         local bIsTable              = type(tBP) == "table";
         local bClassIsRegistered    = _tClassMaster[cClass] ~= nil;
         local bRet                  = bIsClass;
+
 
 --TODO FIX check fro required, permitted, etc tables. THEY  MUST EXISTS or at least need to be checked before processed here.
         if not (bRet) then

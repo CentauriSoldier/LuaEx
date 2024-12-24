@@ -6,22 +6,29 @@ local table     = table;
 local tonumber  = tonumber;
 local type      = type;
 
+local _sDefaultModID    = "27a27ca4-5f85-48ea-a30d-e6ad95d89d84"; --WARNING: NEVER CHANGE THIS VALUE!
 local _nMaxVersion      = 999;
-
+--[[!
+    @fqxn CoG.ModSystem.BaseMod
+    @des BaseMod is designed to contain basic information on game mods. In addition, it is meant to be extended (having a protected constructor) by a custom Mod class which handles the more specific details of your game's Mods.
+!]]
 return class("BaseMod",
 {}, --METAMETHODS
 {   --STATIC PUBLIC
-    MAX_VERSION_RO = _nMaxVersion,
+    DEFAULT_MOD_ID_RO   = _sDefaultModID,
+    MAX_VERSION_RO      = _nMaxVersion,
 },
 {   --PRIVATE
 },
 {   --PROTECTED
     Active__auto_Fis    = false,
     authors             = {},
+    blueprints          = {},
     Contact__autoRF     = null,
     Description__autoRF = null,
     ID__autoRF          = null,
     Name__autoRF        = null,
+    Path__autoAA        = "",
     required            = {},
     Released__autoRF    = null,
     --TODO add tags system

@@ -344,6 +344,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     Rarity          = require(pCoG..".Rarity");
                     RNG             = require(pCoG..".RNG");
                     BaseMod         = require(pCoG..".BaseMod");
+                    CoG             = require(pCoG..".CoG");
 
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");
