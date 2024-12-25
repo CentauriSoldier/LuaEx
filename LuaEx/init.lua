@@ -340,10 +340,10 @@ if (_tClassLoadValues[_nClassSystem]) then
                     rawset(tLuaEx, "cog", tCoG);
 
                     Scaler          = require(pCoG..".Scaler");
-                    Blueprint       = require(pCoG..".Blueprint");
                     Rarity          = require(pCoG..".Rarity");
                     RNG             = require(pCoG..".RNG");
-                    BaseMod         = require(pCoG..".BaseMod");
+                    BaseMod         = require(pCoG..".ModSystem.BaseMod");
+                    Blueprintium    = require(pCoG..".ModSystem.Blueprintium");
                     CoG             = require(pCoG..".CoG");
 
                     --interfaces

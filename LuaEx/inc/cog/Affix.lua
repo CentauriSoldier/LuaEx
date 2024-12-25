@@ -49,7 +49,7 @@ return class("Affix",
         stapub.MAX_TIER = _eMaxTier;
     end,
     Affix = function(cAffix)
-        Blueprint.registerClass(cAffix, _tBPMaster.prefix, _tBPMaster.masterTable);
+        --Blueprint.registerClass(cAffix, _tBPMaster.prefix, _tBPMaster.masterTable);
     end,
     --[[!
     @fqxn CoG.Affix.Enums.TYPE
@@ -252,7 +252,7 @@ return class("Affix",
         _ENV = wOldEnv;
     end,
 },
-nil,   --extending class
+CoG,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
