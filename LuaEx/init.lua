@@ -221,6 +221,7 @@ array                   =   require("LuaEx.lib.array");
 enum			        = 	require("LuaEx.lib.enum");
 envrepo			        = 	require("LuaEx.lib.envrepo");
 eventrix    	        = 	require("LuaEx.lib.eventrix");
+schema                  =  	require("LuaEx.lib.schema");
 local tStruct           = 	require("LuaEx.lib.struct");
 struct                  =   tStruct.struct;
 structfactory           =   tStruct.structfactory;
