@@ -370,14 +370,19 @@ end
 @ret boolean bIsChild True if it's a child, false otherwise.
 !]]
 local function ischild(vChild, vParent)
-    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                 or nil;
-    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
-                                class.repo.byObject[vParent]                or nil;
+    local bRet = false;
+    local bChildExists  = rawtype(class.repo.byObject[vChild])  ~= "nil";
+    local bParentExists = rawtype(class.repo.byObject[vParent]) ~= "nil";
 
-    return  ( (tChildKit and tParentKit)  and
-              (tChildKit ~= tParentKit)   and
-              (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil") );
+    if (bChildExists and bParentExists) then
+        local tChildKit             = class.repo.byObject[vChild];
+        local tParentKit            = class.repo.byObject[vParent];
+        local bChildIsDescendant    = rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil";
+        print("class test: "..tostring(rawtype(tParentKit.children.all.byObject[vChild])))
+        bRet = bChildIsDescendant and tChildKit ~= tParentKit;
+    end
+
+    return bRet;
 end
 
 --[[!
@@ -439,12 +444,12 @@ local function isparent(vParent, vChild)
 
     return  ( (tChildKit and tParentKit)  and
               (tChildKit ~= tParentKit)   and
-              (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil") );
+              (rawtype(tParentKit.children.all.byObject[vChild]) ~= nil) );
 end
 
 local function isparentorself(vParent, vChild)
     local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                 or nil;
+                                class.repo.byObject[vChild]                or nil;
     local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
                                 class.repo.byObject[vParent]                or nil;
 
@@ -1491,7 +1496,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.repo.byName[sName]      = tKit;
     kit.repo.byObject[oClass]   = tKit;
 
-    --if this has a parent, update the parent kit's child table
+    --if this has a parent, update the parent kit's child table and set this kit's base
     local tParent = tKit.parent;
 
     if (tParent) then

@@ -77,7 +77,7 @@ local Creature = class("Creature",
         return cdat.pri.TESTING;
     end
 },
-NO_PARENT, false, NO_INTERFACES);
+CoG, false, NO_INTERFACES);
 
 local HP_MAX = 120; -- this is an example of a private static field
 local s = sAuthCode;
@@ -96,7 +96,7 @@ local Human = class("Human",
 },
 {--public members
     Human = function(this, cdat, super, sName, nHP)
-        --print("human", sName, nHP, HP_MAX)        
+        --print("human", sName, nHP, HP_MAX)
         super(nHP, HP_MAX);
         cdat.pri.Name = sName;
     end,
@@ -107,6 +107,27 @@ local Soldier = class("Soldier",
 {--metamethods
 },
 {--public static members
+    Soldier = function(cMe, sAuthCode)
+        local fSchema = schema.record {
+            name        = schema.string,
+            --id        = CoG.SCHEMA_ID,
+            --usertype  = s.OneOf("admin", "moderator", "user"),
+            --nicknames = s.Collection(s.String),
+            --rights    = s.Tuple(rights, rights, rights)
+        }
+
+
+        local function fromBlueprint(tBP, ...)
+
+        end
+
+        local bSuccess, sMesssage = CoG.registerBlueprintable(cMe, sAuthCode, fSchema, fromBlueprint);
+
+        if not (bSuccess) then
+            print(sMesssage);
+        end
+
+    end,
 },
 {--private members
     --Name__AUTO__ = "",
@@ -119,9 +140,21 @@ local Soldier = class("Soldier",
         super(sName, nHP);
     end,
 },
-Creature, false, NO_INTERFACES);
+Human, false, NO_INTERFACES);
+
+
 
 
 --Huil = Human("Huil", 50);
 --print(class.getbase(class.of(Huil)))
-Bob = Soldier("Bob", 56)
+--Bob = Soldier("Bob", 56)
+
+local tSoldierBP = {
+
+};
+
+--local bSuccess, sMesssage = CoG.addBlueprint(Soldier, "SOL-BAS-0001", tSoldierBP);
+
+if not (bSuccess) then
+    --print(sMesssage);
+end
