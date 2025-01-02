@@ -43,7 +43,7 @@ function schema.checkSchema(obj, schem, path)
 end
 
 function schema.formatOutput(output)
-    local format = schema.List()
+    local format = schema.list()
     for k,v in ipairs(output) do
         format:append(v:format())
     end
@@ -191,7 +191,7 @@ setmetatable(List, {
         return List.new(...)
     end
 })
-schema.List = List
+schema.list = List
 
 -- Error class. Describes mismatches that occured during the schema-checking.
 local Error = {}
@@ -356,7 +356,7 @@ end
 
 -- Takes a schema and returns an optional schema.
 function schema.optional(s)
-    return schema.OneOf(s, schema.Nil)
+    return schema.oneOf(s, schema.Nil)
 end
 
 -- Takes schemata and accepts their conjuction.

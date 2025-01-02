@@ -150,7 +150,7 @@ function interface.validateMethod(tInterface, tClassKit, sVisibility, sMethod)
 
     while (-bMethodFound and tCurrentClassKit) do
 
-        for sItem, vItem in pairs(tCurrentClassKit[sVisibility]) do
+        for sItem, vItem in pairs(tCurrentClassKit[sVisibility]) do--TODO static methods needs to be checked at the class level, not inlcuding the parent.
 
             if (sItem == sMethod and type(vItem) == "function") then
                 bMethodFound = true;

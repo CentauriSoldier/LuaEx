@@ -3,7 +3,8 @@ return class("MyClass",
 
 },
 {--STATIC PUBLIC
-    --MyClass = function(stapub) end,
+    --__INIT = function(stapub) end, --static initializer (runs before class object creation)
+    --MyClass = function(this) end, --static constructor (runs after class object creation)
 },
 {--PRIVATE
 
@@ -17,6 +18,6 @@ return class("MyClass",
     end,
 },
 nil,   --extending class
-false, --if the class is final (or (if a table is provided) limited to certain subclasses)
+false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );

@@ -17,4 +17,4 @@ return class("Human",
         cdat.pri.Name = sName;
     end,
 },
-Creature, NO_INTERFACES, false);
+Creature, false, NO_INTERFACES);

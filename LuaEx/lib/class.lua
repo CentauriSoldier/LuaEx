@@ -171,6 +171,8 @@ local function isMutableStaticPublicType(sType)
     return (tMutableStaticPublicTypes[sType] or false);
 end
 
+
+local _tAuthenticationCodes = {}; --used in static constructors
                     --[[
                     ██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗███████╗██████╗ ███████╗
                     ██║████╗  ██║██║╚══██╔══╝██║██╔══██╗██║     ██║╚══███╔╝██╔════╝██╔══██╗██╔════╝
@@ -185,7 +187,9 @@ end
 <h3>The Static Initializer</h3>
 <p>The static initializer is called by creating a static public method named <b>__INIT</b>. This is called <b><i>before</i></b> the class object is created and is used to modify the static public fields and methods. Items can be added, changed or deleted from the static public table of the class at this point. The only parameter passed to the <b>__INIT</b> method is the static public table.<br><b>Note</b>: Since the class has not yet been built, this cannot remove class methods that have yet to be added during the class object's assembly or any other fields declared in the non-static portion of the class declaration.</p>
 <h3>The Static Constructor</h3>
-<p>The static constructor is called by creating a static public method having the <b><u>exact</u></b> same name as the class itself. This is called <b ><i>after</i></b> the class object is created and is used to perform static operations while having access to the fully-built class object. The only parameter passed to the static constructor method is the class object itself. <b>Note</b>: actions performed using the class object are governed as would any actions on the class object performed outside the static constructor. That is, the static constructor is given no special privileges or access to the class object.
+<p>The static constructor is called by creating a static public method having the <b><u>exact</u></b> same name as the class itself. This is called <b ><i>after</i></b> the class object is created and is used to perform static operations while having access to the fully-built class object. The two parameters passed to the static constructor method is the class object itself and an authentication code for proving (often to parent, static methods) that this class's static constructor is currently running. This can be tested by running the <b>class.isstaticconstructorrunning</b> method inputing the class object and authentication code.
+<br><b>Note</b>: the authentication code is destroyed upon the static constructor being run so the test will work only while the static constructor is running.
+<br><b>Note</b>: actions performed using the class object are governed as would any actions on the class object performed outside the static constructor. That is, the static constructor is given no special privileges or access to the class object.
 ]]
 local _sClassStaticInitializer = "__INIT";
 
@@ -344,6 +348,20 @@ getName             = TODO]]
 --TODO use error instead of assert so error level can be set (or can it be on assert?)..assert is slower...
 --can i get rid of rawtype and just use ~= nil?
 
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isstaticconstructorrunning
+@desc Determines if the static constructor of a class is being executed by validating it though the autentication code passed to it.
+@param class cCaller The calling class to check.
+@param string sAuthCode The authentication code (that is passed to each class's static constructor).
+@ret boolean bIs True if the code is being executed inside a class's static constructor, false otherwise.
+!]]
+local function isstaticconstructorrunning(vClass, sAuthCode)
+    return  rawtype(class.repo.byObject[vClass])    ~= "nil"    and
+            type(sAuthCode)                         == "string" and
+            _tAuthenticationCodes[vClass]           == sAuthCode;
+end
+
 --[[!
 @fqxn LuaEx.Class System.class.Methods.ischild
 @desc Determines if a class object is a child (however far removed) of another class object.
@@ -469,13 +487,19 @@ local function isinstance(vInstance)
 end
 
 
+
+--local function getconstructorvisibility() --TODO FINISH
+
+--end
+
+
 --[[!
 @fqxn LuaEx.Class System.class.Methods.of
 @desc Gets the class object of an instance object.
 @param instance oInstance The instance object for which to find the class.
 @ret class|nil cClass The class of the instance object or nil if the input is invalid.
 !]]
-local function of(vInstance)
+local function of(vInstance) --TODO BUG FIX this exposes potentially private classes. Don't give back the class object, give back only metadata on the class. Modify other comparison functions to use this metadata. This entire system of checks needs to be rethought so as not to create a scope/secutiry issue. This can probaly be fixed by using a metadata system for each class and just referring to that in these functions. The metadata can be stored locally here in a table above.
     local cRet;
 
     if (isinstance(vInstance)) then
@@ -521,9 +545,9 @@ local function getbase(vClass)
 end
 
 -- Function to get the class object by its name
-local function byname(className) --TODO DELETE DEPRECATED remove this, it violates visibility principles by exposing otherwise-private/protected classes
-    return class.repo.byName[className];
-end
+--local function byname(className) --TODO DELETE DEPRECATED remove this, it violates visibility principles by exposing otherwise-private/protected classes
+    --return class.repo.byName[className];
+--end
 
 
 local function isbase(vBase, vDerived)
@@ -780,8 +804,15 @@ function class.build(tKit)
 
     --execute then delete the static constructor (if it exists)
     if (rawtype(tClass[sName]) == "function") then
-        tClass[sName](oClass);
+        --create and store the static constructor authentication code
+        local sAuthCode = string.uuid();
+        _tAuthenticationCodes[oClass] = sAuthCode;
+        --run the static contructor
+        tClass[sName](oClass, sAuthCode);
+        --destroy the static constructor
         rawset(tClass, sName, nil);
+        --destroy the static constructor authentication code
+        _tAuthenticationCodes[oClass] = nil;
     end
 
     return oClass;
@@ -2141,7 +2172,8 @@ end
 
 
 local tClassActual = {
-    byname              = byname,
+    --byname              = byname,
+    isstaticconstructorrunning = isstaticconstructorrunning,
     ischild             = ischild,
     ischildorself       = ischildorself,
     isdirectchild       = isdirectchild,
