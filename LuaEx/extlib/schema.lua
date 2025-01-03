@@ -20,14 +20,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-https://github.com/sschoener/lua-schema
 ]]
 
 local schema = {}
 
 -- Checks an object against a schema.
-function schema.checkSchema(obj, schem, path)
+function schema.CheckSchema(obj, schem, path)
     if path == nil then
         path = schema.Path.new()
         path:setBase(obj)
@@ -38,12 +36,12 @@ function schema.checkSchema(obj, schem, path)
         if schem == obj then
             return nil
         end
-        return schema.error("Invalid value: "..path.." should be "..tostring(schem), path)
+        return schema.Error("Invalid value: "..path.." should be "..tostring(schem), path)
     end
 end
 
-function schema.formatOutput(output)
-    local format = schema.list()
+function schema.FormatOutput(output)
+    local format = schema.List()
     for k,v in ipairs(output) do
         format:append(v:format())
     end
@@ -191,7 +189,7 @@ setmetatable(List, {
         return List.new(...)
     end
 })
-schema.list = List
+schema.List = List
 
 -- Error class. Describes mismatches that occured during the schema-checking.
 local Error = {}
@@ -227,7 +225,7 @@ setmetatable(Error, {
         return List(Error.new(...))
     end
 })
-schema.error = Error
+schema.Error = Error
 
 -------------------------------------------------------------------------------
 -- Schema Building Blocks
@@ -240,34 +238,34 @@ schema.error = Error
 -------------------------------------------------------------------------------
 
 -- Always accepts.
-function schema.any(obj, path)
+function schema.Any(obj, path)
     return nil
 end
 
 -- Always fails.
-function schema.nothing(obj, path)
-    return schema.error("Failure: '"..path.."' will always fail.", path)
+function schema.Nothing(obj, path)
+    return schema.Error("Failure: '"..path.."' will always fail.", path)
 end
 
 -- Checks a value against a specific type.
 local function TypeSchema(obj, path, typeId)
     if type(obj) ~= typeId then
-        return schema.error("Type mismatch: '"..path.."' should be "..typeId..", is "..type(obj), path)
+        return schema.Error("Type mismatch: '"..path.."' should be "..typeId..", is "..type(obj), path)
     else
         return nil
     end
 end
 
-schema.boolean      = function(obj, path) return TypeSchema(obj, path, "boolean")  end
-schema["function"]  = function(obj, path) return TypeSchema(obj, path, "function") end
-schema["nil"]       = function(obj, path) return TypeSchema(obj, path, "nil")      end
-schema.number       = function(obj, path) return TypeSchema(obj, path, "number")   end
-schema.string       = function(obj, path) return TypeSchema(obj, path, "string")   end
-schema.table        = function(obj, path) return TypeSchema(obj, path, "table")    end
-schema.userData     = function(obj, path) return TypeSchema(obj, path, "userdata") end
+function schema.Boolean (obj, path) return TypeSchema(obj, path, "boolean")  end
+function schema.Function(obj, path) return TypeSchema(obj, path, "function") end
+function schema.Nil     (obj, path) return TypeSchema(obj, path, "nil")      end
+function schema.Number  (obj, path) return TypeSchema(obj, path, "number")   end
+function schema.String  (obj, path) return TypeSchema(obj, path, "string")   end
+function schema.Table   (obj, path) return TypeSchema(obj, path, "table")    end
+function schema.UserData(obj, path) return TypeSchema(obj, path, "userdata") end
 
 -- Checks that some value is a string matching a given pattern.
-function schema.pattern(pattern)
+function schema.Pattern(pattern)
     local userPattern = pattern
     if not pattern:match("^^") then
         pattern = "^" .. pattern
@@ -283,50 +281,50 @@ function schema.pattern(pattern)
         if string.match(obj, pattern) then
             return nil
         else
-            return schema.error("Invalid value: '"..path.."' must match pattern '"..userPattern.."'", path)
+            return schema.Error("Invalid value: '"..path.."' must match pattern '"..userPattern.."'", path)
         end
     end
     return CheckPattern
 end
 
 -- Checks that some number is an integer.
-function schema.integer(obj, path)
-    local err = schema.number(obj, path)
+function schema.Integer(obj, path)
+    local err = schema.Number(obj, path)
     if err then
         return err
     end
     if math.floor(obj) == obj then
         return nil
     end
-    return schema.error("Invalid value: '"..path.."' must be an integral number", path)
+    return schema.Error("Invalid value: '"..path.."' must be an integral number", path)
 end
 
 -- Checks that some number is >= 0.
-function schema.nonNegativeNumber(obj, path)
-    local err = schema.number(obj, path)
+function schema.NonNegativeNumber(obj, path)
+    local err = schema.Number(obj, path)
     if err then
         return err
     end
     if obj >= 0 then
         return nil
     end
-    return schema.error("Invalid value: '"..path.."' must be >= 0", path)
+    return schema.Error("Invalid value: '"..path.."' must be >= 0", path)
 end
 
 -- Checks that some number is > 0.
-function schema.positiveNumber(obj, path)
-    local err = schema.number(obj, path)
+function schema.PositiveNumber(obj, path)
+    local err = schema.Number(obj, path)
     if err then
         return err
     end
     if obj > 0 then
         return nil
     end
-    return schema.error("Invalid value: '"..path.."' must be > 0", path)
+    return schema.Error("Invalid value: '"..path.."' must be > 0", path)
 end
 
 -- Checks that some value is a number from the interval [lower, upper].
-function schema.numberFrom(lower, upper)
+function schema.NumberFrom(lower, upper)
     local function CheckNumberFrom(obj, path)
         local err = schema.Number(obj, path)
         if err then
@@ -335,37 +333,37 @@ function schema.numberFrom(lower, upper)
         if lower <= obj and upper >= obj then
             return nil
         else
-            return schema.error("Invalid value: '"..path.."' must be between "..lower.." and "..upper, path)
+            return schema.Error("Invalid value: '"..path.."' must be between "..lower.." and "..upper, path)
         end
     end
     return CheckNumberFrom
 end
 
 -- Takes schemata and accepts their disjunction.
-function schema.oneOf(...)
+function schema.OneOf(...)
     local arg = {...}
     local function CheckOneOf(obj, path)
         for k,v in ipairs(arg) do
-            local err = schema.checkSchema(obj, v, path)
+            local err = schema.CheckSchema(obj, v, path)
             if not err then return nil end
         end
-        return schema.error("No suitable alternative: No schema matches '"..path.."'", path)
+        return schema.Error("No suitable alternative: No schema matches '"..path.."'", path)
     end
     return CheckOneOf
 end
 
 -- Takes a schema and returns an optional schema.
-function schema.optional(s)
-    return schema.oneOf(s, schema.Nil)
+function schema.Optional(s)
+    return schema.OneOf(s, schema.Nil)
 end
 
 -- Takes schemata and accepts their conjuction.
-function schema.allOf(...)
+function schema.AllOf(...)
     local arg = {...}
     local function CheckAllOf(obj, path)
         local errmsg = nil
         for k,v in ipairs(arg) do
-            local err = schema.checkSchema(obj, v, path)
+            local err = schema.CheckSchema(obj, v, path)
             if err then
                 if errmsg == nil then
                     errmsg = err
@@ -385,13 +383,13 @@ end
 --  name  = schema,
 --  name2 = schema2
 --  })
-function schema.record(recordschema, additionalValues)
+function schema.Record(recordschema, additionalValues)
     if additionalValues == nil then
         additionalValues = false
     end
     local function CheckRecord(obj, path)
         if type(obj) ~= "table" then
-            return schema.error("Type mismatch: '"..path.."' should be a record (table), is "..type(obj), path)
+            return schema.Error("Type mismatch: '"..path.."' should be a record (table), is "..type(obj), path)
         end
 
         local errmsg = nil
@@ -405,7 +403,7 @@ function schema.record(recordschema, additionalValues)
 
         for k,v in pairs(recordschema) do
             path:push(k)
-            local err = schema.checkSchema(obj[k], v, path)
+            local err = schema.CheckSchema(obj[k], v, path)
             if err then
                 AddError(err)
             end
@@ -415,10 +413,10 @@ function schema.record(recordschema, additionalValues)
         for k, v in pairs(obj) do
             path:push(k)
             if type(k) ~= "string" then
-                AddError(schema.error("Invalid key: '"..path.."' must be of type 'string'", path))
+                AddError(schema.Error("Invalid key: '"..path.."' must be of type 'string'", path))
             end
             if recordschema[k] == nil and not additionalValues then
-                AddError(schema.error("Superfluous value: '"..path.."' does not appear in the record schema", path))
+                AddError(schema.Error("Superfluous value: '"..path.."' does not appear in the record schema", path))
             end
             path:pop()
         end
@@ -427,12 +425,12 @@ function schema.record(recordschema, additionalValues)
     return CheckRecord
 end
 
-function schema.mixedTable(t_schema, additional_values)
+function schema.MixedTable(t_schema, additional_values)
     local function CheckMixedTable(obj, path)
         local obj_t = type(obj)
         if obj_t ~= "table" then
             local msg = ("Type mismatch: '%s' should be a table, is %s"):format(tostring(path), obj_t)
-            return schema.error(msg, path)
+            return schema.Error(msg, path)
         end
 
         local errmsg = nil
@@ -447,7 +445,7 @@ function schema.mixedTable(t_schema, additional_values)
         local checked_keys = {}
         for k, v in pairs(t_schema) do
             path:push(k)
-            local err = schema.checkSchema(obj[k], v, path)
+            local err = schema.CheckSchema(obj[k], v, path)
             if err then
                 AddError(err)
             end
@@ -461,12 +459,12 @@ function schema.mixedTable(t_schema, additional_values)
                 local k_type = type(k)
                 if k_type ~= "string" and k_type ~= "number" then
                     local msg = ("Invalid key: '%s' must be of type 'string' or 'number'"):format(k_type)
-                    AddError(schema.error(msg, path))
+                    AddError(schema.Error(msg, path))
                 end
 
                 local t_schema_v = t_schema[k]
                 if t_schema_v then
-                    local err = schema.checkSchema(v, t_schema_v, path)
+                    local err = schema.CheckSchema(v, t_schema_v, path)
                     if err then
                         AddError(err)
                     end
@@ -474,7 +472,7 @@ function schema.mixedTable(t_schema, additional_values)
                     if not additional_values then
                         local msg = ("Superfluous value: '%s' does not appear in the table schema")
                                             :format(tostring(path))
-                        AddError(schema.error(msg, path))
+                        AddError(schema.Error(msg, path))
                     end
                 end
                 path:pop()
@@ -487,10 +485,10 @@ end
 
 -- Builds a map type schema, i.e. a table with an arbitraty number of
 -- entries where both all keys (and all vaules) fit a common schema.
-function schema.map(keyschema, valschema)
+function schema.Map(keyschema, valschema)
     local function CheckMap(obj, path)
         if type(obj) ~= "table" then
-            return schema.error("Type mismatch: '"..path.."' should be a map (table), is "..type(obj), path)
+            return schema.Error("Type mismatch: '"..path.."' should be a map (table), is "..type(obj), path)
         end
 
         local errmsg = nil
@@ -505,12 +503,12 @@ function schema.map(keyschema, valschema)
         -- aggregate error message
         for k, v in pairs(obj) do
             path:push(k)
-            local keyErr = schema.checkSchema(k, keyschema, path)
+            local keyErr = schema.CheckSchema(k, keyschema, path)
             if keyErr then
-                AddError(schema.error("Invalid map key", path, keyErr))
+                AddError(schema.Error("Invalid map key", path, keyErr))
             end
 
-            local valErr = schema.checkSchema(v, valschema, path)
+            local valErr = schema.CheckSchema(v, valschema, path)
             if valErr then
                 AddError(valErr)
             end
@@ -523,22 +521,22 @@ end
 
 -- Builds a collection type schema, i.e. a table with an arbitrary number of
 -- entries where we only care about the type of the values.
-function schema.collection(valschema)
-    return schema.map(schema.any, valschema)
+function schema.Collection(valschema)
+    return schema.Map(schema.Any, valschema)
 end
 
 -- Builds a tuple type schema, i.e. a table with a fixed number of entries,
 -- each indexed by a number and with a fixed type.
-function schema.tuple(...)
+function schema.Tuple(...)
     local arg = {...}
 
     local function CheckTuple(obj, path)
         if type(obj) ~= "table" then
-            return schema.error("Type mismatch: '"..path.."' should be a map (tuple), is "..type(obj), path)
+            return schema.Error("Type mismatch: '"..path.."' should be a map (tuple), is "..type(obj), path)
         end
 
         if #obj ~= #arg then
-            return schema.error("Invalid length: '"..path.." should have exactly "..#arg.." elements", path)
+            return schema.Error("Invalid length: '"..path.." should have exactly "..#arg.." elements", path)
         end
 
         local errmsg = nil
@@ -556,12 +554,12 @@ function schema.tuple(...)
             path:push(k)
             local err = schema.Integer(k, path)
             if not err then
-                err = schema.checkSchema(v, arg[k], path)
+                err = schema.CheckSchema(v, arg[k], path)
                 if err then
                     AddError(err)
                 end
             else
-                AddError(schema.error("Invalid tuple key", path, err))
+                AddError(schema.Error("Invalid tuple key", path, err))
             end
             path:pop()
         end
@@ -576,7 +574,7 @@ end
 --   Case("name", {"Peter", schema1}, {"Mary", schema2}, {OneOf(...), schema3})
 -- This will check the field "name" against every schema in the first component
 -- and will return the second component of the first match.
-function schema.case(relativePath, ...)
+function schema.Case(relativePath, ...)
     if type(relativePath) ~= "table" then
         relativePath = schema.Path("..", relativePath)
     end
@@ -587,7 +585,7 @@ function schema.case(relativePath, ...)
         end
     end
 
-    local function checkCase(obj, path)
+    local function CheckCase(obj, path)
         local condPath = path:copy()
         for k=0, #relativePath do
             local s = relativePath:get(k)
@@ -612,18 +610,18 @@ function schema.case(relativePath, ...)
         for k,v in ipairs(cases) do
             local condSchema = v[1]
             local valSchema = v[2]
-            local condErr = schema.checkSchema(condObj, condSchema, condPath)
+            local condErr = schema.CheckSchema(condObj, condSchema, condPath)
             if not condErr then
                 anyCond = true
-                local err = schema.checkSchema(obj, valSchema, path)
+                local err = schema.CheckSchema(obj, valSchema, path)
                 if err then
-                    AddError(schema.error("Case failed: Condition "..k.." of '"..path.."' holds but the consequence does not", path, err))
+                    AddError(schema.Error("Case failed: Condition "..k.." of '"..path.."' holds but the consequence does not", path, err))
                 end
             end
         end
 
         if not anyCond then
-            AddError(schema.error("Case failed: No condition on '"..path.."' holds"))
+            AddError(schema.Error("Case failed: No condition on '"..path.."' holds"))
         end
 
         return errmsg
@@ -631,13 +629,13 @@ function schema.case(relativePath, ...)
     return CheckCase
 end
 
-function schema.test(fn, msg)
+function schema.Test(fn, msg)
     local function CheckTest(obj, path)
         local pok, ok = pcall(fn, obj)
         if pok and ok then
             return nil
         else
-            return schema.error("Invalid value: '"..path..(msg and "': "..msg or ""), path)
+            return schema.Error("Invalid value: '"..path..(msg and "': "..msg or ""), path)
         end
     end
     return CheckTest

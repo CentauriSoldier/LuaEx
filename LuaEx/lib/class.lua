@@ -378,7 +378,6 @@ local function ischild(vChild, vParent)
         local tChildKit             = class.repo.byObject[vChild];
         local tParentKit            = class.repo.byObject[vParent];
         local bChildIsDescendant    = rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil";
-        print("class test: "..tostring(rawtype(tParentKit.children.all.byObject[vChild])))
         bRet = bChildIsDescendant and tChildKit ~= tParentKit;
     end
 
@@ -807,20 +806,26 @@ function class.build(tKit)
     --store the is function for later use in relational functions
     class.repo.isFunctions[oClass] = classis;
 
-    --execute then delete the static constructor (if it exists)
+    --create the class static constructor launcer that will be executed by kit.build (if a static constructor exists)
+    local fLauncher;
+
     if (rawtype(tClass[sName]) == "function") then
-        --create and store the static constructor authentication code
-        local sAuthCode = string.uuid();
-        _tAuthenticationCodes[oClass] = sAuthCode;
-        --run the static contructor
-        tClass[sName](oClass, sAuthCode);
-        --destroy the static constructor
-        rawset(tClass, sName, nil);
-        --destroy the static constructor authentication code
-        _tAuthenticationCodes[oClass] = nil;
+
+        fLauncher = function()
+            --create and store the static constructor authentication code
+            local sAuthCode = string.uuid();
+            _tAuthenticationCodes[oClass] = sAuthCode;
+            --run the static contructor
+            tClass[sName](oClass, sAuthCode);
+            --destroy the static constructor
+            rawset(tClass, sName, nil);
+            --destroy the static constructor authentication code
+            _tAuthenticationCodes[oClass] = nil;
+        end
+
     end
 
-    return oClass;
+    return oClass, fLauncher;
 end
 
 
@@ -1487,7 +1492,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.processInterfaces(tKit, tInterfaces);
 
     --now that this class kit has been validated, imported & stored, build the class object
-    local oClass = class.build(tKit);
+    local oClass, fLauncher = class.build(tKit);
 
     --increment the class kit count
     kit.count = kit.count + 1;
@@ -1511,17 +1516,24 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 
         tDirect.byName[sName]       = tKit;
         tDirect.byObject[oClass]    = tKit;
-
+        --print("Updating child "..sName.." for parent "..tParent.name)
         tParent                     = tParent.parent;
 
         while (tParent) do
             tAll                    = tParent.children.all;
             tAll.byName[sName]      = tKit;
             tAll.byObject[oClass]   = tKit;
-
+            --print("Updating child "..sName.." for parent "..tParent.name)
             tParent                 = tParent.parent;
         end
 
+    end
+
+    --execute then delete the class's static constructor (if it exists)
+    if (fLauncher) then
+        fLauncher();
+        --delete the launcher too
+        fLauncher = nil;
     end
 
     return oClass;--return the class object;

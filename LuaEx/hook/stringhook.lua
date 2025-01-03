@@ -6,6 +6,18 @@ local rawtype	= rawtype;
 local string 	= string;
 local table     = table;
 
+local tPatterns = {--TODO QUESTION move to its own module?
+    uuid = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$"
+};
+
+local tPatternsMeta = {
+    __index = tPatterns,
+    __newindex = function() end,
+};
+
+setmetatable(tPatterns, tPatternsMeta);
+string.patterns = tPatterns;
+
 --UUID values
 local _tCharsLower	 = {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};
 local _tCharsUpper	 = {"7","F","1","E","3","C","6","B","5","9","A","4","8","D","0","2"};

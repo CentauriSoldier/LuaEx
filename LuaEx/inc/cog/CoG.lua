@@ -11,7 +11,7 @@
 local _sIDFormat        = "^%u%u%u%-%u%u%u%-%x%x%x%x$";
 local _nMaxIDs          = 20316036096000;--WARNING: CHANGE (ONLY) IF YOU ALSO CHANGE THE ID FORMAT AND LENGTH
 local _tIDCheckCache    = {};
-local _fIDSchema        = schema.pattern(_sIDFormat);
+local _fIDSchema        = schema.Pattern(_sIDFormat);
 local _tSchemata        = {
     --[[each entry is:
     [cClass] = {
@@ -22,8 +22,14 @@ local _tSchemata        = {
     },
     --]]
 };
-
-local _tBlueprints = {}; --tracks which classes and blueprints belong to which IDs for fast lookup
+--TODO create rnadom BP getter and do class/prefix ones too
+local _tBlueprints = {
+    --[[
+    class       = cChild,
+    blueprint   = tBPCloned,
+    factory     = tSchema.factory,
+    ]]
+}; --tracks which classes and blueprints belong to which IDs for fast lookup
 
 local function addBlueprint(cChild, sID, tBP)
     local sMessage;
@@ -37,15 +43,15 @@ local function addBlueprint(cChild, sID, tBP)
 
         --TODO ID check and type errors
         if (type(sID) == "string" and sID:match(_sIDFormat) and type(tBP) == "table") then
-            local sError = schema.checkSchema(tBP, tSchema.schema);
+            local tErrors = schema.CheckSchema(tBP, tSchema.schema);
 
-            if (sError) then --TODO FIX change error messages when class helper functions are updated
-                sMessage = "Error adding blueprint to class, '"..class.name(class.of(this)).."'."..sError;
+            if (tErrors) then --TODO FIX change error messages when class helper functions are updated
+                sMessage = "Error adding blueprint ("..sID..") to class, '"..class.getname(cChild).."'. "..schema.FormatOutput(tErrors);
             else
 
-                if (tBPsByID[sID] ~= nil) then
+                if (tBPsByID[sID] == nil) then
                     --clone and store the blueprint
-                    local bRet      = true;
+                    bRet            = true;
                     local tBPCloned = clone(tBP);
                     tBPsByID[sID]   = tBPCloned;
                     tBPs[#tBPs + 1] = tBPCloned;
@@ -57,7 +63,7 @@ local function addBlueprint(cChild, sID, tBP)
                         factory     = tSchema.factory,
                     };
                 else
-                    --sMessage TODO
+                    sMessage = "Error adding blueprint ("..sID..") to class, '"..class.getname(cChild).."' Blueprint already exists.";
                 end
 
             end
@@ -103,24 +109,28 @@ return class("CoG",
     SCHEMA_ID = _fIDSchema,
     addBlueprint = addBlueprint,
     fromBlueprint = function(sID, ...)
-        local oRet;
+        local oRet, sMessage;
+        --TODO check input
 
         --if the blueprint exists...
         if (_tBlueprints[sID] ~= nil) then
+
             local tBPData = _tBlueprints[sID];
             --...run the factory method and return the created object
-            oRet = tBPData.factory(clone(tBPData.blueprint), ...);
+            oRet, sMessage = tBPData.factory(sID, clone(tBPData.blueprint), ...);
 
             --check that the object actually got created --TODO FIX update message after class helper functions updated
             if not (class.of(oRet) == tBPData.class) then
-                --TODO THROW ERROR
+                --TODO THROW ERROR (append last error)
             end
 
         else
-            --TODO ...throw an error
+            --TODO update message after class helper functions are changed
+            sMessage = "Error building class object from blueprint, '"..sID.."'. Blueprint does not exist.";
+            --print(sID, sMessage)
         end
 
-        return oRet;
+        return oRet, sMessage;
     end,
     getBlueprintIDs = function(cClass)
         local tRet;
@@ -141,8 +151,8 @@ return class("CoG",
 --    end,
     registerBlueprintable = function(cChild, sAuthCode, fSchema, fFromBlueprint, tBlueprints)
         local bIsChild              = class.is(cChild) and class.ischild(cChild, CoG);
-        print(class.is(cChild))
-        print(class.ischild(cChild, CoG))
+        --print(class.is(cChild))
+        --print(class.ischild(cChild, CoG))
         local bAuthorized           = class.isstaticconstructorrunning(cChild, sAuthCode);
         local bIsBlueprintfunction  = type(fFromBlueprint) == "function";
         local bIsSchemaFunction     = type(fSchema) == "function";
@@ -181,9 +191,6 @@ return class("CoG",
 
                 end
 
-            else
-                sMessage = "Error adding blueprint. Blueprint must be of type table. Type given: "..type(tBlueprints)..'.';
-
             end
 
         else
@@ -200,7 +207,7 @@ return class("CoG",
 {},--PRIVATE
 {--PROTECTED
     CoG = function(this, cdat)
-        print(class.of(this))
+        --print(class.of(this))
     end,
 },
 {--PUBLIC

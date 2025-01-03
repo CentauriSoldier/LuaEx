@@ -62,13 +62,14 @@ local Creature = class("Creature",
 
 },
 {--public members
-    Creature = function(this, cdat, nHP, nHPMax)
+    Creature = function(this, cdat, super, nHP, nHPMax)
+        super();
         --print(type(cdat.pro["HPMax"]))
         --print("Creature", nHP, nHPMax)
-        --cdat.pro.HP     = nHP < 1 and 1 or nHP;
-        --cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
-        --cdat.pro.HPMax  = nHPMax;
-        print("I am a "..class.getname(class.of(this)))
+        cdat.pro.HP     = nHP < 1 and 1 or nHP;
+        cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
+        cdat.pro.HPMax  = nHPMax;
+        --print("I am a "..class.getname(class.of(this)))
     end,
     isDead = function(this, cdat)
         return cdat.pro.HP <= 0;
@@ -90,7 +91,7 @@ local Human = class("Human",
     end,
 },
 {--private members
-    Name__AUTO__ = "",
+    Name__auto__ = "",
 },
 {--protected members
 },
@@ -107,21 +108,26 @@ local Soldier = class("Soldier",
 {--metamethods
 },
 {--public static members
-    Soldier = function(cMe, sAuthCode)
-        local fSchema = schema.record {
-            name        = schema.string,
-            --id        = CoG.SCHEMA_ID,
+    Soldier = function(cSoldier, sAuthCode)
+        local fSchema = schema.Record {
+            name        = schema.String,
+            id          = CoG.SCHEMA_ID,
             --usertype  = s.OneOf("admin", "moderator", "user"),
             --nicknames = s.Collection(s.String),
             --rights    = s.Tuple(rights, rights, rights)
         }
 
 
-        local function fromBlueprint(tBP, ...)
+        local function fromBlueprint(sID, tBP, ...)
+            local oRet, sMessage;
+            local tArgs = {...};
 
+            local oSoldier = cSoldier(tArgs[1], tArgs[2]);
+
+            return oSoldier, sMessage;
         end
 
-        local bSuccess, sMesssage = CoG.registerBlueprintable(cMe, sAuthCode, fSchema, fromBlueprint);
+        local bSuccess, sMesssage = CoG.registerBlueprintable(cSoldier, sAuthCode, fSchema, fromBlueprint);
 
         if not (bSuccess) then
             print(sMesssage);
@@ -150,11 +156,21 @@ Human, false, NO_INTERFACES);
 --Bob = Soldier("Bob", 56)
 
 local tSoldierBP = {
-
+    name = "Bobby",
+    id = "ACD-SAD-0001",
 };
 
---local bSuccess, sMesssage = CoG.addBlueprint(Soldier, "SOL-BAS-0001", tSoldierBP);
+local bSuccess, sMesssage = CoG.addBlueprint(Soldier, "SOL-BAS-0001", tSoldierBP);
 
 if not (bSuccess) then
-    --print(sMesssage);
+    print(sMesssage);
 end
+
+local oSoldier, sError = CoG.fromBlueprint("SOL-BAS-0001", "Noob", 87);
+
+if not (oSoldier) then
+    print(sError);
+end
+
+print(oSoldier.getName())
+print(oSoldier.GetHP())
