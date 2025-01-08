@@ -1,26 +1,34 @@
 --[[
-The MIT License (MIT)
+--[[!
+    @fqxn LuaEx.Libraries (external).schema
+    @author Sebastian Schoener
+    @copy Copyright (c) 2014 Sebastian Schoener
+    @license <a href="https://mit-license.org/" target="_blank">The MIT License (MIT)</a>
+    <br>
+    <p>Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
-Copyright (c) 2014 Sebastian Schoener
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-]]
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.</p>
+    @github <a href="https://github.com/sschoener/lua-schema" target="_blank">lua-schema</a>
+    @desc A simple package to check LUA-data against schemata. The package is written entirely in Lua (5.2) and has no further dependencies. It is designed to be easily extensible.
+    <br><br>
+    The problem tackled by this package is the following: Suppose your program is reading data via Lua. Verifying that the data fulfills the requirements of your program is tedious; Lua's lack of types requires you to write repetitive code to verify the input data.
+    <br><br>
+    The solution proposed by this package are schemata: You specify a schema for the data and the program automatically verifies the data for you.
+!]]
 
 local schema = {}
 

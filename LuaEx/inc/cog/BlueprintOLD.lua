@@ -145,7 +145,7 @@ TODO MOVE THIS O
     <br>Blueprints are contained within a mod's root directory in a file called <b>Blueprints.lua</b>
 ]]
 
---[[!
+--[[
 @fqxn CoG.Blueprint
 @desc
 <div class="text-center text-dark" style="border-radius: 10px; background-color: #CCDC90; padding: 10px;">
@@ -211,7 +211,7 @@ local swordBlueprint = {
     name = "Steel Sword",   --required by the Blueprint class
     damage = 25
 }
-!]]
+]]
 return class("Blueprint",
 {--METAMETHODS
 

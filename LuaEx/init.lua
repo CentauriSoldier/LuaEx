@@ -344,7 +344,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     Rarity          = require(pCoG..".Rarity");
                     RNG             = require(pCoG..".RNG");
                     BaseMod         = require(pCoG..".ModSystem.BaseMod");
-                    Blueprintium    = require(pCoG..".ModSystem.Blueprintium");
+                    Factorium       = require(pCoG..".ModSystem.Factorium");
                     CoG             = require(pCoG..".CoG");
 
                     --interfaces

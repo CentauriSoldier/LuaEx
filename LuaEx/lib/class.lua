@@ -190,7 +190,7 @@ local _tAuthenticationCodes = {}; --used in static constructors
 <p>The static constructor is called by creating a static public method having the <b><u>exact</u></b> same name as the class itself. This is called <b ><i>after</i></b> the class object is created and is used to perform static operations while having access to the fully-built class object. The two parameters passed to the static constructor method is the class object itself and an authentication code for proving (often to parent, static methods) that this class's static constructor is currently running. This can be tested by running the <b>class.isstaticconstructorrunning</b> method inputing the class object and authentication code.
 <br><b>Note</b>: the authentication code is destroyed upon the static constructor being run so the test will work only while the static constructor is running.
 <br><b>Note</b>: actions performed using the class object are governed as would any actions on the class object performed outside the static constructor. That is, the static constructor is given no special privileges or access to the class object.
-]]
+!]]
 local _sClassStaticInitializer = "__INIT";
 
 

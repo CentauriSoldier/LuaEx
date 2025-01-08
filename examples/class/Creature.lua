@@ -111,7 +111,7 @@ local Soldier = class("Soldier",
     Soldier = function(cSoldier, sAuthCode)
         local fSchema = schema.Record {
             name        = schema.String,
-            id          = CoG.SCHEMA_ID,
+            id          = Factorium.SCHEMA_ID,
             --usertype  = s.OneOf("admin", "moderator", "user"),
             --nicknames = s.Collection(s.String),
             --rights    = s.Tuple(rights, rights, rights)
@@ -127,7 +127,7 @@ local Soldier = class("Soldier",
             return oSoldier, sMessage;
         end
 
-        local bSuccess, sMesssage = CoG.registerBlueprintable(cSoldier, sAuthCode, fSchema, fromBlueprint);
+        local bSuccess, sMesssage = Factorium.registerFactory(cSoldier, sAuthCode, fSchema, fromBlueprint);
 
         if not (bSuccess) then
             print(sMesssage);
@@ -157,16 +157,16 @@ Human, false, NO_INTERFACES);
 
 local tSoldierBP = {
     name = "Bobby",
-    id = "ACD-SAD-0001",
+    id   = "SOL-BAS-0001",
 };
 
-local bSuccess, sMesssage = CoG.addBlueprint(Soldier, "SOL-BAS-0001", tSoldierBP);
+local bSuccess, sMesssage = Factorium.addBlueprint(Soldier, tSoldierBP);
 
 if not (bSuccess) then
     print(sMesssage);
 end
 
-local oSoldier, sError = CoG.fromBlueprint("SOL-BAS-0001", "Noob", 87);
+local oSoldier, sError = Factorium.fromBlueprint("SOL-BAS-0001", "Noob", 87);
 
 if not (oSoldier) then
     print(sError);

@@ -7,7 +7,8 @@ local string 	= string;
 local table     = table;
 
 local tPatterns = {--TODO QUESTION move to its own module?
-    uuid = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$"
+    uuid = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$",
+    nonblank = "%S+",
 };
 
 local tPatternsMeta = {

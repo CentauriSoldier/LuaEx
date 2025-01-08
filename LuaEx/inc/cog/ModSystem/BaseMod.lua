@@ -15,8 +15,8 @@ local _nMaxVersion      = 999;
 return class("BaseMod",
 {}, --METAMETHODS
 {   --STATIC PUBLIC
-    DEFAULT_MOD_ID_RO   = _sDefaultModID,
-    MAX_VERSION_RO      = _nMaxVersion,
+    DEFAULT_MOD_ID__RO   = _sDefaultModID,
+    MAX_VERSION__RO      = _nMaxVersion,
 },
 {   --PRIVATE
 },
@@ -75,7 +75,7 @@ return class("BaseMod",
             pro.Description = sDescription;
 
             --uuid
-            assert(rawtype(sID) == "string" and sID:isuuid(), "Error importing mod, '"..sName.."': invalid UUID ("..sID..").");
+            assert(rawtype(sID) == "string" and sID:isuuid(), "Error importing mod, '"..sName.."': invalid UUID. UUID must be string matching pattern: "..string.patterns.uuid..'.');
             pro.ID = sID:lower();
 
             --required mods
