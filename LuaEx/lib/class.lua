@@ -349,16 +349,104 @@ getName             = TODO]]
 --can i get rid of rawtype and just use ~= nil?
 
 
--->>>>>WARNING: these function should not be exposed as they are for internal use only
+-->>>>>WARNING: these functions should not be exposed as they are for internal use only
 local function getKit(vClass)
     return class.repo.byObject[vClass] or kit.repo.byName[vClass];
 end
 --<<<<<<<
 
---TODO LEFT OFF HERE...FINISH THESE
---TODO BUG FIX FINISH go threough each of the helper functions to be certain they don't expose classes. E.g., getbase could potentially expose a private base class. Don't give back the class object, give back only metadata on the class. Modify other comparison functions to use this metadata. This entire system of checks needs to be rethought so as not to create a scope/secutiry issue. This can probaly be fixed by using a metadata system for each class and just referring to that in these functions. The metadata can be stored locally here in a table above.
+--ideas: to add - exists, isinscope, getlineageordinal, issibling (direct sister classes), is relative (connected to any other class that is connected)
+
+--TODO
+local function getbase(vClass)
+    local cRet;
+    local tKit = getKit(vClass);
+
+    if tKit and tKit.base then
+
+        if (tKit.base) then
+            cRet = class.repo.byKit[tKit.base];
+        end
+
+    end
+
+    return cRet;
+end
 
 
+--[[!
+@fqxn LuaEx.Class System.class.Methods.getbyname
+@desc Gets a class object given the class name (if in scope).
+@param string sClass The name of the class object.
+@ret class|nil cClass The class object (if it's in scope), or nil otherwise.
+!]]
+local function getbyname(sClass)
+    local cRet;
+    local tKit = getKit(sClass);
+
+    if (tKit and tKit.isInScope()) then
+        cRet = class.repo.byKit[tKit];
+    end
+
+    return cRet;
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.getchildcount
+@desc Gets the number of children a class has.
+@param string/class vClass The class or name of the class.
+@ret number nChildren The number of children the class has. If an error occurs, -1 is returned.
+!]]
+local function getchildcount(vClass)
+    local tKit = getKit(vClass);
+
+    return  (tKit and tKit.children.count or -1);
+end
+
+
+--TODO
+local function getconstructorvisibility() --TODO FINISH
+    error("getconstructorvisibility: NOT YET IMPLEMENTED")
+end
+
+
+--[[!TODO
+@fqxn LuaEx.Class System.class.Methods.getname
+@desc Gets the class name of a class.
+@param class cClass The class for which to get the name.
+@ret string|nil sClass The name of the class or nil if the input is invalid.
+!]]
+local function getname(vClass)
+    local tKit = getKit(vClass);
+    return tKit and tKit.name or nil;
+end
+
+--TODO
+local function getparent(vClass, bReturnClass)
+    local vRet;
+    local tKit = getKit(vClass);
+
+    if tKit and tKit.parent then
+
+        if (bReturnClass and tKit.isInScope()) then
+            vRet = class.repo.byKit[tKit.parent];
+        else
+            vRet = tKit.parent.name;
+        end
+
+    end
+
+    return vRet;
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.haschildren
+@desc Determines if a class has children.
+@param class/string vClass The class (or class name) to check.
+@ret boolean bHasChildren True if it's a class and has children, false otherwise.
+!]]
 local function haschildren(vClass)
     local tMyKit = getKit(vClass);
 
@@ -366,7 +454,8 @@ local function haschildren(vClass)
               tMyKit.children.count > 0 );
 end
 
---[[!TODO
+
+--[[!
 @fqxn LuaEx.Class System.class.Methods.is
 @desc Determines if something is a class object.
 @param any vValue The item to check.
@@ -376,10 +465,200 @@ local function is(vClass)
     return (class.repo.byObject[vClass] or kit.repo.byName[vClass]) ~= nil;
 end
 
+--TODO
+local function isbase(vDerived, vBase)
+    -- Validate that vBase is a base class and vDerived is its child
+    if not is(vBase) or not is(vDerived) then
+        return false;
+    end
+
+    -- Check if vBase is the base class of vDerived
+    return getbase(vBase) == nil and getbase(vDerived) ~= nil and ischild(vDerived, vBase);
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.ischild
+@desc Determines if class A is a child (however far removed) of class B.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsChild True if it's a child, false otherwise.
+!]]
+local function ischild(vClassA, vClassB)
+    local bRet  = false;
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassB);
+
+    if ( (tKitA and tKitB) and (tKitA ~= tKitB) ) then
+        bRet = tKitB.children.all.byName[tKitA.name] ~= nil;
+    end
+
+    return bRet;
+end
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.ischildorself
+@desc Determines if class A is a child of class B or is that class itself.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsChildOrSelf True if it's a child or self, false otherwise.
+!]]
+local function ischildorself(vClassA, vClassB)
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassB);
+
+    local bIsChild  = false;
+    local bIsSelf   = false;
+
+    if (tKitA and tKitB) then
+        bIsChild  = tKitB.children.all.byName[tKitA.name] ~= nil;
+        bIsSelf   = tKitA == tKitB;
+    end
+
+    return bIsChild or bIsSelf;
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isdirectchild
+@desc Determines if class A is a direct descendant of class B.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsDirectChild True if it's a direct descendant, false otherwise.
+!]]
+local function isdirectchild(vClassA, vClassB)
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassB);
+
+    local bIsDirectChild = false;
+
+    if ( (tKitA and tKitB) and (tKitA ~= tKitB) ) then
+        bIsDirectChild = tKitB.children.direct.byName[tKitA.name] ~= nil;
+    end
+
+    return bIsDirectChild;
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isdirectparent
+@desc Determines if class A is the direct parent of class B.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsDirectParent True if it's the direct parent, false otherwise.
+!]]
+local function isdirectparent(vClassA, vClassB)
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassB);
+
+    local bIsDirectParent = false;
+
+    if ( (tKitA and tKitB) and (tKitA ~= tKitB) ) then
+        bIsDirectParent = (tKitA.children.direct.byObject[vClassB] or tKitA.children.direct.byName[vClassB]) ~= nil;
+    end
+
+    return bIsDirectParent;
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isinlineage
+@desc Determines if class A is in the lineage <i>(parent, child or self)</i> of class B.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsInLineage True if the two classes are in the same lineage, false otherwise.
+!]]
+local function isinlineage(vClassA, vClassB)
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassB);
+
+    local bIsSelf       = false;
+    local bAIsChildOfB  = false;
+    local bAIsParentOfB = false;
+
+    if (tKitA and tKitB) then
+        bIsSelf = tKitA == tKitB;
+
+        if not (bIsSelf) then
+            bAIsChildOfB = tKitB.children.all.byName[tKitA.name] ~= nil;
+
+            if not (bAIsChildOfB) then
+                bAIsParentOfB   = tKitA.children.all.byName[tKitB.name] ~= nil;
+            end
+
+        end
+
+    end
+
+    return bIsSelf or bAIsChildOfB or bAIsParentOfB;
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isinstance
+@desc Determines if something is an instance object of any class.
+@param any vValue The item to check.
+@ret boolean bIsInstance True if it's an instance of a class, false otherwise.
+!]]
+local function isinstance(vInstance)
+    return instance.repo.byObject[vInstance] ~= nil;
+end
+
+--TODO
+-- Function to determine if an object is an instance of a particular class
+local function isinstanceof(vInstance, vClass)
+    error("NOT YET WORKING")
+    local tInstanceKit = isinstance(vInstance) and instance.repo.byObject[vInstance] or nil;
+    local tClassKit = is(vClass) and class.repo.byObject[vClass] or nil;
+
+    return (tInstanceKit and tClassKit) and
+           (tInstanceKit.class == tClassKit);
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isparent
+@desc Determines if class A is a parent (however far removed) of class B.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsParent True if it's a parent, false otherwise.
+!]]
+local function isparent(vClassA, vClassB)
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassB);
+
+    local bIsParent = false;
+
+    if ( (tKitA and tKitB) and (tKitA ~= tKitB) ) then
+        bIsParent = (tKitA.children.all.byName[tKitB.name]) ~= nil;
+    end
+
+    return bIsParent;
+end
 
 
 
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isparentorself
+@desc Determines if class A is a parent of class B or is that class itself.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsParentOrSelf True if it's a parent or self, false otherwise.
+!]]
+local function isparentorself(vClassA, vClassB)
+    local tKitA     = getKit(vClassA);
+    local tKitB    = getKit(vClassB);
 
+    local bIsParent = false;
+    local bIsSelf   = false;
+
+    if (tKitA and tKitB) then
+        bIsSelf   = tKitA == tKitB;
+        bIsParent = (tKitA.children.all.byObject[vClassB] or tKitA.children.all.byName[vClassB]) ~= nil;
+    end
+
+    return bIsParent or bIsSelf;
+end
 
 
 --[[!TODO
@@ -395,166 +674,6 @@ local function isstaticconstructorrunning(vClass, sAuthCode)
             _tAuthenticationCodes[vClass]           == sAuthCode;
 end
 
---[[!
-@fqxn LuaEx.Class System.class.Methods.ischild
-@desc Determines if a class object is a child (however far removed) of another class object.
-@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
-@param class/string cParent/sParent The potential parent class <i>(or class name)</i> to check.
-@ret boolean bIsChild True if it's a child, false otherwise.
-!]]
-local function ischild(vChild, vParent)
-    local bRet          = false;
-    local tChildKit     = getKit(vChild);
-    local tParentKit    = getKit(vParent);
-
-    if ( (tChildKit and tParentKit) and (tChildKit ~= tParentKit) ) then
-        bRet = tParentKit.children.all.byName[tChildKit.name] ~= nil;
-    end
-
-    return bRet;
-end
-
---[[!
-@fqxn LuaEx.Class System.class.Methods.ischildorself
-@desc Determines if a class object is a child of another class object or is that class itself.
-@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
-@param class/string cParent/sParent The potential parent (or self) class <i>(or class name)</i> to check.
-@ret boolean bIsChildOrSelf True if it's a child or self, false otherwise.
-!]]
-local function ischildorself(vChild, vParent)
-    local tChildKit     = getKit(vChild);
-    local tParentKit    = getKit(vParent);
-
-    local bIsChild  = false;
-    local bIsSelf   = false;
-
-    if (tChildKit and tParentKit) then
-        bIsChild  = tParentKit.children.all.byName[tChildKit.name] ~= nil;
-        bIsSelf   = tChildKit == tParentKit;
-    end
-
-    return bIsChild or bIsSelf;
-end
-
---[[!
-@fqxn LuaEx.Class System.class.Methods.isdirectchild
-@desc Determines if a class object is a direct descendant of another class object.
-@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
-@param class/string cParent/sParent The potential parent (or self) class <i>(or class name)</i> to check.
-@ret boolean bIsDirectChild True if it's a direct descendant, false otherwise.
-!]]
-local function isdirectchild(vChild, vParent)
-    local tChildKit     = getKit(vChild);
-    local tParentKit    = getKit(vParent);
-
-    local bIsDirectChild = false;
-
-    if ( (tChildKit and tParentKit) and (tChildKit ~= tParentKit)) then
-        bIsDirectChild = tParentKit.children.direct.byName[tChildKit.name] ~= nil;
-    end
-
-    return bIsDirectChild;
-end
-
-
-
-local function isinlineage(vClassA, vClassB)
-    local tKitA = getKit(vClassA);
-    local tKitB = getKit(vClassB);
-
-    local bIsSelf       = false;
-    local bAIsChildOfB  = false;
-    local bAIsParentOfA = false;
-
-    if (tKitA and tKitB) then
-        bIsSelf = tKitA == tKitB;
-
-        if not (bIsSelf) then
-            bAIsChildOfB = tKitB.children.all.byName[tKitA.name] ~= nil;
-
-            if not (bAIsChildOfB) then
-                bAIsParentOfA   = tKitA.children.all.byName[tKitB.name] ~= nil;
-            end
-
-        end
-
-    end
-
-    return bIsSelf or bAIsChildOfB or bAIsParentOfA;
-end
-
-
-local function isparent(vParent, vChild)
-    local tChildKit     = getKit(vChild);
-    local tParentKit    = getKit(vParent);
-
-    local bIsParent = false;
-
-    if (tChildKit and tParentKit) then
-        bIsParent = (tChildKit.children.all.byName[tParentKit.name]) ~= nil;
-    end
-
-    return bIsParent;
-end
-
-
-
---[[!
-@fqxn LuaEx.Class System.class.Methods.isparentorself
-@desc Determines if a class object is a parent of another class object or is that class itself.
-@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
-@param class/string cParent/sParent The potential parent (or self) class <i>(or class name)</i> to check.
-@ret boolean bIsChildOrSelf True if it's a parent or self, false otherwise.
-!]]
-local function isparentorself(vChild, vParent)
-    local tChildKit     = getKit(vClass);
-    local tParentKit    = getKit(vParent);
-
-    local bIsParent = false;
-    local bIsSelf   = false;
-
-    if (tChildKit and tParentKit) then
-        bIsSelf   = tChildKit == tParentKit;
-        bIsParent = (tParentKit.children.all.byObject[vChild] or tParentKit.children.all.byName[vChild]) ~= nil;
-    end
-
-    return bIsParent or bIsSelf;
-end
-
-
-
-
-local function isdirectparent(vChild, vParent)
-    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                 or nil;
-    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
-                                class.repo.byObject[vParent]                or nil;
-
-    return  (tChildKit and tParentKit)  and
-            (tChildKit ~= tParentKit)   and
-            (tParentKit and (rawtype(tParentKit.children.direct.byObject[vChild]) ~= "nil"));
-end
-
-
-
-
-
---[[!TODO
-@fqxn LuaEx.Class System.class.Methods.isinstance
-@desc Determines if something is an instance object of any class.
-@param any vValue The item to check.
-@ret boolean bIsInstance True if it's an instance of a class, false otherwise.
-!]]
-local function isinstance(vInstance)
-    return rawtype(instance.repo.byObject[vInstance]) ~= "nil";
-end
-
-
-
---local function getconstructorvisibility() --TODO FINISH
-
---end
-
 
 --[[!TODO
 @fqxn LuaEx.Class System.class.Methods.of
@@ -564,9 +683,10 @@ end
 !]]
 local function of(vInstance, bReturnClass)
     local vRet;
+    local oInstance = instance.repo.byObject[vInstance];
 
-    if (isinstance(vInstance)) then
-        local cClass = instance.repo.byObject[vInstance].class;
+    if (oInstance ~= nil) then
+        local cClass = oInstance.class;
         local tKit = class.repo.byObject[cClass];
 
         if (bReturnClass and tKit.isInScope()) then
@@ -578,91 +698,6 @@ local function of(vInstance, bReturnClass)
     end
 
     return vRet;
-end
-
-
---[[!TODO
-@fqxn LuaEx.Class System.class.Methods.getname
-@desc Gets the class name of a class.
-@param class cClass The class for which to get the name.
-@ret string|nil sClass The name of the class or nil if the input is invalid.
-!]]
-local function getname(vClass)
-    local tKit = rawtype(   class.repo.byObject[vClass]) ~= "nil"    and
-                            class.repo.byObject[vClass]              or nil
-    return tKit and tKit.name or nil;
-end
-
-
-
-
-local function getchildcount(vClass)
-    local tMyKit = rawtype( class.repo.byObject[vClass])   ~= "nil"    and
-                            class.repo.byObject[vClass]                or nil;
-
-    return  (tMyKit and tMyKit.children.count or -1);
-end
-
-
-
-local function getbase(vClass)
-    local cRet;
-    local tClassKit =   is(vClass) and class.repo.byObject[vClass] or
-                        (vClass and kit.repo.byName[vClass] or nil);
-
-    if tClassKit and tClassKit.base then
-
-        if (tClassKit.base) then
-            cRet = class.repo.byKit[tClassKit.base];
-        end
-
-    end
-
-    return cRet;
-end
-
---TODO FINISH allow either class or string input for all of these!
-local function getparent(vClass, bReturnClass)
-    local vRet;
-    local tClassKit = (is(vClass) and class.repo.byObject[vClass]) or (vClass and kit.repo.byName[vClass] or nil);
-
-    if tClassKit and tClassKit.parent then
-
-        if (bReturnClass and tClassKit.isInScope()) then
-            vRet = class.repo.byKit[tClassKit.parent];
-        else
-            vRet = tClassKit.parent.name;
-        end
-
-    end
-
-    return vRet;
-end
-
--- Function to get the class object by its name
---local function byname(className) --TODO DELETE DEPRECATED remove this, it violates visibility principles by exposing otherwise-private/protected classes
-    --return class.repo.byName[className];
---end
-
-
-local function isbase(vDerived, vBase)
-    -- Validate that vBase is a base class and vDerived is its child
-    if not is(vBase) or not is(vDerived) then
-        return false;
-    end
-
-    -- Check if vBase is the base class of vDerived
-    return getbase(vBase) == nil and getbase(vDerived) ~= nil and ischild(vDerived, vBase);
-end
-
--- Function to determine if an object is an instance of a particular class
-local function isinstanceof(vInstance, vClass)
-    error("NOT YET WORKING")
-    local tInstanceKit = isinstance(vInstance) and instance.repo.byObject[vInstance] or nil;
-    local tClassKit = is(vClass) and class.repo.byObject[vClass] or nil;
-
-    return (tInstanceKit and tClassKit) and
-           (tInstanceKit.class == tClassKit);
 end
 
 
@@ -2303,25 +2338,26 @@ end
 
 
 local tClassActual = {
-    --byname              = byname,
-    haschildren         = haschildren,
-    isstaticconstructorrunning = isstaticconstructorrunning,
-    ischild             = ischild,
-    ischildorself       = ischildorself,
-    isdirectchild       = isdirectchild,
-    is                  = is,
-    isbase              = isbase,
-    isinlineage         = isinlineage,
-    isparent            = isparent,
-    isparentorself      = isparentorself,
-    isdirectparent      = isdirectparent,
-    isinstance          = isinstance,
-    isinstanceof        = isinstanceof,
-    getbase             = getbase,
-    getchildcount       = getchildcount,
-    getname             = getname,
-    getparent           = getparent,
-    of                  = of,
+    getbase                     = getbase,
+    getbyname                   = getbyname,
+    getchildcount               = getchildcount,
+    getconstructorvisibility    = getconstructorvisibility,
+    getname                     = getname,
+    getparent                   = getparent,
+    haschildren                 = haschildren,
+    is                          = is,
+    isbase                      = isbase,
+    ischild                     = ischild,
+    ischildorself               = ischildorself,
+    isdirectchild               = isdirectchild,
+    isdirectparent              = isdirectparent,
+    isinlineage                 = isinlineage,
+    isinstance                  = isinstance,
+    isinstanceof                = isinstanceof,
+    isparent                    = isparent,
+    isparentorself              = isparentorself,
+    isstaticconstructorrunning  = isstaticconstructorrunning,
+    of                          = of,
 };
 
 
