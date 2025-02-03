@@ -118,7 +118,7 @@ tPackables = {--the tPackables FUNCTIONS table
         return getmetatable(aItem).__serialize();
     end,
     --["clausum"]                 = unimplemented,
-    ["enum"]                    = unimplemented,
+    --["enum"]                    = unimplemented,
     ["struct"]                  = function(aItem)
         return getmetatable(aItem).__serialize();
     end,
@@ -139,6 +139,9 @@ tNonPackables = {--the tNonPackables FUNCTIONS table
     ["class"]                   = function(aItem)
         return getmetatable(aItem).__serialize();--TODO should I cache these since they're known types?
     end,
+    --["enum"]                    = function(aItem)
+        --return getmetatable(aItem).__serialize();
+    --end,
     ["classfactory"]            = function(aItem)
         return getmetatable(aItem).__serialize();--TODO should I cache these since they're known types?
     end,

@@ -561,7 +561,7 @@ setmetatable(type,
         local tMeta = getmetatable(vObject);
 
         if (__type__(tMeta) == "table" and __type__(tMeta.__type) == "string") then
-            sType = tMeta.__type;
+            sType = tMeta.__type;        
         end
 
         return sType;

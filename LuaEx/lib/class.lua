@@ -185,10 +185,10 @@ local _tAuthenticationCodes = {}; --used in static constructors
 @fqxn LuaEx.Class System.Initialization
 @desc When a class is built, there is an opportunity to call a static initializer, a static constructor or both.
 <h3>The Static Initializer</h3>
-<p>The static initializer is called by creating a static public method named <b>__INIT</b>. This is called <b><i>before</i></b> the class object is created and is used to modify the static public fields and methods. Items can be added, changed or deleted from the static public table of the class at this point. The only parameter passed to the <b>__INIT</b> method is the static public table.<br><b>Note</b>: Since the class has not yet been built, this cannot remove class methods that have yet to be added during the class object's assembly or any other fields declared in the non-static portion of the class declaration.</p>
+<p>The static initializer is called by creating a static public method named <b>__INIT</b>. This is called <b><i>before</i></b> the class object is created and is used to modify the static public fields and methods. Items can be added, changed or deleted from the static public table of the class at this point. The only parameter passed to the <b>__INIT</b> method is the static public table.<br><b>Note</b>: Since the class has not yet been built, this cannot access/modify class methods that have yet to be added during the class object's assembly or any other fields declared in the non-static portion of the class declaration.</p>
 <h3>The Static Constructor</h3>
-<p>The static constructor is called by creating a static public method having the <b><u>exact</u></b> same name as the class itself. This is called <b ><i>after</i></b> the class object is created and is used to perform static operations while having access to the fully-built class object. The two parameters passed to the static constructor method is the class object itself and an authentication code for proving (often to parent, static methods) that this class's static constructor is currently running. This can be tested by running the <b>class.isstaticconstructorrunning</b> method inputing the class object and authentication code.
-<br><b>Note</b>: the authentication code is destroyed upon the static constructor being run so the test will work only while the static constructor is running.
+<p>The static constructor is called by creating a static public method having the <b><u>exact</u></b> same name as the class itself. This is called <b><i>after</i></b> the class object is created and is used to perform static operations while having access to the fully-built class object. The two parameters passed to the static constructor method are the class object itself and an authentication code for proving (often to parent, static methods) that this class's static constructor is currently running. This can be tested by running the <b>class.isstaticconstructorrunning</b> method inputing the class object and authentication code.
+<br><b>Note</b>: the authentication code is destroyed upon the static constructor being run so the test will pass only while the static constructor is running.
 <br><b>Note</b>: actions performed using the class object are governed as would any actions on the class object performed outside the static constructor. That is, the static constructor is given no special privileges or access to the class object.
 !]]
 local _sClassStaticInitializer = "__INIT";
@@ -349,10 +349,43 @@ getName             = TODO]]
 --can i get rid of rawtype and just use ~= nil?
 
 
---[[!
+-->>>>>WARNING: these function should not be exposed as they are for internal use only
+local function getKit(vClass)
+    return class.repo.byObject[vClass] or kit.repo.byName[vClass];
+end
+--<<<<<<<
+
+--TODO LEFT OFF HERE...FINISH THESE
+--TODO BUG FIX FINISH go threough each of the helper functions to be certain they don't expose classes. E.g., getbase could potentially expose a private base class. Don't give back the class object, give back only metadata on the class. Modify other comparison functions to use this metadata. This entire system of checks needs to be rethought so as not to create a scope/secutiry issue. This can probaly be fixed by using a metadata system for each class and just referring to that in these functions. The metadata can be stored locally here in a table above.
+
+
+local function haschildren(vClass)
+    local tMyKit = getKit(vClass);
+
+    return  ( tMyKit  and
+              tMyKit.children.count > 0 );
+end
+
+--[[!TODO
+@fqxn LuaEx.Class System.class.Methods.is
+@desc Determines if something is a class object.
+@param any vValue The item to check.
+@ret boolean bIsClass True if it's a class, false otherwise.
+!]]
+local function is(vClass)
+    return (class.repo.byObject[vClass] or kit.repo.byName[vClass]) ~= nil;
+end
+
+
+
+
+
+
+
+--[[!TODO
 @fqxn LuaEx.Class System.class.Methods.isstaticconstructorrunning
 @desc Determines if the static constructor of a class is being executed by validating it though the autentication code passed to it.
-@param class cCaller The calling class to check.
+@param class/string cCaller/sCaller The calling class (or name of calling class) to check.
 @param string sAuthCode The authentication code (that is passed to each class's static constructor).
 @ret boolean bIs True if the code is being executed inside a class's static constructor, false otherwise.
 !]]
@@ -365,20 +398,17 @@ end
 --[[!
 @fqxn LuaEx.Class System.class.Methods.ischild
 @desc Determines if a class object is a child (however far removed) of another class object.
-@param class cChild The potential child class to check.
-@param class cParent The potential parent class to check.
+@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
+@param class/string cParent/sParent The potential parent class <i>(or class name)</i> to check.
 @ret boolean bIsChild True if it's a child, false otherwise.
 !]]
 local function ischild(vChild, vParent)
-    local bRet = false;
-    local bChildExists  = rawtype(class.repo.byObject[vChild])  ~= "nil";
-    local bParentExists = rawtype(class.repo.byObject[vParent]) ~= "nil";
+    local bRet          = false;
+    local tChildKit     = getKit(vChild);
+    local tParentKit    = getKit(vParent);
 
-    if (bChildExists and bParentExists) then
-        local tChildKit             = class.repo.byObject[vChild];
-        local tParentKit            = class.repo.byObject[vParent];
-        local bChildIsDescendant    = rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil";
-        bRet = bChildIsDescendant and tChildKit ~= tParentKit;
+    if ( (tChildKit and tParentKit) and (tChildKit ~= tParentKit) ) then
+        bRet = tParentKit.children.all.byName[tChildKit.name] ~= nil;
     end
 
     return bRet;
@@ -387,77 +417,114 @@ end
 --[[!
 @fqxn LuaEx.Class System.class.Methods.ischildorself
 @desc Determines if a class object is a child of another class object or is that class itself.
-@param class cChild The potential child class to check.
-@param class cParent The potential parent (or self) class to check.
+@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
+@param class/string cParent/sParent The potential parent (or self) class <i>(or class name)</i> to check.
 @ret boolean bIsChildOrSelf True if it's a child or self, false otherwise.
 !]]
 local function ischildorself(vChild, vParent)
-    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                 or nil;
-    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
-                                class.repo.byObject[vParent]                or nil;
+    local tChildKit     = getKit(vChild);
+    local tParentKit    = getKit(vParent);
 
-    return (tChildKit and tParentKit) and
-           (tChildKit == tParentKit)  or
-           (tParentKit and (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil"));
+    local bIsChild  = false;
+    local bIsSelf   = false;
+
+    if (tChildKit and tParentKit) then
+        bIsChild  = tParentKit.children.all.byName[tChildKit.name] ~= nil;
+        bIsSelf   = tChildKit == tParentKit;
+    end
+
+    return bIsChild or bIsSelf;
 end
 
 --[[!
 @fqxn LuaEx.Class System.class.Methods.isdirectchild
 @desc Determines if a class object is a direct descendant of another class object.
-@param class cChild The potential child class to check.
-@param class cParent The potential parent class to check.
+@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
+@param class/string cParent/sParent The potential parent (or self) class <i>(or class name)</i> to check.
 @ret boolean bIsDirectChild True if it's a direct descendant, false otherwise.
 !]]
 local function isdirectchild(vChild, vParent)
-    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                 or nil;
-    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
-                                class.repo.byObject[vParent]                or nil;
+    local tChildKit     = getKit(vChild);
+    local tParentKit    = getKit(vParent);
 
-    return  (tChildKit and tParentKit)  and
-            (tChildKit ~= tParentKit)   and
-            (rawtype(tParentKit.children.direct.byObject[vChild]) ~= "nil");
+    local bIsDirectChild = false;
+
+    if ( (tChildKit and tParentKit) and (tChildKit ~= tParentKit)) then
+        bIsDirectChild = tParentKit.children.direct.byName[tChildKit.name] ~= nil;
+    end
+
+    return bIsDirectChild;
 end
 
 
 
-local function isinlineage(vChild, vParent)
-    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                 or nil;
-    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
-                                class.repo.byObject[vParent]                or nil;
+local function isinlineage(vClassA, vClassB)
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassB);
 
-    return (tChildKit and tParentKit) and
-           (tChildKit == tParentKit)   or
-           (tChildKit  and (rawtype(tChildKit.children.all.byObject[vParent]) ~= "nil")) or
-           (tParentKit and (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil"));
+    local bIsSelf       = false;
+    local bAIsChildOfB  = false;
+    local bAIsParentOfA = false;
+
+    if (tKitA and tKitB) then
+        bIsSelf = tKitA == tKitB;
+
+        if not (bIsSelf) then
+            bAIsChildOfB = tKitB.children.all.byName[tKitA.name] ~= nil;
+
+            if not (bAIsChildOfB) then
+                bAIsParentOfA   = tKitA.children.all.byName[tKitB.name] ~= nil;
+            end
+
+        end
+
+    end
+
+    return bIsSelf or bAIsChildOfB or bAIsParentOfA;
 end
 
 
 local function isparent(vParent, vChild)
-    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                 or nil;
-    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
-                                class.repo.byObject[vParent]                or nil;
+    local tChildKit     = getKit(vChild);
+    local tParentKit    = getKit(vParent);
 
-    return  ( (tChildKit and tParentKit)  and
-              (tChildKit ~= tParentKit)   and
-              (rawtype(tParentKit.children.all.byObject[vChild]) ~= nil) );
+    local bIsParent = false;
+
+    if (tChildKit and tParentKit) then
+        bIsParent = (tChildKit.children.all.byName[tParentKit.name]) ~= nil;
+    end
+
+    return bIsParent;
 end
 
-local function isparentorself(vParent, vChild)
-    local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
-                                class.repo.byObject[vChild]                or nil;
-    local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
-                                class.repo.byObject[vParent]                or nil;
 
-    return (tChildKit and tParentKit) and
-           (tChildKit == tParentKit)  or
-           (rawtype(tParentKit.children.all.byObject[vChild]) ~= "nil");
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isparentorself
+@desc Determines if a class object is a parent of another class object or is that class itself.
+@param class/string cChild/sChild The potential child class <i>(or class name)</i> to check.
+@param class/string cParent/sParent The potential parent (or self) class <i>(or class name)</i> to check.
+@ret boolean bIsChildOrSelf True if it's a parent or self, false otherwise.
+!]]
+local function isparentorself(vChild, vParent)
+    local tChildKit     = getKit(vClass);
+    local tParentKit    = getKit(vParent);
+
+    local bIsParent = false;
+    local bIsSelf   = false;
+
+    if (tChildKit and tParentKit) then
+        bIsSelf   = tChildKit == tParentKit;
+        bIsParent = (tParentKit.children.all.byObject[vChild] or tParentKit.children.all.byName[vChild]) ~= nil;
+    end
+
+    return bIsParent or bIsSelf;
 end
 
-local function isdirectparent(vParent, vChild)
+
+
+
+local function isdirectparent(vChild, vParent)
     local tChildKit = rawtype(  class.repo.byObject[vChild])    ~= "nil"    and
                                 class.repo.byObject[vChild]                 or nil;
     local tParentKit = rawtype( class.repo.byObject[vParent])   ~= "nil"    and
@@ -469,18 +536,10 @@ local function isdirectparent(vParent, vChild)
 end
 
 
---[[!
-@fqxn LuaEx.Class System.class.Methods.is
-@desc Determines if something is a class object.
-@param any vValue The item to check.
-@ret boolean bIsClass True if it's a class, false otherwise.
-!]]
-local function is(vClass)
-    return rawtype(class.repo.byObject[vClass]) ~= "nil";
-end
 
 
---[[!
+
+--[[!TODO
 @fqxn LuaEx.Class System.class.Methods.isinstance
 @desc Determines if something is an instance object of any class.
 @param any vValue The item to check.
@@ -497,24 +556,32 @@ end
 --end
 
 
---[[!
+--[[!TODO
 @fqxn LuaEx.Class System.class.Methods.of
 @desc Gets the class object of an instance object.
 @param instance oInstance The instance object for which to find the class.
-@ret class|nil cClass The class of the instance object or nil if the input is invalid.
+@ret string|nil cClass The name of the class of the instance object or nil if the input is invalid.
 !]]
-local function of(vInstance) --TODO BUG FIX this exposes potentially private classes. Don't give back the class object, give back only metadata on the class. Modify other comparison functions to use this metadata. This entire system of checks needs to be rethought so as not to create a scope/secutiry issue. This can probaly be fixed by using a metadata system for each class and just referring to that in these functions. The metadata can be stored locally here in a table above.
-    local cRet;
+local function of(vInstance, bReturnClass)
+    local vRet;
 
     if (isinstance(vInstance)) then
-        cRet = instance.repo.byObject[vInstance].class;
+        local cClass = instance.repo.byObject[vInstance].class;
+        local tKit = class.repo.byObject[cClass];
+
+        if (bReturnClass and tKit.isInScope()) then
+            vRet = cClass;
+        else
+            vRet = tKit.name;
+        end
+
     end
 
-    return cRet;
+    return vRet;
 end
 
 
---[[!
+--[[!TODO
 @fqxn LuaEx.Class System.class.Methods.getname
 @desc Gets the class name of a class.
 @param class cClass The class for which to get the name.
@@ -529,13 +596,19 @@ end
 
 
 
+local function getchildcount(vClass)
+    local tMyKit = rawtype( class.repo.byObject[vClass])   ~= "nil"    and
+                            class.repo.byObject[vClass]                or nil;
 
+    return  (tMyKit and tMyKit.children.count or -1);
+end
 
 
 
 local function getbase(vClass)
     local cRet;
-    local tClassKit = is(vClass) and class.repo.byObject[vClass] or nil;
+    local tClassKit =   is(vClass) and class.repo.byObject[vClass] or
+                        (vClass and kit.repo.byName[vClass] or nil);
 
     if tClassKit and tClassKit.base then
 
@@ -548,13 +621,31 @@ local function getbase(vClass)
     return cRet;
 end
 
+--TODO FINISH allow either class or string input for all of these!
+local function getparent(vClass, bReturnClass)
+    local vRet;
+    local tClassKit = (is(vClass) and class.repo.byObject[vClass]) or (vClass and kit.repo.byName[vClass] or nil);
+
+    if tClassKit and tClassKit.parent then
+
+        if (bReturnClass and tClassKit.isInScope()) then
+            vRet = class.repo.byKit[tClassKit.parent];
+        else
+            vRet = tClassKit.parent.name;
+        end
+
+    end
+
+    return vRet;
+end
+
 -- Function to get the class object by its name
 --local function byname(className) --TODO DELETE DEPRECATED remove this, it violates visibility principles by exposing otherwise-private/protected classes
     --return class.repo.byName[className];
 --end
 
 
-local function isbase(vBase, vDerived)
+local function isbase(vDerived, vBase)
     -- Validate that vBase is a base class and vDerived is its child
     if not is(vBase) or not is(vDerived) then
         return false;
@@ -660,12 +751,24 @@ function class.build(tKit)
 
             --make sure this class has a public constructor
             if not (tKit.constructorVisibility == "pub") then
-                error("Error instantiating class, '${class}'. Contructor is ${visibility}." % {class = sName, visibility = _tCAINames[tKit.constructorVisibility]}, 3);
-            end
 
-            tInstance.pub[sName](...);
-            tInstance.constructorcalled = true;
-            rawset(tInstance.pub, sName, nil);
+                --[[this auth code existence check permits
+                    non-public constructors to run within
+                    the static constructor (as they should
+                    be able to do)]]
+                if (_tAuthenticationCodes[oClass]) then
+                    tInstance[tKit.constructorVisibility][sName](...);
+                    tInstance.constructorcalled = true;
+                    rawset(tInstance[tKit.constructorVisibility], sName, nil);
+                else
+                    error("Error instantiating class, '${class}'. Contructor is ${visibility}." % {class = sName, visibility = _tCAINames[tKit.constructorVisibility]}, 3);
+                end
+
+            else
+                tInstance.pub[sName](...);
+                tInstance.constructorcalled = true;
+                rawset(tInstance.pub, sName, nil);
+            end
 
             --validate (constructor calls and delete constructors
             local nParents = #tParents;
@@ -1142,7 +1245,7 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 end
 
-                --mark the red-only field as now being fixed
+                --mark the read-only field as now being fixed
                 if (bSetROFixed) then
                     tROField.fixed = true;
                 end
@@ -1417,6 +1520,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
                 byName 		= {},   --updated on build
                 byObject 	= {},   --updated when a class object is created (during build)
             },
+            count = 0,
             direct  = {
                 byName 		= {},   --updated on build
                 byObject 	= {},   --updated when a class object is created (during build)
@@ -1428,6 +1532,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             pro = {},
             pub = {},
         },
+        hasParent = false,
         --initializerCalled = false, --tracks whether the static inializer for this class kit has been called QUESTION do i need this since it executes only once anyway?
         ins		        = rawsetmetatable({},
             {
@@ -1443,6 +1548,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             pub = {},
         },
         isFinal			= false, --whether the classis final (processed below)
+        isInScope       = load("return "..sName..' ~= nil;'), --this gets run when checking if the final class object is visible within a given scope.
         --hasBlacklist    = false, --whether the class has a blacklist (processed below)
         --hasWhitelist    = false, --whether the class has a whitelist (processed below)
         blacklist       = nil,   --which class(es) may NOT subclass this one (processed below)
@@ -1505,6 +1611,9 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     local tParent = tKit.parent;
 
     if (tParent) then
+        --inducate the kit has a parent
+        tKit.hasParent = true;
+
         --update the kit's base
         tKit.base = tParent.base or tParent;
 
@@ -1516,6 +1625,10 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
 
         tDirect.byName[sName]       = tKit;
         tDirect.byObject[oClass]    = tKit;
+
+        --update the child count
+        tParent.children.count = tParent.children.count + 1;
+
         --print("Updating child "..sName.." for parent "..tParent.name)
         tParent                     = tParent.parent;
 
@@ -1524,6 +1637,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             tAll.byName[sName]      = tKit;
             tAll.byObject[oClass]   = tKit;
             --print("Updating child "..sName.." for parent "..tParent.name)
+
             tParent                 = tParent.parent;
         end
 
@@ -2190,6 +2304,7 @@ end
 
 local tClassActual = {
     --byname              = byname,
+    haschildren         = haschildren,
     isstaticconstructorrunning = isstaticconstructorrunning,
     ischild             = ischild,
     ischildorself       = ischildorself,
@@ -2203,7 +2318,9 @@ local tClassActual = {
     isinstance          = isinstance,
     isinstanceof        = isinstanceof,
     getbase             = getbase,
+    getchildcount       = getchildcount,
     getname             = getname,
+    getparent           = getparent,
     of                  = of,
 };
 

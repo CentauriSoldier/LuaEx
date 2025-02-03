@@ -27,6 +27,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 ### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
 **v0.91** ***(IN PROGRESS)***
+- Bugfix:  The **class** static constructor not executing correctly.
 - Bugfix:  The **class** system not permitting **Lua/LuaEx** keywords to be used as member names when using directives.
 - Bugfix:  **CoG** not allowing recursive access to *config* table.
 - Bugfix:  **Dox** displaying parameters, returns and other combined tags out of order.
@@ -36,7 +37,8 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Bugfix:  instance returns in parent class were not properly returning child instance when subclassed.
 - Bugfix:  **Dox** "Copy" button not working.
 - Change:  **Dox** now places all output into a single HTML file instead of using a separate *.js* file.
-- Change:  **Dox** CSS redesigned to be more functional and aesthetically pleasing.
+- Change:  **Dox** CSS redesigned to be more functional, readable and aesthetically pleasing.
+- Feature: **class** constructor now must accept a string (authenitication code) as its second argument to be used with the ***class.isstaticconstructorrunning*** function. This can now determine whether the static constructor is currently running.
 - Feature: added new **eventrix** type to manage events.
 - Feature: **enum** items now have ***__eq*** and ***__lt*** metamethods.
 - Feature: **Dox** now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
@@ -47,8 +49,10 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Feature: subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
 - Feature added several class-level checks:
     - **class.of**
-    - **class.getname**
     - **class.getbase**
+    - **class.getchildcount**
+    - **class.getname**
+    - **class.haschildren**
     - **class.is**
     - **class.isbase**
     - **class.ischild**
@@ -59,6 +63,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
     - **class.isinstance**
     - **class.isinstanceof**
     - **class.isparent**
+    - **class.isstaticconstructorrunning**
     - **class.isparentorself**    
 - Feature: **classes** now fully respect polymorphism in assignment operation type checking.
 - Feature: The class constructor may now be either private, protected or public.
@@ -275,8 +280,9 @@ Variables are prefixed with the following lower-case symbols based on their type
 *f*	| 	**function**  
 *h*	|	**file\window\etc. handle** *(number)*  
 *j*	|	**event**  
-*k*	|	**eventrix**  
-*n*	|	**number**  
+*k*	|	**eventrix**
+*n*	|	**number**
+*m* |   **strata\stratum**
 *o*	|	**class\other** *(object)*  
 *p*	|	**file\dir path** *(string)*  
 *r*	|	**struct**  

@@ -219,6 +219,7 @@ local null		        = 	require("LuaEx.lib.null");
                             rawset(tLuaEx, "NULL", null);	-- create an uppercase alias for null
 array                   =   require("LuaEx.lib.array");
 enum			        = 	require("LuaEx.lib.enum");
+strata                  =   require("LuaEx.lib.strata"); --TODO docs for this
 envrepo			        = 	require("LuaEx.lib.envrepo");
 eventrix    	        = 	require("LuaEx.lib.eventrix");
 schema                  =  	require("LuaEx.extlib.schema");

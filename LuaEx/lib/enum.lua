@@ -529,6 +529,25 @@ end
 local tEnumFactoryActual = {
     --fromtable = fromtable,
     --prep = prep,
+    deserialize = function(sEnum)--TODO document this (and everything else in here)
+        local eRet;
+
+        if type(sEnum) == "string" and not sEnum:isempty() then--and type(eType) == "enum" then
+            local fLoader = load("return "..sEnum);
+
+            if (type(fLoader) == "function") then
+                local eTest = fLoader();
+
+                if (type(eTest) == "enum" or subtype(eTest) == "enumitem") then
+                    eRet = eTest;
+                end
+
+            end
+
+        end
+
+        return eRet;
+    end,
 };
 local tEnumFactoryDecoy  = {};
 local tEnumFactoryMeta   = {
@@ -539,6 +558,7 @@ local tEnumFactoryMeta   = {
     __type = "enumfactory";
     __index = function(t, k)--TODO FINISH
 
+        return tEnumFactoryActual[k] or nil;
         --if (rawtype(tClonerActual[k]) ~= "nil") then
         --    return tClonerActual[k];
         --end
