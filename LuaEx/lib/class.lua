@@ -47,7 +47,7 @@ To facilitate a class's instances accessing and mutating each other (as is commo
 <ul>
     <li>
         <b>0.8</b>
-        <p>Change: All future changelog notes can be found in LuaEx's changelog.</>
+        <p>Change: All future version numbers and changelog notes can be found in LuaEx's changelog.</>
         <p>Feature: subclassing can now be controlled with whitelists or blacklists.</p>
         <p>Feature: added several class-level methods.</p>
         <p>Feature: added a static initializer to classes (uses a method of the class name in the static public table).</p>
@@ -172,7 +172,7 @@ local function isMutableStaticPublicType(sType)
 end
 
 
-local _tAuthenticationCodes = {}; --used in static constructors
+local _tAuthenticationCodes = {}; --used in static constructors, indexed by class kit
                     --[[
                     ██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗███████╗██████╗ ███████╗
                     ██║████╗  ██║██║╚══██╔══╝██║██╔══██╗██║     ██║╚══███╔╝██╔════╝██╔══██╗██╔════╝
@@ -339,35 +339,41 @@ _fAutoPlaceHolder = function() end;
                 ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║]]
 
 --[[
-byName              = TODO,
-isbase              = TODO,
-isinstanceof        = TODO,
-issibling, is cousin           = TODO,--maybe not this one...
-getbase             = TODO,
-getName             = TODO]]
---TODO use error instead of assert so error level can be set (or can it be on assert?)..assert is slower...
---can i get rid of rawtype and just use ~= nil?
+--TODO use error instead of assert so error level can be set (or can it be on assert?)..assert is slower...]]
 
-
--->>>>>WARNING: these functions should not be exposed as they are for internal use only
+-->>>>>WARNING: this function should not be exposed as it is for internal use only
 local function getKit(vClass)
     return class.repo.byObject[vClass] or kit.repo.byName[vClass];
 end
 --<<<<<<<
 
---ideas: to add - exists, isinscope, getlineageordinal, issibling (direct sister classes), is relative (connected to any other class that is connected)
+--ideas: to add - isinscope, getlineageordinal, issibling (direct sister classes), is relative (connected to any other class that is connected)
 
---TODO
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.exists
+@desc Determines whether a class exists.
+@param string sClass The name of the class.
+<br><b>Note</b>, if a class object is passed instead of a string, it returns true as well.
+@ret boolean bExists True if the class exists, false otherwise.
+!]]
+local function exists(vClass)
+    return (kit.repo.byName[vClass] or class.repo.byObject[vClass]) ~= nil;
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.getbase
+@desc Gets a class's base class object (if both exist and the base is in scope).
+@param string/class vClass The class or name of the class.
+@ret class|nil cClass The class's base class object <i>(if both exist, the base is in scope and the class has a base)</i>, or nil otherwise.
+!]]
 local function getbase(vClass)
     local cRet;
     local tKit = getKit(vClass);
 
-    if tKit and tKit.base then
-
-        if (tKit.base) then
-            cRet = class.repo.byKit[tKit.base];
-        end
-
+    if tKit and tKit.base and tKit.base.isInScope() then
+        cRet = class.repo.byKit[tKit.base];
     end
 
     return cRet;
@@ -376,7 +382,7 @@ end
 
 --[[!
 @fqxn LuaEx.Class System.class.Methods.getbyname
-@desc Gets a class object given the class name (if in scope).
+@desc Gets a class object given the class name (if it's in scope).
 @param string sClass The name of the class object.
 @ret class|nil cClass The class object (if it's in scope), or nil otherwise.
 !]]
@@ -394,9 +400,9 @@ end
 
 --[[!
 @fqxn LuaEx.Class System.class.Methods.getchildcount
-@desc Gets the number of children a class has.
+@desc Gets the number of direct children a class has.
 @param string/class vClass The class or name of the class.
-@ret number nChildren The number of children the class has. If an error occurs, -1 is returned.
+@ret number nChildren The number of direct children the class has. If an error occurs, -1 is returned.
 !]]
 local function getchildcount(vClass)
     local tKit = getKit(vClass);
@@ -405,34 +411,83 @@ local function getchildcount(vClass)
 end
 
 
---TODO
-local function getconstructorvisibility() --TODO FINISH
-    error("getconstructorvisibility: NOT YET IMPLEMENTED")
+--[[!
+@fqxn LuaEx.Class System.class.Methods.getchildren
+@desc Gets all the direct children of a class (those that are in scope).
+@param string/class vClass The class or name of the class.
+@ret table|nil tChildren A numerically-indexed table whose values are class objects who are direct children of the input class. If the input is bad, the class doesn't exist or there are no direct children of the class that are in scope, nil is returned.
+!]]
+local function getchildren(vClass)
+    local vRet;
+    local tKit = getKit(vClass);
+
+    if (tKit and tKit.children.count > 0) then
+
+        for cChild, tChildKit in pairs(tKit.children.direct.byObject) do
+
+            if tChildKit.isInScope() then
+
+                if not (vRet) then
+                    vRet = {}; --[[ must be created here (as opposed to
+                                    being created before the loop) in case
+                                    there are no in-scope children]]
+                end
+
+                vRet[#vRet + 1] = cChild;
+            end
+
+        end
+
+    end
+
+    return vRet;
 end
 
 
---[[!TODO
+--[[!
+@fqxn LuaEx.Class System.class.Methods.getconstructorvisibility
+@desc Gets a class's constructor visiblity.
+@param class cClass The class to query.
+@ret string|nil sVisibility The visiblity of class's constructor or nil if the input is invalid or the class doesn't exist.
+!]]
+local function getconstructorvisibility(vClass)
+    local vRet;
+    local tKit = getKit(vClass);
+
+    if (tKit) then
+        vRet = tKit.constructorVisibility;
+    end
+
+    return vRet;
+end
+
+
+--[[!
 @fqxn LuaEx.Class System.class.Methods.getname
 @desc Gets the class name of a class.
 @param class cClass The class for which to get the name.
-@ret string|nil sClass The name of the class or nil if the input is invalid.
+@ret string|nil sClass The name of class or nil if the input is invalid or the class doesn't exist.
 !]]
 local function getname(vClass)
     local tKit = getKit(vClass);
     return tKit and tKit.name or nil;
 end
 
---TODO
-local function getparent(vClass, bReturnClass)
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.getparent
+@desc Gets the parent class object of the input class.
+@param string/class sClass/cClass The class or name of the class for which to get the parent.
+@ret class|nil cClass The parent class or nil if the input is invalid or either class doesn't exist or isn't in scope.
+!]]
+local function getparent(vClass)
     local vRet;
     local tKit = getKit(vClass);
 
     if tKit and tKit.parent then
 
-        if (bReturnClass and tKit.isInScope()) then
+        if (tKit.isInScope() and tKit.parent.isInScope()) then
             vRet = class.repo.byKit[tKit.parent];
-        else
-            vRet = tKit.parent.name;
         end
 
     end
@@ -459,21 +514,39 @@ end
 @fqxn LuaEx.Class System.class.Methods.is
 @desc Determines if something is a class object.
 @param any vValue The item to check.
-@ret boolean bIsClass True if it's a class, false otherwise.
+@ret boolean bIsClass True if it's a class object, false otherwise.
 !]]
 local function is(vClass)
-    return (class.repo.byObject[vClass] or kit.repo.byName[vClass]) ~= nil;
+    return (class.repo.byObject[vClass]) ~= nil;
 end
 
---TODO
-local function isbase(vDerived, vBase)
-    -- Validate that vBase is a base class and vDerived is its child
-    if not is(vBase) or not is(vDerived) then
-        return false;
-    end
 
-    -- Check if vBase is the base class of vDerived
-    return getbase(vBase) == nil and getbase(vDerived) ~= nil and ischild(vDerived, vBase);
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isbase
+@desc Determines if a class is a base class.
+@param class/string vClass.
+@ret boolean bIsChild True if it's a base class, false otherwise.
+!]]
+local function isbase(vClass)
+    local tKit = getKit(vClass);
+    return (tKit and (not tKit.base) );
+end
+
+
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isbaseof
+@desc Determines if class A is the base class of class B.
+@param class/string vClassA.
+@param class/string vClassB.
+@ret boolean bIsChild True if it's a child, false otherwise.
+!]]
+local function isbaseof(vClassA, vClassB)
+    local tKitA = getKit(vClassA);
+    local tKitB = getKit(vClassA);
+
+    return (    tKitA and tKitB and
+                not tKitA.base and tKitB.base and
+                (tKitA.children.all.byName[tKitB.name]) ~= nil);
 end
 
 
@@ -604,15 +677,28 @@ local function isinstance(vInstance)
     return instance.repo.byObject[vInstance] ~= nil;
 end
 
---TODO
--- Function to determine if an object is an instance of a particular class
-local function isinstanceof(vInstance, vClass)
-    error("NOT YET WORKING")
-    local tInstanceKit = isinstance(vInstance) and instance.repo.byObject[vInstance] or nil;
-    local tClassKit = is(vClass) and class.repo.byObject[vClass] or nil;
 
-    return (tInstanceKit and tClassKit) and
-           (tInstanceKit.class == tClassKit);
+--[[!
+@fqxn LuaEx.Class System.class.Methods.isinstanceof
+@desc Determines if something is an instance of a specific class.
+@param object oInstance The instance object to check.
+@param class/string vClass the class or the name of the class in question.
+@ret boolean bIsInstanceOf True if it's an instance of the specified class, false otherwise.
+!]]
+local function isinstanceof(vInstance, vClass)
+    local bRet      = false;
+    local tInstance = instance.repo.byObject[vInstance];
+
+    if (tInstance) then
+        local tClassKit = getKit(vClass);
+
+        if (tClassKit) then
+            bRet = tInstance.kit.name == tClassKit.name;
+        end
+
+    end
+
+    return bRet;
 end
 
 
@@ -635,7 +721,6 @@ local function isparent(vClassA, vClassB)
 
     return bIsParent;
 end
-
 
 
 --[[!
@@ -661,38 +746,41 @@ local function isparentorself(vClassA, vClassB)
 end
 
 
---[[!TODO
+--[[!
 @fqxn LuaEx.Class System.class.Methods.isstaticconstructorrunning
 @desc Determines if the static constructor of a class is being executed by validating it though the autentication code passed to it.
 @param class/string cCaller/sCaller The calling class (or name of calling class) to check.
 @param string sAuthCode The authentication code (that is passed to each class's static constructor).
-@ret boolean bIs True if the code is being executed inside a class's static constructor, false otherwise.
+@ret boolean bIsRunning True if the code is being executed inside a class's static constructor, false otherwise.
 !]]
 local function isstaticconstructorrunning(vClass, sAuthCode)
-    return  rawtype(class.repo.byObject[vClass])    ~= "nil"    and
-            type(sAuthCode)                         == "string" and
-            _tAuthenticationCodes[vClass]           == sAuthCode;
+    local bRet = false;
+    local tKit = getKit();
+
+    if (tKit and type(sAuthCode) == "string" and _tAuthenticationCodes[tKit]) then
+        bRet = _tAuthenticationCodes[tKit] == sAuthCode;
+    end
+
+    return bRet;
 end
 
 
---[[!TODO
+--[[!
 @fqxn LuaEx.Class System.class.Methods.of
 @desc Gets the class object of an instance object.
-@param instance oInstance The instance object for which to find the class.
-@ret string|nil cClass The name of the class of the instance object or nil if the input is invalid.
+@param instance oInstance The instance object for which to find the class object.
+@ret class|nil cClass The class object that produced the instance object or nil if the input is invalid.
 !]]
-local function of(vInstance, bReturnClass)
+local function of(vInstance)
     local vRet;
-    local oInstance = instance.repo.byObject[vInstance];
+    local tInstance = instance.repo.byObject[vInstance];
 
-    if (oInstance ~= nil) then
-        local cClass = oInstance.class;
-        local tKit = class.repo.byObject[cClass];
+    if (tInstance) then
+        local cClass    = tInstance.class;
+        local tKit      = class.repo.byObject[cClass];
 
-        if (bReturnClass and tKit.isInScope()) then
+        if (tKit.isInScope()) then
             vRet = cClass;
-        else
-            vRet = tKit.name;
         end
 
     end
@@ -737,7 +825,7 @@ function class.build(tKit)
         rawset(tClass, _sClassStaticInitializer, nil);
     end
 
-    local tClassMeta = { --the decoy (returned class object) meta table
+    local tClassMeta = { --the decoy's (returned class object's) meta table
         __call      = function(t, ...) --instantiate the class
             local oInstance = {};
 
@@ -791,7 +879,7 @@ function class.build(tKit)
                     non-public constructors to run within
                     the static constructor (as they should
                     be able to do)]]
-                if (_tAuthenticationCodes[oClass]) then
+                if (_tAuthenticationCodes[tKit]) then
                     tInstance[tKit.constructorVisibility][sName](...);
                     tInstance.constructorcalled = true;
                     rawset(tInstance[tKit.constructorVisibility], sName, nil);
@@ -952,13 +1040,13 @@ function class.build(tKit)
         fLauncher = function()
             --create and store the static constructor authentication code
             local sAuthCode = string.uuid();
-            _tAuthenticationCodes[oClass] = sAuthCode;
+            _tAuthenticationCodes[tKit] = sAuthCode;
             --run the static contructor
             tClass[sName](oClass, sAuthCode);
             --destroy the static constructor
             rawset(tClass, sName, nil);
             --destroy the static constructor authentication code
-            _tAuthenticationCodes[oClass] = nil;
+            _tAuthenticationCodes[tKit] = nil;
         end
 
     end
@@ -1555,7 +1643,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
                 byName 		= {},   --updated on build
                 byObject 	= {},   --updated when a class object is created (during build)
             },
-            count = 0,
+            count = 0,              --applies to direct children
             direct  = {
                 byName 		= {},   --updated on build
                 byObject 	= {},   --updated when a class object is created (during build)
@@ -2338,15 +2426,18 @@ end
 
 
 local tClassActual = {
+    exists                      = exists,
     getbase                     = getbase,
     getbyname                   = getbyname,
     getchildcount               = getchildcount,
+    getchildren                 = getchildren,
     getconstructorvisibility    = getconstructorvisibility,
     getname                     = getname,
     getparent                   = getparent,
     haschildren                 = haschildren,
     is                          = is,
     isbase                      = isbase,
+    isbaseof                    = isbaseof,
     ischild                     = ischild,
     ischildorself               = ischildorself,
     isdirectchild               = isdirectchild,

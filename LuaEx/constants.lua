@@ -23,3 +23,7 @@ constant("SHAPE_ANCHOR_CENTROID",	 	-1); --DO NOT CHANGE THIS VALUE
     that case, this default will
     not	be used.]]
 constant("SHAPE_ANCHOR_DEFAULT",		SHAPE_ANCHOR_CENTROID);
+
+constant("VISIBILITY_PRIVATE",      "private");
+constant("VISIBILITY_PROTECTED",    "protected");
+constant("VISIBILITY_PUBLIC",       "public");

@@ -48,13 +48,18 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Feature: **Dox** now allows custom intro page message.
 - Feature: subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
 - Feature added several class-level checks:
-    - **class.of**
+    - **class.exists**
     - **class.getbase**
+    - **class.getbyname**
     - **class.getchildcount**
+    - **class.getchildren**
+    - **class.getconstructorvisibility**
     - **class.getname**
+    - **class.getparent**
     - **class.haschildren**
     - **class.is**
     - **class.isbase**
+    - **class.isbaseof**
     - **class.ischild**
     - **class.ischildorself**
     - **class.isdirectchild**
@@ -63,8 +68,9 @@ From here on out, all modules of **LuaEx** will be available in the global envir
     - **class.isinstance**
     - **class.isinstanceof**
     - **class.isparent**
-    - **class.isstaticconstructorrunning**
     - **class.isparentorself**    
+    - **class.isstaticconstructorrunning**
+    - **class.of**
 - Feature: **classes** now fully respect polymorphism in assignment operation type checking.
 - Feature: The class constructor may now be either private, protected or public.
 - Feature: **classes** now have an *optional* static constructor using the class name as the static method name.
