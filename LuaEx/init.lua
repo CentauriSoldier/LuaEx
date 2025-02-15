@@ -260,9 +260,6 @@ string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");
 base64 		= require("LuaEx.lib.base64");
 
---import serialization
-serializer  = require("LuaEx.lib.serializer");
-
 --import cloner
 cloner      = require("LuaEx.lib.cloner");
 clone       = cloner.clone;
@@ -274,16 +271,20 @@ cloner.registerFactory(eventrix);
 cloner.registerFactory(struct);
 cloner.registerFactory(structfactory);
 
+interface	= require("LuaEx.lib.interface");
+class 		= require("LuaEx.lib.class");
+--🆁🅴🅶🅸🆂🆃🅴🆁 🆃🅷🅴 🅲🅻🅰🆂🆂 🅵🅰🅲🆃🅾🆁🆈 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
+cloner.registerFactory(class);
+
+--import serialization
+serializer  = require("LuaEx.lib.serializer");
+
 --aliases
 serialize   = serializer.serialize;
 deserialize = serializer.deserialize;
 
 --import the class system
 if (_tClassLoadValues[_nClassSystem]) then
-    interface	= require("LuaEx.lib.interface");
-    class 		= require("LuaEx.lib.class");
-    --🆁🅴🅶🅸🆂🆃🅴🆁 🆃🅷🅴 🅲🅻🅰🆂🆂 🅵🅰🅲🆃🅾🆁🆈 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
-    cloner.registerFactory(class);
 
     --🅸🅼🅿🅾🆁🆃 🅸🅽🆃🅴🆁🅵🅰🅲🅴🆂
     iCloneable 		= require("LuaEx.inc.interfaces.iCloneable");

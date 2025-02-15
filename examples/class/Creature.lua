@@ -55,11 +55,11 @@ local Creature = class("Creature",
     HPMax__AUTO__   = 100,
     Damage__AUTO__  = 5,
     AC__AUTO__      = 0,
-    Armour__AUTO__  =    0,
+    Armour__AUTO__  = 0,
     Move = function(this, cdat)
 
     end,
-
+    functionTest = null,
 },
 {--public members
     Creature = function(this, cdat, super, nHP, nHPMax)
@@ -70,13 +70,19 @@ local Creature = class("Creature",
         cdat.pro.HP     = nHP > nHPMax and nHPMax or nHP;
         cdat.pro.HPMax  = nHPMax;
         --print("I am a "..class.getname(class.of(this)))
+        functionTestLocal = function()
+            print("hgello")
+        end
+        cdat.pro.functionTest = functionTestLocal;
     end,
     isDead = function(this, cdat)
+        --print(this, cdat)
+        print(cdat.pro.functionTest())
         return cdat.pro.HP <= 0;
     end,
     getTesting = function(this, cdat)
         return cdat.pri.TESTING;
-    end
+    end,
 },
 CoG, false, NO_INTERFACES);
 
@@ -104,7 +110,7 @@ local Human = class("Human",
 },
 Creature, false, NO_INTERFACES);
 
-local Soldier = class("Soldier",
+Soldier = class("Soldier",
 {--metamethods
 },
 {--public static members
@@ -134,6 +140,9 @@ local Soldier = class("Soldier",
         end
 
     end,
+    --deserialize = function(tData)
+    --    print(tData)
+    --end,
 },
 {--private members
     --Name__AUTO__ = "",
@@ -174,3 +183,12 @@ end
 
 print(oSoldier.getName())
 print(oSoldier.GetHP())
+oSoldier.SetArmour(12);
+local sSerialized = serialize(oSoldier);
+--print(sSerialized);
+local oNew = deserialize(sSerialized);
+--print(sSerialized)
+print(oNew.getName())
+print(oNew.GetHP())
+print(oNew.GetArmour())
+print(oNew.isDead())

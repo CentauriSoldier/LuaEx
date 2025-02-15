@@ -38,6 +38,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Bugfix:  **Dox** "Copy" button not working.
 - Change:  **Dox** now places all output into a single HTML file instead of using a separate *.js* file.
 - Change:  **Dox** CSS redesigned to be more functional, readable and aesthetically pleasing.
+- Feature The **class** module now interally handles all serialization and deserialization via the serializer system.
 - Feature: **class** constructor now must accept a string (authenitication code) as its second argument to be used with the ***class.isstaticconstructorrunning*** function. This can now determine whether the static constructor is currently running.
 - Feature: added new **eventrix** type to manage events.
 - Feature: **enum** items now have ***__eq*** and ***__lt*** metamethods.

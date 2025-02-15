@@ -3,6 +3,7 @@
 
 --LOCALIZATION INCOMPLETE TODO more localization
 local assert            = assert;
+local class             = class;
 local error             = error;
 local rawtype           = rawtype;
 local rawgetmetatable   = rawgetmetatable;
@@ -128,6 +129,9 @@ tPackables = {--the tPackables FUNCTIONS table
 
 };
 
+--sued for caching class serialize call systems
+--local _tClassSerializeCallOrders = {};
+
 --INCOMPLETE
 tNonPackables = {--the tNonPackables FUNCTIONS table
     ["arrayfactory"]            = function(aItem)
@@ -136,9 +140,13 @@ tNonPackables = {--the tNonPackables FUNCTIONS table
     ["boolean"]                 = function(bValue)
         return tostring(bValue);
     end,
-    ["class"]                   = function(aItem)
-        return getmetatable(aItem).__serialize();--TODO should I cache these since they're known types?
-    end,
+    --["class"]                   = function(aItem)
+        --local cParent = class.getparent(aItem);
+
+        --while cParent
+--print(type(aItem))
+    --    return getmetatable(aItem).__serialize();--TODO should I cache these since they're known types?
+--    end,
     --["enum"]                    = function(aItem)
         --return getmetatable(aItem).__serialize();
     --end,
@@ -252,12 +260,19 @@ local function serialize(vInput, tSavedTables, tTabCount)
     elseif (tPackables[sType]) then
         local fSerialize = tPackables[sType];
         local vData = fSerialize(vInput, tSavedTables, tTabCount);
-        print(sType)
+        --print(sType)
         if (type(vData) ~= "string") then
             vData = serialize(vData, tSavedTables, tTabCount);
         end
 
         sRet = packSerialData(sType, vData);
+
+    --handle instances of classes
+    elseif (class.isinstance(vInput)) then
+        local sData = rawgetmetatable(vInput).__serialize();
+        --print(sData);
+        --vData   = serialize(vData, tSavedTables, tTabCount);
+        sRet    = packSerialData(sType, sData);
 
     --look for a serialize metamethod in unregistered type
     elseif(rawtype(vInput) == "table") then--QUESTION should I allow a second input from serializer that would tell whether to pack the data?
@@ -268,7 +283,7 @@ local function serialize(vInput, tSavedTables, tTabCount)
             local vData = tMeta.__serialize(vInput, tSavedTables, tTabCount);
 
             if (type(vData) ~= "string") then
-                vData = serialize(vData, tSavedTables, tTabCount);--TODO should the table info be passed here? test this on mmbrdded tables
+                vData = serialize(vData, tSavedTables, tTabCount);
             end
 
             sRet = packSerialData(sType, vData);
@@ -287,16 +302,16 @@ local function serialize(vInput, tSavedTables, tTabCount)
 end
 
 
-local function deserialize(sRawData, tSavedTables, tTabCount)
+local function deserialize(sRawData)--, tSavedTables, tTabCount)
 
     if (rawtype(sRawData) ~= "string") then
-        error("Error in deserializer. Expected string in argument 1. Type given: "..rawtype(sRawData));
+        error("Error in deserializer. Expected string in argument 1. Type given: "..rawtype(sRawData), 2);
     end
 
     local fItem, sError = load("return "..sRawData);
 
     if not (fItem) then
-        error("Error deserializing data. Data is malformed.\n"..sRawData);
+        error("Error deserializing data. Data is malformed.\n"..sRawData, 2);
     end
 
     return fItem();
@@ -329,6 +344,6 @@ return setmetatable({}, {
         return tSerializerActual[k] or nil;
     end,
     __newindex = function(t, k, v)
-        error("Error: attempting to modify read-only serializer at index ${index} with ${value} (${type})." % {index = tostring(k), value = tostring(v), type = type(v)});
+        error("Error: attempting to modify read-only serializer at index ${index} with ${value} (${type})." % {index = tostring(k), value = tostring(v), type = type(v)}, 2);
     end,
 });

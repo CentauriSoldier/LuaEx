@@ -111,6 +111,8 @@ local _tCAINames = {             --primarily used for error messages
     ins     = "instances",      --a table containing all the instances
 };
 
+local _tSerializerIndices = {"pri", "pro", "pub"};
+
 local assert            = assert;
 local getmetatable      = getmetatable;
 local pairs             = pairs;
@@ -136,7 +138,7 @@ __mod 		= true,     __mode 		  = false,    __mul 	  = true,
 __name 	    = true,	    __newindex    = false,    __pairs     = true,
 __pow 		= true,     __shl 		  = true,	  __shr       = true,
 __sub 	    = true,	    __tostring	  = true,     __unm 	  = true,
-__serialize = true,     __clone       = true,};
+__serialize = true,    __clone       = true,}; --TODO Set serizlie to false ocne serializer is done
 
 local function getMetaNamesAsString()
     local sRet              = "";
@@ -833,93 +835,119 @@ function class.build(tKit)
         rawset(tClass, _sClassStaticInitializer, nil);
     end
 
-    local tClassMeta = { --the decoy's (returned class object's) meta table
-        __call      = function(t, ...) --instantiate the class
-            local oInstance = {};
+    --used to build instances of the class (used as __call alias as well as for deserialization)
+    local function buildInstance(_, ...)
+        local oInstance = {};
+        local tDataMeta = rawgetmetatable(_);
+        local tData     = ( tDataMeta                                       and
+                            tDataMeta.__deserialmarker                      and
+                            tDataMeta.__deserialmarker == "serializeddata") and _ or nil;
+        local bIsNormalCall = (tData == nil) and true or false;
+        local bReturnInstanceTable = not bIsNormalCall;
 
-            --make a list of the parents (if any)
-            local tParents          = {};
-            local tParentKit        = tKit.parent;
-            local bHasParent        = false;
 
-            --order them from top-most, descending
-            while (tParentKit) do
-                bHasParent = true;
+        --make a list of the parents (if any)
+        local tParents          = {};
+        local tParentKit        = tKit.parent;
+        local bHasParent        = false;
 
-                table.insert(tParents, 1, {
-                    kit     = tParentKit,
-                    decoy   = nil,
-                    actual  = nil,
-                    }
-                );
+        --order them from top-most, descending
+        while (tParentKit) do
+            bHasParent = true;
 
-                tParentKit = tParentKit.parent;
+            table.insert(tParents, 1, {
+                kit     = tParentKit,
+                decoy   = nil,
+                actual  = nil,
+                }
+            );
+
+            tParentKit = tParentKit.parent;
+        end
+
+        --instantiate each parent
+        for nIndex, tParentInfo in ipairs(tParents) do
+            local tMyParent = nil;
+
+            if nIndex > 1 then
+                tMyParent = tParents[nIndex - 1].actual;
             end
 
+            local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT"; --TODO QUESTION is this ever used?
 
-            --instantiate each parent
-            for nIndex, tParentInfo in ipairs(tParents) do
-                local tMyParent = nil;
+            --instantiate the parent object
+            local tParent = instance.build(oInstance, tData, tParentInfo.kit, tMyParent);--, sName);
 
-                if nIndex > 1 then
-                    tMyParent = tParents[nIndex - 1].actual;
-                end
+            --store this info for the next iteration
+            tParentInfo.decoy   = oParent;
+            tParentInfo.actual  = tParent;
+        end
 
-                local sParenttext = tMyParent and tMyParent.metadata.kit.name or "NO PARENT";
+        local tInstance = instance.build(oInstance, tData, tKit, bHasParent and tParents[#tParents].actual or nil); --this is the returned instance
 
-                --instantiate the parent object
-                local tParent = instance.build(oInstance, tParentInfo.kit, tMyParent);--, sName);
+        --get the visibility of the construtor
+        --local sConstructorVisibility = tKit.constructorVisibility;
 
-                --store this info for the next iteration
-                tParentInfo.decoy   = oParent;
-                tParentInfo.actual  = tParent;
-            end
+        --make sure this class has a public constructor
+        if not (tKit.constructorVisibility == "pub") then
+            local sVisibility = tKit.constructorVisibility;
+            --[[this auth code existence check permits
+                non-public constructors to run within
+                the static constructor (as they should
+                be able to do)]]
+            if (_tAuthenticationCodes[tKit]) then
 
-            local tInstance = instance.build(oInstance, tKit, bHasParent and tParents[#tParents].actual or nil); --this is the returned instance
-
-            --get the visibility of the construtor
-            --local sConstructorVisibility = tKit.constructorVisibility;
-
-            --make sure this class has a public constructor
-            if not (tKit.constructorVisibility == "pub") then
-
-                --[[this auth code existence check permits
-                    non-public constructors to run within
-                    the static constructor (as they should
-                    be able to do)]]
-                if (_tAuthenticationCodes[tKit]) then
-                    tInstance[tKit.constructorVisibility][sName](...);
+                if (bIsNormalCall) then --don't run during deserialization, only during normal call
+                    tInstance[sVisibility][sName](...);
                     tInstance.constructorcalled = true;
-                    rawset(tInstance[tKit.constructorVisibility], sName, nil);
-                else
-                    error("Error instantiating class, '${class}'. Contructor is ${visibility}." % {class = sName, visibility = _tCAINames[tKit.constructorVisibility]}, 3);
                 end
 
+                rawset(tInstance[sVisibility], sName, nil);
             else
+                error("Error instantiating class, '${class}'. Contructor is ${visibility}." % {class = sName, visibility = _tCAINames[sVisibility]}, 3);
+            end
+
+        else
+
+            if (bIsNormalCall) then --don't run during deserialization, only during normal call
                 tInstance.pub[sName](...);
                 tInstance.constructorcalled = true;
-                rawset(tInstance.pub, sName, nil);
             end
 
-            --validate (constructor calls and delete constructors
-            local nParents = #tParents;
+            rawset(tInstance.pub, sName, nil);
+        end
 
-            for x = nParents, 1, -1 do
-                local tParentInfo   = tParents[x];
-                local tParentKit    = tParentInfo.kit;
-                local sParent       = tParentKit.name;
-                local sClass        = x == nParents and tKit.name or tParents[x + 1].kit.name;
+        --validate (constructor calls and delete constructors
+        local nParents = #tParents;
 
-                if not (tParentInfo.actual.constructorcalled) then
-                    error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}'." % {class = sClass, parent = sParent});--TODO should i set a third argument for the errors?
-                end
+        for x = nParents, 1, -1 do
+            local tParentInfo   = tParents[x];
+            local tParentKit    = tParentInfo.kit;
+            local sParent       = tParentKit.name;
+            local sClass        = x == nParents and tKit.name or tParents[x + 1].kit.name;
 
-                --rawset(tParentInfo.actual.met, "__type", tKit.name);
-                --rawset(tParentInfo.actual[tParentKit.constructorVisibility], sParent, nil);--TODO should this deletion be moved to right after it gets called?
+            if (bIsNormalCall and not tParentInfo.actual.constructorcalled) then
+                error("Error in class, '${class}'. Failed to call parent constructor for class, '${parent}'." % {class = sClass, parent = sParent}, 2);--TODO should i set a third argument for the errors?
             end
 
-            return oInstance;
-        end,
+            --rawset(tParentInfo.actual.met, "__type", tKit.name);
+            --rawset(tParentInfo.actual[tParentKit.constructorVisibility], sParent, nil);--TODO should this deletion be moved to right after it gets called?
+        end
+
+        return oInstance;--, (bReturnInstanceTable and tInstance or nil);
+    end
+
+    --create and set (or overwrite) the static public deserialize function
+    local function fDeserialize(tData)
+        rawsetmetatable(tData, {__deserialmarker = "serializeddata"});
+        local oInstance = buildInstance(tData);
+        return oInstance;
+    end
+    rawset(tClass, "deserialize", fDeserialize);
+
+    --build the class metatable
+    local tClassMeta = { --the decoy's (returned class object's) meta table
+        __call      = buildInstance,--function(t, ...) --instantiate the class --end,
         __eq = function(left, right)--TODO COMPLETE
             local bRet          = false;
             local tClassRepo    = class.repo.byObject;
@@ -1077,12 +1105,13 @@ end
 --[[!
 @fqxn LuaEx.Class System.instance.Functions.build
 @param table tKit The kit from which the instance is to be built.
+@param table tData The data used for deserializing or nil if this is a normal instantiation call.
 @param table tParentActual The (actual) parent instance table (if any).
 @scope local
 @desc Builds an instance of an object given the name of the kit.
 @ret object|table oInstance|tInstance The instance object (decoy) and the instance table (actual).
 !]]
-function instance.build(oInstance, tKit, tParentActual, sType)
+function instance.build(oInstance, tData, tKit, tParentActual, sType)
     --local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
         met = clone(tKit.met), --create the metamethods
@@ -1099,6 +1128,26 @@ function instance.build(oInstance, tKit, tParentActual, sType)
         parent              = tParentActual,         --the actual parent (if one exists)
         readOnlyFields      = clone(tKit.readOnlyFields),
     };
+
+    --import deserialize data (if any exists)
+    if (tData) then
+        local sKitName = tInstance.metadata.kit.name;
+        local tMyData = tData[sKitName];
+
+        for _, sVisibility in pairs(_tSerializerIndices) do
+            local tVisibility = tData[sKitName];
+
+            for sField, vField in pairs(tMyData[sVisibility]) do
+                tInstance[sVisibility][sField] = vField;
+            end
+
+        end
+
+    end
+
+    --create and set the serialize method for the instance
+    local fSerialize = instance.buildSerializer(tInstance);
+    rawset(tInstance.met, "__serialize", fSerialize);
 
     --get the class data (decoy) table
     local tClassData = instance.prepClassData(tInstance);
@@ -1136,6 +1185,74 @@ function instance.build(oInstance, tKit, tParentActual, sType)
     };
 
     return tInstance;
+end
+
+--TODO add optional hash value for data integrity checks
+--TODO handle self-refences
+--[[!
+@fqxn LuaEx.Class System.instance.Functions.buildSerializer
+@param table tInstance The (actual) instance table.
+@scope local
+@desc Creates and prepares the serialization function for the instance.
+<br>Serializtion includes all serializable fields from pri, pro, and pub.
+@ret function fSerializer The serializer function.
+!]]
+function instance.buildSerializer(tInstance)
+    --local sHash = "";
+    local tCDats    = {};
+    local tParent = tInstance.parent;
+
+    while tParent do
+        tCDats[tParent.metadata.kit.name] = {
+            pri     = tParent.pri,
+            pro     = tParent.pro,
+            pub     = tParent.pub,
+            kit     = tParent.metadata.kit;
+        };
+
+        tParent = tParent.parent;
+    end
+
+    tCDats[tInstance.metadata.kit.name] = {
+        pri     = tInstance.pri,
+        pro     = tInstance.pro,
+        pub     = tInstance.pub,
+        kit     = tInstance.metadata.kit;
+    };
+
+    return function()
+        local tRet = {};
+
+        for sKitName, tCDat in pairs(tCDats) do
+            --local nIndex = #tRet + 1;
+            tRet[sKitName] = {};
+            local tMyKit = tCDat.kit;
+
+            for __, sVisibility in pairs(_tSerializerIndices) do
+                tRet[sKitName][sVisibility] = {};
+
+                for sField, vField in pairs(tCDat[sVisibility]) do
+
+                    if (rawtype(vField) == "function") then
+                        local bIsInKit  = rawtype(tMyKit[sVisibility][sField]) == "function";
+
+                        if not (bIsInKit) then --serialize ONLY functions that are not baked into the kit
+                            tRet[sKitName][sVisibility][sField] = vField;
+                        end
+
+                    else
+                        tRet[sKitName][sVisibility][sField] = vField; --QUESTION clone value?
+                    end
+
+                end
+
+            end
+
+        end
+
+        return serialize(tRet);
+    end
+
 end
 
 
@@ -1475,14 +1592,15 @@ function instance.wrapMetamethods(tInstance, tClassData)--TODO double check thes
             end);
 
         elseif (   sMetamethod == "__bnot"  or sMetamethod == "__len"
-                or sMetamethod == "__unm"   or sMetamethod == "__tostring") then--TODO can these be moved...XSE
+                or sMetamethod == "__unm"   or sMetamethod == "__tostring") then--TODO can these be moved...[XSE]
 
             rawset(tInstance.met, sMetamethod, function(a)
                 return fMetamethod(a, tClassData);
             end);
 
-        elseif (   sMetamethod == "__call"      or sMetamethod == "__name"--TODO XSE..to here
-                or sMetamethod == "__serialize" or sMetamethod == "__clone"
+        elseif (   sMetamethod == "__call"      or sMetamethod == "__name"--TODO [XSE]..to here
+                --or sMetamethod == "__serialize" or sMetamethod == "__clone"
+                or sMetamethod == "__clone"
                 or sMetamethod == "__ipairs"    or sMetamethod == "__pairs") then
 
             rawset(tInstance.met, sMetamethod, function(...)
@@ -1673,7 +1791,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             }
         ),
         interfaces      = {},
-        isAChecks = { --used for respecting polymorphism during assignment    TODO FIX DO I NEED MORE subtables? What about the other items? Probably stapub but not met
+        isAChecks = { --used for respecting polymorphism during assignment    TODO FIX DO I NEED MORE subtables? What about the other items? Perhaps stapub but not met
             pri = {},
             pro = {},
             pub = {},
@@ -1803,7 +1921,7 @@ end
 function kit.getDirectiveInfo(tKit, sCAI, sKey, vItem)--TODO FINISH pretty errors
     --TODO move these string into vars above
     local sGetter, sSetter;
-    local bUpperCase = false
+    local bUpperCase = false;
     local bGetter, bSetter, bGetterFinal, bSetterFinal = false, false, false, false;
     local bHasDirective     = false;
     local bHasAutoDirective = false;
