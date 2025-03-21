@@ -138,7 +138,7 @@ __mod 		= true,     __mode 		  = false,    __mul 	  = true,
 __name 	    = true,	    __newindex    = false,    __pairs     = true,
 __pow 		= true,     __shl 		  = true,	  __shr       = true,
 __sub 	    = true,	    __tostring	  = true,     __unm 	  = true,
-__serialize = true,    __clone       = true,}; --TODO Set serizlie to false ocne serializer is done
+__serialize = true,    __clone       = true,}; --TODO Set serialize to false ocne serializer is done
 
 local function getMetaNamesAsString()
     local sRet              = "";
@@ -1134,10 +1134,19 @@ function instance.build(oInstance, tData, tKit, tParentActual, sType)
         local sKitName = tInstance.metadata.kit.name;
         local tMyData = tData[sKitName];
 
-        for _, sVisibility in pairs(_tSerializerIndices) do
-            local tVisibility = tData[sKitName];
+        if not (tMyVisData) then
+            error("Error deserializing data for instance object in class, '${name}'. Data is malformed." % {name = sKitName}, 2);
+        end
 
-            for sField, vField in pairs(tMyData[sVisibility]) do
+        for _, sVisibility in pairs(_tSerializerIndices) do
+            local tVisibility   = tData[sKitName];
+            local tMyVisData    = tMyData[sVisibility];
+
+            if not (tMyVisData) then
+                error("Error deserializing data for instance object in class, '${name}' in ${table} table. Data is malformed." % {name = sKitName, table = sVisibility}, 2);
+            end
+
+            for sField, vField in pairs(tMyVisData) do
                 tInstance[sVisibility][sField] = vField;
             end
 

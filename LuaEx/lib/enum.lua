@@ -495,7 +495,24 @@ local function prep(sName, bPrivate)
         end,
 
         __index = function(t, k)
-            return tActual[tKeyLog[k]].value or nil;
+            local eRet = tActual[tKeyLog[k]].value or nil;
+
+            if not (eRet and k) then
+
+                for nIndex, tInfo in pairs(tActual) do
+
+                    if (tInfo.key == k) then
+                        eRet = tActual[tKeyLog[key]];
+                        break;
+                    end
+
+                end
+
+            end
+
+            return eRet;
+
+        --    return tActual[tKeyLog[k]].value or nil;
         end,
 
         __call = function(t)
