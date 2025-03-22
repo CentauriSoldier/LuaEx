@@ -205,6 +205,20 @@ local type = {
                 error("Error in parameter input.\nExpected type is function. Type given: ${given}." % {given = type(vInput)}, 2);
             end
         end,
+        --[[!
+            @fqxn LuaEx.Lua Hooks.type.Functions.number
+            @desc Checks a number for compliance.
+            @param number nValue The value to check for compliance.
+            @param boolean bErrorOnNegative Whether to throw an error if the number is negative.
+            @param boolean bErrorOnZero Whether to throw an error if the number is zero.
+            @param boolean bErrorOnZero Whether to throw an error if the number is zero.
+            @param boolean bErrorOnPositive Whether to throw an error if the number is positive.
+            @param boolean bErrorOnFloat Whether to throw an error if the number is <b>not</b> an integer.
+            @param boolean bErrorOnInt Whether to throw an error if the number <b>is</b> an integer.
+            @param number|nil vMin The mininum allowed value. If nil, there is no minimum value enforced.
+            @param number|nil vMax The maximum allowed value. If nil, there is no maximum value enforced.
+
+        !]]
         number = function (vInput, bErrorNegative, bErrorZero, bErrorPositive, bErrorFloat, bErrorInteger, nMin, nMax)
             local sType  = rawtype(vInput);
             local sError = "Error in parameter input.";
@@ -561,7 +575,7 @@ setmetatable(type,
         local tMeta = getmetatable(vObject);
 
         if (__type__(tMeta) == "table" and __type__(tMeta.__type) == "string") then
-            sType = tMeta.__type;        
+            sType = tMeta.__type;
         end
 
         return sType;
