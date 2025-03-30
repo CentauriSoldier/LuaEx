@@ -96,7 +96,9 @@ for v in oDoxLua.eachBlockTag() do
 
 end
 
-
+oDoxLua.setBuilder(Dox.BUILDER.PULSAR_LUA);
+oDoxLua.refresh();
+oDoxLua.export("");
 
 --[[!
     @fqxn CoG.ItemSystem.BaseItem
@@ -187,11 +189,11 @@ local k = 0;
 
 local function phello(...)
     k = k + 1
-    print("hello "..k.." "..(select(1, ...) or ""));
+    --print("hello "..k.." "..(select(1, ...) or ""));
     return 34;
 end
 local function pdog(...)
-    print("I'm a dog "..(select(1, ...) or ""));
+    --print("I'm a dog "..(select(1, ...) or ""));
     --return "YAY!"
 end
 enum("EVENT", {"BARK"});
@@ -208,6 +210,6 @@ local i = kSys.fire(eBark, "mucho doggy!");
 
 for k, v in pairs(i) do
     if v == EVENTRIX_NIL then
-    print(k, v)
+    --print(k, v)
 end
 end

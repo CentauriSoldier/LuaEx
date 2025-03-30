@@ -38,7 +38,7 @@ end
 
 
 --[[!
-    @fqxn LuaEx.Libraries.base64.enc
+    @fqxn LuaEx.Libraries.base64.dec
     @desc Encodes a string to Base64.
     @param string sInput The sting to encode.
     @ret string sEncoded The encoded Base64 string.

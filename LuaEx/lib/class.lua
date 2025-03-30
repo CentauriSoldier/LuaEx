@@ -342,8 +342,8 @@ _fAutoPlaceHolder = function() end;
 
 --[[
 --[[!
-@fqxn LuaEx.Class System.class.Methods
-@desc These class helper functions provide essential utilities for querying and managing class relationships, inheritance structures, and object identification.
+@fqxn LuaEx.Class System.class.Functions
+@desc While there are many local functions in this list, there also several global class helper functions that provide essential utilities for querying and managing class relationships, inheritance structures, and object identification.
 <br>They enable checking class existence (exists), retrieving class hierarchy details (getbase, getparent, getchildren), determining relationships (isbaseof, ischild, isparent, etc.), verifying object types (isinstance, of), and ensuring proper class instantiation (isstaticconstructorrunning).
 <br>Collectively, these functions support robust type checking, hierarchy traversal, and validation of inheritance and instance properties.
 !]]
@@ -361,7 +361,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.exists
+@fqxn LuaEx.Class System.class.Functions.exists
 @desc Determines whether a class exists.
 @param string sClass The name of the class.
 <br><b>Note</b>, if a class object is passed instead of a string, it returns true as well.
@@ -373,7 +373,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.getbase
+@fqxn LuaEx.Class System.class.Functions.getbase
 @desc Gets a class's base class object (if both exist and the base is in scope).
 @param class|string vClass The class or name of the class.
 @ret class|nil cClass The class's base class object <i>(if both exist, the base is in scope and the class has a base)</i>, or nil otherwise.
@@ -391,7 +391,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.getbyname
+@fqxn LuaEx.Class System.class.Functions.getbyname
 @desc Gets a class object given the class name (if it's in scope).
 @param string sClass The name of the class object.
 @ret class|nil cClass The class object (if it's in scope), or nil otherwise.
@@ -409,7 +409,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.getchildcount
+@fqxn LuaEx.Class System.class.Functions.getchildcount
 @desc Gets the number of direct children a class has.
 @param class|string vClass The class or name of the class.
 @ret number nChildren The number of direct children the class has. If an error occurs, -1 is returned.
@@ -422,7 +422,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.getchildren
+@fqxn LuaEx.Class System.class.Functions.getchildren
 @desc Gets all the direct children of a class (those that are in scope).
 @param class|string vClass The class or name of the class.
 @ret table|nil tChildren A numerically-indexed table whose values are class objects who are direct children of the input class. If the input is bad, the class doesn't exist or there are no direct children of the class that are in scope, nil is returned.
@@ -455,7 +455,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.getconstructorvisibility
+@fqxn LuaEx.Class System.class.Functions.getconstructorvisibility
 @desc Gets a class's constructor visiblity.
 @param class cClass The class to query.
 @ret string|nil sVisibility The visiblity of class's constructor or nil if the input is invalid or the class doesn't exist.
@@ -473,7 +473,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.getname
+@fqxn LuaEx.Class System.class.Functions.getname
 @desc Gets the class name of a class.
 @param class cClass The class for which to get the name.
 @ret string|nil sClass The name of class or nil if the input is invalid or the class doesn't exist.
@@ -485,7 +485,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.getparent
+@fqxn LuaEx.Class System.class.Functions.getparent
 @desc Gets the parent class object of the input class.
 @param class|string vClass The class or name of the class for which to get the parent.
 @ret class|nil cClass The parent class or nil if the input is invalid or either class doesn't exist or isn't in scope.
@@ -507,7 +507,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.haschildren
+@fqxn LuaEx.Class System.class.Functions.haschildren
 @desc Determines if a class has children.
 @param class|string vClass The class (or class name) to check.
 @ret boolean bHasChildren True if it's a class and has children, false otherwise.
@@ -521,7 +521,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.is
+@fqxn LuaEx.Class System.class.Functions.is
 @desc Determines if something is a class object.
 @param any vValue The item to check.
 @ret boolean bIsClass True if it's a class object, false otherwise.
@@ -532,7 +532,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isbase
+@fqxn LuaEx.Class System.class.Functions.isbase
 @desc Determines if a class is a base class.
 @param class|string vClass The class to test.
 @ret boolean bIsChild True if it's a base class, false otherwise.
@@ -544,7 +544,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isbaseof
+@fqxn LuaEx.Class System.class.Functions.isbaseof
 @desc Determines if class A is the base class of class B.
 @param class|string vClassA The potential base class.
 @param class|string vClassB The potential non-base class.
@@ -561,7 +561,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.ischild
+@fqxn LuaEx.Class System.class.Functions.ischild
 @desc Determines if class A is a child (however far removed) of class B.
 @param class|string vClassA The potential child class.
 @param class|string vClassB The potential parent class.
@@ -580,7 +580,7 @@ local function ischild(vClassA, vClassB)
 end
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.ischildorself
+@fqxn LuaEx.Class System.class.Functions.ischildorself
 @desc Determines if class A is a child of class B or is that class itself.
 @param class|string vClassA The potential child (or self) class.
 @param class|string vClassB The potential parent (or self) class.
@@ -603,7 +603,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isdirectchild
+@fqxn LuaEx.Class System.class.Functions.isdirectchild
 @desc Determines if class A is a direct descendant of class B.
 @param class|string The potential child class.
 @param class|string The potential parent class.
@@ -624,7 +624,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isdirectparent
+@fqxn LuaEx.Class System.class.Functions.isdirectparent
 @desc Determines if class A is the direct parent of class B.
 @param class|string vClassA The potential parent class.
 @param class|string vClassB The potential child class.
@@ -645,7 +645,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isinlineage
+@fqxn LuaEx.Class System.class.Functions.isinlineage
 @desc Determines if class A is in the lineage <i>(parent, child or self)</i> of class B.
 @param class|string vClassA The potential relative class.
 @param class|string vClassB The lineage class.
@@ -678,7 +678,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isinstance
+@fqxn LuaEx.Class System.class.Functions.isinstance
 @desc Determines if something is an instance object of any class.
 @param any vValue The item to check.
 @ret boolean bIsInstance True if it's an instance of a class, false otherwise.
@@ -689,7 +689,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isinstanceof
+@fqxn LuaEx.Class System.class.Functions.isinstanceof
 @desc Determines if something is an instance of a specific class.
 @param object oInstance The instance object to check.
 @param class|string vClass the class or the name of the class in question.
@@ -713,7 +713,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isparent
+@fqxn LuaEx.Class System.class.Functions.isparent
 @desc Determines if class A is a parent (however far removed) of class B.
 @param class|string vClassA The potential parent class.
 @param class|string vClassB The potential child class.
@@ -734,7 +734,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isparentorself
+@fqxn LuaEx.Class System.class.Functions.isparentorself
 @desc Determines if class A is a parent of class B or is that class itself.
 @param class|string vClassA The potential parent (or self) class.
 @param class|string vClassB The potential child (or self) class.
@@ -757,7 +757,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.isstaticconstructorrunning
+@fqxn LuaEx.Class System.class.Functions.isstaticconstructorrunning
 @desc Determines if the static constructor of a class is being executed by validating it though the autentication code passed to it.
 @param class|string vCaller The calling class (or name of calling class) to check.
 @param string sAuthCode The authentication code (that is passed to each class's static constructor).
@@ -776,7 +776,7 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Methods.of
+@fqxn LuaEx.Class System.class.Functions.of
 @desc Gets the class object of an instance object.
 @param instance oInstance The instance object for which to find the class.
 @ret class|nil cClass The class object that produced the instance object or nil if the input is invalid or the class is not in scope.

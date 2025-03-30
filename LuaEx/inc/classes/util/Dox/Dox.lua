@@ -115,7 +115,7 @@ oDoxLua.export(); --profit!
 @prifi string blockOpen Set during contruction, this is the string that tells Dox when to <strong>start</strong> reading a <a href="#Dox.Components.DoxBlock">DoxBlock</a>.
 @prifi string blockClose Set during contruction, this is the string that tells Dox when to <strong>stop</strong> reading a <a href="#Dox.Components.DoxBlock">DoxBlock</a>.
 @prifi table blockTags A complete list of <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a> available to the instance.
-<br>It's built during construction by first importing all built-in <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a>, then by creating and inserting the example <strong>BlockTags</strong> and finally by inputting all input varargs (input <strong>BlockTags</strong>) if any are provided.--TODO FINISH
+<br>It's built during construction by first importing all built-in <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a>, then by creating and inserting the example <strong>BlockTags</strong> and finally by inputting all input varargs (input <strong>BlockTags</strong>) if any are provided.--TODO FINISH And, what is 'prifi'?
 !]]
 return class("Dox",
 {--metamethods
@@ -125,7 +125,7 @@ return class("Dox",
 },
 {--static public
     --TODO move this out to the builder section and call it in
-    BUILDER = enum("Dox.BUILDER", {"HTML"}, {DoxBuilderHTML()}, true),
+    BUILDER = enum("Dox.BUILDER", {"HTML", "PULSAR_LUA"}, {DoxBuilderHTML(), DoxBuilderPulsarLua()}, true),
     OUTPUT  = _eOutputType,
     SYNTAX  = _eSyntax,
 },
@@ -241,147 +241,25 @@ return class("Dox",
     @desc Refreshes the finalized data
     !]]
     refresh = function(this, cdat)
-        local pri           = cdat.pri;
-        local oBuilder      = pri.builder.value;
-        local tBlockWrapper = oBuilder.getBlockWrapper();
-        local sNewLine      = oBuilder.getNewLine();
-        local tInheritDocs  = {};
+        local pri       = cdat.pri;
+        local oBuilder  = pri.builder.value;
 
         --reset the finalized data table
         pri.finalized = {};
 
-        --inject all block strings into finalized data table
+        --create all the blocks
+        local tBlocks = {};
+        local nBlockID = 0;
+
         for sRawBlock, _ in pairs(pri.blockStrings) do
+            nBlockID = nBlockID + 1;
             --create the DoxBlock
-            local oBlock = DoxBlock(sRawBlock, pri.syntax, pri.tagOpen,
-                                    pri.blockTags, pri.requiredBlockTags);
-
-            local tActive = pri.finalized;
-
-            for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do
-
-                --create the active table if it doesn't exist
-                if not (tActive[sFQXN]) then
-                    tActive[sFQXN] = setmetatable({}, {
-                        __call = function(t)
-                            return "";
-                        end,
-                    });
-                end
-
-                --update the active table variable
-                tActive = tActive[sFQXN];
-            end
-
-            --local tCombinedBlockItems   = {};
-            local tToCombine = {};
-
-            --check for and concat combineable items
-            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-                local bIsCombined = oBlockTag.isCombined();
-
-                if (bIsCombined) then
-                    local sDisplay  = oBlockTag.getDisplay();
-
-                    --create the blocktag index if it doesn't exist
-                    if (tToCombine[sDisplay] == nil) then
-                        tToCombine[sDisplay] = {};
-                    end
-
-                    --append the item to be combined
-                    tToCombine[sDisplay][#tToCombine[sDisplay] + 1] = pri.processBlockItem(oBlockTag, sRawInnerContent);
-                end
-
-            end
-
-
-
-            --TODO BUG FIX This CANNOT be here...it has to be gotten from the DoxBuilder ....<- was this TODO message already dealth with? This code below seems fine...
-            --create the content string
-            local sContent = tBlockWrapper.open;
-            --keep track of combined items so they don't duplicated
-            local tCompletedDisplays = {};
-
-            --build the row (block item)
-            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-                local sDisplay      = oBlockTag.getDisplay();
-                --TODO BUG FIX The HTML CANNOT be here...it has to be gotten from the DoxBuilder -- be sure to send in the display and UUID
-                local sInnerContent = "";
-
-                --check for inheritdoc
-                if (sDisplay == "Inheritdoc") then
-                    --store the table index with the value of the inner content to be processed later
-                    tInheritDocs[tActive] = sRawInnerContent;
-                else
-
-                    if not (tCompletedDisplays[sDisplay]) then
-                        --TODO note somewhere that combined items cannot have IDs (they are simply blank...all non examples are...but code should have IDs!!!! TODO that)
-                        --process combineable items
-                        if (oBlockTag.isCombined()) then
-                            local sCombinedContent = "";
-
-                            local nMaxItems = #tToCombine[sDisplay];
-                            for nIndex, tBlockItemData in ipairs(tToCombine[sDisplay]) do
-                                local sNewLine = nIndex < nMaxItems and sNewLine or ""; --TODO FINISH get new line string from builder
-                                sCombinedContent = sCombinedContent..tBlockItemData.content..sNewLine;
-                            end
-
-                            sInnerContent = [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = "", display = sDisplay, content = sCombinedContent};
-
-                            --delete the entry since we're done processing this display item
-                            tCompletedDisplays[sDisplay] = true;
-
-                        else --process non-combineable items
-                            local tBlockItemData = pri.processBlockItem(oBlockTag, sRawInnerContent);
-                            sInnerContent = [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = tBlockItemData.id, display = tBlockItemData.display, content = tBlockItemData.content};
-                        end
-
-                        sContent = sContent..sInnerContent;
-                    end
-
-                end
-
-            end
-
-            --set the call to get the content
-            setmetatable(tActive, {
-                __call = function(t)
-                    return sContent..tBlockWrapper.close;
-                end,
-            });
-
+            tBlocks[nBlockID] = DoxBlock(   sRawBlock,      pri.syntax,     pri.tagOpen,
+                                            pri.blockTags,  pri.requiredBlockTags);
         end
 
-        --check for and apply inherited docs
-        for tTargetIndex, sLinkRaw in pairs(tInheritDocs) do
-
-            --create the potential link
-            local tLink  = string.totable(sLinkRaw, '.');
-            --build the index to validate
-            local tIndex = pri.finalized;
-
-            --check the link's validity as it's built
-            for __, sFQXN in pairs(tLink) do
-
-                if (tIndex[sFQXN] == nil) then
-                    error("Error creating inherited dox block. FQXN, '${fqxn}', is nil.\nThis is likey caused by the docs to be inherited, not existing.\nPlease check that the doc link exists." % {fqxn = sFQXN}); --TODO FINISH ERROR
-                end
-
-                tIndex = tIndex[sFQXN];
-            end
-
-            --get the replacement content
-            local sFinalizedContent = tIndex();
-
-            --if no error was thrown, the index is valid. Set the new content
-            setmetatable(tTargetIndex, {
-                __call = function(t)
-                    return sFinalizedContent;
-                end,
-            });
-
-        end
-
+        --call the builder's refresh method
+        oBuilder.refresh(tBlocks, pri.finalized, pri.processBlockItem);
     end,
 },
 {
@@ -395,7 +273,7 @@ return class("Dox",
         type.assert.table(tMimeTypes,   "number",   "DoxMime", 1);
 
         local pri               = cdat.pri;
-        pri.builder             = Dox.BUILDER.HTML; --default builder
+        pri.builder             = Dox.BUILDER.HTML; --default builder, can be changed later
         pri.blockOpen           = sBlockOpen;
         pri.blockClose          = sBlockClose;
         pri.name                = sName;
@@ -434,7 +312,7 @@ return class("Dox",
             --search for required blocktags conflicts
             for _, oBuiltInBlockTag in pairs(pri.blockTags) do
 
-                for sAlias in oBuiltInBlockTag.aliases() do
+                for sAlias in oBuiltInBlockTag.eachAlias() do
 
                     if ( oBlockTag.hasAlias(sAlias) ) then
                         error(  "Error creating Dox subclass, '${subclass}'.\nBuilt-in BlockTag, '${display}', cannot be overriden or duplicated." %
@@ -448,8 +326,7 @@ return class("Dox",
             end
 
             --clone the blocktag
-            local oClonedBlockTag = clone(oBlockTag);
-
+            local oClonedBlockTag = clone(oBlockTag);            
             --store the block tag
             table.insert(pri.blockTags, oClonedBlockTag);
 
@@ -490,12 +367,12 @@ return class("Dox",
         end
 
     end,
-    export__FNL = function(this, cdat, sFilename, bPulsar) --TODO FINISH puslar snippets/intellisense
+    export__FNL = function(this, cdat, sFilename, bPulsar)
         local pri           = cdat.pri;
         local eBuilder      = pri.builder;
         local cBuilder      = pri.builder.value;
         local eBuilderMime  = cBuilder.getMime();
-
+        --print(serialize(pri.finalized))
         --get or create the filename (or use the builder's default)
         sFilename = (rawtype(sFilename) == "string" and string.isfilesafe(sFilename))   and
                     sFilename                                                           or
@@ -662,8 +539,8 @@ return class("Dox",
     refresh__FNL = function(this, cdat)
         cdat.pri.refresh();
     end,
-    setBuilder__FNL = function(this, cdat, eBuilder)--TODO what is this?
-        assert(type.isa(eBuilder, Dox.BUILDER), "Error setting Dox Builder.\nExpected type DoxBuilder (subclass). Got type "..type(eBuilder)..'.');
+    setBuilder__FNL = function(this, cdat, eBuilder)
+        type.assert.custom(eBuilder, "Dox.BUILDER");
         cdat.pri.builder = eBuilder;
     end,
 },

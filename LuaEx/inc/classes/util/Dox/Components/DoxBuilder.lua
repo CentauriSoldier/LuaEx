@@ -7,7 +7,7 @@ return class("DoxBuilder",
 
 },
 {--STATIC PUBLIC
-    MIME = enum("DoxBuilder.MIME", {"HTML", "MARKDOWN", "TXT"}, {"html", "MD", "txt"}, true),
+    MIME = enum("DoxBuilder.MIME", {"HTML", "LUACOMPLETERC", "MARKDOWN", "TXT"}, {"html", "luacompleterc", "MD", "txt"}, true),
 },
 {--PRIVATE
     mime = null,
@@ -24,11 +24,10 @@ return class("DoxBuilder",
         close = "",
     },
     newLine = "",
-},
-{--PUBLIC
+
     DoxBuilder = function(this, cdat, eMime, sCopyToClipBoardButton, sDefaultFilename, sNewLine)
         type.assert.custom(eMime, "DoxBuilder.MIME");
-        type.assert.string(sDefaultFilename, "%S+");
+        type.assert.string(sDefaultFilename);
         assert(sDefaultFilename:isfilesafe(), "Error creating DoxBuilder. Default filename must be a file-safe string.");
 
         --TODO assert copy to clipboard input
@@ -36,10 +35,12 @@ return class("DoxBuilder",
         local pro = cdat.pro;
 
         pri.mime                    = eMime;
-        pro.copyToClipboardButton   = sCopyToClipBoardButton;
+        pro.copyToClipboardButton   = type(sCopyToClipBoardButton) == "string" and sCopyToClipBoardButton or "";
         pro.defaultFilename         = sDefaultFilename;
         pro.newLine                 = rawtype(sNewLine) == "string" and sNewLine or "\n";
     end,
+},
+{--PUBLIC
     --[[!
     @fqxn Dox.Builders.DoxBuilder.Methods.build
     @desc This is the build method that does the heavy lifting in building the output file.
@@ -52,7 +53,13 @@ return class("DoxBuilder",
     </ol>
     !]]
     build = function(this, cdat)
-        error("Error in DoxBuilder. The 'build' method has not been defined", 4);
+        error("Error in DoxBuilder. The 'build' method has not been defined in the child class.", 4);
+    end,
+    formatBlockContent = function(this, cdat, sID, sDisplay, sContent)
+        error("Error in DoxBuilder. The 'formatNonCombinedBlockContent' method has not been defined in the child class.", 4);
+    end,
+    formatCombinedBlockContent = function(this, cdat, sDisplay, sCombinedContent)
+        error("Error in DoxBuilder. The 'formatCombinedBlockContent' method has not been defined in the child class.", 4);
     end,
     getCopyToClipboardButton = function(this, cdat)
         return cdat.pro.copyToClipboardButton;

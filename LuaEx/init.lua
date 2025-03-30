@@ -394,7 +394,8 @@ if (_tClassLoadValues[_nClassSystem]) then
                 DoxBuilder      = require(pDoxComponents..".DoxBuilder");
 
                 --require Dox Builders
-                DoxBuilderHTML  = require(pDoxBuilders..".HTML.DoxBuilderHTML");
+                DoxBuilderHTML      = require(pDoxBuilders..".HTML.DoxBuilderHTML");
+                DoxBuilderPulsarLua = require(pDoxBuilders..".Pulsar.Lua.DoxBuilderPulsarLua");
 
                 --require Dox and Dox parsers (subclasses)
                 Dox                     = require(pDox..".Dox");

@@ -157,6 +157,7 @@ tStringMeta.__mod = function(s, tab) return (s:gsub('($%b{})', function(w) retur
 
 
 --										🆃🆈🅿🅴
+--'immutable' table of stock LuaEx types
 local tLuaTypes = {
     ["boolean"]		= true,
     ["function"]	= true,
@@ -168,7 +169,6 @@ local tLuaTypes = {
     ["userdata"] 	= true,
 };
 
---'immutable' table of stock LuaEx types
 local tLuaExTypes = {
     array                   = true,
     arrayfactory            = true,
@@ -195,11 +195,22 @@ type = nil;
 
 local type = {
     assert = {
+        --[[!
+            @fqxn LuaEx.Lua Hooks.type.Functions.custom
+            @desc Checks a value for type compliance.
+            @param any vInput The value to check for compliance.
+            @param string zType The type the input should be.
+        !]]
         custom = function(vInput, sType)--TODO custom message
             if (type(vInput) ~= sType) then
                 error("Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)}, 2);
             end
         end,
+        --[[!
+            @fqxn LuaEx.Lua Hooks.type.Functions.function
+            @desc Checks a value for function compliance.
+            @param vInput The value to check for compliance.
+        !]]
         ["function"] = function(vInput)--TODO custom message
             if (type(vInput) ~= "function") then
                 error("Error in parameter input.\nExpected type is function. Type given: ${given}." % {given = type(vInput)}, 2);
@@ -207,17 +218,15 @@ local type = {
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.number
-            @desc Checks a number for compliance.
-            @param number nValue The value to check for compliance.
-            @param boolean bErrorOnNegative Whether to throw an error if the number is negative.
-            @param boolean bErrorOnZero Whether to throw an error if the number is zero.
-            @param boolean bErrorOnZero Whether to throw an error if the number is zero.
-            @param boolean bErrorOnPositive Whether to throw an error if the number is positive.
-            @param boolean bErrorOnFloat Whether to throw an error if the number is <b>not</b> an integer.
-            @param boolean bErrorOnInt Whether to throw an error if the number <b>is</b> an integer.
-            @param number|nil vMin The mininum allowed value. If nil, there is no minimum value enforced.
-            @param number|nil vMax The maximum allowed value. If nil, there is no maximum value enforced.
-
+            @desc Checks a value for numeric compliance.
+            @param any vValue The value to check for compliance.
+            @param boolean|nil bErrorOnNegative Whether to throw an error if the number is negative.
+            @param boolean|nil bErrorOnZero Whether to throw an error if the number is zero.
+            @param boolean|nil bErrorOnPositive Whether to throw an error if the number is positive.
+            @param boolean|nil bErrorOnFloat Whether to throw an error if the number is <b>not</b> an integer.
+            @param boolean|nil bErrorOnInt Whether to throw an error if the number <b>is</b> an integer.
+            @param number|nil nMin The mininum allowed value. If nil, there is no minimum value enforced.
+            @param number|nil nMax The maximum allowed value. If nil, there is no maximum value enforced.
         !]]
         number = function (vInput, bErrorNegative, bErrorZero, bErrorPositive, bErrorFloat, bErrorInteger, nMin, nMax)
             local sType  = rawtype(vInput);
@@ -270,6 +279,13 @@ local type = {
             end
 
         end,
+        --[[!
+            @fqxn LuaEx.Lua Hooks.type.Functions.string
+            @desc Checks a value for string compliance.
+            @param any vInput The value to check for compliance.
+            @param string|nil sPattern An optional string pattern to use to compare to the input.
+            @param string|nil sMessage An optional message to append to any error that may occur.
+        !]]
         string = function(vInput, sPattern, sMessage)--TODO finish adding optional message and create other functions
             local bConditionMet = false;
             local sType = type(vInput);
@@ -296,6 +312,15 @@ local type = {
                 error(sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""), 2);
             end
         end,
+        --[[!
+            @fqxn LuaEx.Lua Hooks.type.Functions.table
+            @desc Checks a value for table compliance.
+            @param any vInput The value to check for compliance.
+            @param string|nil zIndex Optional index type enforcement.
+            @param string|nil zValue Optional value type enforcement.
+            @param number|nil nMin Optional minimum item enforcement.
+            @param number|nil nMax Optional maximum item enforcement.
+        !]]
         table = function(vInput, vIndexType, vValueType, vMinItems, vMaxItems, sMessage)
             local bConditionMet = rawtype(vInput) == "table";
             local sError        = "Error in parameter input.";

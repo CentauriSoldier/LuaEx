@@ -200,11 +200,157 @@ return class("DoxBuilderHTML",
 
         return sHTML;
     end,
+    formatBlockContent = function(this, cdat, sID, sDisplay, sContent) --TODO FINISH move these into the refresh method now that it's done
+        return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = sID, display = sDisplay, content = sContent};
+    end,
+    formatCombinedBlockContent = function(this, cdat, sDisplay, sCombinedContent)
+        --TODO note somewhere that combined items cannot have IDs (they are simply blank...all non examples are...but code should have IDs!!!! TODO that)
+        return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = "", display = sDisplay, content = sCombinedContent};
+    end,
     getExampleWrapper = function(this, cdat, eSyntax)
         type.assert.custom(eSyntax, "Dox.SYNTAX");
         local tRet = clone(cdat.pro.exampleWrapper);
         tRet.open = tRet.open..eSyntax.value.getPrismName()..'">';
         return tRet;
+    end,
+    refresh = function(this, cdat, tBlocks, tFinalized, fProcessBlockItem)
+        local pro = cdat.pro;
+        local pub = cdat.pub;
+        local tBlockWrapper     = pro.blockWrapper;
+        local sBuilderNewLine   = pro.newLine;
+        local tInheritDocs      = {};
+
+        --inject all block strings into finalized data table
+        for _, oBlock in pairs(tBlocks) do
+            local tActive = tFinalized;
+
+            for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do
+
+                --create the active table if it doesn't exist
+                if not (tActive[sFQXN]) then
+                    tActive[sFQXN] = setmetatable({}, {
+                        __call = function(t)
+                            return "";
+                        end,
+                    });
+                end
+
+                --update the active table variable
+                tActive = tActive[sFQXN];
+            end
+
+            --local tCombinedBlockItems   = {};
+            local tToCombine = {};
+
+            --check for and concat combineable items
+            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
+            
+                if not (oBlockTag.isUtil()) then
+                    local bIsCombined = oBlockTag.isCombined();
+
+                    if (bIsCombined) then
+                        local sDisplay  = oBlockTag.getDisplay();
+
+                        --create the blocktag index if it doesn't exist
+                        if (tToCombine[sDisplay] == nil) then
+                            tToCombine[sDisplay] = {};
+                        end
+
+                        --append the item to be combined
+                        tToCombine[sDisplay][#tToCombine[sDisplay] + 1] = fProcessBlockItem(oBlockTag, sRawInnerContent);
+                    end
+
+                end
+
+            end
+
+            --create the content string
+            local sContent = tBlockWrapper.open;
+            --keep track of combined items so they don't duplicated
+            local tCompletedDisplays = {};
+
+            --build the row (block item)
+            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
+
+                if not (oBlockTag.isUtil()) then
+                    local sDisplay      = oBlockTag.getDisplay();
+                    local sInnerContent = "";
+
+                    --check for inheritdoc
+                    if (sDisplay == "Inheritdoc") then
+                        --store the table index with the value of the inner content to be processed later
+                        tInheritDocs[tActive] = sRawInnerContent;
+                    else
+
+                        if not (tCompletedDisplays[sDisplay]) then
+                            --process combineable items
+                            if (oBlockTag.isCombined()) then
+                                local sCombinedContent = "";
+
+                                local nMaxItems = #tToCombine[sDisplay];
+                                for nIndex, tBlockItemData in ipairs(tToCombine[sDisplay]) do
+                                    local sNewLine = nIndex < nMaxItems and sNewLine or sBuilderNewLine;
+                                    sCombinedContent = sCombinedContent..tBlockItemData.content..sNewLine;
+                                end
+
+                                sInnerContent = pub.formatCombinedBlockContent(sDisplay, sCombinedContent);
+
+                                --delete the entry since we're done processing this display item
+                                tCompletedDisplays[sDisplay] = true;
+
+                            else --process non-combineable items
+                                local tBlockItemData = fProcessBlockItem(oBlockTag, sRawInnerContent);
+                                sInnerContent = pub.formatBlockContent(tBlockItemData.id, tBlockItemData.display, tBlockItemData.content);
+                            end
+
+                            sContent = sContent..sInnerContent;
+                        end
+
+                    end
+
+                end
+
+            end
+
+            --set the call to get the content
+            setmetatable(tActive, {
+                __call = function(t)
+                    return sContent..tBlockWrapper.close;
+                end,
+            });
+
+        end
+
+        --check for and apply inherited docs
+        for tTargetIndex, sLinkRaw in pairs(tInheritDocs) do
+
+            --create the potential link
+            local tLink  = string.totable(sLinkRaw, '.');
+            --build the index to validate
+            local tIndex = tFinalized;
+
+            --check the link's validity as it's built
+            for __, sFQXN in pairs(tLink) do
+
+                if (tIndex[sFQXN] == nil) then
+                    error("Error creating inherited dox block. FQXN, '${fqxn}', is nil.\nThis is likey caused by the docs to be inherited, not existing.\nPlease check that the doc link exists." % {fqxn = sFQXN}); --TODO FINISH ERROR
+                end
+
+                tIndex = tIndex[sFQXN];
+            end
+
+            --get the replacement content
+            local sFinalizedContent = tIndex();
+
+            --if no error was thrown, the index is valid. Set the new content
+            setmetatable(tTargetIndex, {
+                __call = function(t)
+                    return sFinalizedContent;
+                end,
+            });
+
+        end
+
     end,
 },
 DoxBuilder, --extending class

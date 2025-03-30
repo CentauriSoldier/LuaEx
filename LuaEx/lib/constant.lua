@@ -11,7 +11,7 @@
     constant("MAX_PLAYERS", 10)
 
     -- Use the constant in your code
-    print("The maximum number of players allowed is: " .. tostring(tLuaEx.MAX_PLAYERS))
+    print("The maximum number of players allowed is: " .. tostring(MAX_PLAYERS))
     @return None. The constant is added to the LuaEx library.
 !]]
 --    @error Throws an error if the name is invalid, if the constant already exists, or if the value is nil.

@@ -6,6 +6,7 @@
 local _bRequired            = true;
 local _bMultipleAllowed     = true;
 local _bCombined            = true;
+local _bIsUtil              = true;
 
 return {
     --TODO allow modification and ordering
@@ -103,39 +104,39 @@ return {
                    Has Column Wrapper(s): <b>true</b><br> (1 & 2)
     !]]
     DoxBlockTag(    {"parameter", "param", "par"},                              "Parameter(s)",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),     --TODO move this builder, add functionin blocktag to allow adding/changing
     DoxBlockTag(    {"field"},                                                  "Field(s)",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag(    {"privatefield", "prifield", "prifi"},                      "Field(s) - Private",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag(    {"protectedfield", "profield", "profi"},                    "Field(s) - Protected",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag(    {"publicfield", "pubfield", "pubfi"},                       "Field(s) - Public",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag(    {"staticprivatefield", "staprifield", "staprifi"},          "Field(s) - Static Private",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag(    {"staticprotectedfield", "staprofield", "staprofi"},        "Field(s) - Static Protected",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag(    {"staticpublicfield", "stapubfield", "stapubfi"},           "Field(s) - Static Public",
-                    -_bRequired,    _bMultipleAllowed,      _bCombined,     2,
+                    -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     DoxBlockTag(    {"prop", "property"},                                       "Property",
                     -_bRequired,    _bMultipleAllowed),
     DoxBlockTag(    {"throws"},                                                 "Throws",
                     -_bRequired,    _bMultipleAllowed),
     DoxBlockTag(    {"return", "ret"},                                          "Return(s)",
-                    -_bRequired,    _bMultipleAllowed,     _bCombined,      2,
+                    -_bRequired,    _bMultipleAllowed,     _bCombined,      -_bIsUtil,  2,
                     {"<strong><em>", "</em></strong>"}, {"<em>", "</em>"}),
     --NOTE: RESERVED FOR Example Block Tag (inserted during class contruction)
     DoxBlockTag(    {"code"},                                                   "Code",
-                    -_bRequired,    _bMultipleAllowed,      -_bCombined,    0,
+                    -_bRequired,    _bMultipleAllowed,      -_bCombined,    -_bIsUtil,  0,
                     {"<pre>", "</pre>"}),
     DoxBlockTag(    {"requires"},                                               "Requires",
                     -_bRequired,    _bMultipleAllowed,      _bCombined),

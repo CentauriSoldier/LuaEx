@@ -2,10 +2,14 @@
     @fqxn Dox.Components.DoxBlockTag
     @des Used to create BlockTags used in a Dox parser.<br>While Dox ships with many pre-made BlockTags, users may also create and add their own by subclassing Dox.
     @ex
+    local tAliases          = {"fqxn"};
+    sDisplay                = "FQXN";
     local bRequired         = true;
     local bMultipleAllowed  = false;
     local bCombined         = false;
-    local oFQXN             = DoxBlockTag({"fqxn"}, "FQXN", bRequired, bMultipleAllowed, bCombined);
+    local bUtil             = false;
+    local nExtraColumns     = 0;
+    local oFQXN             = DoxBlockTag(tAliases, sDisplay, bRequired, bMultipleAllowed, bCombined, bUtil, nExtraColumns);
     --TODO more examples
 !]]
 
@@ -16,9 +20,9 @@ return class("DoxBlockTag",
 {--metamethods
     __clone = function(this, cdat)
         local pri = cdat.pri;
-        return DoxBlockTag( clone(pri.aliases), pri.display, pri.required,
-                            pri.multipleAllowed, pri.combined, pri.columnCount - 1,
-                            table.unpack(pri.columnWrappers));
+        return DoxBlockTag( clone(pri.aliases),     pri.display,    pri.required,
+                            pri.multipleAllowed,    pri.combined,   pri.util,
+                            pri.columnCount - 1,    table.unpack(pri.columnWrappers));
     end,
     __eq = function(left, right, cdat)
         local pri  = cdat.pri;
@@ -84,12 +88,13 @@ return class("DoxBlockTag",
     --items_AUTO          = 0,
     multipleAllowed     = false,
     required            = false,
+    util                = false, --if it's util, it's just used as a util tag and doesn't get added to the finalized data
 },
 {--protected
 
 },
 {--public
-    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, bCombined, nExtraColumns, ...)
+    DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, bCombined, bIsUtil, nExtraColumns, ...)
         local pri = cdat.pri;
         type.assert.string(sDisplay, "%S+", "Block tag display name cannot be blank.");
 
@@ -97,6 +102,7 @@ return class("DoxBlockTag",
         pri.multipleAllowed = type(bMultipleAllowed)   == "boolean"  and bMultipleAllowed                       or false;
         pri.combined        = type(bCombined)          == "boolean"  and (bCombined and pri.multipleAllowed)    or false;
         pri.required        = type(bRequired)          == "boolean"  and bRequired                              or false;
+        pri.util            = type(bIsUtil)            == "boolean"  and bIsUtil                                or false;
 
         for _, sAlias in ipairs(tAliases) do
             type.assert.string(sAlias, "^[^%s]+$", "Block tag must be a non-blank string containing no space characters.");
@@ -148,6 +154,14 @@ return class("DoxBlockTag",
     !]]
     isRequired = function(this, cdat)
         return cdat.pri.required;
+    end,
+    --[[!
+    @fqxn Dox.Components.DoxBlockTag.Methods.isUtil
+    @desc Determines whether this <strong>BlockTag</strong> is utility. Utility tags are used by Builders and their contents are not included in the finalized output.
+    @return boolean bUtil Returns true if it's mere utility, false otherwise.
+    !]]
+    isUtil = function(this, cdat)
+        return cdat.pri.util;
     end,
     --[[!
     @fqxn Dox.Components.DoxBlockTag.Methods.getDisplay

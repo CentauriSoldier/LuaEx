@@ -209,7 +209,7 @@ function string.isfilesafe(sName)
     end
 
     -- Check for names that are too long (limit is 255 characters) TODO move magic number
-    return bRet and (#sName <= 255) and (sName ~= "");
+    return bRet and (#sName <= 255);-- and (sName ~= "");
 end
 
 

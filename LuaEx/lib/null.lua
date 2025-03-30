@@ -20,7 +20,7 @@ print(type(a))           -- Output: "null"
 -- Table Usage:
 local myTable = {
     key1 = null, -- Retaining key 'key1' with no meaningful value
-    key2 = "null"  -- Retaining key 'key2' with no meaningful value
+    key2 = null  -- Retaining key 'key2' with no meaningful value
 }
 print(myTable.key1 == null) -- Output: true
 print(myTable.key2 == null) -- Output: false
@@ -30,8 +30,8 @@ print(myTable.key2 == null) -- Output: false
 print(tostring(null)) -- Output: "null"
 
 -- Length Check:
-local myKeys = { [1] = null, [2] = null }
-print(#myKeys) -- Output: 2 (length check for table with null values)
+local tMyKeys = { [1] = null, [2] = null }
+print(#tMyKeys) -- Output: 2 (length check for table with null values)
 !]]
 
 local type 			= type;

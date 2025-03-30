@@ -43,14 +43,17 @@ return class("DoxLua",
 
 },
 {--public
-    DoxLua = function(this, cdat, super, sTitle)        
+    DoxLua = function(this, cdat, super, sTitle)
         type.assert.string(sTitle, "%S+", "Dox Parser title name must not be blank.");
         local eSyntax = Dox.SYNTAX.LUA;
         local tMimeTypes = {
             DoxMime("lua", cdat.pri.preprocessDocumentation),
         };
 
-        super("DoxLua", sTitle, "!", "!", "@", eSyntax, tMimeTypes);
+        --add the Pulsar Lua blocktag TODO subclass this and move the block tag to the subclass
+        local oPulsarLuaBlockTag = DoxBlockTag({"pulsarlua", "pullua"}, "PulsarLua", false, false, false, true, 1);
+
+        super("DoxLua", sTitle, "!", "!", "@", eSyntax, tMimeTypes, oPulsarLuaBlockTag);
     end,
     --TODO ability to get sort order
 },
