@@ -178,6 +178,35 @@ return class("DoxBuilderHTML",
         pro.exampleWrapper.close    = '</code></pre>';
         pro.exampleWrapper.close    = pro.exampleWrapper.close..
         '';
+
+        --TODO LEFT OFF HERE gotta set the structure for the warppers in the parent class
+        local tColumnWrappers = {
+            ["Scope"] = {
+                [1] = {"<em>", "</em>"},
+            },
+            [""] = {},
+            [""] = {},
+            [""] = {},
+            [""] = {},
+            [""] = {},
+            [""] = {},
+            [""] = {},
+            [""] = {},
+        };
+
+        --set the DoxBlockTag column wrappers
+        for sDisplay, oBlockTag in pro.eachBlockTag() do
+
+            if (tColumnWrappers[sDisplay] ~= nil) then
+
+                for _, tWrapper in ipairs(tColumnWrappers[sDisplay]) do
+                    --TODO here's where the magic happens
+                end
+
+            end
+
+        end
+
     end,
     build = function(this, cdat, sTitle, sIntro, tFinalizedData)
         type.assert.string(sTitle);
@@ -244,7 +273,7 @@ return class("DoxBuilderHTML",
 
             --check for and concat combineable items
             for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-            
+
                 if not (oBlockTag.isUtil()) then
                     local bIsCombined = oBlockTag.isCombined();
 

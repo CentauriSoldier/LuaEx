@@ -320,6 +320,7 @@ local type = {
             @param string|nil zValue Optional value type enforcement.
             @param number|nil nMin Optional minimum item enforcement.
             @param number|nil nMax Optional maximum item enforcement.
+            @param string|nil sMessage An optional message to append to any error that may occur.
         !]]
         table = function(vInput, vIndexType, vValueType, vMinItems, vMaxItems, sMessage)
             local bConditionMet = rawtype(vInput) == "table";

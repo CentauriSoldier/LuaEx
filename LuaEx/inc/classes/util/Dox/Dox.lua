@@ -212,7 +212,8 @@ return class("Dox",
         tContent[nColumnCount] = sCurrent;
 
         for x = 1, #tContent do
-            local tWrapper   = oBlockTag.getcolumnWrapper(x);
+            --local tWrapper   = oBuilder.getColumnWrapper(oBlockTag); TODO FINISH WARNING Uncomment after creating builder method
+            local tWrapper   = oBlockTag.getColumnWrapper(x);
             local sWrapFront = tWrapper[1];
             local sWrapBack  = tWrapper[2];
             --sTableDataItems = sTableDataItems.."<td>"..sWrapFront..tContent[x]..sWrapBack.."</td>";
@@ -262,7 +263,7 @@ return class("Dox",
         oBuilder.refresh(tBlocks, pri.finalized, pri.processBlockItem);
     end,
 },
-{
+{--protected
     Dox = function(this, cdat, sName, sTitle, sBlockOpen, sBlockClose, sTagOpen, eSyntax, tMimeTypes, ...)
         type.assert.string(sName,       "%S+",      "Dox subclass name must not be blank.");
         type.assert.string(sTitle,      "%S+",      "Dox documentation title name must not be blank.");
@@ -299,8 +300,8 @@ return class("Dox",
 
         --create and inject the example block tag (language-specific)
         local tExampleWrapper = pri.builder.value.getExampleWrapper(eSyntax);
-        table.insert(pri.blockTags, _nExampleInsertPoint,
-            DoxBlockTag({"ex", "example"}, "Example", false, true, false, 0,
+        table.insert(pri.blockTags,
+            DoxBlockTag({"ex", "example"}, "Example", false, true, false, false, 0,
                         {tExampleWrapper.open, tExampleWrapper.close})
         );
 
@@ -326,7 +327,7 @@ return class("Dox",
             end
 
             --clone the blocktag
-            local oClonedBlockTag = clone(oBlockTag);            
+            local oClonedBlockTag = clone(oBlockTag);
             --store the block tag
             table.insert(pri.blockTags, oClonedBlockTag);
 
@@ -341,7 +342,32 @@ return class("Dox",
         --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
 
     end,
-},--protected
+    eachBlockTag__FNL = function(this, cdat)
+        local nIndex    = 0;
+        local nMax      = #cdat.pri.blockTags;
+
+        while nIndex < nMax do
+            local oBlockTag = cdat.pri.blockTags[nIndex];
+            return oBlockTag.getDisplay(), oBlockTag;
+        end
+
+    end,
+    getBlockTagByDisplay__FNL = function(this, cdat, sDisplay)
+        type.assert.string(sDisplay, "%S+");
+        local vRet;
+
+        for _, oBlockTag in ipairs(cdat.pri.blockTags) do
+
+            if (oBlockTag.getDisplay() == sDisplay) then
+                vRet = oBlockTag;
+                break;
+            end
+
+        end
+
+        return vRet;
+    end,
+},
 {--public
     addMimeType__FNL = function(this, cdat, oDoxMime)
         type.assert.custom(oDoxMime, "DoxMime");

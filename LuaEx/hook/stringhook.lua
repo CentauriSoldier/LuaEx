@@ -428,5 +428,51 @@ function string.uuid(bUppercase)
     return sRet
 end
 
+local tHTMLReplacements = {
+    ["<b>"] = "**", ["</b>"] = "**",
+    ["<strong>"] = "**", ["</strong>"] = "**",
+    ["<h1>"] = "# ", ["</h1>"] = "\n",
+    ["<h2>"] = "## ", ["</h2>"] = "\n",
+    ["<h3>"] = "### ", ["</h3>"] = "\n",
+    ["<h4>"] = "#### ", ["</h4>"] = "\n",
+    ["<h5>"] = "##### ", ["</h5>"] = "\n",
+    ["<h6>"] = "###### ", ["</h6>"] = "\n",
+    ["<i>"] = "*", ["</i>"] = "*",
+    ["<em>"] = "*", ["</em>"] = "*",
+    ["<u>"] = "_", ["</u>"] = "_",
+    ["<br>"] = "  \n", ["<br/>"] = "  \n",
+    ["<p>"] = "\n\n", ["</p>"] = "\n\n",
+    ["<blockquote>"] = "> ", ["</blockquote>"] = "\n",
+    ["<code>"] = "`", ["</code>"] = "`",
+    ["<pre>"] = "```\n", ["</pre>"] = "\n```",
+    ["<ul>"] = "\n", ["</ul>"] = "\n",
+    ["<ol>"] = "\n", ["</ol>"] = "\n",
+    ["<li>"] = "- ", ["</li>"] = "\n",
+    ["<hr>"] = "\n---\n", ["<hr/>"] = "\n---\n"
+}
+
+
+function string.htmltomd(sText)
+    -- First, temporarily replace escaped tags with a placeholder
+    local tEscaped = {};
+
+    sText = sText:gsub("\\(<[^>]->)", function(sEscaped)
+        table.insert(tEscaped, sEscaped);
+        return "\1" .. #tEscaped .. "\2";  -- Use a placeholder that won't conflict
+    end)
+
+    -- Replace non-escaped tags with Markdown
+    for sTag, sMD in pairs(tHTMLReplacements) do
+        sText = sText:gsub(sTag, sMD);
+    end
+
+    -- Restore escaped tags
+    sText = sText:gsub("\1(%d+)\2", function(i)
+        return tEscaped[tonumber(i)];
+    end)
+
+    return sText;
+end
+
 
 return string;

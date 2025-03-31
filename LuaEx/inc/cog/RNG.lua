@@ -25,7 +25,7 @@ return class("RNG",
     @param number|nil vWeight An optional float value that indicates whether to favor the lower or higher result. A higher weight favors 1s while a lower weight value favors 0s. E.g., a weight value of 0.2 will produce a <b>0</b> 80% of the time and a <b>1</b> 20% of the time, while a value of 0.75 will produce a <b>1</b> 75% of the time and a <b>0</b> 25% of the time.
     <br>A nil value will force the default weight of 0.5.
     @ret number 0 or 1.
-    @pulsarlua function RNG.binary sdfdf asd
+    @pulsarlua function RNG.binary
     @ex
     print(tostring(RNG.binary())) --randomly, 0 or 1
     @ex

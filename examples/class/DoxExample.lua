@@ -96,6 +96,8 @@ for v in oDoxLua.eachBlockTag() do
 
 end
 
+print(("    <b>  Hello!  </b>"):htmltomd())
+
 oDoxLua.setBuilder(Dox.BUILDER.PULSAR_LUA);
 oDoxLua.refresh();
 oDoxLua.export("");

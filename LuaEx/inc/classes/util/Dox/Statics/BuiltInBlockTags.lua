@@ -43,8 +43,7 @@ return {
           Has Column Wrapper(s): <b>false</b><br>
     !]]
     DoxBlockTag(    {"scope"},                                                  "Scope",
-                    -_bRequired,    -_bMultipleAllowed,   -_bCombined,      0,
-                    {"<em>", "</em>"}),
+                    -_bRequired,    -_bMultipleAllowed,   -_bCombined,      -_bIsUtil,  0),
     --[[!
     @fqxn Dox.Statics.Built-in BlockTags.Visibility
     @desc Display: <strong>Visibility</strong><br>

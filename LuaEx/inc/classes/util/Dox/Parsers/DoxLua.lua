@@ -51,7 +51,7 @@ return class("DoxLua",
         };
 
         --add the Pulsar Lua blocktag TODO subclass this and move the block tag to the subclass
-        local oPulsarLuaBlockTag = DoxBlockTag({"pulsarlua", "pullua"}, "PulsarLua", false, false, false, true, 1);
+        local oPulsarLuaBlockTag = DoxBlockTag({"pulsarlua", "pullua"}, "PulsarLua", false, false, false, true);
 
         super("DoxLua", sTitle, "!", "!", "@", eSyntax, tMimeTypes, oPulsarLuaBlockTag);
     end,

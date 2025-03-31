@@ -94,12 +94,61 @@ return class("DoxBuilderPulsarLua",
 
         end
 
-        --process eligible blocks
+        local tPreppedBlocks = {};
+        local nIndex = 0;
+
+        --prep eligible blocks
         for _, oBlock in ipairs(tBlocksToProcess) do
+            nIndex = nIndex + 1;
+
+            tPreppedBlocks[nIndex] = {
+                blockItems = {},
+                pulsarLua  = {
+                    name = "NOT SET",
+                    type = "NOT SET",
+                },
+            };
+
+            local tPrepped = tPreppedBlocks[nIndex];
 
             for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-                --TODO LEFT OFF HERE
-                print(sRawInnerContent)
+
+                if (oBlockTag.isUtil()) then --TODO THROW ERROR on bad data
+                    --break the util blockline up, and get & store the info
+                    local tInfoRAW  = fProcessBlockItem(oBlockTag, sRawInnerContent);
+                    local tInfo     = tInfoRAW.content:totable(' ');
+                    tPrepped.pulsarLua.name = tInfo[2];
+                    tPrepped.pulsarLua.type = tInfo[1];
+
+                else
+                    sInnerContent = string.htmltomd(sRawInnerContent);
+                    tPrepped.blockItems[#tPrepped.blockItems + 1] = fProcessBlockItem(oBlockTag, sInnerContent);
+
+                end
+
+            end
+
+        end
+
+        --process prepped blocks
+        for _, tData in ipairs(tPreppedBlocks) do
+            local sName = tData.pulsarLua.name;
+            local sType = tData.pulsarLua.type;
+
+            if (sType == "function") then
+                local tBlockItems = tData.blockItems;
+
+                for _, tItem in ipairs(tBlockItems) do
+
+                    if (tItem.display == "Parameter(s)") then
+                        --print(_, tItem)
+                        print(tItem.content:htmltomd())
+                    end
+
+                end
+
+            else
+                --TODO THROW ERROR
             end
 
         end
