@@ -208,6 +208,18 @@ class Dox {
                 }
             });
 
+            /* Test for navigating to link in address bar 
+            window.addEventListener('load', function() {
+              if (window.location.hash) {
+                // Strip off the '#' and possibly prefix the key if needed
+                const strippedString = window.location.hash.substring(1).trim();
+                // Assuming your internal keys are prefixed by "Modules."
+                const sFQXN = "Modules." + strippedString;
+                if (doxInstance.setActiveFQXN(sFQXN)) {
+                  doxInstance.updatePage();
+                }
+              }
+            });*/
 
             // Listen for the popstate event
             window.addEventListener('popstate', () => {

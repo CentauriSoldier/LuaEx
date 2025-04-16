@@ -11,7 +11,11 @@ return class("DoxBuilder",
     MIME = enum("DoxBuilder.MIME", {"HTML", "LUACOMPLETERC", "MARKDOWN", "TXT"}, {"html", "luacompleterc", "MD", "txt"}, true),
 },
 {--PRIVATE
-    mime = null,
+    mime                = null,
+    Name__autoAF        = "",
+    --Syntax__auto__      = null,
+    --ActiveDox__auto__   = null,
+    --prismLanguage       = "lua",
 },
 {--PROTECTED
     blockWrapper = {
@@ -21,14 +25,15 @@ return class("DoxBuilder",
     columnWrappers = {},
     copyToClipboardButton = "",
     defaultFilename = "",
-    exampleWrapper = {
-        open = "",
-        close = "",
-    },
+    --exampleWrapper = {
+    --    open = "",
+    --    close = "",
+    --},
     newLine = "",
 --@param ... varargs Zero to nMaxColumnCount column wrappers. Each column wrapper should be a numerically-indexed table (of two) whose values are strings containing the start and end (respectively) column wrapper item.
-    DoxBuilder = function(this, cdat, eMime, sCopyToClipBoardButton, sDefaultFilename, sNewLine, tColumnWrappers)
+    DoxBuilder = function(this, cdat, sName, eMime, sCopyToClipBoardButton, sDefaultFilename, sNewLine, tColumnWrappers)
         type.assert.custom(eMime, "DoxBuilder.MIME");
+        type.assert.string(sName, "%S+");
         type.assert.string(sDefaultFilename);
         assert(sDefaultFilename:isfilesafe(), "Error creating DoxBuilder. Default filename must be a file-safe string.");
 
@@ -36,6 +41,7 @@ return class("DoxBuilder",
         local pri = cdat.pri;
         local pro = cdat.pro;
 
+        pri.Name                    = sName;
         pri.mime                    = eMime;
         pro.copyToClipboardButton   = type(sCopyToClipBoardButton) == "string" and sCopyToClipBoardButton or "";
         pro.defaultFilename         = sDefaultFilename;
@@ -43,16 +49,30 @@ return class("DoxBuilder",
 
         --import column wrappers
         if (type(tColumnWrappers) == "table") then
-            type.assert.table(tColumnWrappers, "string", "table", nil, nil, sImportError.."Expected wrapper tables.");--TODO Full message
 
-            for sDisplay, tWrapper in pairs(tColumnWrappers) do
-                type.assert.string(sDisplay, "%S+", sImportError.."Expected string index. Got "..type(sDisplay)..'.');
-                type.assert.table(tWrapper, "number", "string", 2, 2, sImportError.."Expected numerically-indexed wrapper table with string values.");
+            for sDisplay, tWrapperSet in pairs(tColumnWrappers) do --indexed by DoxBlockTag Display name, contains tables of wrapper sets
+                type.assert.string(sDisplay, "%S+", sImportError.." Tag display name cannot be empty.");
 
-                pro.columnWrappers[sDisplay] = {};
+                --if (sDisplay ~= "Example") then
+                    type.assert.table(tWrapperSet, "number", "table", 1, nil, sImportError.." Expected numerically-indexed column wrapper table for display, '"..sDisplay.."'.");
+                --end
 
-                for nIndex, sWrapper in ipairs(tWrapper) do
-                    pro.columnWrappers[sDisplay][nIndex] = sWrapper;
+                if (pro.columnWrappers[sDisplay] == nil) then
+                    pro.columnWrappers[sDisplay] = {};
+                end
+
+                for nColumn, tWrapper in ipairs(tWrapperSet) do
+
+                    --if (sDisplay ~= "Example") then
+                        type.assert.table(tWrapper, "number", "string", 2, 2, sImportError.." Expected numerically-indexed wrapper table with string values for display, '"..sDisplay.."'.");
+                    --end
+
+                    pro.columnWrappers[sDisplay][nColumn] = {};
+
+                    for nIndex, sWrapper in ipairs(tWrapper) do
+                        pro.columnWrappers[sDisplay][nColumn][nIndex] = sWrapper;
+                    end
+
                 end
 
             end
@@ -163,10 +183,10 @@ return class("DoxBuilder",
     getNewLine = function(this, cdat)
         return cdat.pro.newLine;
     end,
-    getExampleWrapper = function(this, cdat, eSyntax)
+    --[[getExampleWrapper = function(this, cdat, eSyntax)
         type.assert.custom(eSyntax, "Dox.SYNTAX");
         return clone(cdat.pro.exampleWrapper);
-    end,
+    end,]]
     --TODO FINISH DOCS
     setColumnWrapper = function(this, cdat, sDisplay, nColumn, sOpen, sClose)
         local pro = cdat.pro;
@@ -188,7 +208,7 @@ return class("DoxBuilder",
                 [2] = sClose,
             };
         end
-        
+
     end,
 },
 nil,   --extending class

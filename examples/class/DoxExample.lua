@@ -80,7 +80,7 @@ local pIntro = io.normalizepath(sSourcePath.."\\..\\..\\docs\\intro.lua");
 local fIntro = loadfile(pIntro);
 
 if (type(fIntro) ~= "function") then
-    error("Error reading Luax intro file.");
+    error("Error reading Luax intro file.");--QUESTION DID I mean LuaEx?
 end
 
 local sContent = fIntro();
@@ -92,11 +92,11 @@ oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export("index");
 
-for v in oDoxLua.eachBlockTag() do
+--for v in oDoxLua.eachBlockTag() do
 
-end
+--end
 
-print(("    <b>  Hello!  </b>"):htmltomd())
+--print(("    <b>  Hello!  </b>"):htmltomd())
 
 oDoxLua.setBuilder(Dox.BUILDER.PULSAR_LUA);
 oDoxLua.refresh();
@@ -161,7 +161,7 @@ test2 = class("test2",
     test2 = function(this, cdat,super)
         local pro = cdat.pro;
         --pro.Cat = "XDS";
-        super(0)
+        super(0);
     end,
     setCat = function(this, cdat)
         --cdat.pro.Cat ="AWWEQ#E"

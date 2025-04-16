@@ -137,7 +137,7 @@ return class("Dox",
     blockStrings        = {},
     builder             = null,
     --[[!@fqxn Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
-    finalized           = {}; --this is the final, processed data (updated using the refresh() method)
+    finalized           = {}; --this is the final, processed data (updated using the refresh() method in the subclass)
     html                = "", --this is updated on refresh
     Intro__auto_F       = "", --the custom welcome message (if any)
     mimeTypes           = SortedDictionary(), --TODO throw error on removal of last item
@@ -212,8 +212,8 @@ return class("Dox",
         tContent[nColumnCount] = sCurrent;
 
         for x = 1, #tContent do
-            --local tWrapper   = oBuilder.getColumnWrapper(oBlockTag); TODO FINISH WARNING Uncomment after creating builder method
-            local tWrapper   = oBlockTag.getColumnWrapper(x);
+            local tWrapper   = oBuilder.getColumnWrapper(oBlockTag.getDisplay(), x);
+            --local tWrapper   = oBlockTag.getColumnWrapper(x);
             local sWrapFront = tWrapper[1];
             local sWrapBack  = tWrapper[2];
             --sTableDataItems = sTableDataItems.."<td>"..sWrapFront..tContent[x]..sWrapBack.."</td>";
@@ -245,9 +245,6 @@ return class("Dox",
         local pri       = cdat.pri;
         local oBuilder  = pri.builder.value;
 
-        --reset the finalized data table
-        pri.finalized = {};
-
         --create all the blocks
         local tBlocks = {};
         local nBlockID = 0;
@@ -259,8 +256,14 @@ return class("Dox",
                                             pri.blockTags,  pri.requiredBlockTags);
         end
 
-        --call the builder's refresh method
-        oBuilder.refresh(tBlocks, pri.finalized, pri.processBlockItem);
+        --call the builder's refresh method and reset the finalized data table
+        local tFinalized = oBuilder.refresh(tBlocks, pri.processBlockItem);
+
+        if not (type(tFinalized) == "table") then
+            error("Error refreshing Dox data in method, 'refresh' in builder, '"..oBuilder.getName().."'. Method must return a table value. Got type, "..type(tFinalized)..".", 2);
+        end
+
+        pri.finalized = tFinalized;
     end,
 },
 {--protected
@@ -274,11 +277,12 @@ return class("Dox",
         type.assert.table(tMimeTypes,   "number",   "DoxMime", 1);
 
         local pri               = cdat.pri;
+        pri.syntax              = eSyntax;
         pri.builder             = Dox.BUILDER.HTML; --default builder, can be changed later
+                                  --pri.builder.value.setSyntax(cdat.pri.syntax);
         pri.blockOpen           = sBlockOpen;
         pri.blockClose          = sBlockClose;
         pri.name                = sName;
-        pri.syntax              = eSyntax;
         pri.title               = sTitle;
         pri.tagOpen             = sTagOpen;
         pri.requiredBlockTags   = {};
@@ -299,11 +303,11 @@ return class("Dox",
         end
 
         --create and inject the example block tag (language-specific)
-        local tExampleWrapper = pri.builder.value.getExampleWrapper(eSyntax);
-        table.insert(pri.blockTags,
-            DoxBlockTag({"ex", "example"}, "Example", false, true, false, false, 0,
-                        {tExampleWrapper.open, tExampleWrapper.close})
-        );
+        --local tExampleWrapper = pri.builder.value.getExampleWrapper(eSyntax);
+        --table.insert(pri.blockTags,
+        --    DoxBlockTag({"ex", "example"}, "Example", false, true, false, false, 0)--,
+                        --{tExampleWrapper.open, tExampleWrapper.close})
+        --);
 
         --store all input BlockTags and log required ones found
         for nIndex, oBlockTag in ipairs({...} or arg) do
@@ -424,7 +428,7 @@ return class("Dox",
     getOutput__FNL = function(this, cdat)
         return cdat.pri.output;
     end,
-    getLanguage__FNL = function(this, cdat)
+    getSyntax__FNL = function(this, cdat)
         return cdat.pri.syntax;
     end,
     getMimeTypes__FNL = function(this, cdat)
@@ -568,6 +572,7 @@ return class("Dox",
     setBuilder__FNL = function(this, cdat, eBuilder)
         type.assert.custom(eBuilder, "Dox.BUILDER");
         cdat.pri.builder = eBuilder;
+        --eBuilder.value.setSyntax(cdat.pri.syntax);
     end,
 },
 nil,    --extending class

@@ -1,0 +1,18 @@
+{
+    "global": {
+        "type": "table",
+        "fields": {
+                "RNG": {
+                "type": "table",
+                "description": "A static helper class for rolling dice, drawing cards, etc.",
+                    "fields": {
+                        "binary": {
+                            "type": "function",
+                            "description": "Generates a random value of 0 or 1.\n\n\n\n   number|nil   vWeight   An optional float value that indicates whether to favor the lower or higher result. A higher weight favors 1s while a lower weight value favors 0s. E.g., a weight value of 0.2 will produce a **0** 80% of the time and a **1** 20% of the time, while a value of 0.75 will produce a **1** 75% of the time and a **0** 25% of the time.\n      \nA nil value will force the default weight of 0.5.",
+                            "args": [{ "name": "vWeight" }],
+                    }
+                }
+            }
+        }
+    }
+}

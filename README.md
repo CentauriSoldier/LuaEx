@@ -35,10 +35,10 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 - Bugfix:  **Structfactory** not properly cloning itself.
 - Bugfix:  **Structs** not properly cloning internal objects.
 - Bugfix:  instance returns in parent class were not properly returning child instance when subclassed.
-- Bugfix:  **Dox** "Copy" button not working.
-- Change:  **Dox** now places all output into a single HTML file instead of using a separate *.js* file.
+- Change:  **DoxBuilderHTML** now places all output into a single HTML file instead of using a separate *.js* file.
 - Change:  **Dox** CSS redesigned to be more functional, readable and aesthetically pleasing.
-- Feature The **class** module now interally handles all serialization and deserialization via the serializer system.
+- Change:  **DoxBlockTag** column wrappers are now defined by each **DoxBuilder** subclass rather than globally.
+- Feature: The **class** module now interally handles all serialization and deserialization via the serializer system.
 - Feature: **class** constructor now must accept a string (authenitication code) as its second argument to be used with the ***class.isstaticconstructorrunning*** function. This can now determine whether the static constructor is currently running.
 - Feature: added new **eventrix** type to manage events.
 - Feature: **enum** items now have ***__eq*** and ***__lt*** metamethods.
@@ -72,13 +72,14 @@ From here on out, all modules of **LuaEx** will be available in the global envir
     - **class.isparentorself**    
     - **class.isstaticconstructorrunning**
     - **class.of**
+- Feature: Class-level check functions now intuitively return the class object where expected but only when the class is in scope, nil otherwise.
 - Feature: **classes** now fully respect polymorphism in assignment operation type checking.
 - Feature: The class constructor may now be either private, protected or public.
 - Feature: **classes** now have an *optional* static constructor using the class name as the static method name.
 - Feature: **Dox** comment blocks can now use internal anchor links (*#*) to other FQXNs.
 - Feature: added Dox output back navigation.
 - Feature: **Dox** now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
-- Feature: added a "Copy" (to clipboard) button to all user-created code blocks.
+- Feature: added a "Copy" (to clipboard) button to all user-created code blocks in HTML output.
 - Feature: added a **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
 - Feature: **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the **Dox** subclass being used.
 - Feature: **prism.js** scripts are automatically added to **Dox's** finalized HTML output based on the languages used in the documentation.

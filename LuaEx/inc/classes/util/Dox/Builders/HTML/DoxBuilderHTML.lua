@@ -128,10 +128,11 @@ return class("DoxBuilderHTML",
 
             -- Check if the language is supported and add it to the set
             if _tPrismLanguages[lang] then
-                tFoundLanguages[_tPrismLanguages[lang]] = true
+                tFoundLanguages[_tPrismLanguages[lang]] = true;
             else
-                tFoundLanguages[lang] = true
+                tFoundLanguages[lang] = true;
             end
+
         end
 
         -- Generate the script tags
@@ -164,37 +165,63 @@ return class("DoxBuilderHTML",
     end,
 },
 {--PROTECTED
-
 },
 {--PUBLIC
     DoxBuilderHTML = function(this, cdat, super)
         local sCopyToClipBoardButton = '<button class="copy-to-clipboard-button" onclick="Dox.copyToClipboard(this)">Copy</button>';
-        super(DoxBuilder.MIME.HTML, sCopyToClipBoardButton, _sDefaultFilename, "<br>");
         local pro = cdat.pro;
 
         pro.blockWrapper.open       = '<div class="container-fluid">';
         pro.blockWrapper.close      = '</div>';
-        pro.exampleWrapper.open     = '<pre><code class=\"language-';
-        pro.exampleWrapper.close    = '</code></pre>';
-        pro.exampleWrapper.close    = pro.exampleWrapper.close..
-        '';
+        --pro.exampleWrapper.open     = '<pre><code class=\"language-';
+        --pro.exampleWrapper.close    = '</code></pre>';
+        --pro.exampleWrapper.close    = pro.exampleWrapper.close..'';--QUESTION WHAT IS THIS LINE HERE FOR?
 
-        --TODO LEFT OFF HERE gotta set the structure for the warppers in the parent class
         local tColumnWrappers = {
-            ["Scope"] = {
-                [1] = {"<em>", "</em>"},
+            ["Parameter(s)"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
             },
-            [""] = {},
-            [""] = {},
-            [""] = {},
-            [""] = {},
-            [""] = {},
-            [""] = {},
-            [""] = {},
-            [""] = {},
+            ["Field(s)"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
+            },
+            ["Field(s) - Private"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
+            },
+            ["Field(s) - Protected"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
+            },
+            ["Field(s) - Public"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
+            },
+            ["Field(s) - Static Private"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
+            },
+            ["Field(s) - Static Public"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
+            },
+            ["Return(s)"] = {
+                [1] = {"<strong><em>", "</em></strong>"},
+                [2] = {"<em>", "</em>"},
+            },
+            ["Code"] = {
+                [1] = {"<pre>", "</pre>"},
+            },
+            ["Example"] = { --TODO FINISH make this dynamic for the default prism language type NOTE: I can probably use metatables if i can get them to stop being infinitely recusive
+                [1] = {"<pre><code class=\"language-lua\">", "</code></pre>"},
+            },
+            --[""] = {},
         };
 
-        --set the DoxBlockTag column wrappers
+        super("DoxBuilderHTML", DoxBuilder.MIME.HTML, sCopyToClipBoardButton, _sDefaultFilename, "<br>", tColumnWrappers);
+
+        --[[set the DoxBlockTag column wrappers
         for sDisplay, oBlockTag in pro.eachBlockTag() do
 
             if (tColumnWrappers[sDisplay] ~= nil) then
@@ -205,7 +232,7 @@ return class("DoxBuilderHTML",
 
             end
 
-        end
+        end]]
 
     end,
     build = function(this, cdat, sTitle, sIntro, tFinalizedData)
@@ -236,18 +263,20 @@ return class("DoxBuilderHTML",
         --TODO note somewhere that combined items cannot have IDs (they are simply blank...all non examples are...but code should have IDs!!!! TODO that)
         return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = "", display = sDisplay, content = sCombinedContent};
     end,
-    getExampleWrapper = function(this, cdat, eSyntax)
+    --[[getExampleWrapper = function(this, cdat, eSyntax)
         type.assert.custom(eSyntax, "Dox.SYNTAX");
         local tRet = clone(cdat.pro.exampleWrapper);
         tRet.open = tRet.open..eSyntax.value.getPrismName()..'">';
         return tRet;
-    end,
-    refresh = function(this, cdat, tBlocks, tFinalized, fProcessBlockItem)
+    end,]]
+    refresh = function(this, cdat, tBlocks, fProcessBlockItem)
         local pro = cdat.pro;
         local pub = cdat.pub;
+
         local tBlockWrapper     = pro.blockWrapper;
         local sBuilderNewLine   = pro.newLine;
         local tInheritDocs      = {};
+        local tFinalized        = {};
 
         --inject all block strings into finalized data table
         for _, oBlock in pairs(tBlocks) do
@@ -380,6 +409,7 @@ return class("DoxBuilderHTML",
 
         end
 
+        return tFinalized;
     end,
 },
 DoxBuilder, --extending class
