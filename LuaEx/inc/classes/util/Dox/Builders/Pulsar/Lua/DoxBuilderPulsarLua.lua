@@ -28,32 +28,35 @@ end
 
 
 local function prepBlocks(tBlocksToPrep, fProcessBlockItem)
-    local tPreppedBlocks    = {};
-    local nIndex            = 0;
+    local tRet      = {};
+    local nIndex    = 0;
 
     --prep eligible blocks
     for _, oBlock in ipairs(tBlocksToPrep) do
         nIndex = nIndex + 1;
 
-        tPreppedBlocks[nIndex] = {
+        tRet[nIndex] = {
             blockItems = {},
             pulsarLua  = {
-                name = "NOT SET",
-                type = "NOT SET",
+                name = "",
+                type = "",
             },
         };
 
-        local tPrepped = tPreppedBlocks[nIndex];
+        local tPrepped = tRet[nIndex];
 
         for oBlockTag, sRawInnerContent in oBlock.eachItem() do
 
-            if (oBlockTag.isUtil() and oBlockTag.getDisplay() == _sBuilderName) then
-                local tInfoRAW  = fProcessBlockItem(oBlockTag, sRawInnerContent);
-                local tInfo     = tInfoRAW.content:totable(' ');
-                tPrepped.pulsarLua.name = tInfo[2];
-                tPrepped.pulsarLua.type = tInfo[1];
+            if (oBlockTag.isUtil()) then
 
-                --TODO FINISH Check and THROW ERROR on bad values data..eg, type can be only function and table atm...more later perhaps
+                if (oBlockTag.getDisplay() == _sBuilderName) then
+                    local tInfoRAW  = fProcessBlockItem(oBlockTag, sRawInnerContent);
+                    local tInfo     = tInfoRAW.content:totable(' ');
+                    tPrepped.pulsarLua.name = tInfo[2];
+                    tPrepped.pulsarLua.type = tInfo[1];
+
+                    --TODO FINISH Check and THROW ERROR on bad values data..eg, type can be only function and table atm...more later perhaps
+                end
 
             else
                 sInnerContent = string.htmltomd(sRawInnerContent);
@@ -65,7 +68,88 @@ local function prepBlocks(tBlocksToPrep, fProcessBlockItem)
 
     end
 
-    return tPreppedBlocks;
+    return tRet;
+end
+
+--used to build the actual text entry that will be stored in the output file
+local function buildText(sType, sName, tName, tBlockItems)
+
+    if (sType:lower() == "function") then
+        --LEFT OFF HERE
+        local sDescription          = "";
+        local sParamDescriptions    = "";
+        local sArgs                 = "";
+        local tArgNames             = {};
+
+        for _, tItem in ipairs(tBlockItems) do
+            --print(tItem.content:htmltomd())
+            if (tItem.display == "Parameter(s)") then
+
+                local function splitBySpaceLimit(input, limit)
+                  local result = {}
+                  local i = 1
+                  for word in input:gmatch("%S+") do
+                    if i < limit then
+                      table.insert(result, word)
+                    else
+                      -- Grab the rest of the string from the remaining position
+                      local pos = 0
+                      for _ = 1, i - 1 do
+                        pos = input:find("%S+%s*", pos + 1)
+                      end
+                      table.insert(result, input:sub(pos + 1):match("^%s*(.-)%s*$"))
+                      break
+                    end
+                    i = i + 1
+                  end
+                  return result
+                end
+
+
+                local tArg = splitBySpaceLimit(tItem.content, 3);
+                --print(#tArg)
+
+                tArgNames[#tArgNames + 1] = tArg[2];
+                sParamDescriptions = sParamDescriptions.."\\n"..tItem.content;
+                --print(_, tItem)
+                --print(tItem.content:htmltomd())
+            elseif (tItem.display == "Description") then
+                sDescription = tItem.content:trim():htmltomd():gsub("\n", "\\n");
+            end
+
+        end
+
+        if (#tArgNames > 0) then
+            local function formatArgs(paramNames)
+                local parts = { '"args": [' }
+
+                for i, name in ipairs(paramNames) do
+                    local comma = (i < #paramNames) and "," or ""
+                    table.insert(parts, string.format('  { "name": "%s" }%s', name, comma))
+                end
+
+                table.insert(parts, "],")
+
+                return table.concat(parts, "\n")
+            end
+
+            sArgs = formatArgs(tArgNames);
+        end
+
+        return (sDescription.."\\n"..sParamDescriptions:trim()):gsub("\n", "\\n");
+
+        --[[tFunctions[#tFunctions + 1] = {
+            description = (sDescription.."\\n"..sParamDescriptions:trim()):gsub("\n", "\\n"),
+            name        = sName,
+            args        = sArgs,
+        };]]
+
+    else
+
+        return "";
+
+    end
+
 end
 
 --sorts the blocks into a table format based on type (table, function, etc.)
@@ -77,14 +161,14 @@ local function organizeBlocks(tPreppedBlocks)
         local tPulsarLua    = tBlockData.pulsarLua;
         local sType         = tPulsarLua.type;
         local sName         = tPulsarLua.name;
-        local tName         = sName:totable(); --TODO THROW ERROR ON Non-table return
+        local tName         = sName:totable('.'); --TODO THROW ERROR ON Non-table return
         local nNameCount    = #tName;
         local tEntry        = tRet;
 
         for nIndex, sNamePart in ipairs(tName) do
             --if this is the last item in the name table,
             --store the data in its metatable for later retrieval
-            local tCallReturn = (nIndex == nNameCount) and tBlockItems or {};
+            local tCallReturn = (nIndex == nNameCount) and buildText(sType, sName, tName, tBlockItems) or "";
 
             --if the table entry doesn't exist, create it
             if (tEntry[sNamePart] == nil) then
@@ -92,7 +176,6 @@ local function organizeBlocks(tPreppedBlocks)
                     __call = function(t)
                         return tCallReturn;
                     end,
-                    __newindex = function() end,
                 };
 
                 tEntry[sNamePart] = setmetatable({}, tMeta);
@@ -106,6 +189,10 @@ local function organizeBlocks(tPreppedBlocks)
 
     return tRet;
 end
+
+
+
+
 
 
 return class("DoxBuilderPulsarLua",
@@ -244,9 +331,9 @@ return class("DoxBuilderPulsarLua",
 
         --LEFT OFF HERE
         for k, v in pairs(tOrganizedBlocks) do
-            --print(k, #v)
-            for kk, vv in pairs(v()) do
-                print(kk, vv)
+            print(k, serialize(v))
+            for kk, vv in pairs(v) do
+                print(kk, vv())
             end
         end
 

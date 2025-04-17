@@ -12,6 +12,7 @@ local _nDefaultWeight       = 0.5;
 --[[!
 @fqxn CoG.RNG
 @desc A static helper class for rolling dice, drawing cards, etc.
+@pulsarlua table RNG
 !]]
 return class("RNG",
 {--METAMETHODS
@@ -58,6 +59,7 @@ return class("RNG",
     @fqxn CoG.RNG.Methods.bipolar
     @vis Static Public
     @desc Generates a random value of -1 or 1.
+    @pulsarlua function RNG.bipolar
     @param number|nil vWeight An optional float value that indicates whether to favor the lower or higher result. A higher weight favors 1s while a lower weight value favors -1s. E.g., a weight value of 0.2 will produce a <b>-1</b> 80% of the time and a <b>1</b> 20% of the time, while a value of 0.75 will produce a <b>1</b> 75% of the time and a <b>-1</b> 25% of the time.
     <br>A nil value will force the default weight of 0.5.
     @ret boolean bFlag Randomly, true or false.
@@ -94,6 +96,7 @@ return class("RNG",
     @fqxn CoG.RNG.Methods.boolean
     @vis Static Public
     @desc Generates a random boolean value.
+    @pulsarlua function RNG.boolean
     @param number|nil vWeight An optional float value that indicates whether to favor the lower or higher result. A higher weight favors trues while a lower weight value favors falses. E.g., a weight value of 0.2 will produce a <b>false</b> 80% of the time and a <b>true</b> 20% of the time, while a value of 0.75 will produce a <b>true</b> 75% of the time and a <b>false</b> 25% of the time.
     <br>A nil value will force the default weight of 0.5.
     @ret boolean bFlag Randomly, true or false.
