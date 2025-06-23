@@ -50,7 +50,7 @@
 - Modified the changelog to be more in line with [keepachangelog.com](https://keepachangelog.com/en/1.1.0/) standards.
 - Consolidated the old **class** changelog (*in the module's documentation*) into **LuaEx's** changelog.
 - Appropriate class-level check functions now intuitively return the class object where expected but only when the class is in scope, nil otherwise.
-- **classes** now fully respect polymorphism in assignment operation type checking.
+- Classes now fully respect polymorphism in assignment operation type checking.
 - The class constructor may now be either private, protected or public.
 - The **class** module now interally handles all serialization and deserialization via the serializer system.
 - **class** constructor must now accept a string (*authenitication code*) as its second argument to be used with the ***class.isstaticconstructorrunning*** function. This can now determine whether the static constructor is currently running.
@@ -87,7 +87,7 @@
 ### Changed
 - Rewrote and completed the interface system for classes.
 - All items in tables are now properly cloned.
-- **class** tables are now cloned so class instances may now start with clonable objects as default properties.
+- Class tables are now cloned so class instances may now start with clonable objects as default properties.
 
 ### Fixed
 - An error in ***type.assert.table*** where value type was showing as index type, resulting in false negatives.
@@ -106,15 +106,15 @@
 - Reorganized and added sections and examples to README.
 - Integrated and rewrote Dox documentation module and added support for other languages.
 - Restructured module layout and added more examples to the **examples** directory.
-- __AUTO directive prefix format changed to __AUTO__.
+- **\_\_AUTO** directive prefix format changed to **\_\_AUTO\_\_**.
 
 ### Fixed
-- Editing kit visibility table during iteration in __AUTO__ directive was causing malformed classes.
+- Editing kit visibility table during iteration in **\_\_AUTO\_\_** directive was causing malformed classes.
 - Private methods not able to be overriden from within the class.
 - Public static members could not be set or retrieved.
 - __shr method not providing 'other' parameter to client.
 - Various, minor bugs.
-- Major bug in class __AUTO__ directive causing malformed classes.
+- Major bug in class **\_\_AUTO\_\_** directive causing malformed classes.
 
 ---
 
@@ -128,8 +128,9 @@
 - Several examples in the **examples** directory for demonstrating usage.
 - Completed the interface system.
 - Added cloning and serialization capabilities.
-- __FNL directive allowing for final methods and metamethods.
-- __AUTO directive allowing automatically created mutator and accessor methods for members.
+- **\_\_FNL** directive allowing for final methods and metamethods.
+- **\_\_AUTO** directive allowing automatically created mutator and accessor methods for members.
+- **\_\_RO** directive for public static fields.
 
 ### Changed
 - Rewrote *(and improved)* set, stack and queue classes for new class system.
@@ -254,7 +255,7 @@
 - Classes are no longer automatically added to the global scope when created; rather, they are returned for the calling script to handle.
 - **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
 - **enums** values may now be of any non-nil type(previously only **string** and **number** were allowed).
-- **class** constructor methods now pass, not only the instance, but a protected, shared (fields and methods) table to parent classes.
+- The **class** constructor method now passes, not only the instance, but a protected, shared (fields and methods) table to parent classes.
 - **enums** may now be nested.
 
 ### Fixed
