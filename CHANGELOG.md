@@ -35,19 +35,19 @@
     - **class.isparentorself**    
     - **class.isstaticconstructorrunning**
     - **class.of**    
-- **classes** now have an *optional* static constructor using the class name as the static method name.
+- Classes now have an *optional* static constructor using the class name as the static method name.
 - **Dox** comment blocks can now use internal anchor links (*#*) to other FQXNs.
 - **Dox** output back navigation.
 - **Dox** now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
 - "Copy" (to clipboard) button to all user-created code blocks in **Dox** HTML output.
 - **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
 - **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the **Dox** subclass being used.
-- **prism.js** scripts are automatically added to **Dox's** finalized HTML output based on the languages used in the documentation.
+- Relevant **prism.js** scripts are automatically added to **Dox's** finalized HTML output based on the languages used in the documentation.
 - **Dox** **Parsers** (subclasses) for several new languages.
 
 ### Changed
 - Moved the changelog from README.md to its own file.
-- Modified the changelog to be more in line with [keepachangelog.com](keepachangelog.com) standards.
+- Modified the changelog to be more in line with [keepachangelog.com](https://keepachangelog.com/en/1.1.0/) standards.
 - Consolidated the old **class** changelog (*in the module's documentation*) into **LuaEx's** changelog.
 - Appropriate class-level check functions now intuitively return the class object where expected but only when the class is in scope, nil otherwise.
 - **classes** now fully respect polymorphism in assignment operation type checking.
