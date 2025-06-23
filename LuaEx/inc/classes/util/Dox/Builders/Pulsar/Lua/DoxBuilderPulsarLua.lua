@@ -1,7 +1,17 @@
 local _sBuilderName = "PulsarLua";
-
+local _sOutputWrapperPre = [[
+{
+    "global": {
+        "type": "table",
+        "fields": {
+            ]];
+local _sOutputWrapperPost = [[
+            }
+        }
+    }
+}]];
 --[[
-@fxqn Dox.DoxBuilder  TODO DOCS getBlocksToPrep
+@fxqn Dox.Builders.PulsarLua.getBlocksToPrep
 @desc Looks for the PulsarLua tag name and adds the entire block to the return table for processing if found.
 !]]
 local function getBlocksToPrep(tAllBlocks)
@@ -26,7 +36,22 @@ local function getBlocksToPrep(tAllBlocks)
     return tRet;
 end
 
-
+--[[!
+    @fqxn Dox.Builders.PulsarLua.prepBlocks
+    @vis Static Private
+    @desc Called by the refresh method, this readies relevant blocks for organizing.
+    @param table tBlocksToPrep A table created by the <b><i>getBlocksToPrep</i></b> function.
+    @param function fProcessBlockItem This function is passed by the Dox class and properly processes and formats each block item.
+    @ret table tPreppedBlocks A table containing the prepped blocks.<br>
+    Table layout is as follows:<br>
+    tRet[nIndex] = {
+        blockItems = {},
+        pulsarLua  = {
+            name = "",
+            type = "",
+        },
+    };
+--!]]
 local function prepBlocks(tBlocksToPrep, fProcessBlockItem)
     local tRet      = {};
     local nIndex    = 0;
@@ -72,9 +97,10 @@ local function prepBlocks(tBlocksToPrep, fProcessBlockItem)
 end
 
 --used to build the actual text entry that will be stored in the output file
+
 local function buildText(sType, sName, tName, tBlockItems)
 
-    if (sType:lower() == "function") then
+    if (sType == "function") then
         --LEFT OFF HERE
         local sDescription          = "";
         local sParamDescriptions    = "";
@@ -144,6 +170,8 @@ local function buildText(sType, sName, tName, tBlockItems)
             args        = sArgs,
         };]]
 
+    --TODO FINISH TABLES< STRING< Etc
+
     else
 
         return "";
@@ -159,7 +187,7 @@ local function organizeBlocks(tPreppedBlocks)
     for _, tBlockData in ipairs(tPreppedBlocks) do
         local tBlockItems   = tBlockData.blockItems;
         local tPulsarLua    = tBlockData.pulsarLua;
-        local sType         = tPulsarLua.type;
+        local sType         = tPulsarLua.type:lower();
         local sName         = tPulsarLua.name;
         local tName         = sName:totable('.'); --TODO THROW ERROR ON Non-table return
         local nNameCount    = #tName;
@@ -168,14 +196,15 @@ local function organizeBlocks(tPreppedBlocks)
         for nIndex, sNamePart in ipairs(tName) do
             --if this is the last item in the name table,
             --store the data in its metatable for later retrieval
-            local tCallReturn = (nIndex == nNameCount) and buildText(sType, sName, tName, tBlockItems) or "";
+            local sCallReturn = (nIndex == nNameCount) and buildText(sType, sName, tName, tBlockItems) or "";
 
             --if the table entry doesn't exist, create it
             if (tEntry[sNamePart] == nil) then
                 local tMeta = {
                     __call = function(t)
-                        return tCallReturn;
+                        return sCallReturn;
                     end,
+                    __neg = sType,
                 };
 
                 tEntry[sNamePart] = setmetatable({}, tMeta);
@@ -189,9 +218,6 @@ local function organizeBlocks(tPreppedBlocks)
 
     return tRet;
 end
-
-
-
 
 
 
@@ -217,8 +243,18 @@ return class("DoxBuilderPulsarLua",
 
         super("DoxBuilderPulsarLua", DoxBuilder.MIME.LUACOMPLETERC, "", "", "\n", tColumnWrappers);
     end,
-    build = function()
+    build = function(this, cdat, sTitle, sIntro, tFinalizedData)
+        local sRet = _sOutputWrapperPre;
 
+        for k, v in pairs(tFinalizedData) do
+
+            for kk, vv in pairs(v) do
+                --sRet = sRet..vv();
+            end
+
+        end
+
+        return sRet..generateAutocompleteStructure(tFinalizedData).._sOutputWrapperPost;
     end,
     buildOLD = function(this, cdat, sTitle, sIntro, tFinalizedData)
         --[[ Initialize the result string
@@ -324,7 +360,7 @@ return class("DoxBuilderPulsarLua",
         return "__!¬"..sDisplay.."__¬_!_"..sCombinedContent.."!¬";
     end,
     refresh = function(this, cdat, tAllBlocks, fProcessBlockItem)
-        local tFinalized        = {};
+        --local tFinalized        = {};
         local tBlocksToPrep     = getBlocksToPrep(tAllBlocks);
         local tPreppedBlocks    = prepBlocks(tBlocksToPrep, fProcessBlockItem);
         local tOrganizedBlocks  = organizeBlocks(tPreppedBlocks);
@@ -339,9 +375,9 @@ return class("DoxBuilderPulsarLua",
 
 
 
-        return tFinalized;
+        return tOrganizedBlocks;
     end,
-    refreshOOLD = function(this, cdat, tBlocks, fProcessBlockItem)
+    --[[refresh = function(this, cdat, tBlocks, fProcessBlockItem)
         local tFinalized = {};
         local tBlocksToProcess = {};
 
@@ -484,7 +520,7 @@ return class("DoxBuilderPulsarLua",
         end
 
         return tFinalized;
-    end,
+    end,]]
 },
 DoxBuilder,   --extending class
 false, --if the class is final

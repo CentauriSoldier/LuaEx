@@ -13,10 +13,10 @@ local _tColor           = _tRarity.COLOR;
 local _tChance          = _tRarity.CHANCE;
 local _tMinAffixTier    = _tRarity.MIN_AFFIX_TIER;
 local _tMaxAffixTier    = _tRarity.MAX_AFFIX_TIER;
-local _tMinPrefix       = _tRarity.MIN_PREFIX;
-local _tMaxPrefix       = _tRarity.MAX_PREFIX;
-local _tMinSuffix       = _tRarity.MIN_SUFFIX;
-local _tMaxSuffix       = _tRarity.MAX_SUFFIX;
+local _tMinPrefixes     = _tRarity.MIN_PREFIXES;
+local _tMaxPrefixes     = _tRarity.MAX_PREFIXES;
+local _tMinSuffixes     = _tRarity.MIN_SUFFIXES;
+local _tMaxSuffixes     = _tRarity.MAX_SUFFIXES;
 
 local _nRarityLevels    = #_tLevel;
 
@@ -63,8 +63,8 @@ local _nRarityLevels    = #_tLevel;
         </tr>
         <tr>
             <td><b>Prefix and Suffix Ranges</b></td>
-            <td>Defines the range of prefixes and suffixes that can be assigned to items, further diversifying their properties and effects.</td>
-        </tr>        
+            <td>Defines the numeric range of prefixes and suffixes that can be assigned to items, further diversifying their properties and effects.</td>
+        </tr>
     </tbody>
 </table>
 
@@ -136,7 +136,7 @@ return class("Rarity",
     !]]
     getMinPrefixCount = function(eLevel)
         type.assert.custom(eLevel, "Rarity.LEVEL");
-        return _tMinPrefix[eLevel.value];
+        return _tMinPrefixes[eLevel.value];
     end,
 
     --[[!
@@ -148,7 +148,7 @@ return class("Rarity",
     !]]
     getMaxPrefixCount = function(eLevel)
         type.assert.custom(eLevel, "Rarity.LEVEL");
-        return _tMaxPrefix[eLevel.value];
+        return _tMaxPrefixes[eLevel.value];
     end,
 
     --[[!
@@ -160,7 +160,7 @@ return class("Rarity",
     !]]
     getMinSuffixCount = function(eLevel)
         type.assert.custom(eLevel, "Rarity.LEVEL");
-        return _tMinSuffix[eLevel.value];
+        return _tMinSuffixes[eLevel.value];
     end,
 
     --[[!
@@ -172,7 +172,7 @@ return class("Rarity",
     !]]
     getMaxSuffixCount = function(eLevel)
         type.assert.custom(eLevel, "Rarity.LEVEL");
-        return _tMaxSuffix[eLevel.value];
+        return _tMaxSuffixes[eLevel.value];
     end,
 
     --[[!

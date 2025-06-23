@@ -343,6 +343,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     rawset(tLuaEx, "cog", tCoG);
 
                     Scaler          = require(pCoG..".Scaler");
+                    Shuffler        = require(pCoG..".Shuffler");
                     Rarity          = require(pCoG..".Rarity");
                     RNG             = require(pCoG..".RNG");
                     BaseMod         = require(pCoG..".ModSystem.BaseMod");

@@ -41,51 +41,7 @@ To facilitate a class's instances accessing and mutating each other (as is commo
 <h4>Polymorphism</h4>
 <p>Polymorphism is a key component of the class system and is honored in class fields.
 <br>For example, if a class has a Creature class object (whose subclasses are Human and Monster) as a field, the object in that field can be changed to either another Creature, a Human or a Monster since Human and Monster are both subclasses of the Creature class.</p>
-@license <p>Same as LuaEx license.</p>
-@version 0.8
-@versionhistory
-<ul>
-    <li>
-        <b>0.8</b>
-        <p>Change: All future version numbers and changelog notes can be found in LuaEx's changelog.</>
-        <p>Feature: subclassing can now be controlled with whitelists or blacklists.</p>
-        <p>Feature: added several class-level methods.</p>
-        <p>Feature: added a static initializer to classes (uses a method of the class name in the static public table).</p>
-        <p>Feature: updated type setting permissions to honor child class instances.</p>
-        <b>0.7</b>
-        <br>
-        <p>Bugfix: editing kit visibility table during iteration in __AUTO__ directive was causing malformed classes.</p>
-        <p>Bugfix: private methods not able to be overriden from within the class.</p>
-        <p>Bugfix: public static members could not be set or retrieved.</p>
-        <p>Bugfix: __shr method not providing 'other' parameter to client.</p>
-        <p>Feature: completed the interface system.</p>
-        <p>Feature: added cloning and serialization capabilities.</p>
-        <p>Feature: added __FNL directive allowing for final methods and metamethods.</p>
-        <p>Feature: added __AUTO directive allowing automatically created mutator and accessor methods for members.</p>
-        <p>Feature: rewrote <em>(and improved)</em> set, stack and queue classes for new class system.</p>
-        <p>Feature: global <strong><em>is</em></strong> functions are now created for classes upon class creation (e.g., isCreature(vInput)).</p>
-        <b>0.6</b>
-        <br>
-        <p>Change: rewrote class system again from the ground up, avoiding the logic error in the previous class system.</p>
-        <b>0.5</b>
-        <br>
-        <p>Change: removed new class system as it had a fatal, uncorrectable flaw.</p>
-        <b>0.4</b>
-        <br>
-        <p>Feature: added interfaces.</p>
-        <b>0.3</b>
-        <br>
-        <p>Change: removed current class system.</p>
-        <p>Change: rewrote class system from scratch.</p>
-        <b>0.2</b>
-        <br>
-        <p>Feature: added several features to the existing class system.</p>
-        <b>0.1</b>
-        <br>
-        <p>Imported <a href="https://github.com/Imagine-Programming/" target="_blank">Bas Groothedde's</a> class module.</p>
-    </li>
-</ul>
-@website https://github.com/CentauriSoldier/Dox
+@website https://github.com/CentauriSoldier/LuaEx
 !]]
 
 

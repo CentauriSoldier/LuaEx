@@ -12,7 +12,7 @@ in **LuaEx** (*See documentation for full details*).
 
 
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
-In order to push all the code in **LuaEx** into the global environment, place the **LuaEx** folder into your package path and run the following code:
+To push **LuaEx** into the global environment, place the **LuaEx** folder into your package path and add the following line of code to your project:
 ```lua
 require("LuaEx.init");
 ```
@@ -20,198 +20,8 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗s
-
-#### Current Version: Beta v0.90
-<details>
-<summary>🆅🅸🅴🆆 🅲🅷🅰🅽🅶🅴🅻🅾🅶</summary>
-
-### 🇨​​​​​🇭​​​​​🇦​​​​​🇳​​​​​🇬​​​​​🇪​​​​​🇱​​​​​🇴​​​🇬​​​​​
-**v0.91** ***(IN PROGRESS)***
-- Bugfix:  The **class** static constructor not executing correctly.
-- Bugfix:  The **class** system not permitting **Lua/LuaEx** keywords to be used as member names when using directives.
-- Bugfix:  **CoG** not allowing recursive access to *config* table.
-- Bugfix:  **Dox** displaying parameters, returns and other combined tags out of order.
-- Bugfix:  **class** kits not adopting parents' protected and public read-only values.
-- Bugfix:  **Structfactory** not properly cloning itself.
-- Bugfix:  **Structs** not properly cloning internal objects.
-- Bugfix:  instance returns in parent class were not properly returning child instance when subclassed.
-- Change:  **DoxBuilderHTML** now places all output into a single HTML file instead of using a separate *.js* file.
-- Change:  **Dox** CSS redesigned to be more functional, readable and aesthetically pleasing.
-- Change:  **DoxBlockTag** column wrappers are now defined by each **DoxBuilder** subclass rather than globally.
-- Feature: The **class** module now interally handles all serialization and deserialization via the serializer system.
-- Feature: **class** constructor now must accept a string (authenitication code) as its second argument to be used with the ***class.isstaticconstructorrunning*** function. This can now determine whether the static constructor is currently running.
-- Feature: added new **eventrix** type to manage events.
-- Feature: **enum** items now have ***__eq*** and ***__lt*** metamethods.
-- Feature: **Dox** now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
-- Feature: ***DoxBlockTags*** can now be set to *combined* which places all items using that tag into one section.
-- Feature: **Dox** now has an ***@inheritdoc*** tag that allows inheritance of docs from one **fqxn** to another.
-- Feature: **Dox** Fully Qualified Dox Names (**fqxn**) may now contain spaces.
-- Feature: **Dox** now allows custom intro page message.
-- Feature: subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
-- Feature added several class-level checks:
-    - **class.exists**
-    - **class.getbase**
-    - **class.getbyname**
-    - **class.getchildcount**
-    - **class.getchildren**
-    - **class.getconstructorvisibility**
-    - **class.getname**
-    - **class.getparent**
-    - **class.haschildren**
-    - **class.is**
-    - **class.isbase**
-    - **class.isbaseof**
-    - **class.ischild**
-    - **class.ischildorself**
-    - **class.isdirectchild**
-    - **class.isdirectparent**
-    - **class.isinlineage**
-    - **class.isinstance**
-    - **class.isinstanceof**
-    - **class.isparent**
-    - **class.isparentorself**    
-    - **class.isstaticconstructorrunning**
-    - **class.of**
-- Feature: Class-level check functions now intuitively return the class object where expected but only when the class is in scope, nil otherwise.
-- Feature: **classes** now fully respect polymorphism in assignment operation type checking.
-- Feature: The class constructor may now be either private, protected or public.
-- Feature: **classes** now have an *optional* static constructor using the class name as the static method name.
-- Feature: **Dox** comment blocks can now use internal anchor links (*#*) to other FQXNs.
-- Feature: added Dox output back navigation.
-- Feature: **Dox** now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
-- Feature: added a "Copy" (to clipboard) button to all user-created code blocks in HTML output.
-- Feature: added a **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
-- Feature: **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the **Dox** subclass being used.
-- Feature: **prism.js** scripts are automatically added to **Dox's** finalized HTML output based on the languages used in the documentation.
-- Feature: added **Dox** **Parsers** (subclasses) for several new languages.
-
-**v0.90**
-- Bugfix:  error in ***type.assert.table*** where value type was showing as index type, resulting in false negatives.
-- Bugfix:  error in **SortedDictionary** causing malformed returns.
-- Bugfix:  fatal bug in cloner preventing the cloning of items.
-- Change:  rewrote and completed the interface system for classes.
-- Feature: added support for code html tags using **prism.js** in **Dox** module.
-- Feature: added several new features to **Dox** and prepped it for major updates in future releases.
-- Feature: added ***type.assert.function***.
-- Feature: all items in tables are now properly cloned.
-- Feature: **class** tables are now cloned so class instances may now start with clonable objects as default properties.
-
-**v0.83**
-- Bugfix:   various, minor bugs.
-- Bugfix:   major bug in class auto directive causing malformed classes.
-- Feature:  reorganized and added sections and examples to README.
-- Feature:  integrated and rewrote Dox documentation module and added support for other languages.
-- Refactor: restructured module layout and added more examples to the **examples** directory.
-
-**v0.82**
-- Bugfix:   various, minor bugs.
-- Feature:  created new **Ini.lua** module.
-- Feature:  created new **base64.lua** module.
-- Feature:  created **cloner.lua** module. Updated various, existing items to make them clonable.
-- Feature:  created new **serializer.lua** module that handles serialization and deserialization.
-- Feature:  added serval examples in the **examples** directory for demonstrating usage.
-- Change:   removed old **ini.lua** module.
-- Change:   removed old **base64.lua** module.
-- Change:   modified **cloner** to work with custom, user-created objects.
-- Change:   removed old **serialize.lua** and **deserialize.lua** modules.
-- Change:   modified the serializer to work with custom, user-created objects.
-- Change:   modified the cloner to work with custom, user-created objects.
-- Change:   modified **init.lua** to provide some user options for class loading.
-- Change:   changed all class names to PascalCase to provide clear distinction between class variables and other variables.
-- Refactor: moved several items in the directory structure
-
-**v0.81**
-- Bugfix: renamed the **\_\_LUAEX\_\_** table reference in the **enum** module that got missed.
-- Change: removed class system from **v0.8** as it had a fatal, uncorrectable flaw.
-- Change: rewrote the class system again from scratch, avoiding fatal flaw in previous system.
-- Change: renamed ***type.x*** to ***type.ex*** and ***typex*** to ***typeex*** to more clearly indicate the check refers to **LuaEx** types.
-- Change: set types for factories. (E.g., print(type(class)); --> classfactory)
-- Change: removed static protected members from the class system as using them is, almost always, an anti-pattern.
-- Change: class members are now strongly typed.
-- Change: ***temporarily*** disabled compulsory classes until they're refactored for new class system.
-- Change: ***temporarily*** removed class interfaces until it's rewritten to operate with the new class system.
-- Change: cleaned up and reorganized a lot of the files in the **LuaEx** module.
-
-**v0.80**
-- Change:   rewrote the class system from scratch.
-- Change:   renamed **\_\_LUAEX\_\_** global table **luaex**.
-- Feature:  added class interfaces.
-- Feature:  class system now uses full encapsulation (static protected, static public, private, protected and public fields & methods).
-- Feature:  **luaex** table now contains a **\_VERSION** variable.
-- Refactor: moved various modules to different directories.
-
-**v0.70**
-- Change:   enum items now use functions (.) instead of methods (:) and automatically input themselves as arguments.
-- Change:   enum items' ***next*** and ***previous*** functions *may* now wrap around to the start and end respectively.
-- Change:   renamed functions in various modules to conform with Lua's lowercase naming convention.
-- Change:   improved the ***string.totable*** function.
-- Change:   the ***xtype*** function will now ignore user-defined types but return **LuaEx**'s type names for **classes**, **constants**, **enums**, structs, **struct factories** (and **struct_factory_constructor**) and **null** (and **NULL**) as opposed to returning, *"table"*. *Use the **rawtype** function to ignore all **LuaEx** type mechanics*.
-- Change:   renamed the ***string.delimitedtotable*** function to ***string.totable***.
-- Bugfix:   corrected several minor bugs in enum library.
-- Bugfix:   corrected assertions in stack class.
-- Bugfix:   ***set.addset*** was not adding items.
-- Feature:  added several type functions and metamethods to various default types (e.g., boolean, string, number, etc.).
-- Feature:  added serialization to enums.
-- Feature:  added the **ini** module.
-- Feature:  added ***string.isnumeric*** function.
-- Feature:  added a ***\_\_mod*** metamethod for string which allows for easy interpolation.
-- Feature:  added null type.
-- Feature:  added the **struct** factory module.
-- Feature:  added the ***xtype*** function.
-- Feature:  added the ***fulltype*** function.
-- Refactor: moved all type items to **types.lua**.
-
-**v0.60**
-- Feature:  removed ***string.left*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
-- Feature:  removed ***string.right*** as it was an unnecessary and inefficient wrapper of ***string.sub***.
-- Feature:  added ***string.trim*** function.
-- Feature:  added ***string.trimleft*** function.
-- Feature:  added ***string.trimright*** function.
-- Bugfix:   corrected package.path code in init.lua and removed ***import*** function.
-- Refactor: moved modules into appropriate subdirectories and updated init.lua to find them.
-- Refactor: appended ***string***, ***math*** & ***table*** module files with "hook" without which they would not load properly.
-- Update:   updated README with more information.
-
-**v0.50**
-- Bugfix: ***table.lock*** was altering the metatable of **enums** when it should not have been.
-- Bugfix: ***table.lock*** was not preserving metatable items (where possible).
-- Change: classes are no longer automatically added to the global scope when created; rather, they are returned for the calling script to handle.
-- Change:  **LuaEx** classes and modules are no longer auto-protected and may now be hooked or overwritten. This change does not affect the way constants and enums work in terms of their immutability.
-- Change:  **enums** values may now be of any non-nil type(previously only **string** and **number** were allowed).
-- Feature: **class** constructor methods now pass, not only the instance, but a protected, shared (fields and methods) table to parent classes.
-- Feature: **enums** may now be nested.
-- Feature: added ***protect*** function (in ***stdlib***).
-- Feature: added ***sealmetatable*** function (in ***stdlib***).
-- Feature: added ***subtype*** function (in ***stdlib***).
-- Feature: added ***table.lock*** function.
-- Feature: added ***table.purge*** function.
-- Feature: added ***table.settype*** function.
-- Feature: added ***table.setsubtype*** function.
-- Feature: added ***table.unlock*** function.
-- Feature: added ***queue*** class.
-- Feature: added ***set*** class.
-- Feature: added ***stack*** class.
-
-**v0.40**
-- Bugfix:  metavalue causing custom type check to fail to return the proper value.
-- Bugfix:  typo that caused global enums to not be put into the global environment.
-- Feature: enums can now also be non-global.
-- Feature: the enum created by a call to the enum function is now returned.
-
-**v0.30**
-- Change:  Added a meta table to ***\_G*** in the **init** module.
-- Change:  Changed the name of the **const** module and function to **constant** for Lua 5.1 - 5.4 compatibility.
-- Change:  Altered the way constants and enums work by using the new, ***\_G*** metatable to prevent deletion or overwriting.
-- Change:  Updated several modules.
-- Feature: Hardened the protected table to prevent accidental tampering.
-
-**v0.20**
-- Change: Added the enum object.
-- Change: Updated a few modules.
-
-**v0.10**
-- Compiled various modules into **LuaEx**.
-</details>
+#### Current Version: Beta v0.91
+View Changelog at [https://github.com/CentauriSoldier/LuaEx/CHANGELOG.md](https://github.com/CentauriSoldier/LuaEx/CHANGELOG.md).
 
 ## 🅻🅸🅲🅴🅽🆂🅴 ©
 
@@ -308,11 +118,11 @@ Types ignored by this convention are types **nil** and **null** since prefixing 
 ###### Exceptions:
 In **for loops**, sometimes '*x*' is used to indicate active index while '*k*' and '*v*' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.
 
-Global variables that are directory paths begin with **_** and ***do not*** have a variable prefix.
+Global directory paths begin with **_** and ***do not*** have a variable prefix.
 E.g., _Scripts
 
 In class methods, the first two arguments--the instance object and the class data table respectively) are written as '*this*' and '*cdat*' while the third argument in a child class constructor—the parent constructor method—is written as '*super*'.  
-Additionally, In any method that accepts the input of another class instance, the variable is written as '*other*' (or as '*left*' and '*right*' in metamethods). This intentional and obvious deviation from convention makes these variables stand out clearly.  
+Additionally, In any method that accepts the input of another class instance, the variable is written as '*other*' (or as '*left*' and '*right*' in metamethods). This intentional and obvious deviation from convention makes these variables stand out clearly.
 Within methods, cdat.pri (and other class data tables) may be set as ```local pri = cdat.pri; ```.
 
 Class name are *PascalCase*.  
@@ -467,7 +277,8 @@ print(ERROR_MARKER);            --> "err:"
 - A fully-functional, (*pseudo*) [Object Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming) class system which features encapsulation, inheritance, and polymorphism as well as optional interfaces.
 - The class system also takes advantage of metatables and allows user to create, inherit and override these for class objects.
 - Optional **Properties**: auto getter/setter (*accessor/mutator*) directives which create getter/setter methods for a given non-method member.
-- Optional static initializer method called once during class creation.
+- Optional static initializer method called *once*, **before** class creation.
+- Optional static constructor method called *once*, **after** class creation.
 - Strongly typed values (although allowing initial ***null*** values).
 - Optional final methods (preventing subclass overrides).
 - Optional final classes.
@@ -565,11 +376,15 @@ print("Name: "..Dan.getName());                         --> "Name: Dead Dan"
 ##### Structs 🕋
 These objects are meant to behave as you might expect from other languages but with added features.  
 
-They are made by first creating a struct factory. The factory created is of type **[sName]factory** (of subtype **structfactory**) where *sName* is the name input into the *struct factory builder* (as shown in the example below).  
+They are made by first creating a struct factory. The factory created is of type **[sName]factory** (of subtype **structfactory**) where **sName** is the name input into the *struct factory builder* (as shown in the example below).  
 
 Struct factories output type **sName** (of subtype **struct**).
 
-Creation of a **structfactory** object involves inputting a string-indexed table whose value types are rigidly set by the type given in the input table (or null to remain variable). **Structs** can be set to immutable but are mutable by default.  
+Creation of a **structfactory** object involves inputting a string-indexed table whose value types are rigidly set by the type given in the input table (or null to remain variable).
+
+**Structs** can be set to immutable but are mutable by default.
+While the values can be changed in a mutable **struct**, values in an immutable **struct** cannot be changed.
+Keys can ***never*** be changed in either type of struct.
 
 ***Note**: item types are **not** mutable save for an item containing a **null** value (before being set to a value type). Once an item that contains a **null** value has been set to a real value type, the type cannot be changed.*
 
@@ -751,7 +566,7 @@ These two functions work effortlessly for  native **Lua** types but use with cus
 Any object which is to be serialized must have a ***__serialize*** metamethod.
 To deserialize it, a static ***deserialize*** method must exist.
 
-The contract between the ***__serialize*** metamethod and the static ***deserialize*** method is as follows: whatever is returned from ***__serialize*** will be input by the serializer system into the ***deserialize*** method as the first argument exactly as output by ***__serialize***.  
+The contract between the ***__serialize*** metamethod and the static ***deserialize*** method is as follows: whatever is returned from ***__serialize*** will be input by the serializer system into the ***deserialize*** method as the first argument exactly as output by ***__serialize***.
 
 It's the responsibility of the ***__serialize*** metamethod to ensure all custom objects it returns are serialized before returned (user should confirm those custom objects also have a ***__serialize*** metamethod).  
 
@@ -879,27 +694,6 @@ print("After serialization:\n"..tostring(oMonster));
 ```lua
 
 ```
-</details>
-
----
-
-## 🅼🅾🅳🆄🅻🅴🆂 ⚙
-Below is the complete list of modules in **LuaEx**.
-
-<details>
-<summary>TODO 🛠</summary>
-
-- #### [class](https://centaurisoldier.github.io/LuaEx/api/class.html)
-- #### [constant](https://centaurisoldier.github.io/LuaEx/api/constant.html)
-- #### [deserialize](https://centaurisoldier.github.io/LuaEx/api/deserialize.html)
-- #### [enum](https://centaurisoldier.github.io/LuaEx/api/enum.html)
-- #### [math](https://centaurisoldier.github.io/LuaEx/api/math.html)
-- #### [serialize](https://centaurisoldier.github.io/LuaEx/api/serialize.html)
-- #### [stdlib](https://centaurisoldier.github.io/LuaEx/api/stdlib.html)
-- #### [string](https://centaurisoldier.github.io/LuaEx/api/string.html)
-- #### [struct](https://centaurisoldier.github.io/LuaEx/api/struct.html)
-- #### [table](https://centaurisoldier.github.io/LuaEx/api/table.html)
-
 </details>
 
 ---

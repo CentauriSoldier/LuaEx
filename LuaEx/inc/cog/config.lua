@@ -1,9 +1,8 @@
 --[[!
     @fqxn CoG.Config
     @desc <p>This table (found in the directory <strong><em>LuaEx/inc/cog/config.lua</em></strong>) is for the user to edit (pre-runtime).
-    <br>It is available at runtime by accessing the global variable:
-    <br><strong><em>luaex.cog.config</strong></em>
-    <br>It (and any subtables it contains) are read-only at runtime, preventing potential issues of unexpected data changes.
+    <br>It is available at runtime by accessing the global variable: <strong><em>luaex.cog.config</strong></em>
+    <br><br>It (and any subtables it contains) are read-only at runtime, preventing potential issues of unexpected data changes.
     <br>It's designed to allow configurability in CoG classes and user classes that may need different data from one project to the next.
     <br><strong>Note</strong>: exsiting subtables should not be removed or renamed but the values can be changed without issue.
     <br>More subtables may be added as desired.
@@ -58,10 +57,10 @@ local tConfig = {--TODO basic things like units of measurement
                     <th style="background-color: #CCDC90; color: #000000;">Chance (%)</th>
                     <th style="background-color: #CCDC90; color: #000000;">Min Affix Tier</th>
                     <th style="background-color: #CCDC90; color: #000000;">Max Affix Tier</th>
-                    <th style="background-color: #CCDC90; color: #000000;">Min Prefix</th>
-                    <th style="background-color: #CCDC90; color: #000000;">Max Prefix</th>
-                    <th style="background-color: #CCDC90; color: #000000;">Min Suffix</th>
-                    <th style="background-color: #CCDC90; color: #000000;">Max Suffix</th>
+                    <th style="background-color: #CCDC90; color: #000000;">Min Prefixes</th>
+                    <th style="background-color: #CCDC90; color: #000000;">Max Prefixes</th>
+                    <th style="background-color: #CCDC90; color: #000000;">Min Suffixes</th>
+                    <th style="background-color: #CCDC90; color: #000000;">Max Suffixes</th>
                 </tr>
             </thead>
             <tbody style="background-color: #3F3F3F; color: #DCDCCC;">
@@ -134,15 +133,15 @@ local tConfig = {--TODO basic things like units of measurement
             </tbody>
         </table>
         !]]
-        LEVEL           = {"COMMON",    "UNCOMMON",     "RARE",         "EPIC",     "LEGENDARY",    "SINGULAR"},
-        COLOR           = {"#BBBBBB",   "#0000B3",      "#AFC657",      "#00C202",  "#BA0000",      "#CF7136"},
-        CHANCE          = {100,         21,             13,             8,          5,              3},
-        MIN_AFFIX_TIER  = {TIER.I,      TIER.I,         TIER.I,         TIER.II,    TIER.II,        TIER.V},
-        MAX_AFFIX_TIER  = {TIER.I,      TIER.II,        TIER.III,       TIER.IV,    TIER.V,         TIER.VI},
-        MIN_PREFIX      = {0,           1,              1,              2,          2,              3},
-        MAX_PREFIX      = {1,           1,              2,              2,          3,              3},
-        MIN_SUFFIX      = {0,           1,              1,              2,          3,              3},
-        MAX_SUFFIX      = {1,           2,              2,              3,          3,              3},
+        LEVEL               = {"COMMON",    "UNCOMMON",     "RARE",         "EPIC",     "LEGENDARY",    "SINGULAR"},
+        COLOR               = {"#BBBBBB",   "#0000B3",      "#AFC657",      "#00C202",  "#BA0000",      "#CF7136"},
+        CHANCE              = {100,         21,             13,             8,          5,              3},
+        MIN_AFFIX_TIER      = {TIER.I,      TIER.I,         TIER.I,         TIER.II,    TIER.II,        TIER.V},
+        MAX_AFFIX_TIER      = {TIER.I,      TIER.II,        TIER.III,       TIER.IV,    TIER.V,         TIER.VI},
+        MIN_PREFIXES        = {0,           1,              1,              2,          2,              3},
+        MAX_PREFIXES        = {1,           1,              2,              2,          3,              3},
+        MIN_SUFFIXES        = {0,           1,              1,              2,          3,              3},
+        MAX_SUFFIXES        = {1,           2,              2,              3,          3,              3},
     },
     StatusSystem = {
         EFFECT = {
@@ -244,5 +243,6 @@ end
 
 --restrict the config table to access only
 setMeta(tConfig);
+
 --return the modified table
 return tConfig;

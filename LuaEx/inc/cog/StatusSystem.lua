@@ -8,6 +8,7 @@ return class("StatusSystem",
 },
 {--STATIC PUBLIC
     __INIT = function(stapub)
+        --import the effect table from the config file
         local tEffect = luaex.cog.config["StatusSystem"].EFFECT;
 
         --create the effect enum
