@@ -3,11 +3,11 @@
   <h1>🅲🅷🅰🅽🅶🅴🅻🅾🅶</h1>
 </div>
 
-## [**v0.92**] (*in progress*)
+## [**v0.61**] (*in progress*)
 
 ---
 
-## [**v0.91**]
+## [**v0.60**]
 
 ### Added
 - New **eventrix** type to manage events.    
@@ -36,10 +36,10 @@
     - **class.isstaticconstructorrunning**
     - **class.of**    
 - Classes now have an *optional* static constructor using the class name as the static method name.
-- **Dox** comment blocks can now use internal anchor links (*#*) to other FQXNs.
+- **Dox** comment blocks can now use internal anchor links (***#***) to other FQXNs.
 - **Dox** output back navigation.
 - **Dox** now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
-- "Copy" (to clipboard) button to all user-created code blocks in **Dox** HTML output.
+- "**Copy**" (*to clipboard*) button to all user-created code blocks in **Dox** HTML output.
 - **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
 - **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the **Dox** subclass being used.
 - Relevant **prism.js** scripts are automatically added to **Dox's** finalized HTML output based on the languages used in the documentation.
@@ -49,12 +49,13 @@
 - Moved the changelog from README.md to its own file.
 - Modified the changelog to be more in line with [keepachangelog.com](https://keepachangelog.com/en/1.1.0/) standards.
 - Consolidated the old **class** changelog (*in the module's documentation*) into **LuaEx's** changelog.
-- Appropriate class-level check functions now intuitively return the class object where expected but only when the class is in scope, nil otherwise.
+- Class type checks were placed within the **type** module. E.g., ***isCreature*** becomes ***type.isCreature***.
+- Appropriate class-level check functions now return the class object where intuitively expected but only when the class is in scope, nil otherwise.
 - Classes now fully respect polymorphism in assignment operation type checking.
 - The class constructor may now be either private, protected or public.
 - The **class** module now interally handles all serialization and deserialization via the serializer system.
 - **class** constructor must now accept a string (*authenitication code*) as its second argument to be used with the ***class.isstaticconstructorrunning*** function. This can now determine whether the static constructor is currently running.
-- **enum** items now have ***__eq*** and ***__lt*** metamethods.
+- **enum** items now have ***\_\_eq*** and ***\_\_lt*** metamethods.
 - **Dox** now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
 - ***DoxBlockTags*** can now be set to *combined* which places all items using that tag into one section.
 - **Dox** now has an ***@inheritdoc*** tag that allows inheritance of docs from one **fqxn** to another.
@@ -77,9 +78,10 @@
 
 ---
 
-## [**v0.90**]
+## [**v0.50**]
 
 ### Added
+- **CoG** (*Code of Gaming*) framework.
 - Support for code html tags using **prism.js** in **Dox** module.
 - Several new features to **Dox** and prepped it for major updates in future releases.
 - ***type.assert.function***
@@ -94,17 +96,17 @@
 - An error in **SortedDictionary** causing malformed returns.
 - A fatal bug in the cloner system preventing the cloning of items.
 
-## [**v0.83**]
+## [**v0.40**]
 
 ### Added
 - Added several class-level methods.
 - Added a static initializer to classes (uses a method of the class name in the static public table).
 
 ### Changed
+- Integrated and rewrote **Dox** documentation module and added support for other languages.
 - Subclassing can now be controlled with whitelists or blacklists.
 - Updated type setting permissions to honor child class instances.
 - Reorganized and added sections and examples to README.
-- Integrated and rewrote Dox documentation module and added support for other languages.
 - Restructured module layout and added more examples to the **examples** directory.
 - **\_\_AUTO** directive prefix format changed to **\_\_AUTO\_\_**.
 
@@ -112,13 +114,13 @@
 - Editing kit visibility table during iteration in **\_\_AUTO\_\_** directive was causing malformed classes.
 - Private methods not able to be overriden from within the class.
 - Public static members could not be set or retrieved.
-- __shr method not providing 'other' parameter to client.
+- The ***\_\_shr*** metamethod not providing '*other*' parameter to client.
 - Various, minor bugs.
 - Major bug in class **\_\_AUTO\_\_** directive causing malformed classes.
 
 ---
 
-## [**v0.82**]
+## [**v0.30**]
 
 ### Added
 - New **Ini.lua** module.
@@ -152,7 +154,7 @@
 
 ---
 
-## [**v0.81**]
+## [**v0.20**]
 
 ### Changed
 - Rewrote the class system again from scratch, avoiding fatal flaw in previous system.
@@ -163,7 +165,7 @@
 - Renamed ***type.x*** to ***type.ex*** and ***typex*** to ***typeex*** to more clearly indicate that the check refers to **LuaEx** types.
 
 ### Removed
-- Class system from **v0.80** as it had a fatal, uncorrectable flaw.
+- Previous class system as it had a fatal, uncorrectable flaw.
 - Static protected members from the class system as using them is, almost always, an anti-pattern.
 - ***Temporarily*** removed class interface module until it's rewritten to operate with the new class system.
 
@@ -172,7 +174,7 @@
 
 ---
 
-## [**v0.80**]
+## [**v0.10**]
 
 ### Added
 - The class interfaces.
@@ -186,7 +188,7 @@
 
 ---
 
-## [**v0.70**]
+## [**v0.07**]
 
 ### Added
 - Several type functions and metamethods to various default types (e.g., boolean, string, number, etc.).
@@ -215,7 +217,7 @@
 
 ---
 
-## [**v0.60**]
+## [**v0.06**]
 
 ### Added
 - The ***string.trim*** function.
@@ -236,7 +238,7 @@
 
 ---
 
-## [**v0.50**]
+## [**v0.05**]
 
 ### Added
 - The ***protect*** function (in ***stdlib***).
@@ -264,7 +266,7 @@
 
 ---
 
-## [**v0.40**]
+## [**v0.04**]
 
 ### Changed
 - Enums can now also be non-global.
@@ -276,7 +278,7 @@
 
 ---
 
-## [**v0.30**]
+## [**v0.03**]
 
 ### Added
 - A meta table to ***\_G*** in the **init** module.
@@ -289,7 +291,7 @@
 
 ---
 
-## [**v0.20**]
+## [**v0.02**]
 
 ### Added
 - The enum object.
@@ -299,7 +301,7 @@
 
 ---
 
-## [**v0.10**]
+## [**v0.01**]
 
 ### Added
 - Compiled various modules into **LuaEx**.

@@ -43,7 +43,107 @@ local _bUseBootDirectives = true;
 
 --[[!
 @fqxn LuaEx
-@desc Put info about LuaEx here...
+@desc
+<div class="container py-4">
+  <div class="text-center">
+    <img src="https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png" alt="LuaEx Logo" class="img-fluid mb-4" style="max-height: 150px;">
+    <p class="lead">A powerful, lightweight extension of Lua 5.3+</p>
+  </div>
+
+  <div class="my-5">
+    <h3 class="mb-3">Key Features</h3>
+    <ul class="list-group">
+      <li class="list-group-item">✅ Drop-in global environment initializer</li>
+      <li class="list-group-item">✅ Class system with full OOP: inheritance, encapsulation, polymorphism</li>
+      <li class="list-group-item">✅ Dox documentation generator</li>
+      <li class="list-group-item">✅ CoG game framework</li>
+      <li class="list-group-item">✅ Event system</li>
+      <li class="list-group-item">✅ Ships with basic classes (<em>E.g., Set, Stack, Queue, SortedDictionary, etc.</em>)</li>
+      <li class="list-group-item">✅ Strict naming, coding and commenting conventions for clarity and consistency</li>
+      <li class="list-group-item">✅ Enhanced type system with subtype support</li>
+      <li class="list-group-item">✅ Boolean arithmetic and coercion features</li>
+      <li class="list-group-item">✅ Safe <code>null</code> type (distinct from <code>nil</code>)</li>
+      <li class="list-group-item">✅ Simple constant definition</li>
+      <li class="list-group-item">✅ Typed objects like <strong>arrays</strong>, <strong>enums</strong>, and <strong>structs</strong></li>
+      <li class="list-group-item">✅ Built-in serializer/deserializer system with metatable support</li>
+    </ul>
+  </div>
+
+  <div class="my-5">
+    <h3 class="mb-3">Class System</h3>
+    <p>Supports:</p>
+    <ul>
+      <li>Static initializers and constructors</li>
+      <li>Final classes and final methods</li>
+      <li>Optional interface declarations</li>
+      <li>Auto-accessor properties via <code>__AUTO</code> directive</li>
+      <li>Support for encapsulation (private/protected/public)</li>
+    </ul>
+  </div>
+
+  <div class="my-5">
+    <h3 class="mb-3">Advanced Data Types</h3>
+    <div class="row">
+      <div class="col-md-4">
+        <h5>Arrays</h5>
+        <ul>
+          <li>Fixed length</li>
+          <li>Type-safe</li>
+          <li>Bounds checked</li>
+          <li>Optional initial values</li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h5>Enums</h5>
+        <ul>
+          <li>Strict ordinal values</li>
+          <li>Optional value types</li>
+          <li>Runtime creation support</li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h5>Structs</h5>
+        <ul>
+          <li>Fixed key/value pairs</li>
+          <li>Immutable or mutable</li>
+          <li>Strict typing per key</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="my-5">
+    <h3 class="mb-3">Serialization</h3>
+    <p>Supports native Lua types and custom types that implement:</p>
+    <ul>
+      <li><code>__serialize</code> metamethod for object state extraction</li>
+      <li><code>deserialize()</code> static function for reconstitution</li>
+      <li>Class objects have built-in auto serialization/deserialization</li>
+    </ul>
+    <p class="text-white">Threads and userdata are not serializable.</p>
+  </div>
+
+  <div class="my-5">
+    <h3 class="mb-3">Simplicity & Compatibility</h3>
+    <ul>
+      <li>Designed for Lua 5.3</li>
+      <li>Backwards-compatible with Lua 5.1 (where possible)</li>
+      <li>Minimal learning curve with intuitive APIs</li>
+      <li>Effortlessly extendable</li>
+    </ul>
+  </div>
+
+  <div class="my-5">
+    <h3 class="mb-3">License</h3>
+    <p><strong>LuaEx</strong> is released under <a href="https://opensource.org/licenses/unlicense" target="_blank">The Unlicense</a>. Use it freely for any purpose, personal or commercial.</p>
+  </div>
+
+  <div class="my-5 text-center">
+    <a href="https://centaurisoldier.github.io/LuaEx" class="btn btn-primary btn-lg" target="_blank">📚 View Full Documentation</a>
+    <a href="https://github.com/CentauriSoldier/LuaEx" class="btn btn-outline-secondary btn-lg ml-3" target="_blank">🌐 Visit GitHub Repo</a>
+  </div>
+</div>
+
 !]]
 
 --🅼🅾🅳🅸🅵🆈 🆅🅰🅻🆄🅴🆂 🅱🅴🅻🅾🆆 🅰🆃 🆈🅾🆄🆁 🅾🆆🅽 🆁🅸🆂🅺

@@ -1,7 +1,410 @@
 --[[!
     @fqxn Dox.Statics.BlockTags
+    @todo WORK IN PROGRESS - CHECK DATA IS CORRECT
     @desc This is a list of all built-in <a href="#Classes.Utility.Dox.BlockTag">BlockTags</a>.
-    <br>While subclasses (parsers) <i>may</i> provide their own, additional BlockTags, these are always guaranteed to be available.
+    <br>While subclasses (parsers) <i>may</i> provide their own additional BlockTags, the ones listed below are always guaranteed to be available.<br><br>
+    <table class="table table-striped table-bordered table-responsive">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Display</th>
+                <th scope="col">Aliases</th>
+                <th scope="col">Required</th>
+                <th scope="col">Multiple Allowed</th>
+                <th scope="col">Combined</th>
+                <th scope="col"># Columns</th>
+                <th scope="col">Has Column Wrapper(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>FQXN</td>
+                <td>fqxn</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Bug(s)</td>
+                <td>bug</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Todo</td>
+                <td>todo</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Scope</td>
+                <td>scope</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Visibility</td>
+                <td>vis, visi, visibility</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Description</td>
+                <td>des, desc, description</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Note</td>
+                <td>note</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Summary</td>
+                <td>summary</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Parameter(s)</td>
+                <td>parameter, param, par</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Field(s)</td>
+                <td>field</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Field(s) - Private</td>
+                <td>privatefield, prifield, prifi</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Field(s) - Protected</td>
+                <td>protectedfield, profield, profi</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Field(s) - Public</td>
+                <td>publicfield, pubfield, pubfi</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Field(s) - Static Private</td>
+                <td>staticprivatefield, staprifield, staprifi</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Field(s) - Static Public</td>
+                <td>staticpublicfield, stapubfield, stapubfi</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Property</td>
+                <td>prop, property</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Throws</td>
+                <td>throws</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Return(s)</td>
+                <td>return, ret</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>3</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Example</td>
+                <td>ex, example</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Code</td>
+                <td>code</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Requires</td>
+                <td>requires</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Uses</td>
+                <td>uses</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Features</td>
+                <td>features</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Parent</td>
+                <td>parent</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Inheritdoc</td>
+                <td>inheritdoc</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Interface</td>
+                <td>interface</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Security</td>
+                <td>security</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Performance</td>
+                <td>performance</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Planned Features</td>
+                <td>planned</td>
+                <td>no</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Issue(s)</td>
+                <td>issue</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Since</td>
+                <td>since</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Depracated</td>
+                <td>deprecated</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Changelog</td>
+                <td>changelog, versionhistory</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Version</td>
+                <td>version, ver</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>See</td>
+                <td>see</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Author(s)</td>
+                <td>author</td>
+                <td>no</td>
+                <td>yes</td>
+                <td>yes</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>email</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>License</td>
+                <td>license</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Website</td>
+                <td>www, web, website</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>GitHub</td>
+                <td>github</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Facebook</td>
+                <td>fb, facebook</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>X (Twitter)</td>
+                <td>x, twitter</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
+                <td>Copyright</td>
+                <td>copy, copyright</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+        </tbody>
+    </table>
 !]]
 local _bRequired            = true;
 local _bMultipleAllowed     = true;
@@ -10,97 +413,28 @@ local _bIsUtil              = true;
 
 return {
     --TODO allow modification and ordering
-    --[[!
-    @fqxn Dox.Statics.Built-in BlockTags.FQXN
-    @desc   Display: <strong>FQXN</strong><br>
-            Aliases:<br><ul><li>fqxn</li></ul>
-            Required: <b>true</b><br>
-            Multiple Allowed: <b>false</b><br>
-            Combined: <b>false</b><br>
-            #Columns: <b>1</b>
-            Has Column Wrapper(s): <b>false</b><br>
-            <br><br>
-            The <b>Fully</b> <b>Q</b>ualified Do<b>x</b> <b>N</b>ame (FQXN) is a required BlockTag that tells Dox how to organize the block in the final output.<br>
-            It can be thought of as a unique web address, providing a unique landing page for all items within a block.<br>
-            In addition, FQXNs can be used to create anchor links.
-    @ex
-    --create an anchor link in a comment block to another item.
-    --\[\[!
-        \@fqxn MyProject.MyClass.MyMethods.Method1
-        \@desc This method does neat stuff then calls &lt;a href="MyProject.MyClass.MyMethods.Method2"&gt;Method2&lt;/a&gt;
-    !\]\]
-    !]]
+
     DoxBlockTag(    {"fqxn"},                                                   "FQXN",
                     _bRequired,     -_bMultipleAllowed),
-    --[[!
-    @fqxn Dox.Statics.Built-in BlockTags.Scope
-    @desc Display: <strong>Scope</strong><br>
-          Aliases:<br><ul><li>scope</li></ul>
-          Required: <b>false</b><br>
-          Multiple Allowed: <b>false</b><br>
-          Combined: <b>false</b><br>
-          #Columns: <b>1</b><br>
-          Has Column Wrapper(s): <b>false</b><br>
-    !]]
+    DoxBlockTag(    {"bug"},                                                    "Bug(s)",
+                    -_bRequired,   _bMultipleAllowed,      _bCombined),
+    DoxBlockTag(    {"todo"},                                                   "TODO",
+                    -_bRequired,   _bMultipleAllowed,      _bCombined),
     DoxBlockTag(    {"scope"},                                                  "Scope",
                     -_bRequired,    -_bMultipleAllowed,   -_bCombined,      -_bIsUtil,  0),
-    --[[!
-    @fqxn Dox.Statics.Built-in BlockTags.Visibility
-    @desc Display: <strong>Visibility</strong><br>
-                   Aliases:<br><ul><li>vis</li>visi<li>visibility</li></ul>
-                   Required: <b>false</b><br>
-                   Multiple Allowed: <b>false</b><br>
-                   Combined: <b>false</b><br>
-                   #Columns: <b>1</b><br>
-                   Has Column Wrapper(s): <b>false</b><br>
-    !]]
+
     DoxBlockTag(    {"vis", "visi", "visibility"},                              "Visibility",
                     -_bRequired,    -_bMultipleAllowed),
-    --[[!
-    @fqxn Dox.Statics.Built-in BlockTags.Description
-    @desc Display: <strong>Description</strong><br>
-                   Aliases:<br><ul><li>des</li>desc<li>description</li></ul>
-                   Required: <b>false</b><br>
-                   Multiple Allowed: <b>false</b><br>
-                   Combined: <b>false</b><br>
-                   #Columns: <b>1</b><br>
-                   Has Column Wrapper(s): <b>false</b><br>
-    !]]
+
     DoxBlockTag(    {"des", "desc", "description"},                             "Description",
                     -_bRequired,    -_bMultipleAllowed),
-    --[[!
-    @fqxn Dox.Statics.Built-in BlockTags.Note
-    @desc Display: <strong>Note</strong><br>
-                   Aliases:<br><ul><li>note</li></ul>
-                   Required: <b>false</b><br>
-                   Multiple Allowed: <b>false</b><br>
-                   Combined: <b>false</b><br>
-                   #Columns: <b>1</b><br>
-                   Has Column Wrapper(s): <b>false</b><br>
-    !]]
+
     DoxBlockTag(    {"note"},                                                   "Note",
                     -_bRequired,    -_bMultipleAllowed),
-    --[[!
-    @fqxn Dox.Statics.Built-in BlockTags.Summary
-    @desc Display: <strong>Summary</strong><br>
-                   Aliases:<br><ul><li>summary</li></ul>
-                   Required: <b>false</b><br>
-                   Multiple Allowed: <b>false</b><br>
-                   Combined: <b>false</b><br>
-                   #Columns: <b>1</b><br>
-                   Has Column Wrapper(s): <b>false</b><br>
-    !]]
+
     DoxBlockTag(    {"summary"},                                                "Summary",
                     -_bRequired,    -_bMultipleAllowed),
-    --[[!
-    @fqxn Dox.Statics.Built-in BlockTags.Parameter(s)
-    @desc Display: <strong>Parameter(s)</strong><br>
-                   Aliases:<br><ul><li>parameter</li><li>param</li><li><par/li></ul>
-                   Required: <b>false</b><br>
-                   Multiple Allowed: <b>true</b><br>
-                   Combined: <b>true</b><br>
-                   #Columns: <b>3</b><br>
-    !]]
+
     DoxBlockTag(    {"parameter", "param", "par"},                              "Parameter(s)",
                     -_bRequired,    _bMultipleAllowed,      _bCombined,     -_bIsUtil,  2),
     DoxBlockTag(    {"field"},                                                  "Field(s)",
@@ -147,11 +481,7 @@ return {
                     -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag(    {"planned"},                                                "Planned Features",
                     -_bRequired,    -_bMultipleAllowed,    _bCombined),
-    DoxBlockTag(    {"todo"},                                                   "TODO",
-                    -_bRequired,   _bMultipleAllowed,      _bCombined),
     DoxBlockTag(    {"issue"},                                                  "Issue(s)",
-                    -_bRequired,   _bMultipleAllowed,      _bCombined),
-    DoxBlockTag(    {"bug"},                                                    "Bug(s)",
                     -_bRequired,   _bMultipleAllowed,      _bCombined),
     DoxBlockTag(    {"since"},                                                  "Since",
                     -_bRequired,   -_bMultipleAllowed),
