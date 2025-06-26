@@ -11,10 +11,11 @@ local _sOutputWrapperPost = [[
     }
 }]];
 --[[
-@fxqn Dox.Builders.PulsarLua.getBlocksToPrep
+@fxqn Dox.Builders.PulsarLua.filterBlocks
 @desc Looks for the PulsarLua tag name and adds the entire block to the return table for processing if found.
+@scope Local
 !]]
-local function getBlocksToPrep(tAllBlocks)
+local function filterBlocks(tAllBlocks)
     local tRet = {};
 
     --determine which blocks are eligible for processing
@@ -40,7 +41,7 @@ end
     @fqxn Dox.Builders.PulsarLua.prepBlocks
     @vis Static Private
     @desc Called by the refresh method, this readies relevant blocks for organizing.
-    @param table tBlocksToPrep A table created by the <b><i>getBlocksToPrep</i></b> function.
+    @param table tBlocksToPrep A table created by the <b><i>filterBlocks</i></b> function.
     @param function fProcessBlockItem This function is passed by the Dox class and properly processes and formats each block item.
     @ret table tPreppedBlocks A table containing the prepped blocks.<br>
     Table layout is as follows:<br>
@@ -361,7 +362,7 @@ return class("DoxBuilderPulsarLua",
     end,
     refresh = function(this, cdat, tAllBlocks, fProcessBlockItem)
         --local tFinalized        = {};
-        local tBlocksToPrep     = getBlocksToPrep(tAllBlocks);
+        local tBlocksToPrep     = filterBlocks(tAllBlocks);
         local tPreppedBlocks    = prepBlocks(tBlocksToPrep, fProcessBlockItem);
         local tOrganizedBlocks  = organizeBlocks(tPreppedBlocks);
 

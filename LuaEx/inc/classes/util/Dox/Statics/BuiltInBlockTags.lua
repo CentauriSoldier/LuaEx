@@ -26,6 +26,15 @@
                 <td>no</td>
             </tr>
             <tr>
+                <td>Description</td>
+                <td>des, desc, description</td>
+                <td>no</td>
+                <td>no</td>
+                <td>no</td>
+                <td>1</td>
+                <td>no</td>
+            </tr>
+            <tr>
                 <td>Bug(s)</td>
                 <td>bug</td>
                 <td>no</td>
@@ -55,15 +64,6 @@
             <tr>
                 <td>Visibility</td>
                 <td>vis, visi, visibility</td>
-                <td>no</td>
-                <td>no</td>
-                <td>no</td>
-                <td>1</td>
-                <td>no</td>
-            </tr>
-            <tr>
-                <td>Description</td>
-                <td>des, desc, description</td>
                 <td>no</td>
                 <td>no</td>
                 <td>no</td>
@@ -416,6 +416,8 @@ return {
 
     DoxBlockTag(    {"fqxn"},                                                   "FQXN",
                     _bRequired,     -_bMultipleAllowed),
+    DoxBlockTag(    {"des", "desc", "description"},                             "Description",
+                    -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag(    {"bug"},                                                    "Bug(s)",
                     -_bRequired,   _bMultipleAllowed,      _bCombined),
     DoxBlockTag(    {"todo"},                                                   "TODO",
@@ -424,9 +426,6 @@ return {
                     -_bRequired,    -_bMultipleAllowed,   -_bCombined,      -_bIsUtil,  0),
 
     DoxBlockTag(    {"vis", "visi", "visibility"},                              "Visibility",
-                    -_bRequired,    -_bMultipleAllowed),
-
-    DoxBlockTag(    {"des", "desc", "description"},                             "Description",
                     -_bRequired,    -_bMultipleAllowed),
 
     DoxBlockTag(    {"note"},                                                   "Note",

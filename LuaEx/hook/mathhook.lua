@@ -507,7 +507,7 @@ function math.ratio(nLeft, nRight)
     return 	{left = nLeft / nGCD, right = nRight / nGCD};
 end
 --TODO move these to a color module and put that module in CoG
-function math.rgbtolong(nR, nG, nB)
+function math.rgbtoint(nR, nG, nB)
     return nR + (nG * 256) + (nB * 65536)
 end
 
@@ -533,11 +533,10 @@ y = b * 256
 z = g * 65536
 l = x + y + z
 ]]
---TODO fix this! the math is wrong...find a good example
-function math.longtorgb(long_color)
-    local red = math.floor(long_color / 65536) % 256
-    local green = math.floor(long_color / 256) % 256
-    local blue = long_color % 256
+function math.inttorgb(long_color)
+    local red   = math.floor(long_color / 65536)
+    local green = math.floor((long_color % 65536) / 256)
+    local blue  = long_color % 256
     return red, green, blue
 end
 

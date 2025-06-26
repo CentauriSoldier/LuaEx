@@ -49,6 +49,8 @@
 - Moved the changelog from README.md to its own file.
 - Modified the changelog to be more in line with [keepachangelog.com](https://keepachangelog.com/en/1.1.0/) standards.
 - Consolidated the old **class** changelog (*in the module's documentation*) into **LuaEx's** changelog.
+- Renamed ***math.longtorgb*** to ***math.inttorgb***.
+- Renamed ***math.rgbtolong*** to ***math.rgbtoint***.
 - Class type checks were placed within the **type** module. E.g., ***isCreature*** becomes ***type.isCreature***.
 - Appropriate class-level check functions now return the class object where intuitively expected but only when the class is in scope, nil otherwise.
 - Classes now fully respect polymorphism in assignment operation type checking.
@@ -67,6 +69,7 @@
 - **DoxBlockTag** column wrappers are now defined by each **DoxBuilder** subclass rather than globally.
 
 ### Fixed
+- Bug in ***math.longtorgb*** (now ***math.inttorgb***) causing it to return incorrect values.
 - The **class** static constructor not executing correctly.
 - The **class** system not permitting **Lua/LuaEx** keywords to be used as member names when using directives.
 - **CoG** not allowing recursive access to *config* table.

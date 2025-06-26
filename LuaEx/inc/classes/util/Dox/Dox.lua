@@ -3,15 +3,6 @@ local _pStaticsRequirePath  = "LuaEx.inc.classes.util.Dox.Statics";
 local _eSyntax              = require(_pStaticsRequirePath..".DoxSyntaxEnum");
 local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags");
 
---TODO allow user to suround content block with (optional tags) tags...
---TODO color dead anchor links
---TODO FINISH PLANNED add option to get and print TODO, BUG, etc.
---TODO parse sinlge-line comments too
---TODO add tooltip with @des info (if available) in sidemenu items
---TODO allow custom BlockTag sort order (in what order items are displayed in the ourput)
---TODO allow escaping . in FQXN
---TODO fix bug in fqxns with multiple-spaces
-
 local assert    = assert;
 local class     = class;
 local rawtype   = rawtype;
@@ -65,6 +56,17 @@ end
 ╚═════╝  ╚═════╝ ╚═╝  ╚═╝]]
 --[[!
 @fqxn Dox
+@todo <!--TODO-->
+<ul>
+    <li>allow user to suround content block with (optional tags) tags...</li>
+    <li>color dead anchor links</li>
+    <li>add option to get and print TODO, BUG, etc.</li>
+    <li>parse single-line comments too</li>
+    <li>add tooltip with \@des info (if available) in sidemenu items</li>
+    <li>allow custom BlockTag sort order (in what order items are displayed in the output)</li>
+    <li>allow escaping . in FQXN</li>
+    <li>fix bug in fqxns with multiple-spaces</li>
+</ul>
 @desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
 <br><br>
 Note: Dox is intended only to be used by being subclassed.
@@ -115,7 +117,106 @@ oDoxLua.export(); --profit!
 @prifi string blockOpen Set during contruction, this is the string that tells Dox when to <strong>start</strong> reading a <a href="#Dox.Components.DoxBlock">DoxBlock</a>.
 @prifi string blockClose Set during contruction, this is the string that tells Dox when to <strong>stop</strong> reading a <a href="#Dox.Components.DoxBlock">DoxBlock</a>.
 @prifi table blockTags A complete list of <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a> available to the instance.
-<br>It's built during construction by first importing all built-in <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a>, then by creating and inserting the example <strong>BlockTags</strong> and finally by inputting all input varargs (input <strong>BlockTags</strong>) if any are provided.--TODO FINISH And, what is 'prifi'?
+<br>It's built during construction by first importing all built-in <a href="#Dox.Components.DoxBlockTag">DoxBlockTags</a>, then by creating and inserting the example <strong>BlockTags</strong> and finally by inputting all input varargs (input <strong>BlockTags</strong>) if any are provided.--TODO FINISH
+@summary
+Below is the layout and hierarchy of Dox and all its elements.
+<!-- Parsers -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingParsers">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseParsers" aria-expanded="true" aria-controls="collapseParsers">
+          📦 Parsers
+        </button>
+      </h2>
+      <div id="collapseParsers" class="accordion-collapse collapse show"
+           aria-labelledby="headingParsers" data-bs-parent="#doxAccordion">
+        <div class="accordion-body">
+          <p>Language-specific modules that scan your source for <code>--\[\[! … \]\]</code> blocks and <code>\@tags</code>, then emit <strong>DoxBlockTag</strong> objects.</p>
+          <ul>
+            <li><code>DoxSyntax.lua</code> – core tokenizer, finds raw tags and text</li>
+            <li><code>DoxLua.lua</code>, <code>DoxCPP.lua</code>, etc. – apply comment-style rules and normalize into <code>DoxBlockTag</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Components -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingComponents">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseComponents" aria-expanded="false" aria-controls="collapseComponents">
+          🔧 Components
+        </button>
+      </h2>
+      <div id="collapseComponents" class="accordion-collapse collapse"
+           aria-labelledby="headingComponents" data-bs-parent="#doxAccordion">
+        <div class="accordion-body">
+          <p>Core in-memory models and the abstract builder interface.</p>
+          <ul>
+            <li><strong>DoxBlockTag.lua</strong> – represents one <code>\@tag</code> (name, type, description)</li>
+            <li><strong>DoxBlock.lua</strong> – groups tags &amp; text into a logical block</li>
+            <li><strong>DoxBuilder.lua</strong> – abstract base with <code>refresh()</code> and <code>build()</code> signatures</li>
+            <li><strong>DoxMime.lua</strong> – escaping &amp; formatting helpers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Builders -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingBuilders">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseBuilders" aria-expanded="false" aria-controls="collapseBuilders">
+          🏗️ Builders
+        </button>
+      </h2>
+      <div id="collapseBuilders" class="accordion-collapse collapse"
+           aria-labelledby="headingBuilders" data-bs-parent="#doxAccordion">
+        <div class="accordion-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>HTML Builder</h5>
+              <ul>
+                <li><code>DoxBuilderHTML.lua</code> – nests by FQXN, injects CSS/JS, outputs HTML page</li>
+                <li><code>Data/dox.css</code> &amp; <code>prism.js</code> for styling &amp; highlighting</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h5>PulsarLua Builder</h5>
+              <ul>
+                <li><code>DoxBuilderPulsarLua.lua</code> – filters <code>\@display PulsarLua</code>, builds nested table, emits JSON (to adapt for CSON snippets)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integration -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingIntegration">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseIntegration" aria-expanded="false" aria-controls="collapseIntegration">
+          🔄 How It Fits Together
+        </button>
+      </h2>
+      <div id="collapseIntegration" class="accordion-collapse collapse"
+           aria-labelledby="headingIntegration" data-bs-parent="#doxAccordion">
+        <div class="accordion-body">
+          <ol>
+            <li><strong>Parse</strong> source → <code>DoxBlockTag</code> → <code>DoxBlock</code></li>
+            <li><strong>Refresh</strong> in builder → nest by FQXN → <code>tFinalizedData</code></li>
+            <li><strong>Build</strong> in builder → serialize to HTML/JSON/CSON</li>
+            <li><strong>Output</strong> injected into docs or editor snippets</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 !]]
 return class("Dox",
 {--metamethods
