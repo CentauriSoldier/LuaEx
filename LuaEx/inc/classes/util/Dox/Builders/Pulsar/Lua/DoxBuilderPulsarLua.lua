@@ -1,4 +1,4 @@
-local _sBuilderName = "PulsarLua";
+local _sPulsarLua = "PulsarLua";
 local _sOutputWrapperPre = [[
 {
     "global": {
@@ -25,7 +25,7 @@ local function filterBlocks(tAllBlocks)
             local sDisplay = oBlockTag.getDisplay();
 
             --add eligible blocks to the processing table
-            if (sDisplay == _sBuilderName) then
+            if (sDisplay == _sPulsarLua) then
                 tRet[#tRet + 1] = oBlock;
                 break;
             end
@@ -39,9 +39,9 @@ end
 
 --[[!
     @fqxn Dox.Builders.PulsarLua.prepBlocks
-    @vis Static Private
     @desc Called by the refresh method, this readies relevant blocks for organizing.
-    @param table tBlocksToPrep A table created by the <b><i>filterBlocks</i></b> function.
+    @scope Local
+    @param table tFilteredBlocks A table created by the <b><i>filterBlocks</i></b> function.
     @param function fProcessBlockItem This function is passed by the Dox class and properly processes and formats each block item.
     @ret table tPreppedBlocks A table containing the prepped blocks.<br>
     Table layout is as follows:<br>
@@ -53,12 +53,12 @@ end
         },
     };
 --!]]
-local function prepBlocks(tBlocksToPrep, fProcessBlockItem)
+local function prepBlocks(tFilteredBlocks, fProcessBlockItem)
     local tRet      = {};
     local nIndex    = 0;
 
     --prep eligible blocks
-    for _, oBlock in ipairs(tBlocksToPrep) do
+    for _, oBlock in ipairs(tFilteredBlocks) do
         nIndex = nIndex + 1;
 
         tRet[nIndex] = {
@@ -75,7 +75,7 @@ local function prepBlocks(tBlocksToPrep, fProcessBlockItem)
 
             if (oBlockTag.isUtil()) then
 
-                if (oBlockTag.getDisplay() == _sBuilderName) then
+                if (oBlockTag.getDisplay() == _sPulsarLua) then
                     local tInfoRAW  = fProcessBlockItem(oBlockTag, sRawInnerContent);
                     local tInfo     = tInfoRAW.content:totable(' ');
                     tPrepped.pulsarLua.name = tInfo[2];
@@ -255,7 +255,7 @@ return class("DoxBuilderPulsarLua",
 
         end
 
-        return sRet..generateAutocompleteStructure(tFinalizedData).._sOutputWrapperPost;
+        return sRet--TODO UNCOMMENT AND FIX..generateAutocompleteStructure(tFinalizedData).._sOutputWrapperPost;
     end,
     buildOLD = function(this, cdat, sTitle, sIntro, tFinalizedData)
         --[[ Initialize the result string
@@ -362,8 +362,8 @@ return class("DoxBuilderPulsarLua",
     end,
     refresh = function(this, cdat, tAllBlocks, fProcessBlockItem)
         --local tFinalized        = {};
-        local tBlocksToPrep     = filterBlocks(tAllBlocks);
-        local tPreppedBlocks    = prepBlocks(tBlocksToPrep, fProcessBlockItem);
+        local tFilteredBlocks   = filterBlocks(tAllBlocks);
+        local tPreppedBlocks    = prepBlocks(tFilteredBlocks, fProcessBlockItem);
         local tOrganizedBlocks  = organizeBlocks(tPreppedBlocks);
 
         --LEFT OFF HERE

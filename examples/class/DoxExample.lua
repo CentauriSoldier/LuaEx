@@ -98,7 +98,7 @@ oDoxLua.export("index");
 
 --print(("    <b>  Hello!  </b>"):htmltomd())
 
---oDoxLua.setBuilder(Dox.BUILDER.PULSAR_LUA);
+oDoxLua.setBuilder(Dox.BUILDER.PULSAR_LUA);
 oDoxLua.refresh();
 oDoxLua.export("");
 
