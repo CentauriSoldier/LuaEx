@@ -239,10 +239,14 @@ local type = {
                 if (bErrorNegative and vInput < 0) then
                     sError = sError.."\nNumber must be non-negative.";
                     bError = true;
-                elseif (bErrorPositive and vInput > 0) then
+                end
+
+                if (bErrorPositive and vInput > 0) then
                     sError = sError.."\nNumber must be non-positive.";
                     bError = true;
-                elseif (bErrorZero and vInput == 0) then
+                end
+
+                if (bErrorZero and vInput == 0) then
                     sError = sError.."\nNumber must not be zero.";
                     bError = true;
                 end

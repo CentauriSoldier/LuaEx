@@ -342,18 +342,26 @@ end
     5	four
     \]\]
 !]]
-function string.totable(sInput, sDelimiter, bAllowBlank)
-    local tRet = {}
+function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
+    local tRet      = {};
+    local fCallback = rawtype(fCallback) == "function" and fCallback or false;
+
     local pattern = "([^"..(sDelimiter or "]+").."]+)"
     if bAllowBlank then
         pattern = "([^"..(sDelimiter or "]+").."]*)"
     end
 
     for w in sInput:gmatch(pattern) do
-        table.insert(tRet, w);
+
+        if (fCallback) then
+            table.insert(tRet, fCallback(w));
+        else
+            table.insert(tRet, w);
+        end
+
     end
 
-    return tRet
+    return tRet;
 end
 
 
