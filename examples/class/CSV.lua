@@ -41,17 +41,37 @@ end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================
 --==============================================================================
+--TODO optional read only cells, rows, columns
 
-loadFile = function(sPath)
-    local f = assert(io.open(sPath, "rb"));
-    local sData = f:read("*a");
-    f:close();
-    return sData;
-end
-
+--[[!
+    @fqxn CSV.Constants.CSV_BEFORE
+    @des (number) 0
+!]]
 constant("CSV_BEFORE", 0);
+--[[!
+    @fqxn CSV.Constants.CSV_AFTER
+    @des (number) 1
+!]]
 constant("CSV_AFTER", 1);
 
+--[[!
+    @fqxn CSV
+    @des Represents a mutable, in-memory CSV (Comma-Separated Values) data set.
+         The CSV class encapsulates tabular data composed of named columns and
+         ordered rows, providing both row-oriented and column-oriented access
+         patterns. Rows are exposed through protected proxy tables that support
+         indexed, named, and iterable access while preserving internal raw data
+         structures.
+
+         The class supports importing CSV files using a configurable delimiter
+         and escape character, retrieving and mutating individual cells, rows,
+         and columns, and iterating sequentially over rows, columns, or cells.
+         Column metadata (names, indices, and mappings) is maintained internally
+         to allow flexible access by index or name.
+
+         This implementation prioritizes structured access, mutability, and
+         iterator-based traversal over strict RFC 4180 compliance.
+!]]
 local CSV = class("CSV",
 {--METAMETHODS
 
@@ -64,25 +84,25 @@ local CSV = class("CSV",
 
 },
 {--PROTECTED
+    caseFunction    = function() end,
     columnCount     = 0,
     columnIDByName  = {},
     columnNames     = {},
     delimiter       = ",",
     escapeChar      = "\\",
     escapeTempChar  = "CSV__b54484f9__CSV",
-    rows            = {},
+    rows            = {}, --holds public-facing decoy tables that reference rowsRaw
     rowsRaw         = {}, --keeps raw row data for adding, removing rows and resetting meta for rows
     rowCount        = 0,
-    caselessFunction = function() end,
 
-    getColumnInfo = function(this, cdat, vColumn)
+    getColumnInfo = function(this, cdat, vColumn, bThrowError, sErrorMessage)
         local tRet;
         local pro = cdat.pro;
         local zColumn = rawtype(vColumn);
         local nColumnCount = pro.columnCount;
-
+--TODO FINISH account for case here and whereever else is needed!!! !
         if (zColumn == "number") then
-            type.assert.number(vColumn, false, true, false, true, false, -1, nColumnCount);
+            type.assert.number(vColumn, false, true, false, true, false, -1, nColumnCount, 2);
 
             if (vColumn == -1) then
                 tRet = {index = nColumnCount, name = pro.columnNames[nColumnCount]};
@@ -96,6 +116,16 @@ local CSV = class("CSV",
                 tRet = {index = pro.columnIDByName[vColumn], name = vColumn};
             end
 
+        end
+
+        if (not tRet and bThrowError)  then
+            local sColumnError  = "CSV Error: Invalid type given for column. Expected string or number, got "..zColumn..'.';
+
+            if (zColumn == "string" or zColumn == "number") then
+                sColumnError = "CSV Error: Column '"..tostring(vColumn).."' is not valid.";
+            end
+
+            error(sColumnError.."\n"..sErrorMessage, 3);
         end
 
         return tRet;
@@ -162,7 +192,7 @@ local CSV = class("CSV",
                     end
 
                 elseif (zKey == "string") then
-                
+
                     if (pro.columnIDByName[k] ~= nil) then
                         return tRow[pro.columnIDByName[k]];
                     else
@@ -194,6 +224,12 @@ local CSV = class("CSV",
     end,
 },
 {--PUBLIC
+
+    --[[!
+        @fqxn CSV.Methods.CSV
+        @des The constructor for the class.
+        @param string|nil sDelimiter The delimiter to use for the object. If nothing is provided, the default (comma [,]) will be used.
+    !]]
     CSV = function(this, cdat, sDelimiter, sData)
 
         if (rawtype(sDelimiter) == "string" and #sDelimiter == 1) then
@@ -202,6 +238,12 @@ local CSV = class("CSV",
 
     end,
 
+    --[[!
+        @fqxn CSV.Methods.columnExists
+        @des Detrmines whether a column exists.
+        @param number|string vColumn The index or name of the column to check.
+        @ret boolean bExists A boolean value indicating where the column exists.
+    !]]
     columnExists = function(this, cdat, vColumn)
         return cdat.pro.getColumnInfo(vColumn) ~= nil;
     end,
@@ -210,20 +252,9 @@ local CSV = class("CSV",
 
     end,
 --TODO
-    deleteColumn = function(this, cdat)
+    deleteColumn = function(this, cdat, vColumn)
         local pro = cdat.pro;
-        local tColumnInfo   = pro.getColumnInfo(vColumn);
-
-        if not (tColumnInfo) then
-            local zColumn       = rawtype(vColumn);
-            local sColumnError  = "Invalid type given for column. Expected string or number, got "..zColumn..'.';
-
-            if (zColumn == "string" or zColumn == "number") then
-                sColumnError = "Column '"..sColumn.."' is not valid.";
-            end
-
-            error("CSV Error: Cannot get cell in row "..nRow..'. '..sColumnError, 2);
-        end
+        local tColumnInfo   = pro.getColumnInfo(vColumn, true, "Could not delete column.");
     end,
 --TODO
     deleteRow = function(this, cdat)
@@ -237,35 +268,88 @@ local CSV = class("CSV",
     duplicateColumn = function(this, cdat)
 
     end,
---TODO
-    eachCell = function(this, cdat, sColumn)
-        --It usually returns all the values in a given column across all rows.
-    end,
 
-    eachColumn = function(this, cdat)
-        local pro       = cdat.pro;
-        local tRows     = pro.rowsRaw;
-        local nRowCount = pro.rowCount;
-        local nColumnID = 0;
-        local nMax      = #pro.columnNames;
+
+    --[[!
+        @fqxn CSV.Methods.eachCell
+        @des Returns a sequential iterator that goes through every cell in the CSV, row by row and column by column.
+        @ret function fCells A sequential iterator function that, when traversed, returns for each iteration:
+        <ul>
+            <li>Row Index</li>
+            <li>Column Index</li>
+            <li>Column Name</li>
+            <li>Cell Value</li>
+        </ul>
+    !]]
+    eachCell = function(this, cdat)
+        local pro           = cdat.pro;
+        local tRows         = pro.rowsRaw;
+        local nRowID        = 1;
+        local nColumnID     = 0;
+        local nMaxRows      = pro.rowCount;
+        local nMaxColumns   = pro.columnCount;
+        local tColumnNames  = pro.columnNames;
 
         return function()
-            nColumnID = nColumnID + 1;
 
-            if (nColumnID <= nMax) then
-                local tData = {};
+            if (nRowID <= nMaxRows) then
+                nColumnID = nColumnID + 1;
 
-                for nRow, tRowData in ipairs(tRows) do
-                    tData[nRow] = tRowData[nColumnID];
+                if (nColumnID <= nMaxColumns) then
+                    return nRowID, nColumnID, tColumnNames[nColumnID], tRows[nRowID][nColumnID];
+                else
+                    nColumnID = 1;
+                    nRowID = nRowID + 1;
+
+                    if (nRowID <= nMaxRows) then
+                        return nRowID, nColumnID, tColumnNames[nColumnID], tRows[nRowID][nColumnID];
+                    end
+
                 end
 
-                return nColumnID, tData;
             end
 
         end
 
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.eachColumn
+        @des Returns a sequential iterator that steps over each column in the CSV object.
+        @ret function fColumns A sequential iterator function that, when traversed, returns the column index, column name, and column table (whose keys are row indices and values are cell data) on each iteration.
+    !]]
+    eachColumn = function(this, cdat)
+        local pro           = cdat.pro;
+        local tRows         = pro.rowsRaw;
+        local nRowCount     = pro.rowCount;
+        local nColumnID     = 0;
+        local tColumnNames  = pro.columnCount;
+        local nMaxColumns   = #tColumnNames;
+
+        return function()
+            nColumnID = nColumnID + 1;
+
+            if (nColumnID <= nMaxColumns) then
+                local tData = {};
+
+                for nRow, tRowData in ipairs(tRows) do
+                    tData[nRow] = tRowData[nColumnID];
+                end
+
+                return nColumnID, tColumnNames[nColumnID], tData;
+            end
+
+        end
+
+    end,
+
+
+    --[[!
+        @fqxn CSV.Methods.eachRow
+        @des Returns a sequential iterator that steps over each row in the CSV object.
+        @ret function fRows A sequential iterator function that, when traversed, returns the row index and row table (whose keys are column indices and values are cell data) on each iteration.
+    !]]
     eachRow = function(this, cdat)
         local pro       = cdat.pro;
         local tRows     = pro.rows;
@@ -287,36 +371,33 @@ local CSV = class("CSV",
 
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.getCell
+        @des Retrieves the cell data given the row and column.
+        @param number nRow The index of the row from which to get the data.
+        @param number|string vColumn The index or name of the column from which to get the data.
+        @ret table tData A numerically-indexed table whose keys are the row indices and whose values are the cell data.
+    !]]
     getCell = function(this, cdat, nRow, vColumn)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount);
-
-        local tColumnInfo   = pro.getColumnInfo(vColumn);
-
-        if not (tColumnInfo) then
-            local zColumn       = rawtype(vColumn);
-            local sColumnError  = "Invalid type given for column. Expected string or number, got "..zColumn..'.';
-
-            if (zColumn == "string" or zColumn == "number") then
-                sColumnError = "Column '"..sColumn.."' is not valid.";
-            end
-
-            error("CSV Error: Cannot get cell in row "..nRow..'. '..sColumnError, 2);
-        end
-
+        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'getCell': Row is out of bounds or invalid.", 1);
+        local tColumnInfo   = pro.getColumnInfo(vColumn, true, "\nCSV Error in 'getCell': Cannot get cell in row "..nRow..'. ');
         return pro.rowsRaw[nRow][tColumnInfo.index];
     end,
 
-    --returns all row data a single column
+
+    --[[!
+        @fqxn CSV.Methods.getColumn
+        @des Retrieves all cell data from all rows in a given column.
+        @param number|string vColumn The index or name of the column from which to get the data.
+        @ret table tData A numerically-indexed table whose keys are the row indices and whose values are the cell data.
+    !]]
     getColumn = function(this, cdat, vColumn)
         local pro           = cdat.pro;
         local tRet          = {};
         local tRows         = pro.rowsRaw;
         local tColumnInfo   = pro.getColumnInfo(vColumn);
-
-        if not (tColumnInfo) then
-            --TODO ERROR
-        end
 
         local nColumnID = tColumnInfo.index;
 
@@ -327,27 +408,46 @@ local CSV = class("CSV",
         return tRet;
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.getColumnCount
+        @des Gets the total number of columns in the CSV object.
+        @ret number nColumns The total number of columns.
+    !]]
     getColumnCount = function(this, cdat)
         return cdat.pro.columnCount;
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.getColumnIndex
+        @des Gets the index of a column given its name.
+        @param string sColumn The column name.
+        @ret number nColumn The index of the column or nil if it doesn't exist.
+    !]]
     getColumnIndex = function(this, cdat, sColumn)
         return cdat.pro.columnIDByName[sColumn] or nil;
     end,
 
 
     --[[!
-        @fqxn CSV.getColumnName
+        @fqxn CSV.Methods.getColumnName
         @des Gets the name of a column given its index.
         @param number nColumn The column index.
         @ret string sColumn The name of the column.
     !]]
     getColumnName = function(this, cdat, nColumn)
         local pro = cdat.pro;
-        type.assert.number(nColumn, true, true, false, true, false, 1, pro.columnCount);
+        type.assert.number(nColumn, true, true, false, true, false, 1, pro.columnCount, "\nCSV Error in 'getColumnName': Invalid column index given.", 1);
         return cdat.pro.columnNames[nColumn];
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.getColumnNames
+        @des Gets the names of all columns in teh CSV object.
+        @ret table tColumnNames A numerically-indexed table whose keys are column indices and whose values are column names.
+    !]]
     getColumnNames = function(this, cdat)
         local tRet = {};
 
@@ -358,22 +458,36 @@ local CSV = class("CSV",
         return tRet;
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.getRow
+        @des Gets the row table for given the row's index.
+        @param number nRow The row table to get.
+        @ret table tRow The row table whose indices are column indices and whose values are cell data.
+    !]]
     getRow = function(this, cdat, nRow)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount);
+        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'getRow': Invalid row index given.", 1);
         return pro.rows[nRow];
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.getRowCount
+        @des Gets the total number of rows in the CSV object.
+        @ret number nRows The total number of rows in the CSV object.
+    !]]
     getRowCount = function(this, cdat)
         return cdat.pro.rowCount;
     end,
 
+
     import = function(this, cdat, pCSV, bIgnoreCase)
-        type.assert.string(pCSV, "%S+");
+        type.assert.string(pCSV, "%S+", "\nCSV Error in 'import':Filepath cannot be blank.", 1);
         local pro           = cdat.pro;
         local bHasHeader    = #pro.columnNames > 0;
         bIgnoreCase         = rawtype(bIgnoreCase) == "boolean" and bIgnoreCase or false;
-        local fCase         = bIgnoreCase and caselessFunction or string.lower;
+        local fCase         = bIgnoreCase and pro.caseFunction or string.lower;
 
         --open the file
         local hFile = io.open(pCSV, "r");
@@ -403,14 +517,14 @@ local CSV = class("CSV",
                 if (bHasHeader) then
 
                     if (nColumns ~= nImportColumns) then --TODO update errors with concat and file
-                        error("CSV Import Error: Column count mismatch — expected "..nColumns.." columns, got "..nImportColumns..'.', 2);
+                        error("CSV Import Error in 'import': Column count mismatch — expected "..nColumns.." columns, got "..nImportColumns..'.', 2);
                     end
 
                     local tHeader = pro.columnNames;
                     for nColumn = 1, nColumns do
 
                         if (tImportHeader[nColumn]:fCase() ~= tHeader[nColumn]:fCase()) then
-                            error("CSV Import Error: Column columnNames name mismatch at index "..nColumn.." — expected \""..tHeader[nColumn]:fCase().."\", got \""..tImportHeader[nColumn]:fCase()..'".', 2);
+                            error("CSV Import Error in 'import': Column name mismatch at index "..nColumn.." — expected \""..tHeader[nColumn]:fCase().."\", got \""..tImportHeader[nColumn]:fCase()..'".', 2);
                         end
 
                     end
@@ -441,7 +555,7 @@ local CSV = class("CSV",
                     local tDecoy        = pro.setRowMeta(tRow, nRow);
                     pro.rows[nRow]      = tDecoy;
                     pro.rowsRaw[nRow]   = tRow;
-                    end
+                end
 
             else
                 error("CSV Import Error: Failed to read file: \""..pCSV..'\".', 2);
@@ -462,7 +576,7 @@ local CSV = class("CSV",
             --LEFT OFF HERE
         end
 
-        type.assert.number(vColumn, false, true, false, true, false, -1, nColumnCount);
+        type.assert.number(vColumn, false, true, false, true, false, -1, nColumnCount, 2);
     end,
 --TODO
     insertRow = function(this, cdat, tData, nPosition)
@@ -470,7 +584,7 @@ local CSV = class("CSV",
     end,
     --TODO
     moveColumn = function(this, cdat, vColumn, nPosition)
-        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount);
+        type.assert.number(nPosition, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'moveColumn': Invalid input for column position.", 1);
     end,
 --TODO
     moveRow = function(this, cdat, nRow, nPosition)
@@ -481,9 +595,16 @@ local CSV = class("CSV",
 
     end,
 
+
+    --[[!
+        @fqxn CSV.Methods.rowExists
+        @des Detrmines whether a row exists.
+        @param number nRow The index of the row to check.
+        @ret boolean bExists A boolean value indicating where the row exists.
+    !]]
     rowExists = function(this, cdat, nRow)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1);
+        type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nCSV Error in 'rowExists': Invalid input for row.", 1);
         return pro.rows[nRow] ~= nil;
     end,
 --TODO
@@ -491,8 +612,11 @@ local CSV = class("CSV",
 
     end,
 --TODO
-    setCell = function(this, cdat, nRow, nColumn)
-
+    setCell = function(this, cdat, nRow, vColumn, vValue)
+        local pro = cdat.pro;
+        type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nCSV Error in 'setCell': Invalid input for row.", 1);
+        local tColumnInfo = cdat.pro.getColumnInfo(vColumn, true, "\nError in 'setCell'.");
+        pro.rowsRaw[nRow][tColumnInfo.index] = tostring(vValue);
     end,
 
 },
@@ -521,7 +645,13 @@ for id, data in ipairs(oRes.getColumn(2)) do
     --print(id, data)
 end
 
-print(oRes.getCell(1, "name"))
+for row, column, name, data in oRes.eachCell() do
+    print(row, column, name, data)
+end
+
+--oRes.setCell(1, 2, "BoogA!")
+--print(oRes.getCell(1, 2))
+
 
 --print(oRes.columnExists("name"));
 

@@ -10,6 +10,7 @@
 ## [**v0.60**]
 
 ### Added
+- CSV class (currently not RFC 4180 compliant).
 - New **eventrix** type to manage events.    
 - Several class-level checks:
     - **class.exists**
@@ -46,6 +47,7 @@
 - **Dox** **Parsers** (subclasses) for several new languages.
 
 ### Changed
+- Modifed all type assertion functions in **typehook.lua** to accept an optional, custom error message and an error level modifier value.
 - Moved the changelog from README.md to its own file.
 - Modified the changelog to be more in line with [keepachangelog.com](https://keepachangelog.com/en/1.1.0/) standards.
 - Consolidated the old **class** changelog (*in the module's documentation*) into **LuaEx's** changelog.

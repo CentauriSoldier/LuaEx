@@ -200,21 +200,33 @@ local type = {
             @desc Checks a value for type compliance.
             @param any vInput The value to check for compliance.
             @param string zType The type the input should be.
+            @param string|nil sErrorMessage An optional message to append to any error that may occur.
+            @param number|nil nErrorLevel The number by which to adjust the error level. The default error level is 2. If not argument is given, it will remain at 2.
         !]]
-        custom = function(vInput, sType)--TODO custom message
+        custom = function(vInput, sType, vErrorMessage, vErrorLevel)
+
             if (type(vInput) ~= sType) then
-                error("Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)}, 2);
+                local nErrorLevel   = rawtype(vErrorLevel) == "number" and vErrorLevel or 0;
+                local sErrorMessage = rawtype(vErrorMessage) == "string" and vErrorMessage or "";
+                error("Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)}..sErrorMessage, 2 + nErrorLevel);
             end
+            
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.function
             @desc Checks a value for function compliance.
             @param vInput The value to check for compliance.
+            @param string|nil sErrorMessage An optional message to append to any error that may occur.
+            @param number|nil nErrorLevel The number by which to adjust the error level. The default error level is 2. If not argument is given, it will remain at 2.
         !]]
-        ["function"] = function(vInput)--TODO custom message
+        ["function"] = function(vInput, vErrorMessage, vErrorLevel)
+
             if (type(vInput) ~= "function") then
-                error("Error in parameter input.\nExpected type is function. Type given: ${given}." % {given = type(vInput)}, 2);
+                local nErrorLevel   = rawtype(vErrorLevel) == "number" and vErrorLevel or 0;
+                local sErrorMessage = rawtype(vErrorMessage) == "string" and vErrorMessage or "";
+                error("Error in parameter input.\nExpected type is function. Type given: ${given}." % {given = type(vInput)}..sErrorMessage, 2 + nErrorLevel);
             end
+
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.number
@@ -227,11 +239,13 @@ local type = {
             @param boolean|nil bErrorOnInt Whether to throw an error if the number <b>is</b> an integer.
             @param number|nil nMin The mininum allowed value. If nil, there is no minimum value enforced.
             @param number|nil nMax The maximum allowed value. If nil, there is no maximum value enforced.
+            @param string|nil sErrorMessage An optional message to append to any error that may occur.
+            @param number|nil nErrorLevel The number by which to adjust the error level. The default error level is 2. If not argument is given, it will remain at 2.
         !]]
-        number = function (vInput, bErrorNegative, bErrorZero, bErrorPositive, bErrorFloat, bErrorInteger, nMin, nMax)
-            local sType  = rawtype(vInput);
-            local sError = "Error in parameter input.";
-            local bError = false;
+        number = function (vInput, bErrorNegative, bErrorZero, bErrorPositive, bErrorFloat, bErrorInteger, nMin, nMax, vErrorMessage, vErrorLevel)
+            local sType         = rawtype(vInput);
+            local sError        = "Error in parameter input.";
+            local bError        = false;
 
             if (sType == "number") then
 
@@ -274,12 +288,15 @@ local type = {
                 end
 
             else
-                error("Expected type is number. Type given: ${given}." % {given = sType}, 2);
+                sError = "Expected type is number. Type given: ${given}." % {given = sType}
+                bError = true;
             end
 
 
             if (bError) then
-                error(sError.."\nValue given: "..vInput, 2);
+                local sErrorMessage = rawtype(vErrorMessage) == "string" and vErrorMessage or "";
+                local nErrorLevel   = rawtype(vErrorLevel) == "number" and vErrorLevel or 0;
+                error(sError.."\nValue given: "..vInput..sErrorMessage, 2 + nErrorLevel);
             end
 
         end,
@@ -288,9 +305,10 @@ local type = {
             @desc Checks a value for string compliance.
             @param any vInput The value to check for compliance.
             @param string|nil sPattern An optional string pattern to use to compare to the input.
-            @param string|nil sMessage An optional message to append to any error that may occur.
+            @param string|nil sErrorMessage An optional message to append to any error that may occur.
+            @param number|nil nErrorLevel The number by which to adjust the error level. The default error level is 2. If not argument is given, it will remain at 2.
         !]]
-        string = function(vInput, sPattern, sMessage)--TODO finish adding optional message and create other functions
+        string = function(vInput, sPattern, vErrorMessage, vErrorLevel)--TODO finish adding optional message and create other functions
             local bConditionMet = false;
             local sType = type(vInput);
             local bGoodType = sType == "string";
@@ -313,7 +331,9 @@ local type = {
             end
 
             if not (bConditionMet) then
-                error(sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""), 2);
+                local sErrorMessage = rawtype(vErrorMessage) == "string" and vErrorMessage or "";
+                local nErrorLevel   = rawtype(vErrorLevel) == "number" and vErrorLevel or 0;
+                error(sError..sErrorMessage, 2 + nErrorLevel);
             end
         end,
         --[[!
@@ -324,9 +344,10 @@ local type = {
             @param string|nil zValue Optional value type enforcement.
             @param number|nil nMin Optional minimum item enforcement.
             @param number|nil nMax Optional maximum item enforcement.
-            @param string|nil sMessage An optional message to append to any error that may occur.
+            @param string|nil sErrorMessage An optional message to append to any error that may occur.
+            @param number|nil nErrorLevel The number by which to adjust the error level. The default error level is 2. If not argument is given, it will remain at 2.
         !]]
-        table = function(vInput, vIndexType, vValueType, vMinItems, vMaxItems, sMessage)
+        table = function(vInput, vIndexType, vValueType, vMinItems, vMaxItems, vErrorMessage, vErrorLevel)
             local bConditionMet = rawtype(vInput) == "table";
             local sError        = "Error in parameter input.";
             local sIndexType    = rawtype(vIndexType)   == "string"   and vIndexType or false;
@@ -373,7 +394,9 @@ local type = {
             end
 
             if not (bConditionMet) then
-                error(sError..(rawtype(sMessage) == "string" and "\n"..sMessage or ""), 2);
+                local sErrorMessage = rawtype(vErrorMessage) == "string" and vErrorMessage or "";
+                local nErrorLevel   = rawtype(vErrorLevel) == "number" and vErrorLevel or 0;
+                error(sError..sErrorMessage, 2 + nErrorLevel);
             end
         end,
     },
