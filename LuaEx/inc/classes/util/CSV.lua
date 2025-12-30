@@ -1,46 +1,4 @@
---==============================================================================
---================================ Load LuaEx ==================================
---==============================================================================
-local sSourcePath = "";
-if not (LUAEX_INIT) then
-    --sSourccePath = "";
-
-    function getsourcepath()
-        --determine the call location
-        local sPath = debug.getinfo(1, "S").source;
-        --remove the calling filename
-        local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
-        --make a pattern to account for case
-        local sFilename = "";
-        for x = 1, #sFilenameRAW do
-            local ssChar = sFilenameRAW:sub(x, x);
-
-            if (ssChar:find("[%a]")) then
-                sFilename = sFilename.."["..ssChar:upper()..ssChar:lower().."]";
-            else
-                sFilename = sFilename..ssChar;
-            end
-
-        end
-        sPath = sPath:gsub("@", ""):gsub(sFilename, "");
-        --remove the "/" at the end
-        sPath = sPath:sub(1, sPath:len() - 1);
-
-        return sPath;
-    end
-
-    --determine the call location
-     sSourcePath = getsourcepath();
-
-    --update the package.path (use the main directory to prevent namespace issues)
-    package.path = package.path..";"..sSourcePath.."\\..\\..\\?.lua;";
-
-    --load LuaEx
-    require("LuaEx.init");
-end
---==============================================================================
---==============================^^ Load LuaEx ^^================================
---==============================================================================
+--TODO optional read only cells, rows, columns
 
 --[[!
     @fqxn LuaEx.Classes.CSV.Constants.CSV_BEFORE
@@ -55,16 +13,23 @@ constant("CSV_AFTER", 1);
 
 --[[!
     @fqxn LuaEx.Classes.CSV
-    @des Represents a mutable, in-memory <strong>CSV</strong> <em>(Comma-Separated Values)</em> data set. The <strong>CSV</strong> class encapsulates tabular data composed of named columns and ordered rows, providing both row-oriented and column-oriented access patterns. Rows are exposed through protected proxy tables that support indexed, named, and iterable access while preserving internal raw data structures.
-    <br><br>
-    The class supports importing <strong>CSV</strong> files using a configurable delimiter and escape character, retrieving and mutating individual cells, rows, and columns, and iterating sequentially over rows, columns, or cells. Column metadata <em>(names, indices, and mappings)</em> is maintained internally to allow flexible access by index or name.
-    <br><br>
-    This implementation prioritizes structured access, mutability, and iterator-based traversal over strict RFC 4180 compliance.
-    @TODO Add optional, read only cells, rows, columns
-    @TODO Delimiter adjuster method.
-    @TODO Escape character adjuster method.
+    @des Represents a mutable, in-memory <strong>CSV</strong> <em>(Comma-Separated Values)</em> data set.
+         The <strong>CSV</strong> class encapsulates tabular data composed of named columns and
+         ordered rows, providing both row-oriented and column-oriented access
+         patterns. Rows are exposed through protected proxy tables that support
+         indexed, named, and iterable access while preserving internal raw data
+         structures.
+         <br><br>
+         The class supports importing <strong>CSV</strong> files using a configurable delimiter
+         and escape character, retrieving and mutating individual cells, rows,
+         and columns, and iterating sequentially over rows, columns, or cells.
+         Column metadata <em>(names, indices, and mappings)</em> is maintained internally
+         to allow flexible access by index or name.
+         <br><br>
+         This implementation prioritizes structured access, mutability, and
+         iterator-based traversal over strict RFC 4180 compliance.
 !]]
-local CSV = class("CSV",
+return class("CSV",
 {--METAMETHODS
 
 },
@@ -76,24 +41,23 @@ local CSV = class("CSV",
 
 },
 {--PROTECTED
-    caseFunction        = function() end,
-    columnCount         = 0,
-    columnIDByName      = {},
-    columnNames         = {},
-    delimiter           = ",",
-    escapeChar          = "\\",
-    escapeTempChar      = "CSV__b54484f9__CSV",
-    --importHasNewLineEnd = false, --tells whether the last imported file ended with a newline
-    rows                = {}, --holds public-facing decoy tables that reference rowsRaw
-    rowsRaw             = {}, --keeps raw row data for adding, removing rows and resetting meta for rows
-    rowCount            = 0,
+    caseFunction    = function() end,
+    columnCount     = 0,
+    columnIDByName  = {},
+    columnNames     = {},
+    delimiter       = ",",
+    escapeChar      = "\\",
+    escapeTempChar  = "CSV__b54484f9__CSV",
+    rows            = {}, --holds public-facing decoy tables that reference rowsRaw
+    rowsRaw         = {}, --keeps raw row data for adding, removing rows and resetting meta for rows
+    rowCount        = 0,
 
     getColumnInfo = function(this, cdat, vColumn, bThrowError, sErrorMessage)
         local tRet;
         local pro = cdat.pro;
         local zColumn = rawtype(vColumn);
         local nColumnCount = pro.columnCount;
-        --TODO FINISH account for case here and whereever else is needed!!! !
+--TODO FINISH account for case here and whereever else is needed!!! !
         if (zColumn == "number") then
             type.assert.number(vColumn, false, true, false, true, false, -1, nColumnCount, 2);
 
@@ -201,7 +165,7 @@ local CSV = class("CSV",
             end,
             __newindex = function(t, k, v)
                 local zKey = type(k);
-                error("Not yet implemented.")
+
 
 
             end,
@@ -240,27 +204,26 @@ local CSV = class("CSV",
     columnExists = function(this, cdat, vColumn)
         return cdat.pro.getColumnInfo(vColumn) ~= nil;
     end,
-    --TODO
+--TODO
     clear = function(this, cdat)
-        error("Not yet implemented.")
+
     end,
-    --TODO
+--TODO
     deleteColumn = function(this, cdat, vColumn)
-        error("Not yet implemented.")
         local pro = cdat.pro;
         local tColumnInfo   = pro.getColumnInfo(vColumn, true, "Could not delete column.");
     end,
-    --TODO
+--TODO
     deleteRow = function(this, cdat)
-        error("Not yet implemented.");
+
     end,
-    --TODO
+--TODO
     duplicateRow = function(this, cdat)
-        error("Not yet implemented.");
+
     end,
-    --TODO
+--TODO
     duplicateColumn = function(this, cdat)
-        error("Not yet implemented.");
+
     end,
 
 
@@ -360,68 +323,9 @@ local CSV = class("CSV",
         end
 
     end,
+--TODO
+    export = function(this, cdat, pFile)
 
-
-    --[[!
-    @fqxn LuaEx.Classes.CSV.Methods.export
-    @des Exports the contents of the CSV object to file.
-    @pararm string pFile The export file path.
-    @param boolean|nil bAppend Whether the CSV contents should be appended to the export file. If appending, the CSV's header will not be included. If no argument is provided, the file will be overwritten by default instead of appended.
-    @ret CSV oCSV The CSV object.
-    !]]
-    export = function(this, cdat, pFile, vAppend)
-        --TODO file arg assertions
-        local pro               = cdat.pro;
-        local bAppend           = rawtype(vAppend) == "boolean" and vAppend or false;
-        local sMode             = bAppend and "a+" or "w";
-        local tRows             = pro.rowsRaw;
-        local sDelimiter        = pro.delimiter;
-        local nColumnCount      = pro.columnCount;
-        local nRowCount         = pro.rowCount;
-        local sNewLine          = "\n";
-        local sBlank            = "";
-        local sData             = "";
-        local bAppendNewline    = true;
-
-        local hFile             = io.open(pFile, sMode);
-
-        if (not hFile) then
-            error("bad file stuff here.")--TODO ERROR
-        end
-
-        --append the header (if needed) and check for ending newline
-        if (bAppend) then
-            local sFile = hFile:read("*a");
-            bAppendNewline = sFile:sub(-1) ~= "\n";
-
-        else
-
-            for nColumn, sColumn in ipairs(pro.columnNames) do
-                sData = sData..sColumn..( (nColumn < nColumnCount) and sDelimiter or sBlank);
-            end
-
-        end
-
-        for nRow, tRow in ipairs(tRows) do
-
-            if ( (nRow == 1 and bAppendNewline) or nRow ~= 1) then
-                sData = sData..sNewLine;
-            end
-
-            for nColumn, sCellData in ipairs(tRow) do
-                sData = sData..sCellData..( (nColumn < nColumnCount) and sDelimiter or sBlank);
-            end
-
-        end
-
-        --append final newline --TODO allow skipping this
-        sData = sData..sNewLine;
-
-        --write and close the file
-        hFile:write(sData);
-        hFile:close();
-
-        return this;
     end,
 
 
@@ -534,7 +438,7 @@ local CSV = class("CSV",
         return cdat.pro.rowCount;
     end,
 
---TODO FINISH NOTES
+
     import = function(this, cdat, pCSV, bIgnoreCase)
         type.assert.string(pCSV, "%S+", "\nCSV Error in 'import':Filepath cannot be blank.", 1);
         local pro           = cdat.pro;
@@ -546,15 +450,14 @@ local CSV = class("CSV",
         local hFile = io.open(pCSV, "r");
 
         if (hFile) then
-            local tLines        = {};
             local tImportRows   = {};
             local tImportHeader = {};
 
-            --load the lines from the file into the tImportRows table
-            for sLine in hFile:lines() do
+            --load the rows from the file into the tImportRows table
+            for sRow in hFile:lines() do
 
-                if sLine:match("%S") then --do not allow blank lines
-                    table.insert(tImportRows, sLine);
+                if sRow:match("%S") then --do not allow blank lines
+                    table.insert(tImportRows, sRow);
                 end
 
             end
@@ -594,7 +497,7 @@ local CSV = class("CSV",
 
                 end
 
-                --now that it's stored, remove the header from from the would-be-rows
+                --pro.columnNames =
                 table.remove(tImportRows, 1);
 
                 --iterate over the rows, parsing and validating each one
@@ -638,9 +541,9 @@ local CSV = class("CSV",
         @fqxn LuaEx.Classes.CSV.Methods.insertRow
         @des inserts one to many rows starting at the provided index <em>(or at the end of the CSV rows table if no position is indicated)</em>.
         @param number|nil nPosition The position at which to insert the row(s). If set to nil or -1, appends the rows.
-        @param string|table|nil vData The value to insert into each of the row's cells. If nothing is provided, a blank string will be inserted. If a non-nil, non-table value is provided, it will be coerced to a string and inserted into each cell. If a table is provided <em>(that has numerical indices equal to the number of columns and whose values are strings or things that can be coerced into a string)</em>, the table's data will be inserted at each relative position.
+        @param string|table|nil vData The value to insert into each of the row's cells. If nothing is provided, a blank string will be inserted. If a string is provided, it will be inserted into each cell. If a table is provided <em>(that has numerical indices equal to the number of columns whose keys are strings)</em>, the table's data will be inserted at each relative position.
         @param number|nil
-        @ret CSV oCSV The CSV object.
+        @ret object oCSV Returns the CSV object.
     !]]
     insertRow = function(this, cdat, vPosition, vDataInput, vRows)
         local pro               = cdat.pro;
@@ -650,14 +553,13 @@ local CSV = class("CSV",
         local vData             = zData ~= "nil" and (bDataIsTable and vDataInput or tostring(vDataInput)) or "";
         local nRows             = (rawtype(vRows) == "number") and (vRows > 0 and vRows or 1) or 1;
         local nColumnCount      = pro.columnCount;
-        local bEndingNewLine    = pro.importHasNewLineEnd;
 
         --determine (or set to default) the row insert position
         if (rawtype(nPosition) ~= "number") then
-            nPosition = pro.rowCount + 1;
+            nPosition = pro.rowCount;
         else
             type.assert.number(nPosition, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'insertRow': Invalid input for row insert position.", 1);
-            nPosition = (nPosition == -1) and (pro.rowCount + 1) or nPosition;
+            nPosition = (nPosition == -1) and pro.rowCount + 1 or nPosition;
         end
 
         --verify the table's data if it's a table
@@ -665,7 +567,7 @@ local CSV = class("CSV",
 
             for nColumnID = 1, nColumnCount do
 
-                if (rawget(vData, nColumnID) == nil) then
+                if (type(vData[nColumnID]) ~= "string") then
                     error("bad things here!!!")--TODO ERROR
                 end
 
@@ -680,7 +582,7 @@ local CSV = class("CSV",
             local tRow = {};
 
             for nColumnIndex = 1, nColumnCount do
-                tRow[nColumnIndex] = bDataIsTable and tostring(rawget(vData, nColumnIndex)) or vData;
+                tRow[nColumnIndex] = bDataIsTable and vData[nColumnIndex] or sDefaultValue;
             end
 
             --uodate the row count
@@ -697,10 +599,7 @@ local CSV = class("CSV",
             table.insert(pro.rows, nIndex, tDecoy);
         end
 
-        return this;
     end,
-
-
     --TODO
     moveColumn = function(this, cdat, vColumn, nPosition)
         type.assert.number(nPosition, false, true, false, true, false, -1, pro.columnCount, "\nCSV Error in 'moveColumn': Invalid input for column position.", 1);
@@ -726,27 +625,16 @@ local CSV = class("CSV",
         type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nCSV Error in 'rowExists': Invalid input for row.", 1);
         return pro.rows[nRow] ~= nil;
     end,
-    --TODO
+--TODO
     sortByColumn = function(this, cdat, nColumn)
-        error("Not yet implemented.");
+
     end,
-
-
-    --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.setCell
-        @des Sets the cell data given the row and column.
-        @param number nRow The index of the row at which to set the data.
-        @param number|string vColumn The index or name of the column at which to set the data.
-        @param Any vData The cell data <em>(that will be coerced into a string if not already)</em>.
-        @ret boolean bExists A boolean value indicating whether the row exists.
-    !]]
+--TODO
     setCell = function(this, cdat, nRow, vColumn, vValue)
         local pro = cdat.pro;
         type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nCSV Error in 'setCell': Invalid input for row.", 1);
         local tColumnInfo = cdat.pro.getColumnInfo(vColumn, true, "\nError in 'setCell'.");
         pro.rowsRaw[nRow][tColumnInfo.index] = tostring(vValue);
-
-        return this;
     end,
 
 },
@@ -754,42 +642,3 @@ nil,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
-
-
-local oRes = CSV();
-oRes.import(io.normalizepath(sSourcePath.."\\..\\resources\\CSV_Read_Test.csv"), false);
-
-oRes.getRow(1).name = "Boots"
-oRes.getRow(1).name = "Cats"
-local tRow = oRes.getRow(1);
---print((oRes.getRow(1).name))
-for k, v in oRes.getRow(1)() do
---print(oRes.getColumnName(k), v)
-end
-
-for k, v in ipairs(oRes.getColumnNames()) do
-    --print(k, v)
-end
-
-for id, data in ipairs(oRes.getColumn(2)) do
-    --print(id, data)
-end
-
-for row, column, name, data in oRes.eachCell() do
-    --print(row, column, name, data)
-end
-
---oRes.setCell(1, 2, "BoogA!")
---oRes.insertRow(2, 67, 2);
---print(oRes.getCell(1, 2))
---print(oRes.getCell(2, 2))
---print(oRes.getCell(3, 2))
---print(oRes.getCell(4, 2))
-
-oRes.export(io.normalizepath(sSourcePath.."\\..\\resources\\CSV_Write_Test.csv"), false);
-
---print(oRes.columnExists("name"));
-
---print(oRes.getColumnIndex("name"))
-
-return CSV;

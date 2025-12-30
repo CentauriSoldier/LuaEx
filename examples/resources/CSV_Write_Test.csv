@@ -1,0 +1,119 @@
+Name,Symbol,AtomicNumber,AtomicMass,Group,Period,Category,Block,Phase,Density,MeltingPoint,BoilingPoint,Electronegativity,DiscoveryYear,NamedBy
+Hydrogen,H,1,1.008,1,1,Nonmetal,s,Gas,0.00008988,-259.16,-252.87,2.20,1766,Cavendish
+Helium,He,2,4.0026,18,1,Noble Gas,s,Gas,0.0001785,-272.20,-268.93,,1895,Janssen
+Lithium,Li,3,6.94,1,2,Alkali Metal,s,Solid,0.534,180.54,1342,0.98,1817,Arfwedson
+Beryllium,Be,4,9.0122,2,2,Alkaline Earth Metal,s,Solid,1.85,1287,2470,1.57,1798,Vauquelin
+Boron,B,5,10.81,13,2,Metalloid,p,Solid,2.34,2075,4000,2.04,1808,Gay-Lussac
+Carbon,C,6,12.011,14,2,Nonmetal,p,Solid,2.267,3550,4027,2.55,Ancient,Unknown
+Nitrogen,N,7,14.007,15,2,Nonmetal,p,Gas,0.0012506,-210.00,-195.79,3.04,1772,Rutherford
+Oxygen,O,8,15.999,16,2,Nonmetal,p,Gas,0.001429,-218.79,-182.95,3.44,1774,Priestley
+Fluorine,F,9,18.998,17,2,Halogen,p,Gas,0.001696,-219.67,-188.11,3.98,1886,Moissan
+Neon,Ne,10,20.180,18,2,Noble Gas,p,Gas,0.0008999,-248.59,-246.05,,1898,Ramsay
+Sodium,Na,11,22.990,1,3,Alkali Metal,s,Solid,0.971,97.72,883,0.93,1807,Davy
+Magnesium,Mg,12,24.305,2,3,Alkaline Earth Metal,s,Solid,1.738,650,1091,1.31,1755,Black
+Aluminum,Al,13,26.982,13,3,Post-transition Metal,p,Solid,2.70,660.32,2519,1.61,1825,Oersted
+Silicon,Si,14,28.085,14,3,Metalloid,p,Solid,2.3296,1414,3265,1.90,1824,Berzelius
+Phosphorus,P,15,30.974,15,3,Nonmetal,p,Solid,1.82,44.15,280.5,2.19,1669,Brand
+Sulfur,S,16,32.06,16,3,Nonmetal,p,Solid,2.067,115.21,444.6,2.58,Ancient,Unknown
+Chlorine,Cl,17,35.45,17,3,Halogen,p,Gas,0.003214,-101.5,-34.04,3.16,1774,Scheele
+Argon,Ar,18,39.948,18,3,Noble Gas,p,Gas,0.001784,-189.34,-185.85,,1894,Ramsay
+Potassium,K,19,39.098,1,4,Alkali Metal,s,Solid,0.862,63.5,759,0.82,1807,Davy
+Calcium,Ca,20,40.078,2,4,Alkaline Earth Metal,s,Solid,1.54,842,1484,1.00,1808,Davy
+Scandium,Sc,21,44.956,3,4,Transition Metal,d,Solid,2.99,1541,2836,1.36,1879,Nilson
+Titanium,Ti,22,47.867,4,4,Transition Metal,d,Solid,4.54,1668,3287,1.54,1791,Gregory
+Vanadium,V,23,50.942,5,4,Transition Metal,d,Solid,6.11,1910,3407,1.63,1801,del Rio
+Chromium,Cr,24,51.996,6,4,Transition Metal,d,Solid,7.15,1907,2671,1.66,1797,Vauquelin
+Manganese,Mn,25,54.938,7,4,Transition Metal,d,Solid,7.44,1246,2061,1.55,1774,Gahn
+Iron,Fe,26,55.845,8,4,Transition Metal,d,Solid,7.874,1538,2862,1.83,Ancient,Unknown
+Cobalt,Co,27,58.933,9,4,Transition Metal,d,Solid,8.90,1495,2927,1.88,1735,Brandt
+Nickel,Ni,28,58.693,10,4,Transition Metal,d,Solid,8.908,1455,2913,1.91,1751,Cronstedt
+Copper,Cu,29,63.546,11,4,Transition Metal,d,Solid,8.96,1084.62,2562,1.90,Ancient,Unknown
+Zinc,Zn,30,65.38,12,4,Post-transition Metal,d,Solid,7.134,419.53,907,1.65,Ancient,Unknown
+Gallium,Ga,31,69.723,13,4,Post-transition Metal,p,Solid,5.91,29.76,2403,1.81,1875,Lecoq
+Germanium,Ge,32,72.63,14,4,Metalloid,p,Solid,5.323,938.25,2833,2.01,1886,Winkler
+Arsenic,As,33,74.922,15,4,Metalloid,p,Solid,5.776,817,614,2.18,Ancient,Unknown
+Selenium,Se,34,78.971,16,4,Nonmetal,p,Solid,4.809,221,685,2.55,1817,Berzelius
+Bromine,Br,35,79.904,17,4,Halogen,p,Liquid,3.122,-7.2,58.8,2.96,1826,Balogna
+Krypton,Kr,36,83.798,18,4,Noble Gas,p,Gas,0.003733,-157.36,-153.22,,1898,Ramsay
+Rubidium,Rb,37,85.468,1,5,Alkali Metal,s,Solid,1.532,39.31,688,0.82,1861,Bunsen
+Strontium,Sr,38,87.62,2,5,Alkaline Earth Metal,s,Solid,2.64,777,1382,0.95,1790,Crawford
+Yttrium,Y,39,88.906,3,5,Transition Metal,d,Solid,4.47,1526,3345,1.22,1794,Gadolin
+Zirconium,Zr,40,91.224,4,5,Transition Metal,d,Solid,6.52,1855,4409,1.33,1789,Klaproth
+Niobium,Nb,41,92.906,5,5,Transition Metal,d,Solid,8.57,2477,4744,1.60,1801,Hatchett
+Molybdenum,Mo,42,95.95,6,5,Transition Metal,d,Solid,10.28,2623,4639,2.16,1778,Scheele
+Technetium,Tc,43,98,7,5,Transition Metal,d,Solid,11,2157,4265,1.90,1937,Perrier
+Ruthenium,Ru,44,101.07,8,5,Transition Metal,d,Solid,12.37,2334,4150,2.20,1844,Klaus
+Rhodium,Rh,45,102.91,9,5,Transition Metal,d,Solid,12.41,1964,3695,2.28,1803,Wollaston
+Palladium,Pd,46,106.42,10,5,Transition Metal,d,Solid,12.02,1555,2963,2.20,1803,Wollaston
+Silver,Ag,47,107.8682,11,5,Transition Metal,d,Solid,10.49,961.78,2162,1.93,Ancient,Unknown
+Cadmium,Cd,48,112.414,12,5,Post-transition Metal,d,Solid,8.65,321.07,767,1.69,1817,Stromeyer
+Indium,In,49,114.818,13,5,Post-transition Metal,p,Solid,7.31,156.6,2072,1.78,1863,Reich
+Tin,Sn,50,118.710,14,5,Post-transition Metal,p,Solid,7.31,231.93,2602,1.96,Ancient,Unknown
+Antimony,Sb,51,121.760,15,5,Metalloid,p,Solid,6.697,630.63,1587,2.05,Ancient,Unknown
+Tellurium,Te,52,127.60,16,5,Metalloid,p,Solid,6.24,449.51,988,2.10,1782,Muller
+Iodine,I,53,126.904,17,5,Halogen,p,Solid,4.93,113.7,184.3,2.66,1811,Courtois
+Xenon,Xe,54,131.293,18,5,Noble Gas,p,Gas,0.005887,-111.75,-108.12,,1898,Ramsay
+Cesium,Cs,55,132.905,1,6,Alkali Metal,s,Solid,1.93,28.44,671,0.79,1860,Bunsen
+Barium,Ba,56,137.327,2,6,Alkaline Earth Metal,s,Solid,3.62,727,1897,0.89,1808,Davy
+Lanthanum,La,57,138.905,3,6,Lanthanide,f,Solid,6.15,920,3464,1.10,1839,Mosander
+Cerium,Ce,58,140.116,*,6,Lanthanide,f,Solid,6.77,795,3443,1.12,1803,Berzelius
+Praseodymium,Pr,59,140.908,*,6,Lanthanide,f,Solid,6.77,931,3520,1.13,1885,Welsbach
+Neodymium,Nd,60,144.242,*,6,Lanthanide,f,Solid,7.01,1024,3074,1.14,1885,Welsbach
+Promethium,Pm,61,145,*,6,Lanthanide,f,Solid,7.26,1042,3000,,1945,Marinsky
+Samarium,Sm,62,150.36,*,6,Lanthanide,f,Solid,7.52,1072,1900,1.17,1879,Boisbaudran
+Europium,Eu,63,151.964,*,6,Lanthanide,f,Solid,5.24,826,1529,1.20,1901,Demarcay
+Gadolinium,Gd,64,157.25,*,6,Lanthanide,f,Solid,7.90,1312,3273,1.20,1880,Marignac
+Terbium,Tb,65,158.925,*,6,Lanthanide,f,Solid,8.23,1356,3230,1.20,1843,Mosander
+Dysprosium,Dy,66,162.500,*,6,Lanthanide,f,Solid,8.54,1412,2567,1.22,1886,Boisbaudran
+Holmium,Ho,67,164.930,*,6,Lanthanide,f,Solid,8.80,1474,2700,1.23,1878,Delafontaine
+Erbium,Er,68,167.259,*,6,Lanthanide,f,Solid,9.07,1529,2868,1.24,1842,Mosander
+Thulium,Tm,69,168.934,*,6,Lanthanide,f,Solid,9.32,1545,1950,1.25,1879,Cleve
+Ytterbium,Yb,70,173.045,*,6,Lanthanide,f,Solid,6.97,824,1196,1.10,1878,Marignac
+Lutetium,Lu,71,174.967,*,6,Lanthanide,f,Solid,9.84,1663,3402,1.27,1907,Urbain
+Hafnium,Hf,72,178.49,4,6,Transition Metal,d,Solid,13.31,2233,4603,1.30,1923,Hevesy
+Tantalum,Ta,73,180.948,5,6,Transition Metal,d,Solid,16.69,3017,5458,1.50,1802,Ekeberg
+Tungsten,W,74,183.84,6,6,Transition Metal,d,Solid,19.25,3422,5555,2.36,1783,Elhuyar
+Rhenium,Re,75,186.207,7,6,Transition Metal,d,Solid,21.02,3186,5596,1.90,1925,Noddack
+Osmium,Os,76,190.23,8,6,Transition Metal,d,Solid,22.59,3033,5012,2.20,1803,Tennant
+Iridium,Ir,77,192.217,9,6,Transition Metal,d,Solid,22.56,2446,4428,2.20,1803,Tennant
+Platinum,Pt,78,195.084,10,6,Transition Metal,d,Solid,21.45,1768,3825,2.28,Ancient,Unknown
+Gold,Au,79,196.967,11,6,Transition Metal,d,Solid,19.32,1064.18,2970,2.54,Ancient,Unknown
+Mercury,Hg,80,200.592,12,6,Post-transition Metal,d,Liquid,13.534,-38.83,356.73,2.00,Ancient,Unknown
+Thallium,Tl,81,204.38,13,6,Post-transition Metal,p,Solid,11.85,304,1473,1.62,1861,Crookes
+Lead,Pb,82,207.2,14,6,Post-transition Metal,p,Solid,11.34,327.46,1749,2.33,Ancient,Unknown
+Bismuth,Bi,83,208.980,15,6,Post-transition Metal,p,Solid,9.78,271.4,1564,2.02,Ancient,Unknown
+Polonium,Po,84,209,16,6,Metalloid,p,Solid,9.32,254,962,2.00,1898,Curie
+Astatine,At,85,210,17,6,Halogen,p,Solid,7,,337,2.20,1940,Corson
+Radon,Rn,86,222,18,6,Noble Gas,p,Gas,0.00973,-71,-61.7,,1900,Dorn
+Francium,Fr,87,223,1,7,Alkali Metal,s,Solid,1.87,27,677,0.70,1939,Perey
+Radium,Ra,88,226,2,7,Alkaline Earth Metal,s,Solid,5.5,700,1737,0.90,1898,Curie
+Actinium,Ac,89,227,3,7,Actinide,f,Solid,10.07,1050,3200,1.10,1899,Debierne
+Thorium,Th,90,232.038,*,7,Actinide,f,Solid,11.72,1750,4788,1.30,1828,Berzelius
+Protactinium,Pa,91,231.036,*,7,Actinide,f,Solid,15.37,1568,4027,1.50,1913,Hahn
+Uranium,U,92,238.029,*,7,Actinide,f,Solid,19.1,1132,4131,1.38,1789,Klaproth
+Neptunium,Np,93,237,*,7,Actinide,f,Solid,20.45,644,3902,1.36,1940,McMillan
+Plutonium,Pu,94,244,*,7,Actinide,f,Solid,19.84,639,3230,1.28,1940,Seaborg
+Americium,Am,95,243,*,7,Actinide,f,Solid,13.69,1176,2607,1.30,1944,Seaborg
+Curium,Cm,96,247,*,7,Actinide,f,Solid,13.51,1345,3110,1.30,1944,Seaborg
+Berkelium,Bk,97,247,*,7,Actinide,f,Solid,14.78,986,2627,1.30,1949,Seaborg
+Californium,Cf,98,251,*,7,Actinide,f,Solid,15.1,900,1470,1.30,1950,Seaborg
+Einsteinium,Es,99,252,*,7,Actinide,f,Solid,8.84,860,,1.30,1952,Ghiorso
+Fermium,Fm,100,257,*,7,Actinide,f,Solid,,1527,,1.30,1952,Ghiorso
+Mendelevium,Md,101,258,*,7,Actinide,f,Solid,,827,,1.30,1955,Ghiorso
+Nobelium,No,102,259,*,7,Actinide,f,Solid,,827,,1.30,1958,Ghiorso
+Lawrencium,Lr,103,266,*,7,Actinide,f,Solid,,1627,,1.30,1961,Ghiorso
+Rutherfordium,Rf,104,267,4,7,Transition Metal,d,Solid,,,,,1964,Joint
+Dubnium,Db,105,268,5,7,Transition Metal,d,Solid,,,,,1967,Joint
+Seaborgium,Sg,106,269,6,7,Transition Metal,d,Solid,,,,,1974,Joint
+Bohrium,Bh,107,270,7,7,Transition Metal,d,Solid,,,,,1981,Joint
+Hassium,Hs,108,277,8,7,Transition Metal,d,Solid,,,,,1984,Joint
+Meitnerium,Mt,109,278,9,7,Unknown,d,Solid,,,,,1982,Joint
+Darmstadtium,Ds,110,281,10,7,Unknown,d,Solid,,,,,1994,Joint
+Roentgenium,Rg,111,282,11,7,Unknown,d,Solid,,,,,1994,Joint
+Copernicium,Cn,112,285,12,7,Post-transition Metal,d,Solid,,,,,1996,Joint
+Nihonium,Nh,113,286,13,7,Post-transition Metal,p,Solid,,,,,2004,Joint
+Flerovium,Fl,114,289,14,7,Post-transition Metal,p,Solid,,,,,1998,Joint
+Moscovium,Mc,115,290,15,7,Post-transition Metal,p,Solid,,,,,2003,Joint
+Livermorium,Lv,116,293,16,7,Post-transition Metal,p,Solid,,,,,2000,Joint
+Tennessine,Ts,117,294,17,7,Halogen,p,Solid,,,,,2010,Joint
+Oganesson,Og,118,294,18,7,Noble Gas,p,Gas,,,,,2002,Joint
