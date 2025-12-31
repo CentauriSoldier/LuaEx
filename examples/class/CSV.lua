@@ -105,7 +105,7 @@ local CSV = class("CSV",
 
         elseif (zColumn == "string") then
 
-            if (pro.columnIDByName[vColumn] ~= nil) then
+            if (rawtype(pro.columnIDByName[vColumn]) ~= "nil") then
                 tRet = {index = pro.columnIDByName[vColumn], name = vColumn};
             end
 
@@ -435,7 +435,7 @@ local CSV = class("CSV",
     getCell = function(this, cdat, nRow, vColumn)
         local pro = cdat.pro;
         type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'getCell': Row is out of bounds or invalid.", 1);
-        local tColumnInfo   = pro.getColumnInfo(vColumn, true, "\nCSV Error in 'getCell': Cannot get cell in row "..nRow..'. ');
+        local tColumnInfo   = pro.getColumnInfo(vColumn, true, "\nError in 'getCell': Cannot get cell in row "..nRow..'. ');
         return pro.rowsRaw[nRow][tColumnInfo.index];
     end,
 
@@ -450,7 +450,7 @@ local CSV = class("CSV",
         local pro           = cdat.pro;
         local tRet          = {};
         local tRows         = pro.rowsRaw;
-        local tColumnInfo   = pro.getColumnInfo(vColumn);
+        local tColumnInfo   = pro.getColumnInfo(vColumn, true, "\nError in getColumn: Cannot get column.");
 
         local nColumnID = tColumnInfo.index;
 
@@ -536,7 +536,7 @@ local CSV = class("CSV",
 
 --TODO FINISH NOTES
     import = function(this, cdat, pCSV, bIgnoreCase)
-        type.assert.string(pCSV, "%S+", "\nCSV Error in 'import':Filepath cannot be blank.", 1);
+        type.assert.string(pCSV, "%S+", "\nCSV Error in 'import': Filepath cannot be blank.", 1);
         local pro           = cdat.pro;
         local bHasHeader    = #pro.columnNames > 0;
         bIgnoreCase         = rawtype(bIgnoreCase) == "boolean" and bIgnoreCase or false;
@@ -637,9 +637,9 @@ local CSV = class("CSV",
     --[[!
         @fqxn LuaEx.Classes.CSV.Methods.insertRow
         @des inserts one to many rows starting at the provided index <em>(or at the end of the CSV rows table if no position is indicated)</em>.
-        @param number|nil nPosition The position at which to insert the row(s). If set to nil or -1, appends the rows.
+        @param number|nil nPosition The position at which to insert the row(s). If set to nil or -1, appends the rows to the end of the CSV.
         @param string|table|nil vData The value to insert into each of the row's cells. If nothing is provided, a blank string will be inserted. If a non-nil, non-table value is provided, it will be coerced to a string and inserted into each cell. If a table is provided <em>(that has numerical indices equal to the number of columns and whose values are strings or things that can be coerced into a string)</em>, the table's data will be inserted at each relative position.
-        @param number|nil
+        @param number|nil The number of rows to insert. By default, if no valid argument is provided, one row will be inserted.
         @ret CSV oCSV The CSV object.
     !]]
     insertRow = function(this, cdat, vPosition, vDataInput, vRows)
@@ -650,7 +650,6 @@ local CSV = class("CSV",
         local vData             = zData ~= "nil" and (bDataIsTable and vDataInput or tostring(vDataInput)) or "";
         local nRows             = (rawtype(vRows) == "number") and (vRows > 0 and vRows or 1) or 1;
         local nColumnCount      = pro.columnCount;
-        local bEndingNewLine    = pro.importHasNewLineEnd;
 
         --determine (or set to default) the row insert position
         if (rawtype(nPosition) ~= "number") then
@@ -683,9 +682,6 @@ local CSV = class("CSV",
                 tRow[nColumnIndex] = bDataIsTable and tostring(rawget(vData, nColumnIndex)) or vData;
             end
 
-            --uodate the row count
-            pro.rowCount = pro.rowCount + 1;
-
             --update the actual insert position
             local nIndex = nPosition + nRow - 1;
 
@@ -695,6 +691,9 @@ local CSV = class("CSV",
             --create and store the row decoy
             local tDecoy = pro.setRowMeta(tRow);
             table.insert(pro.rows, nIndex, tDecoy);
+
+            --update the row count
+            pro.rowCount = pro.rowCount + 1;
         end
 
         return this;
@@ -704,14 +703,38 @@ local CSV = class("CSV",
     --TODO
     moveColumn = function(this, cdat, vColumn, nPosition)
         type.assert.number(nPosition, false, true, false, true, false, -1, pro.columnCount, "\nCSV Error in 'moveColumn': Invalid input for column position.", 1);
+        local tColumnInfo = pro.getColumnInfo(vColumn, true, "\nError in renameColumn: Cannot rename column.");
+
     end,
 --TODO
+
     moveRow = function(this, cdat, nRow, nPosition)
 
     end,
---TODO
-    renameColumn = function(this, cdat, vColumn, sName)
 
+
+    --[[!
+        @fqxn LuaEx.Classes.CSV.Methods.renameColumn
+        @des Renames a column.
+        @param number|string vColumn The index or name of the column to rename.
+        @param string sNewName The new column name.
+        @ret CSV oCSV The CSV object.
+    !]]--TODO FIX account for commas!
+    renameColumn = function(this, cdat, vColumn, sName)
+        type.assert.string(sName, "%S+", "\nCSV Error in 'renameColumn': New column name cannot be blank.", 1);
+        local pro = cdat.pro;
+        local tColumnInfo       = pro.getColumnInfo(vColumn, true, "\nError in renameColumn: Cannot rename column.");
+        local tColumnIDByName   = pro.columnIDByName;
+        local nColumnID         = tColumnIDByName[vColumn];
+
+        --replace the appropriate header column
+        pro.columnNames[nColumnID] = sName;
+
+        --replace column name in the columnIDByName table
+        tColumnIDByName[vColumn]   = nil;
+        tColumnIDByName[sName]     = nColumnID;
+
+        return this;
     end,
 
 
@@ -759,8 +782,11 @@ nil    --interface(s) (either nil, or interface(s))
 local oRes = CSV();
 oRes.import(io.normalizepath(sSourcePath.."\\..\\resources\\CSV_Read_Test.csv"), false);
 
-oRes.getRow(1).name = "Boots"
-oRes.getRow(1).name = "Cats"
+--TODO __newindex
+--oRes.getRow(1).name = "Boots"
+--oRes.getRow(1).name = "Cats"
+
+
 local tRow = oRes.getRow(1);
 --print((oRes.getRow(1).name))
 for k, v in oRes.getRow(1)() do
@@ -786,6 +812,8 @@ end
 --print(oRes.getCell(3, 2))
 --print(oRes.getCell(4, 2))
 
+oRes.insertRow(7, "e", 4)
+oRes.renameColumn("Symbol", "Booga44!");
 oRes.export(io.normalizepath(sSourcePath.."\\..\\resources\\CSV_Write_Test.csv"), false);
 
 --print(oRes.columnExists("name"));
