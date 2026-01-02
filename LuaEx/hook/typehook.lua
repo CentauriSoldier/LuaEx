@@ -210,7 +210,7 @@ local type = {
                 local sErrorMessage = rawtype(vErrorMessage) == "string" and vErrorMessage or "";
                 error("Error in parameter input.\nExpected type is ${expected}. Type given: ${given}." % {expected = sType, given = type(vInput)}..sErrorMessage, 2 + nErrorLevel);
             end
-            
+
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.function
@@ -296,7 +296,7 @@ local type = {
             if (bError) then
                 local sErrorMessage = rawtype(vErrorMessage) == "string" and vErrorMessage or "";
                 local nErrorLevel   = rawtype(vErrorLevel) == "number" and vErrorLevel or 0;
-                error(sError.."\nValue given: "..vInput..sErrorMessage, 2 + nErrorLevel);
+                error(sError.."\nValue given: "..(vInput or "nil")..sErrorMessage, 2 + nErrorLevel);
             end
 
         end,

@@ -1,158 +1,39 @@
---TODO FINISH This will be using the yet-to-be-completed Grid class
-
---==============================================================================
---================================ Load LuaEx ==================================
---==============================================================================
-local sSourcePath = "";
-if not (LUAEX_INIT) then
-    --sSourccePath = "";
-
-    function getsourcepath()
-        --determine the call location
-        local sPath = debug.getinfo(1, "S").source;
-        --remove the calling filename
-        local sFilenameRAW = sPath:match("^.+"..package.config:sub(1,1).."(.+)$");
-        --make a pattern to account for case
-        local sFilename = "";
-        for x = 1, #sFilenameRAW do
-            local ssChar = sFilenameRAW:sub(x, x);
-
-            if (ssChar:find("[%a]")) then
-                sFilename = sFilename.."["..ssChar:upper()..ssChar:lower().."]";
-            else
-                sFilename = sFilename..ssChar;
-            end
-
-        end
-        sPath = sPath:gsub("@", ""):gsub(sFilename, "");
-        --remove the "/" at the end
-        sPath = sPath:sub(1, sPath:len() - 1);
-
-        return sPath;
-    end
-
-    --determine the call location
-     sSourcePath = getsourcepath();
-
-    --update the package.path (use the main directory to prevent namespace issues)
-    package.path = package.path..";"..sSourcePath.."\\..\\..\\?.lua;";
-
-    --load LuaEx
-    require("LuaEx.init");
-end
---==============================================================================
---==============================^^ Load LuaEx ^^================================
---==============================================================================
+--TODO FINISH working to make this a grid class, from wehich CSV will be subclassesd.
 
 --[[!
-    @fqxn LuaEx.Classes.CSV.Constants.CSV_BEFORE
+    @fqxn LuaEx.Classes.Grid.Constants.GRID_BEFORE
     @des (number) 0
 !]]
-constant("CSV_BEFORE", 0);
+constant("GRID_BEFORE", 0);
 --[[!
-    @fqxn LuaEx.Classes.CSV.Constants.CSV_AFTER
+    @fqxn LuaEx.Classes.Grid.Constants.GRID_AFTER
     @des (number) 1
 !]]
-constant("CSV_AFTER", 1);
+constant("GRID_AFTER", 1);
 
 --[[!
-    @fqxn LuaEx.Classes.CSV
-    @des Represents a mutable, in-memory <strong>CSV</strong> <em>(Comma-Separated Values)</em> data set. The <strong>CSV</strong> class encapsulates tabular data composed of named columns and ordered rows, providing both row-oriented and column-oriented access patterns. Rows are exposed through protected proxy tables that support indexed, named, and iterable access while preserving internal raw data structures.
-    <br><br>
-    The class supports importing <strong>CSV</strong> files using a configurable delimiter and escape character, retrieving and mutating individual cells, rows, and columns, and iterating sequentially over rows, columns, or cells. Column metadata <em>(names, indices, and mappings)</em> is maintained internally to allow flexible access by index or name.
-    <br><br>
-    This implementation prioritizes structured access, mutability, and iterator-based traversal over strict RFC 4180 compliance.
+    @fqxn LuaEx.Classes.Grid
+    @des Represents a mutable, in-memory <strong>Grid</strong> data set. The <strong>Grid</strong> class encapsulates tabular data composed of ordered columns and rows, providing both row-oriented and column-oriented access patterns.
     @TODO Add optional, read only cells, rows, columns
     @TODO Delimiter adjuster method.
     @TODO Escape character adjuster method.
 !]]
-local CSV = class("CSV",
+local Grid = class("Grid",
 {--METAMETHODS
 
 },
 {--STATIC PUBLIC
     --__INIT = function(stapub) end, --static initializer (runs before class object creation)
-    --CSV = function(this) end, --static constructor (runs after class object creation)
+    --Grid = function(this) end, --static constructor (runs after class object creation)
 },
 {--PRIVATE
 
 },
 {--PROTECTED
-    caseFunction        = function() end,
     columnCount         = 0,
-    columnIDByName      = {},
-    columnNames         = {},
-    delimiter           = ",",
-    escapeChar          = "\\",
-    escapeTempChar      = "CSV__b54484f9__CSV",
-    --importHasNewLineEnd = false, --tells whether the last imported file ended with a newline
     rows                = {}, --holds public-facing decoy tables that reference rowsRaw
-    rowsRaw             = {}, --keeps raw row data for adding, removing rows and resetting meta for rows
+    --rowsRaw             = {}, --keeps raw row data for adding, removing rows and resetting meta for rows
     rowCount            = 0,
-
-    getColumnInfo = function(this, cdat, vColumn, bThrowError, sErrorMessage)
-        local tRet;
-        local pro = cdat.pro;
-        local zColumn = rawtype(vColumn);
-        local nColumnCount = pro.columnCount;
-        --TODO FINISH account for case here and whereever else is needed!!! !
-        if (zColumn == "number") then
-            type.assert.number(vColumn, false, true, false, true, false, -1, nColumnCount, 2);
-
-            if (vColumn == -1) then
-                tRet = {index = nColumnCount, name = pro.columnNames[nColumnCount]};
-            else
-                tRet = {index = vColumn, name = pro.columnNames[vColumn]};
-            end
-
-        elseif (zColumn == "string") then
-
-            if (rawtype(pro.columnIDByName[vColumn]) ~= "nil") then
-                tRet = {index = pro.columnIDByName[vColumn], name = vColumn};
-            end
-
-        end
-
-        if (not tRet and bThrowError)  then
-            local sColumnError  = "CSV Error: Invalid type given for column. Expected string or number, got "..zColumn..'.';
-
-            if (zColumn == "string" or zColumn == "number") then
-                sColumnError = "CSV Error: Column '"..tostring(vColumn).."' is not valid.";
-            end
-
-            error(sColumnError.."\n"..sErrorMessage, 3);
-        end
-
-        return tRet;
-    end,
-
-    parseCallback = function(this, cdat, sInput)
-        local sRet = "";
-        local pro = cdat.pro;
-        local sDelimiter    = pro.delimiter;
-        local sEscapeChar   = pro.escapeChar;
-        local sSearchString = sEscapeChar..sDelimiter;
-        local sEscTempChar  = pro.escapeTempChar;
-
-        sRet, _ = sInput:gsub(sEscTempChar, sSearchString);
-
-        return sRet;
-    end,
-
-    parseCSVLine = function(this, cdat, sLine, pCSV)
-        local tRet;
-        local pro           = cdat.pro;
-        local sDelimiter    = pro.delimiter;
-        local sEscapeChar   = pro.escapeChar;
-        local sSearchString = sEscapeChar..sDelimiter;
-        local sEscTempChar  = pro.escapeTempChar;
-
-        --check for escaped commas
-        sLine, _ = sLine:gsub(sSearchString, sEscTempChar);
-        tRet = sLine:totable(sDelimiter, true, pro.parseCallback);
-
-        return tRet;
-    end,
 
     setRowMeta = function(this, cdat, tRow)
         local pro = cdat.pro;
@@ -221,26 +102,20 @@ local CSV = class("CSV",
 {--PUBLIC
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.CSV
+        @fqxn LuaEx.Classes.Grid.Methods.Grid
         @des The constructor for the class.
-        @param string|nil sDelimiter The delimiter to use for the object. If nothing is provided, the default (comma [,]) will be used.
     !]]
-    CSV = function(this, cdat, sDelimiter, sData)
-
-        if (rawtype(sDelimiter) == "string" and #sDelimiter == 1) then
-            cdat.pro.delimiter = sDelimiter;
-        end
-
+    Grid = function(this, cdat)
     end,
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.columnExists
+        @fqxn LuaEx.Classes.Grid.Methods.columnExists
         @des Detrmines whether a column exists.
-        @param number|string vColumn The index or name of the column to check.
+        @param number nColumn The index of the column to check.
         @ret boolean bExists A boolean value indicating whether the column exists.
     !]]
-    columnExists = function(this, cdat, vColumn)
-        return cdat.pro.getColumnInfo(vColumn) ~= nil;
+    columnExists = function(this, cdat, nColumn)
+        return 
     end,
     --TODO
     clear = function(this, cdat)
@@ -255,26 +130,26 @@ local CSV = class("CSV",
         --local nColumnCount
 
         if (nColumnCount == 0) then
-            error("\nCSV Error in 'deleteColumn': There are no columns to delete.");
+            error("\nGrid Error in 'deleteColumn': There are no columns to delete.");
         end
 
     end,
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.deleteRow
-        @des Deletes a row from the CSV object.
+        @fqxn LuaEx.Classes.Grid.Methods.deleteRow
+        @des Deletes a row from the Grid object.
         @param number nRow The index of the row delete.
-        @ret CSV oCSV The CSV object.
+        @ret Grid oGrid The Grid object.
     !]]
     deleteRow = function(this, cdat, nRowRaw)
-        type.assert.number(nRowRaw, false, true, false, true, false, -1, nil, "\nCSV Error in 'deleteRow': Invalid input for row.", 1);
+        type.assert.number(nRowRaw, false, true, false, true, false, -1, nil, "\nGrid Error in 'deleteRow': Invalid input for row.", 1);
         local pro       = cdat.pro;
         local nRowCount = pro.rowCount;
         local nRow      = (nRowRaw == -1) and nRowCount or nRowRaw;
 
         if (nRowCount == 0) then
-            error("\nCSV Error in 'deleteRow': There are no rows to delete.");
+            error("\nGrid Error in 'deleteRow': There are no rows to delete.");
         end
 
         --remove the row
@@ -299,8 +174,8 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.eachCell
-        @des Returns a sequential iterator that goes through every cell in the CSV, row by row and column by column.
+        @fqxn LuaEx.Classes.Grid.Methods.eachCell
+        @des Returns a sequential iterator that goes through every cell in the Grid, row by row and column by column.
         @ret function fCells A sequential iterator function that, when traversed, returns for each iteration:
         <ul>
             <li>Row Index</li>
@@ -343,8 +218,8 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.eachColumn
-        @des Returns a sequential iterator that steps over each column in the CSV object.
+        @fqxn LuaEx.Classes.Grid.Methods.eachColumn
+        @des Returns a sequential iterator that steps over each column in the Grid object.
         @ret function fColumns A sequential iterator function that, when traversed, returns the column index, column name, and column table (whose keys are row indices and values are cell data) on each iteration.
     !]]
     eachColumn = function(this, cdat)
@@ -374,8 +249,8 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.eachRow
-        @des Returns a sequential iterator that steps over each row in the CSV object.
+        @fqxn LuaEx.Classes.Grid.Methods.eachRow
+        @des Returns a sequential iterator that steps over each row in the Grid object.
         @ret function fRows A sequential iterator function that, when traversed, returns the row index and row table (whose keys are column indices and values are cell data) on each iteration.
     !]]
     eachRow = function(this, cdat)
@@ -397,11 +272,11 @@ local CSV = class("CSV",
 
 
     --[[!
-    @fqxn LuaEx.Classes.CSV.Methods.export
-    @des Exports the contents of the CSV object to file.
+    @fqxn LuaEx.Classes.Grid.Methods.export
+    @des Exports the contents of the Grid object to file.
     @pararm string pFile The export file path.
-    @param boolean|nil bAppend Whether the CSV contents should be appended to the export file. If appending, the CSV's header will not be included. If no argument is provided, the file will be overwritten by default instead of appended.
-    @ret CSV oCSV The CSV object.
+    @param boolean|nil bAppend Whether the Grid contents should be appended to the export file. If appending, the Grid's header will not be included. If no argument is provided, the file will be overwritten by default instead of appended.
+    @ret Grid oGrid The Grid object.
     !]]
     export = function(this, cdat, pFile, vAppend)
         --TODO file arg assertions
@@ -460,7 +335,7 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getCell
+        @fqxn LuaEx.Classes.Grid.Methods.getCell
         @des Retrieves the cell data given the row and column.
         @param number nRow The index of the row from which to get the data.
         @param number|string vColumn The index or name of the column from which to get the data.
@@ -468,14 +343,14 @@ local CSV = class("CSV",
     !]]
     getCell = function(this, cdat, nRow, vColumn)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'getCell': Row is out of bounds or invalid.", 1);
+        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nGrid Error in 'getCell': Row is out of bounds or invalid.", 1);
         local tColumnInfo   = pro.getColumnInfo(vColumn, true, "\nError in 'getCell': Cannot get cell in row "..nRow..'. ');
         return pro.rowsRaw[nRow][tColumnInfo.index];
     end,
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getColumn
+        @fqxn LuaEx.Classes.Grid.Methods.getColumn
         @des Retrieves all cell data from all rows in a given column.
         @param number|string vColumn The index or name of the column from which to get the data.
         @ret table tData A numerically-indexed table whose keys are the row indices and whose values are the cell data.
@@ -497,8 +372,8 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getColumnCount
-        @des Gets the total number of columns in the CSV object.
+        @fqxn LuaEx.Classes.Grid.Methods.getColumnCount
+        @des Gets the total number of columns in the Grid object.
         @ret number nColumns The total number of columns.
     !]]
     getColumnCount = function(this, cdat)
@@ -507,7 +382,7 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getColumnIndex
+        @fqxn LuaEx.Classes.Grid.Methods.getColumnIndex
         @des Gets the index of a column given its name.
         @param string sColumn The column name.
         @ret number nColumn The index of the column or nil if it doesn't exist.
@@ -518,21 +393,21 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getColumnName
+        @fqxn LuaEx.Classes.Grid.Methods.getColumnName
         @des Gets the name of a column given its index.
         @param number nColumn The column index.
         @ret string sColumn The name of the column.
     !]]
     getColumnName = function(this, cdat, nColumn)
         local pro = cdat.pro;
-        type.assert.number(nColumn, true, true, false, true, false, 1, pro.columnCount, "\nCSV Error in 'getColumnName': Invalid column index given.", 1);
+        type.assert.number(nColumn, true, true, false, true, false, 1, pro.columnCount, "\nGrid Error in 'getColumnName': Invalid column index given.", 1);
         return cdat.pro.columnNames[nColumn];
     end,
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getColumnNames
-        @des Gets the names of all columns in teh CSV object.
+        @fqxn LuaEx.Classes.Grid.Methods.getColumnNames
+        @des Gets the names of all columns in teh Grid object.
         @ret table tColumnNames A numerically-indexed table whose keys are column indices and whose values are column names.
     !]]
     getColumnNames = function(this, cdat)
@@ -547,113 +422,27 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getRow
+        @fqxn LuaEx.Classes.Grid.Methods.getRow
         @des Gets the row table for given the row's index.
         @param number nRow The row table to get.
         @ret table tRow The row table whose indices are column indices and whose values are cell data.
     !]]
     getRow = function(this, cdat, nRow)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'getRow': Invalid row index given.", 1);
+        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nGrid Error in 'getRow': Invalid row index given.", 1);
         return pro.rows[nRow];
     end,
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.getRowCount
-        @des Gets the total number of rows in the CSV object.
-        @ret number nRows The total number of rows in the CSV object.
+        @fqxn LuaEx.Classes.Grid.Methods.getRowCount
+        @des Gets the total number of rows in the Grid object.
+        @ret number nRows The total number of rows in the Grid object.
     !]]
     getRowCount = function(this, cdat)
         return cdat.pro.rowCount;
     end,
 
---TODO FINISH NOTES
-    import = function(this, cdat, pCSV, bIgnoreCase)
-        type.assert.string(pCSV, "%S+", "\nCSV Error in 'import': Filepath cannot be blank.", 1);
-        local pro           = cdat.pro;
-        local bHasHeader    = #pro.columnNames > 0;
-        bIgnoreCase         = rawtype(bIgnoreCase) == "boolean" and bIgnoreCase or false;
-        local fCase         = bIgnoreCase and pro.caseFunction or string.lower;
-
-        --open the file
-        local hFile = io.open(pCSV, "r");
-
-        if (hFile) then
-            local tLines        = {};
-            local tImportRows   = {};
-            local tImportHeader = {};
-
-            --load the lines from the file into the tImportRows table
-            for sLine in hFile:lines() do
-
-                if sLine:match("%S") then --do not allow blank lines
-                    table.insert(tImportRows, sLine);
-                end
-
-            end
-
-            hFile:close();
-
-            if (tImportRows) then
-                --import the header
-                local tImportHeader     = pro.parseCSVLine(tImportRows[1], pCSV);
-                local nImportColumns    = #tImportHeader;
-                local nColumns          = pro.columnCount;
-
-                --check that the header matches and the columns align
-                if (bHasHeader) then
-
-                    if (nColumns ~= nImportColumns) then --TODO update errors with concat and file
-                        error("CSV Import Error in 'import': Column count mismatch — expected "..nColumns.." columns, got "..nImportColumns..'.', 2);
-                    end
-
-                    local tHeader = pro.columnNames;
-                    for nColumn = 1, nColumns do
-
-                        if (tImportHeader[nColumn]:fCase() ~= tHeader[nColumn]:fCase()) then
-                            error("CSV Import Error in 'import': Column name mismatch at index "..nColumn.." — expected \""..tHeader[nColumn]:fCase().."\", got \""..tImportHeader[nColumn]:fCase()..'".', 2);
-                        end
-
-                    end
-
-                else
-                    pro.columnCount = nImportColumns;
-                    nColumns        = nImportColumns;
-
-                    for nColumn, sColumn in ipairs(tImportHeader) do
-                        pro.columnNames[nColumn]      = sColumn;
-                        pro.columnIDByName[sColumn]   = nColumn;
-                    end
-
-                end
-
-                --now that it's stored, remove the header from from the would-be-rows
-                table.remove(tImportRows, 1);
-
-                --iterate over the rows, parsing and validating each one
-                for nRow, sRow in ipairs(tImportRows) do
-                    local tRow = pro.parseCSVLine(sRow);
-
-                    if (#tRow ~= nColumns) then
-                        error("CSV Import Error: Malformed row — Expected "..nColumns.." columns in row #"..nRow..", got "..#tRow..'.', 2);
-                    end
-
-                    pro.rowCount        = pro.rowCount + 1;
-                    local tDecoy        = pro.setRowMeta(tRow);
-                    pro.rows[nRow]      = tDecoy;
-                    pro.rowsRaw[nRow]   = tRow;print(pro.rowsRaw[nRow][1], pro.rows[nRow][1])
-                end
-
-            else
-                error("CSV Import Error: Failed to read file: \""..pCSV..'\".', 2);
-            end
-
-        else
-            error("CSV Import Error: File does not exist: \""..pCSV..'\".', 2);
-        end
-
-    end,
 --TODO
     insertColumn = function(this, cdat, sColumn, vValues, vIndex)
         type.assert.string(sColumn, "%S+");
@@ -669,12 +458,12 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.insertRow
-        @des inserts one to many rows starting at the provided index <em>(or at the end of the CSV rows table if no position is indicated)</em>.
-        @param number|nil nPosition The position at which to insert the row(s). If set to nil or -1, appends the rows to the end of the CSV.
+        @fqxn LuaEx.Classes.Grid.Methods.insertRow
+        @des inserts one to many rows starting at the provided index <em>(or at the end of the Grid rows table if no position is indicated)</em>.
+        @param number|nil nPosition The position at which to insert the row(s). If set to nil or -1, appends the rows to the end of the Grid.
         @param string|table|nil vData The value to insert into each of the row's cells. If nothing is provided, a blank string will be inserted. If a non-nil, non-table value is provided, it will be coerced to a string and inserted into each cell. If a table is provided <em>(that has numerical indices equal to the number of columns and whose values are strings or things that can be coerced into a string)</em>, the table's data will be inserted at each relative position.
         @param number|nil The number of rows to insert. By default, if no valid argument is provided, one row will be inserted.
-        @ret CSV oCSV The CSV object.
+        @ret Grid oGrid The Grid object.
     !]]
     insertRow = function(this, cdat, vPosition, vDataInput, vRows)
         local pro               = cdat.pro;
@@ -689,7 +478,7 @@ local CSV = class("CSV",
         if (rawtype(nPosition) ~= "number") then
             nPosition = pro.rowCount + 1;
         else
-            type.assert.number(nPosition, false, true, false, true, false, -1, pro.rowCount, "\nCSV Error in 'insertRow': Invalid input for row insert position.", 1);
+            type.assert.number(nPosition, false, true, false, true, false, -1, pro.rowCount, "\nGrid Error in 'insertRow': Invalid input for row insert position.", 1);
             nPosition = (nPosition == -1) and (pro.rowCount + 1) or nPosition;
         end
 
@@ -736,7 +525,7 @@ local CSV = class("CSV",
 
     --TODO
     moveColumn = function(this, cdat, vColumn, nPosition)
-        type.assert.number(nPosition, false, true, false, true, false, -1, pro.columnCount, "\nCSV Error in 'moveColumn': Invalid input for column position.", 1);
+        type.assert.number(nPosition, false, true, false, true, false, -1, pro.columnCount, "\nGrid Error in 'moveColumn': Invalid input for column position.", 1);
         local tColumnInfo = pro.getColumnInfo(vColumn, true, "\nError in renameColumn: Cannot rename column.");
 
     end,
@@ -748,39 +537,14 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.renameColumn
-        @des Renames a column.
-        @param number|string vColumn The index or name of the column to rename.
-        @param string sNewName The new column name.
-        @ret CSV oCSV The CSV object.
-    !]]--TODO FIX account for commas!
-    renameColumn = function(this, cdat, vColumn, sName)
-        type.assert.string(sName, "%S+", "\nCSV Error in 'renameColumn': New column name cannot be blank.", 1);
-        local pro = cdat.pro;
-        local tColumnInfo       = pro.getColumnInfo(vColumn, true, "\nError in renameColumn: Cannot rename column.");
-        local tColumnIDByName   = pro.columnIDByName;
-        local nColumnID         = tColumnIDByName[vColumn];
-
-        --replace the appropriate header column
-        pro.columnNames[nColumnID] = sName;
-
-        --replace column name in the columnIDByName table
-        tColumnIDByName[vColumn]   = nil;
-        tColumnIDByName[sName]     = nColumnID;
-
-        return this;
-    end,
-
-
-    --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.rowExists
+        @fqxn LuaEx.Classes.Grid.Methods.rowExists
         @des Detrmines whether a row exists.
         @param number nRow The index of the row to check.
         @ret boolean bExists A boolean value indicating whether the row exists.
     !]]
     rowExists = function(this, cdat, nRow)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nCSV Error in 'rowExists': Invalid input for row.", 1);
+        type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nGrid Error in 'rowExists': Invalid input for row.", 1);
         return pro.rows[nRow] ~= nil;
     end,
     --TODO
@@ -790,7 +554,7 @@ local CSV = class("CSV",
 
 
     --[[!
-        @fqxn LuaEx.Classes.CSV.Methods.setCell
+        @fqxn LuaEx.Classes.Grid.Methods.setCell
         @des Sets the cell data given the row and column.
         @param number nRow The index of the row at which to set the data.
         @param number|string vColumn The index or name of the column at which to set the data.
@@ -799,7 +563,7 @@ local CSV = class("CSV",
     !]]
     setCell = function(this, cdat, nRow, vColumn, vValue)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nCSV Error in 'setCell': Invalid input for row.", 1);
+        type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nGrid Error in 'setCell': Invalid input for row.", 1);
         local tColumnInfo = cdat.pro.getColumnInfo(vColumn, true, "\nError in 'setCell'.");
         pro.rowsRaw[nRow][tColumnInfo.index] = tostring(vValue);
 
@@ -807,14 +571,14 @@ local CSV = class("CSV",
     end,
 
 },
-Grid,   --extending class
+nil,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
 
 
-local oRes = CSV();
-oRes.import(io.normalizepath(sSourcePath.."\\..\\resources\\CSV_Read_Test.csv"), false);
+local oRes = Grid();
+oRes.import(io.normalizepath(sSourcePath.."\\..\\resources\\Grid_Read_Test.csv"), false);
 
 --TODO __newindex
 --oRes.getRow(1).name = "Boots"
@@ -848,16 +612,16 @@ end
 
 --oRes.insertRow(7, "e", 4)
 oRes.renameColumn("Symbol", "Booga44!");
-oRes.export(io.normalizepath(sSourcePath.."\\..\\resources\\CSV_Write_Test.csv"), false);
+oRes.export(io.normalizepath(sSourcePath.."\\..\\resources\\Grid_Write_Test.csv"), false);
 --oRes.deleteRow(118);
 
 
 
-oCSV = CSV();
---print(oCSV.getColumn(1))
+oGrid = Grid();
+--print(oGrid.getColumn(1))
 
 --print(oRes.columnExists("name"));
 
 --print(oRes.getColumnIndex("name"))
 
-return CSV;
+return Grid;
