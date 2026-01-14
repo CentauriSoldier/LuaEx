@@ -540,4 +540,22 @@ function math.inttorgb(long_color)
     return red, green, blue
 end
 
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.randomf
+    @desc Generates a random float between two values with 4-decimal precision.
+    @param number nMin The minimum value (float).
+    @param number nMin The maximum value (float).
+    @ret number nResult The result (float).
+!]]
+local nPrecision = 10000;
+function math.randomf(nMinRaw, nMaxRaw)
+    local nTempMin  = math.floor(nMinRaw * nPrecision);
+    local nTempMax  = math.floor(nMaxRaw * nPrecision);
+    local nMin      = nTempMin < nTempMax and nTempMin or nTempMax;
+    local nMax      = nTempMin < nTempMax and nTempMax or nTempMin;
+
+    return math.random(nMin, nMax) / nPrecision;
+end
+
 return math;

@@ -247,7 +247,7 @@ end
 ╚════██║   ██║   ██╔══██╗██║   ██║██║        ██║
 ███████║   ██║   ██║  ██║╚██████╔╝╚██████╗   ██║
 ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝   ]]
-
+--TOTO QUESTION WHY are these not all localized functions?
 
 function struct.build(sName, tInputArgs)
     local tArgs		    = type(tInputArgs) == "table" and tInputArgs or nil;

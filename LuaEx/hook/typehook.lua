@@ -562,7 +562,7 @@ local type = {
         return sType;
     end,
 };
-
+--TODO FINISH document is functions
 local function newindex(t, k, v)
 
     if (__type__(k) == "string") then
@@ -618,6 +618,33 @@ settype		= type.set;
 setsubtype	= type.setsub;
 isnil       = type.isnil;
 isnull      = type.isnull;
+
+function toboolean(vVal)
+    local bRet;
+    local zVal = rawtype(vVal);
+
+    if (zVal == "boolean") then
+        bRet = vVal;
+    elseif (zVal == "string") then
+
+        if (vVal:lower() == "true") then
+            bRet = true;
+        elseif (vVal:lower() == "false") then
+            bRet = false;
+        end
+
+    elseif (zVal == "number") then
+
+        if (vVal == 0) then
+            bRet = false;
+        elseif (vVal == 1) then
+            bRet = true;
+        end
+
+    end
+
+    return bRet;
+end
 
 --rework the type system
 setmetatable(type,
