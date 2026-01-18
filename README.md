@@ -20,7 +20,7 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗s
-#### Current Version: Beta v0.60
+#### Current Version: Beta v0.61
 View Changelog at [https://github.com/CentauriSoldier/LuaEx/blob/main/CHANGELOG.md](https://github.com/CentauriSoldier/LuaEx/blob/main/CHANGELOG.md).
 
 ## 🅻🅸🅲🅴🅽🆂🅴 ©

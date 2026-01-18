@@ -6,7 +6,7 @@
 ## [**v0.61**] (*in progress*)
 
 ### Added
-    **class.haspublicmember**
+- **class.haspublicmember**
 
 ### Changed
 
