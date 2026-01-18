@@ -5,6 +5,14 @@
 
 ## [**v0.61**] (*in progress*)
 
+### Added
+    **class.haspublicmember**
+
+### Changed
+
+### Fixed
+- Private **IsinScope** function used by Class helper functions not properly checking scope.
+
 ---
 
 ## [**v0.60**]

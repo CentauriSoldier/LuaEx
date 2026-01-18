@@ -254,6 +254,10 @@ local class = {
         byName      = {}, --index by class/kit name
         byObject    = {}, --indexed by class, value is kit
         isFunctions = {}, --indexed by class, value is class "is" function
+        tablesByKit = {}, --[[  the actual class tables (not objects) indexed by kit.
+                                DANGER: BE VERY, VERY CAREFUL WITH THIS!!!
+                                RESTRICTED TABLE - ACCESS ONLY!!!
+                                DO NOT MODIFY CONTENTS OUTSIDE OF NORMAL CLASS CREATION FUNCTIONS!!!]]
     },
 };
 
@@ -307,10 +311,13 @@ _fAutoPlaceHolder = function() end;
 --TODO use error instead of assert so error level can be set (or can it be on assert?)..assert is slower...]]
 
 
--->>>>>WARNING: this function should not be exposed as it is for internal use only
+-->>>>>WARNING: thses functions should not be exposed as they are for internal use only
 local function getKit(vClass)
     return class.repo.byObject[vClass] or kit.repo.byName[vClass] or nil;
 end
+--local function getClass(vClass)
+--    return class.repo.byObject[vClass] or kit.repo.byName[vClass] or nil;
+--end
 --<<<<<<<
 
 --ideas: to add - isinscope, getlineageordinal, issibling (direct sister classes), is relative (connected to any other class that is connected)
@@ -475,6 +482,45 @@ local function haschildren(vClass)
               tMyKit.children.count > 0 );
 end
 
+--[[!
+@fqxn LuaEx.Class System.class.Functions.haspublicmember
+@desc Determines if a class has a public member.
+@param class|string vClass The class (or class name) to check.
+@param string sMember The name of the member to check.
+@ret boolean bHasPublicMember True if the class has the input public member, false otherwise.
+@ret boolean bIsStatic True if the member is static, false otherwise;
+@ret string zType The public member's type.
+!]]
+local function haspublicmember(vClass, sMember)
+    local bRet      = false;
+    local zRet      = "nil";
+    local bIsStatic = false;
+    local sNil      = "nil";
+    local tKit      = getKit(vClass);
+
+    if (tKit and rawtype(sMember) == "string") then
+        local tClass = class.repo.tablesByKit[tKit];
+
+        if (tClass and tKit.isInScope()) then
+
+            while (tKit) do
+                zRet = rawtype(tKit.pub[sMember]);
+                bRet = zRet ~= sNil;
+                tKit = (not bRet) and tKit.parent or nil; --if the item's not been found, keep going
+            end
+
+            if not (bRet) then
+                zRet        = rawtype(tClass[sMember]);
+                bRet        = zRet ~= sNil;
+                bIsStatic   = bRet;
+            end
+
+        end
+
+    end
+
+    return bRet, bIsStatic, zRet;
+end
 
 --[[!
 @fqxn LuaEx.Class System.class.Functions.is
@@ -995,6 +1041,7 @@ function class.build(tKit)
     class.repo.byKit[tKit]          = oClass;
     class.repo.byName[tKit.name]    = oClass;
     class.repo.byObject[oClass]     = tKit;
+    class.repo.tablesByKit[tKit]    = tClass; --should be accessed ONLY by helper functions such as class.haspublicmember
 
     local function classis(vVal)
         local sType         = type(vVal)
@@ -1656,42 +1703,42 @@ function instance.wrapMethods(tInstance, tClassData)
 end
 
 
-                                        --[[██╗  ██╗██╗████████╗
-                                            ██║ ██╔╝██║╚══██╔══╝
-                                            █████╔╝ ██║   ██║
-                                            ██╔═██╗ ██║   ██║
-                                            ██║  ██╗██║   ██║
-                                            ╚═╝  ╚═╝╚═╝   ╚═╝ ]]
-                                        --[[!
-                                            @fqxn LuaEx.Class System.kit
-                                            @desc The table containing all the functions and data relating to and dealing with class kits.
-                                            <br>
-                                            <h1>Kits</h1>
-                                            Kits are used in the class building process. When a class is created by the user, the parameters of that class are stored in a kit. The class is then constructed from the kit and any parent kits.
-                                            <br>This approach facilitates inheritance while mitigating any issues with shared tables that shouldn't be shared. It also permits classes to retain private methods and still properly function within scope when that class is extended.
-                                            <br>Essentially, kits solve the problems that arise from inheritance in Lua. Kits are the building blocks of all classes and are where all class data is stored.
-                                            <br>
-                                            <strong>Note</strong>: the class data stored in kits is strictly managed and controlled to prevent incidental access and modification out of scope.
+                                            --[[██╗  ██╗██╗████████╗
+                                                ██║ ██╔╝██║╚══██╔══╝
+                                                █████╔╝ ██║   ██║
+                                                ██╔═██╗ ██║   ██║
+                                                ██║  ██╗██║   ██║
+                                                ╚═╝  ╚═╝╚═╝   ╚═╝ ]]
+--[[!
+    @fqxn LuaEx.Class System.kit
+    @desc The table containing all the functions and data relating to and dealing with class kits.
+    <br>
+    <h1>Kits</h1>
+    Kits are used in the class building process. When a class is created by the user, the parameters of that class are stored in a kit. The class is then constructed from the kit and any parent kits.
+    <br>This approach facilitates inheritance while mitigating any issues with shared tables that shouldn't be shared. It also permits classes to retain private methods and still properly function within scope when that class is extended.
+    <br>Essentially, kits solve the problems that arise from inheritance in Lua. Kits are the building blocks of all classes and are where all class data is stored.
+    <br>
+    <strong>Note</strong>: the class data stored in kits is strictly managed and controlled to prevent incidental access and modification out of scope.
 
-                                            <h1>Kit Usage</h1>
-                                            Kits are first created by a call to <a href="#LuaEx.Class System.kit.Functions.build">kit.build</a>. The globally-available alias to this function is <strong>class</strong>.
+    <h1>Kit Usage</h1>
+    Kits are first created by a call to <a href="#LuaEx.Class System.kit.Functions.build">kit.build</a>. The globally-available alias to this function is <strong>class</strong>.
 
-                                            Once a call to class has been made, the class building process begins.
-                                            Below is the order in which events occur.
+    Once a call to class has been made, the class building process begins.
+    Below is the order in which events occur.
 
-                                            <ol>
-                                                <li>The class name is validated by <a href="#LuaEx.Class System.kit.Functions.validateName">kit.validateName</a> to ensure it's variable-safe and doesn't already exist.</li>
-                                                <li>The <a href="#LuaEx.Class System.kit.Functions.validateTables">kit.validateTables</a> check the validity of the tables containing the metamethods as well as the static public, private, protected, and public class members.</li>
-                                                <li><a href="#LuaEx.Class System.kit.Functions.validateInterfaces">kit.validateInterfaces</a></li>
-                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
-                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
-                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
-                                                <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
+    <ol>
+        <li>The class name is validated by <a href="#LuaEx.Class System.kit.Functions.validateName">kit.validateName</a> to ensure it's variable-safe and doesn't already exist.</li>
+        <li>The <a href="#LuaEx.Class System.kit.Functions.validateTables">kit.validateTables</a> check the validity of the tables containing the metamethods as well as the static public, private, protected, and public class members.</li>
+        <li><a href="#LuaEx.Class System.kit.Functions.validateInterfaces">kit.validateInterfaces</a></li>
+        <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
+        <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
+        <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
+        <li><a href="#LuaEx.Class System.kit.Functions.validateName"></a></li>
 
-                                                (sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
-                                                kit.validateInterfaces(sName, tInterfaces);
-                                            </ol>
-                                        !]]
+        (sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
+        kit.validateInterfaces(sName, tInterfaces);
+    </ol>
+!]]
 
 --[[!
 @fqxn LuaEx.Class System.kit.Functions.build
@@ -1715,6 +1762,8 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.validateName(sName);
     kit.validateTables(sName, tMetamethods, tStaticPublic, tPrivate, tProtected, tPublic);
     kit.validateInterfaces(sName, tInterfaces);
+
+    local oClass, fLauncher;
 
     --TODO check each member against the static members?
     --import/create the elements which will comprise the class kit
@@ -1762,7 +1811,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             pub = {},
         },
         isFinal			= false, --whether the classis final (processed below)
-        isInScope       = load("return "..sName..' ~= nil;'), --this gets run when checking if the final class object is visible within a given scope.
+        isInScope       = function() return oClass ~= nil end,--load("return "..sName..' ~= nil;'), --this gets run when checking if the final class object is visible within a given scope.
         --hasBlacklist    = false, --whether the class has a blacklist (processed below)
         --hasWhitelist    = false, --whether the class has a whitelist (processed below)
         blacklist       = nil,   --which class(es) may NOT subclass this one (processed below)
@@ -1812,7 +1861,7 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
     kit.processInterfaces(tKit, tInterfaces);
 
     --now that this class kit has been validated, imported & stored, build the class object
-    local oClass, fLauncher = class.build(tKit);
+    oClass, fLauncher = class.build(tKit);
 
     --increment the class kit count
     kit.count = kit.count + 1;
@@ -2526,6 +2575,7 @@ local tClassActual = {
     getname                     = getname,
     getparent                   = getparent,
     haschildren                 = haschildren,
+    haspublicmember             = haspublicmember,
     is                          = is,
     isbase                      = isbase,
     isbaseof                    = isbaseof,
