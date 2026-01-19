@@ -161,8 +161,9 @@ return [[
     }
 
     pre {
-        white-space: pre-wrap; !important
+        white-space: pre-wrap !important;
     }
+
 
 
     /*
@@ -254,6 +255,16 @@ return [[
         font-size: calc(1vw + 1vh + 0.3vmin);
     }*/
 
+    #DOX_breadcrumb {
+        background: none;
+        margin: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        padding: 0;
+    }
+
+
     /* Specific adjustments for individual elements */
     #DOX_breadcrumb-wrapper {
         background-color: var(--navbackground);
@@ -279,6 +290,14 @@ return [[
     .breadcrumb {
         background: none;
         margin: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        list-style: none;
+        padding: 0;
+    }
+
+    .breadcrumb li {
+        display: inline;
     }
 
     .breadcrumb-wrapper {
@@ -322,8 +341,6 @@ return [[
         color: white;
     }
 
-
-
     .custom-section {
       margin: 20px 0;
     }
@@ -345,4 +362,5 @@ return [[
         padding: 10px; /* Adjust padding as needed */
         border: 1px solid #ccc; /* Add border for content area */
     }
+
 ]];

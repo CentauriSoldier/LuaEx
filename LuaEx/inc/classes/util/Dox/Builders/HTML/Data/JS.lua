@@ -208,7 +208,7 @@ class Dox {
                 }
             });
 
-            /* Test for navigating to link in address bar 
+            /* Test for navigating to link in address bar
             window.addEventListener('load', function() {
               if (window.location.hash) {
                 // Strip off the '#' and possibly prefix the key if needed

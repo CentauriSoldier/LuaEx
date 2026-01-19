@@ -56,17 +56,6 @@ end
 ╚═════╝  ╚═════╝ ╚═╝  ╚═╝]]
 --[[!
 @fqxn Dox
-@todo <!--TODO-->
-<ul>
-    <li>allow user to suround content block with (optional tags) tags...</li>
-    <li>color dead anchor links</li>
-    <li>add option to get and print TODO, BUG, etc.</li>
-    <li>parse single-line comments too</li>
-    <li>add tooltip with \@des info (if available) in sidemenu items</li>
-    <li>allow custom BlockTag sort order (in what order items are displayed in the output)</li>
-    <li>allow escaping . in FQXN</li>
-    <li>fix bug in fqxns with multiple-spaces</li>
-</ul>
 @desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
 <br><br>
 Note: Dox is intended only to be used by being subclassed.
@@ -215,7 +204,17 @@ Below is the layout and hierarchy of Dox and all its elements.
 
   </div>
 </div>
-
+@todo <!--TODO-->
+<ul>
+    <li>allow user to suround content block with (optional tags) tags...</li>
+    <li>color dead anchor links</li>
+    <li>add option to get and print TODO, BUG, etc.</li>
+    <li>parse single-line comments too</li>
+    <li>add tooltip with \@des info (if available) in sidemenu items</li>
+    <li>allow custom BlockTag sort order (in what order items are displayed in the output)</li>
+    <li>allow escaping . in FQXN</li>
+    <li>fix bug in fqxns with multiple-spaces</li>
+</ul>
 
 !]]
 return class("Dox",
@@ -505,10 +504,9 @@ return class("Dox",
         local eBuilderMime  = cBuilder.getMime();
         --print(serialize(pri.finalized))
         --get or create the filename (or use the builder's default)
-        sFilename = (rawtype(sFilename) == "string" and string.isfilesafe(sFilename))   and
+        sFilename = (rawtype(sFilename) == "string" and sFilename:isfilesafe())         and
                     sFilename                                                           or
                     (pri.title:isfilesafe() and pri.title or cBuilder.getDefaultFilename());
-
 
         --TODO use proper directory separator
         local pOut = pri.OutputPath.."\\"..sFilename.."."..eBuilderMime.value;

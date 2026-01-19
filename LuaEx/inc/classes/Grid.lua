@@ -115,7 +115,7 @@ local Grid = class("Grid",
         @ret boolean bExists A boolean value indicating whether the column exists.
     !]]
     columnExists = function(this, cdat, nColumn)
-        return 
+        return
     end,
     --TODO
     clear = function(this, cdat)
@@ -274,7 +274,7 @@ local Grid = class("Grid",
     --[[!
     @fqxn LuaEx.Classes.Grid.Methods.export
     @des Exports the contents of the Grid object to file.
-    @pararm string pFile The export file path.
+    @param string pFile The export file path.
     @param boolean|nil bAppend Whether the Grid contents should be appended to the export file. If appending, the Grid's header will not be included. If no argument is provided, the file will be overwritten by default instead of appended.
     @ret Grid oGrid The Grid object.
     !]]

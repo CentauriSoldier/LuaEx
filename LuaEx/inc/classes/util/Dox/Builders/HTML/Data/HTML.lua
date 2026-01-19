@@ -10,25 +10,13 @@ return [[
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${__DOX__TITLE__} Documentation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    ${__DOX__PRISM_CSS__}
 
     <style>
         ${__DOX__CSS__}
-
-
-
-        #DOX_content {
-            height: calc(100vh - 56px); /* Adjust this value if the breadcrumb bar height changes */
-            overflow-y: auto;
-        }
-
-        /* Optional: Ensure the breadcrumb bar stays at the top */
-        .breadcrumb-wrapper {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
     </style>
+
+    ${__DOX__PRISM_CSS__}
+
 </head>
 <body>
     <div class="container-fluid">
@@ -74,8 +62,17 @@ return [[
     <!-- Instantiate Dox and update the page -->
     <script>
         ${__DOX__INTERNAL_JS__}
+
+    function bootDox() {
         const oDox = new Dox();
         oDox.updatePage();
+    }
+
+    if (window.Prism) {
+        bootDox();
+    } else {
+        window.addEventListener('load', bootDox);
+    }
     </script>
 </body>
 </html>

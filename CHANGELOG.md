@@ -9,9 +9,10 @@
 - **class.haspublicmember**
 
 ### Changed
+-- Updated *Prism* in **Dox** to *1.30.0*.
 
 ### Fixed
-- Private **IsinScope** function used by Class helper functions not properly checking scope.
+- Private **IsinScope** function used by **class** helper functions not properly checking scope.
 
 ---
 
@@ -20,7 +21,7 @@
 ### Added
 - CSV class (currently not RFC 4180 compliant).
 - New **eventrix** type to manage events.    
-- Several class-level checks:
+- Several **class**-level checks:
     - **class.exists**
     - **class.getbase**
     - **class.getbyname**
@@ -66,7 +67,7 @@
 - Classes now fully respect polymorphism in assignment operation type checking.
 - The class constructor may now be either private, protected or public.
 - The **class** module now interally handles all serialization and deserialization via the serializer system.
-- **class** constructor must now accept a string (*authenitication code*) as its second argument to be used with the ***class.isstaticconstructorrunning*** function. This can now determine whether the static constructor is currently running.
+- **class** static constructor must now accept a string (*authenitication code*) as its second argument to be used with the ***class.isstaticconstructorrunning*** helper function. This can now determine whether the static constructor is currently running (to prevent constructor spoofing where needed inside **class** methods).
 - **enum** items now have ***\_\_eq*** and ***\_\_lt*** metamethods.
 - **Dox** now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
 - ***DoxBlockTags*** can now be set to *combined* which places all items using that tag into one section.

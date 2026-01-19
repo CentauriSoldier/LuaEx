@@ -159,7 +159,7 @@ Human, false, NO_INTERFACES);
 
 
 
-
+--TODO FINISH LEFT OFF HERE testing Blueprint system
 --Huil = Human("Huil", 50);
 --print(class.getbase(class.of(Huil)))
 --Bob = Soldier("Bob", 56)
