@@ -328,7 +328,8 @@ struct                  =   tStruct.struct;
 structfactory           =   tStruct.structfactory;
 --blueprint               =   require("LuaEx.lib.blueprint");
 --sorteddictionary        =   require("LuaEx.lib.sorteddictionary");
-source			        =	require("LuaEx.util.source");
+source			        =	require("LuaEx.util.source"); --TODO these should be organized into modules
+isotominutes            =   require("LuaEx.util.isotominutes"); --TODO these should be organized into modules
 infusedhelp		        = 	require("LuaEx.lib.infusedhelp");
 --run the 'directives'
 --directive	=	require("LuaEx.lib.directive"); TODO finish directives for enums (and classes?)

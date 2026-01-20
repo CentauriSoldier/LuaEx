@@ -56,6 +56,7 @@ end
 ╚═════╝  ╚═════╝ ╚═╝  ╚═╝]]
 --[[!
 @fqxn Dox
+@bug In an FQXN with multiple spaces, only the first is handled correcly.
 @desc <strong>Dox</strong> auto-generates documentation for code by reading and parsing comment blocks.
 <br><br>
 Note: Dox is intended only to be used by being subclassed.
