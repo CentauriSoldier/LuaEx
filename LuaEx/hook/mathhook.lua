@@ -1,6 +1,8 @@
 local math      = math;
 local rawtype   = rawtype;
 local string    = string;
+local floor = math.floor;
+local rand = math.random;
 
 math.e = math.exp(1);
 
@@ -365,6 +367,9 @@ end
     return {width = nWidth, height = nHeight, x = nX, y = nY};
 end]]
 
+
+
+
 math.geometry = {};
 
 function math.geometry.rectcontains(tMe, tOther)
@@ -556,6 +561,16 @@ function math.randomf(nMinRaw, nMaxRaw)
     local nMax      = nTempMin < nTempMax and nTempMax or nTempMin;
 
     return math.random(nMin, nMax) / nPrecision;
+end
+
+local randf = math.randomf;
+
+function math.drift(nValue, nDrift)      -- additive
+    return nValue + rand(-nDrift, nDrift);
+end
+
+function math.driftf(nValue, nDrift)     -- multiplicative (ratio)
+    return nValue + nValue * randf(-nDrift, nDrift);
 end
 
 return math;
