@@ -101,7 +101,7 @@ local function unpackSerialData(sEncodedData)
     local fItem, sError = load("return "..sData);
 
     if not (fItem) then
-        error("Error in serializer while unpacking data. Data is malformed.");
+        error("Error in serializer while unpacking data. Data is malformed.\n"..sError);
     end
 
     return fItem();
@@ -311,7 +311,7 @@ local function deserialize(sRawData)--, tSavedTables, tTabCount)
     local fItem, sError = load("return "..sRawData);
 
     if not (fItem) then
-        error("Error deserializing data. Data is malformed.\n"..sRawData, 2);
+        error("Error deserializing data. Data is malformed.\n"..sRawData.."\n"..sError, 2);
     end
 
     return fItem();

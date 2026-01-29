@@ -248,6 +248,29 @@ end]]
         return bFloat and (rand(1, 100) / 100) or rand(1, 100);
     end,
     --[[!
+        @fqxn CoG.RNG.Methods.pick
+        @vis Static Public
+        @desc Selects and returns a single random element from a numerically indexed table. Supports sparse tables and both 0-based and 1-based numeric indexing.
+        @param table tList A table containing numeric indices to choose from.
+        @ret any vItem One randomly selected item from the table, or nil if no numeric entries exist.
+    !]]
+    pick = function(tInput)
+        local tKeys = {};
+
+        for k in pairs(tInput) do
+            if (type(k) == "number") then
+                tKeys[#tKeys + 1] = k;
+            end
+        end
+
+        if (#tKeys == 0) then
+            return nil;
+        end
+
+        local k = tKeys[rand(1, #tKeys)];
+        return tInput[k];
+    end,
+    --[[!
     @fqxn CoG.RNG.Methods.rollCheck
     @vis Static Public
     @desc Determines whether a check is made based on the input. Often used for things like stat checks. The check will be successful if the number rolled by the function is equal to or higher than the <strong><em>nCheck</em></strong> parameter.
