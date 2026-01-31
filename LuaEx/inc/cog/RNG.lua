@@ -253,6 +253,7 @@ end]]
         @desc Selects and returns a single random element from a numerically indexed table. Supports sparse tables and both 0-based and 1-based numeric indexing.
         @param table tList A table containing numeric indices to choose from.
         @ret any vItem One randomly selected item from the table, or nil if no numeric entries exist.
+        @TODO Add arg for number of picks and a boolean indicating whether there should be repeats.
     !]]
     pick = function(tInput)
         local tKeys = {};
