@@ -573,4 +573,13 @@ function math.driftf(nValue, nDrift)     -- multiplicative (ratio)
     return nValue + nValue * randf(-nDrift, nDrift);
 end
 
+function math.sum(...)
+    local nRet = 0;
+
+    for _, nValue in pairs({...}) do
+        nRet = nRet + nValue;
+    end
+
+    return nRet;
+end
 return math;

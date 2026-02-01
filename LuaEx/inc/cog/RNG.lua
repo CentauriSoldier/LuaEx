@@ -272,6 +272,88 @@ end]]
         return tInput[k];
     end,
     --[[!
+        @fqxn CoG.RNG.Methods.randomx
+        @desc Returns an integer in [1, N] with exponential bias.
+        <br>N is clamped to [1,10]. Each step upward is half as likely.
+        <br><br>
+        -- Weight reference (approximate behavior)
+        -- 1.00 → uniform (no bias)
+        -- 0.80 → gentle bias (most values possible)
+        -- 0.65 → noticeable bias
+        -- 0.50 → strong bias (small values common)
+        -- 0.30 → very strong bias
+        -- 0.10 → extreme bias (almost always 1)
+        @ex local function TestRandomX(nMax, nRuns, nWeight)
+            local tCount = {};
+
+            for i = 1, nMax do
+                tCount[i] = 0;
+            end
+
+            for i = 1, nRuns do
+                local nV = RNG.randomx(nMax, nWeight);
+                tCount[nV] = tCount[nV] + 1;
+            end
+
+            print(("RNG.randomx(%d), weight = %.2f, runs = %d")
+                :format(nMax, nWeight, nRuns));
+            print("--------------------------------");
+
+            for i = 1, nMax do
+                local nPct = (tCount[i] / nRuns) * 100;
+                print(("%2d : %6.2f%%"):format(i, nPct));
+            end
+
+            print("");
+        end
+
+        TestRandomX(10, 100000, 0.5);
+        TestRandomX(10, 100000, 0.8);
+        @param number nMax Requested maximum value.
+        @param number nWeight A value between 0.01 and 1 (inclusive) that sets the ratio from one number to the next.
+        @ret number nResult Biased random integer.
+    !]]
+    randomx = function(nMax, vWeight)
+        local nB        = tonumber(nMax) or 1;
+        local nWeight   = tonumber(vWeight) or 0.5;
+
+        if (nWeight < 0.01) then
+            nWeight = 0.01;
+        elseif (nWeight > 1) then
+            nWeight = 1;
+        end
+
+        if (nB < 1) then
+            nB = 1;
+        elseif (nB > 10) then
+            nB = 10;
+        end
+
+        -- geometric weights: 1, w, w^2, ...
+        local nU = math.random();
+        local nAcc = 0;
+        local nW = 1;
+        local nSum = 0;
+
+        -- compute total weight
+        for i = 1, nB do
+            nSum = nSum + nW;
+            nW = nW * nWeight;
+        end
+
+        -- pick
+        nW = 1;
+        for x = 1, nB do
+            nAcc = nAcc + (nW / nSum);
+            if (nU <= nAcc) then
+                return x;
+            end
+            nW = nW * nWeight;
+        end
+
+        return nB; -- safety fallback
+    end,
+    --[[!
     @fqxn CoG.RNG.Methods.rollCheck
     @vis Static Public
     @desc Determines whether a check is made based on the input. Often used for things like stat checks. The check will be successful if the number rolled by the function is equal to or higher than the <strong><em>nCheck</em></strong> parameter.
