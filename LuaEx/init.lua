@@ -450,7 +450,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     BaseMod         = require(pCoG..".ModSystem.BaseMod");
                     Factorium       = require(pCoG..".ModSystem.Factorium");
                     CoG             = require(pCoG..".CoG");
-
+                    
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");
                     IConsumable     = require(pCoG..".Interfaces.IConsumable");
