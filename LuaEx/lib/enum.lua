@@ -59,7 +59,35 @@ local function isvariablecompliant(sInput, bSkipKeywordCheck)
 end
 
 --TODO hasA is not working properly
-local function formatName(sEnumName)
+local function formatNameOLD(sEnumName)
+    local sRet = "";
+    local tString = sEnumName:gsub("_", "_|"):totable("|");
+
+    --go through each string in the table
+    for x = 1, #tString do
+        local sSubString = tString[x];
+
+        --go through each character in the string
+        for y = 1, #sSubString do
+
+            --get the character
+            local sChar = sSubString:sub(y, y);
+
+            --lower or upper the char based on whether or not it's the first one of this substring
+            sRet = sRet..((y == 1) and sChar:upper() or sChar:lower());
+        end
+
+    end
+
+    return sRet:gsub("_", " ");
+end
+
+local function formatName(sEnumName) --TODO BUG FIX, this is returning the name for now because the one above it lowering names like OnCreate ---needs fixed
+
+    if 1 == 1 then
+        return sEnumName
+    end
+
     local sRet = "";
     local tString = sEnumName:gsub("_", "_|"):totable("|");
 
