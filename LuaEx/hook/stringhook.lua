@@ -342,7 +342,7 @@ end
     5	four
     \]\]
 !]]
-function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
+function string.totableOLD(sInput, sDelimiter, bAllowBlank, fCallback) --allows only one char as delimiter
     local tRet      = {};
     local fCallback = rawtype(fCallback) == "function" and fCallback or false;
 
@@ -363,6 +363,45 @@ function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
 
     return tRet;
 end
+
+
+function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
+    local tRet      = {};
+    local fCallback = rawtype(fCallback) == "function" and fCallback or false;
+
+    sDelimiter = (type(sDelimiter) == "string" and sDelimiter ~= "") and sDelimiter or ",";
+
+    local function _push(w)
+        if (fCallback) then
+            table.insert(tRet, fCallback(w));
+        else
+            table.insert(tRet, w);
+        end
+    end
+
+    local sPat = "(.-)" .. sDelimiter;
+
+    local nStart = 1;
+    while (true) do
+        local a, b, w = sInput:find(sPat, nStart);
+        if not a then
+            w = sInput:sub(nStart);
+            if (w ~= "" or bAllowBlank) then
+                _push(w);
+            end
+            break;
+        end
+
+        if (w ~= "" or bAllowBlank) then
+            _push(w);
+        end
+
+        nStart = b + 1;
+    end
+
+    return tRet;
+end
+
 
 
 --[[!
