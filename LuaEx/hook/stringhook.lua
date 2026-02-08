@@ -320,6 +320,41 @@ function string.isvariablecompliant(sInput, bSkipKeywordCheck)
 end
 
 
+-- Converts a string into a filesystem-safe filename
+-- Lua 5.3 --TODO make less strict for MacOS and Linux
+function string.makefilesafe(s, bLower)
+    assert(type(s) == "string", "Expected string")
+
+    -- trim
+    s = s:match("^%s*(.-)%s*$");
+
+    -- replace invalid filename characters
+    -- Windows invalid: \ / : * ? " < > |
+    s = s:gsub('[\\/:*?"<>|]', "_");
+
+    -- replace control chars
+    s = s:gsub("[%c]", "");
+
+    -- normalize whitespace
+    s = s:gsub("%s+", "_");
+
+    -- collapse multiple underscores
+    s = s:gsub("_+", "_");
+
+    -- remove leading/trailing underscores
+    s = s:gsub("^_+", ""):gsub("_+$", "");
+
+    -- Windows: no trailing dot or space
+    s = s:gsub("[%. ]+$", "");
+
+    if bLower then
+        s = s:lower();
+    end
+
+    return s;
+end
+
+
 --[[!
     @fqxn LuaEx.Lua Hooks.string.totable
     @desc Creates a table based on a demilited string.
