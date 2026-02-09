@@ -2125,7 +2125,7 @@ function kit.processConstructor(tKit)
 
                 --throw an error if a non-function member with the class name exists
                 if (rawtype(vMember) ~= "function") then
-                    error(  "Error creating class, '${class}'. Constructor must be of type function.\nType given: ${type} in ${table} table." % {class = sName, type = rawtype(vMember), table = sTable});
+                    error(  "Error creating class, '${class}'. Constructor must be of type function.\nType given: ${type} in ${table} table." % {class = sName, type = rawtype(vMember), table = _tCAINames[sVisibility]});
                 end
 
                 --make sure there's not already a constructor
