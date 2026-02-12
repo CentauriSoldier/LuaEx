@@ -510,6 +510,19 @@ function string.uuid(bUppercase)
     return sRet
 end
 
+function string.tosid(sInput)
+    sInput = tostring(sInput)
+        :lower()
+        :gsub("%s+", " ")
+        :gsub("^%s+", "")
+        :gsub("%s+$", "")
+
+    return (sInput:gsub(".", function(c)
+        return string.format("%02X", string.byte(c))
+    end))
+end
+
+
 local tHTMLReplacements = {
     ["<b>"] = "**", ["</b>"] = "**",
     ["<strong>"] = "**", ["</strong>"] = "**",
