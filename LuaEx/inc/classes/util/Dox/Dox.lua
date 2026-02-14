@@ -357,7 +357,7 @@ return class("Dox",
                                             pri.blockTags,  pri.requiredBlockTags);
         end
 
-        --call the builder's refresh method and reset the finalized data table
+        --call the builder's refresh method and reset the finalized data table        
         local tFinalized = oBuilder.refresh(tBlocks, pri.processBlockItem);
 
         if not (type(tFinalized) == "table") then
@@ -447,7 +447,7 @@ return class("Dox",
         --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
 
     end,
-    eachBlockTag__FNL = function(this, cdat)
+    eachBlockTag__FNL = function(this, cdat)--TODO index not incrementing?
         local nIndex    = 0;
         local nMax      = #cdat.pri.blockTags;
 
@@ -519,7 +519,7 @@ return class("Dox",
                 error("Error outputting Dox: Can't write to file, '"..pFile.."'.", 3)--TODO nice error message
             end
 
-            hFile:write(sContent)
+            hFile:write(sContent);
             hFile:close();
         end
 

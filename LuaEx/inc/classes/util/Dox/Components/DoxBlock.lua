@@ -257,7 +257,7 @@ return class("DoxBlock",
 
     end,
     fqxn = function(this, cdat)
-        local tFQXN = cdat.pri.fqxn;
+        local tFQXN     = cdat.pri.fqxn;
         local nIndex    = 0;
         local nMax      = #tFQXN;
 

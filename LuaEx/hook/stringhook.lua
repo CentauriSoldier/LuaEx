@@ -99,6 +99,11 @@ function string.capall(sInput, sDelimiter)
 end
 
 
+function string.collapse(sInput)
+    return sInput:gsub("%s+", '');
+end
+
+
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isempty
     @desc Determines whether a string is empty (blank or space-only characters).
@@ -414,7 +419,12 @@ function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
         end
     end
 
-    local sPat = "(.-)" .. sDelimiter;
+    local function escpat(s)
+        return (s:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
+    end
+
+    local sDelimPat = escpat(sDelimiter);
+    local sPat      = "(.-)" .. sDelimPat;
 
     local nStart = 1;
     while (true) do
@@ -436,6 +446,7 @@ function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
 
     return tRet;
 end
+
 
 
 

@@ -107,7 +107,7 @@ return class("DoxBuilderHTML",
                 return result
             end
 
-            local jsonResult = processTable(tbl, indentSpace)
+            local jsonResult = processTable(tbl, indentSpace);
             return "{\n" .. table.concat(jsonResult, ",\n") .. "\n" .. indentSpace .. "}"
         end
 
@@ -250,6 +250,7 @@ return class("DoxBuilderHTML",
         --inject the javascript
         sHTML = sHTML % {__DOX__INTERNAL_JS__ = pri.buildJS(sIntro, tFinalizedData)};
 
+--print(pri.buildJS("", tFinalizedData))
         --insert the prism scripts for the found languages
         local sPrismScripts = pri.generatePrismScripts(sHTML);
         sHTML = sHTML % {__DOX__PRISM__SCRIPTS__ = sPrismScripts};
@@ -282,7 +283,7 @@ return class("DoxBuilderHTML",
         for _, oBlock in pairs(tBlocks) do
             local tActive = tFinalized;
 
-            for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do
+            for bLastItem, nFQXNIndex, sFQXN in oBlock.fqxn() do --bLastItem is a boolean? Don't think so
 
                 --create the active table if it doesn't exist
                 if not (tActive[sFQXN]) then
