@@ -8,7 +8,7 @@ return [[
     :root {
             --base-font-size: 16px; /* Define a base font size */
 
-            /* Color Scheme */
+            /* Color Scheme  */
             --title-heading: #93B3A3;
             --navbackground: #3F3F3F;
             --navlink: #F0DFAF;
@@ -16,6 +16,14 @@ return [[
             --sectiontitle: #2E4340;
             --sectiontitlebg: #CCDC90;
             --sectioncontent: #DCDCCC;
+/*
+            --title-heading:    #9FD6C3;
+            --navbackground:    #1E2426;
+            --navlink:          #E6C98A;
+            --navlinkhover:     #6FB7A3;
+            --sectiontitle:     #2A4A45;
+            --sectiontitlebg:   #8FBFA8;
+            --sectioncontent:   #D8E3DE;  */
     }
 
     /*Section for setting viewport sizes
