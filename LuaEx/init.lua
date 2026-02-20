@@ -397,8 +397,11 @@ if (_tClassLoadValues[_nClassSystem]) then
     if (_tClassLoadValues[_nBasicClasses]) then
         --primitive
         local pPrimitives   = "LuaEx.inc.primitives";
+        point               = require(pPrimitives..".point");
         line                = require(pPrimitives..".line");
         circle              = require(pPrimitives..".circle");
+        circlearc           = require(pPrimitives..".circlearc");
+        ellipse             = require(pPrimitives..".ellipse");
         polygon             = require(pPrimitives..".polygon");
 
         --actual classes
@@ -450,7 +453,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     BaseMod         = require(pCoG..".ModSystem.BaseMod");
                     Factorium       = require(pCoG..".ModSystem.Factorium");
                     CoG             = require(pCoG..".CoG");
-                    
+
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");
                     IConsumable     = require(pCoG..".Interfaces.IConsumable");

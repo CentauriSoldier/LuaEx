@@ -296,7 +296,7 @@ function math.factorial(nVal)
 end
 
 --TODO put a safety switch in here
---gets the largest rectangle will fit within the given rectangle (then, optionally, scales it and centers it if requested)
+--gets the largest rectangle that will fit within the given rectangle (then, optionally, scales it and centers it if requested)
 --[[function math.fitrect(tContainer, tOriginal, nScale, bCenter)
     --this is the original container
     local nOuterWidth 	= tContainer.width;
@@ -433,6 +433,11 @@ function math.geometry.rectcontainsfully(tMe, tOther)
 end
 
 function math.geometry.fitrect(tOuter, tInner, bCenter)
+
+    if tInner.height == 0 or tOuter.height == 0 then
+        return nil;
+    end
+
     local nInnerAspectRatio = tInner.width / tInner.height;
     local nOuterAspectRatio = tOuter.width / tOuter.height;
 

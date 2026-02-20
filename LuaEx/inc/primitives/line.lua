@@ -1,176 +1,153 @@
-local rawsetmetatable   = rawsetmetatable;
-local math              = math;
-local sqrt              = math.sqrt;
-local atan2             = math.atan2;
-local _nPi              = math.pi;
+local sqrt      = math.sqrt
+local atan2     = math.atan2
+local pi        = math.pi
+local abs       = math.abs
+local type      = type;
+local rawtype   = rawtype;
 
---custom line primitive
-return function(nInpStartX, nInpStartY, nInpStopX, nInpStopY, bSkipFirstUpdate)
-    local   tActual,        tDecoy,         tMeta,
-            tStartActual,   tStartDecoy,    tStartMeta,
-            tStopActual,    tStopDecoy,     tStopMeta;
+local EPSILON = 1e-10
 
-    local bAutoUpdate = true;
+return function(vX1, vY1, vX2, vY2, bSkipFirstUpdate)
 
-    tActual = {
-        autoUpdate               = true,
-        start                       = {x = 0, y = 0},
-        stop                        = {x = 0, y = 0},
-        midpoint                    = {x = 0, y = 0},
-        a = 0,
-        b = 0,
-        c = 0,
-        deltaX                      = 0,
-        deltaY                      = 0,
-        isHorizontal                = 0,
-        isVertical                  = 0,
-        length                      = 0,
-        slope                       = 0,
-        slopeIsUndefined            = true,
-        theta                       = 0,
-        yIntercept                  = 0,
-        yInterceptIsUndefined       = true,
-        xIntercept                  = 0,
-        xInterceptIsUndefined       = true,
-    };
+    if  type(vX1) == "primitive" and subtype(vX1) == "point" and
+        type(vY1) == "primitive" and subtype(vY1) == "point" then
 
-    --start point
-    tStartActual  = {x = nInpStartX, y = nInpStartY};
-    tStartDecoy   = {};
-    tStartMeta    = {
-        __index = tStartActual,
-        __newindex = function(t, k, v)
+        local pStart = vX1
+        local pStop  = vY1
 
-            if (tStartActual[k] ~= nil) then
-                tStartActual[k] = v;
+        bSkipFirstUpdate = rawtype(vX2) == "boolean" and vX2 or false;
 
-                if (bAutoUpdate) then
-                    local nStartX = tStartActual.x;
-                    local nStartY = tStartActual.y;
-                    local nStopX  = tStopActual.x;
-                    local nStopY  = tStopActual.y;
-                    local bXsSame = nStartX == nStopX;
-
-                    local vSlope                    = bXsSame and "undefined" or (nStopY - nStartY) / (nStopX - nStartX);
-                    tActual.slope                   = vSlope;
-                    tActual.slopeIsUndefined        = vSlope == "undefined";
-                    tActual.a                       = vSlope;
-                    tActual.b                       = bXsSame and "undefined" or (nStartY - tActual.a * nStartX);
-                    tActual.c                       = bXsSame and "undefined" or - (tActual.a * nStartX + tActual.b);
-                    tActual.midpoint.x              = (nStartX + nStopX) / 2;
-                    tActual.midpoint.y              = (nStartY + nStopY) / 2;
-                    tActual.deltaX                  = nStopX - nStartX;
-                    tActual.deltaY                  = nStopY - nStartY;
-                    tActual.length                  = sqrt( (nStartX - nStopX) ^ 2 + (nStartY - nStopY) ^ 2);
-                    tActual.isHorizontal            = tActual.a == 0;
-                    tActual.isVertical              = bXsSame;
-                    tActual.theta                   = bXsSame and (_nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
-                    tActual.yIntercept              = bXsSame and "undefined" or tActual.b;
-                    tActual.yInterceptIsUndefined   = tActual.yIntercept == "undefined";
-                    tActual.xIntercept              = bXsSame and nStartX or (tActual.a == 0 and "undefined" or -tActual.b / tActual.a);
-                    tActual.xInterceptIsUndefined   = tActual.xIntercept == "undefined";
-                end
-
-            end
-
-        end,
-    };
-    rawsetmetatable(tStartDecoy, tStartMeta);
-
-    --stop point
-    tStopActual   = {x = nInpStopX, y = nInpStopY};
-    tStopDecoy    = {};
-    tStopMeta     = {
-        __index = tStopActual,
-        __newindex = function(t, k, v)
-
-            if (tStopActual[k] ~= nil) then
-                tStopActual[k] = v;
-
-                if (bAutoUpdate) then
-                    local nStartX = tStartActual.x;
-                    local nStartY = tStartActual.y;
-                    local nStopX  = tStopActual.x;
-                    local nStopY  = tStopActual.y;
-                    local bXsSame = nStartX == nStopX;
-
-                    local vSlope                    = bXsSame and "undefined" or (nStopY - nStartY) / (nStopX - nStartX);
-                    tActual.slope                   = vSlope;
-                    tActual.slopeIsUndefined        = vSlope == "undefined";
-                    tActual.a                       = vSlope;
-                    tActual.b                       = bXsSame and "undefined" or (nStartY - tActual.a * nStartX);
-                    tActual.c                       = bXsSame and "undefined" or - (tActual.a * nStartX + tActual.b);
-                    tActual.midpoint.x              = (nStartX + nStopX) / 2;
-                    tActual.midpoint.y              = (nStartY + nStopY) / 2;
-                    tActual.deltaX                  = nStopX - nStartX;
-                    tActual.deltaY                  = nStopY - nStartY;
-                    tActual.length                  = sqrt( (nStartX - nStopX) ^ 2 + (nStartY - nStopY) ^ 2);
-                    tActual.isHorizontal            = tActual.a == 0;
-                    tActual.isVertical              = bXsSame;
-                    tActual.theta                   = bXsSame and (_nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
-                    tActual.yIntercept              = bXsSame and "undefined" or tActual.b;
-                    tActual.yInterceptIsUndefined   = tActual.yIntercept == "undefined";
-                    tActual.xIntercept              = bXsSame and nStartX or (tActual.a == 0 and "undefined" or -tActual.b / tActual.a);
-                    tActual.xInterceptIsUndefined   = tActual.xIntercept == "undefined";
-                end
-
-            end
-
-        end,
-    };
-    rawsetmetatable(tStopDecoy, tStopMeta);
-
-    --line
-    tActual.start   = tStartDecoy;
-    tActual.stop    = tStopDecoy;
-    tActual.update  = function()
-        local nStartX = tStartActual.x;
-        local nStartY = tStartActual.y;
-        local nStopX  = tStopActual.x;
-        local nStopY  = tStopActual.y;
-        local bXsSame = nStartX == nStopX;
-
-        local vSlope                    = bXsSame and "undefined" or (nStopY - nStartY) / (nStopX - nStartX);
-        tActual.slope                   = vSlope;
-        tActual.slopeIsUndefined        = vSlope == "undefined";
-        tActual.a                       = vSlope;
-        tActual.b                       = bXsSame and "undefined" or (nStartY - tActual.a * nStartX);
-        tActual.c                       = bXsSame and "undefined" or - (tActual.a * nStartX + tActual.b);
-        tActual.midpoint.x              = (nStartX + nStopX) / 2;
-        tActual.midpoint.y              = (nStartY + nStopY) / 2;
-        tActual.deltaX                  = nStopX - nStartX;
-        tActual.deltaY                  = nStopY - nStartY;
-        tActual.length                  = sqrt( (nStartX - nStopX) ^ 2 + (nStartY - nStopY) ^ 2);
-        tActual.isHorizontal            = tActual.a == 0;
-        tActual.isVertical              = bXsSame;
-        tActual.theta                   = bXsSame and (_nPi / 2) or atan2(nStopY - nStartY, nStopX - nStartX);
-        tActual.yIntercept              = bXsSame and "undefined" or tActual.b;
-        tActual.yInterceptIsUndefined   = tActual.yIntercept == "undefined";
-        tActual.xIntercept              = bXsSame and nStartX or (tActual.a == 0 and "undefined" or -tActual.b / tActual.a);
-        tActual.xInterceptIsUndefined   = tActual.xIntercept == "undefined";
+        vX1, vY1 = pStart.x, pStart.y
+        vX2, vY2 = pStop.x,  pStop.y
     end
 
-    tDecoy    = {};
-    tMeta     = {
-        __index     = tActual,
-        __newindex  = function(t, k, v)
+    local tActual = {
+        autoUpdate = true,
+        start = { x = nX1, y = nY1 },
+        stop  = { x = nX2, y = nY2 },
+        midpoint = { x = 0, y = 0 },
 
-            if (k == "autoUpdate" and rawtype(v) == "boolean") then
-                tActual.autoUpdate = v;
-                bAutoUpdate = v;
+        -- derived values
+        a = nil,
+        b = nil,
+        c = nil,
+        deltaX = 0,
+        deltaY = 0,
+        length = 0,
+        slope = nil,
+        slopeIsUndefined = false,
+        isHorizontal = false,
+        isVertical = false,
+        theta = 0,
+        yIntercept = nil,
+        yInterceptIsUndefined = false,
+        xIntercept = nil,
+        xInterceptIsUndefined = false,
+    }
+
+    local autoUpdate = true
+
+    -- Centralized recompute logic
+    local function recompute()
+
+        local sx, sy = tActual.start.x, tActual.start.y
+        local ex, ey = tActual.stop.x,  tActual.stop.y
+
+        local dx = ex - sx
+        local dy = ey - sy
+
+        tActual.deltaX = dx
+        tActual.deltaY = dy
+        tActual.length = sqrt(dx*dx + dy*dy)
+        tActual.midpoint.x = (sx + ex) * 0.5
+        tActual.midpoint.y = (sy + ey) * 0.5
+
+        local vertical = abs(dx) < EPSILON
+        local horizontal = abs(dy) < EPSILON
+
+        tActual.isVertical = vertical
+        tActual.isHorizontal = horizontal
+
+        if vertical then
+            tActual.slope = nil
+            tActual.slopeIsUndefined = true
+            tActual.a = nil
+            tActual.b = nil
+            tActual.c = nil
+
+            tActual.yIntercept = nil
+            tActual.yInterceptIsUndefined = true
+
+            tActual.xIntercept = sx
+            tActual.xInterceptIsUndefined = false
+
+            tActual.theta = pi * 0.5
+        else
+            local slope = dy / dx
+
+            tActual.slope = slope
+            tActual.slopeIsUndefined = false
+            tActual.a = slope
+
+            local b = sy - slope * sx
+            tActual.b = b
+            tActual.c = -(slope * sx + b)
+
+            tActual.yIntercept = b
+            tActual.yInterceptIsUndefined = false
+
+            if horizontal then
+                tActual.xIntercept = nil
+                tActual.xInterceptIsUndefined = true
+            else
+                tActual.xIntercept = -b / slope
+                tActual.xInterceptIsUndefined = false
             end
 
-        end,
-        __type      = "primitive",
-        __subtype   = "line",
-    };
-    rawsetmetatable(tDecoy, tMeta);
-
-    --update the line (if requested)
-    if not (bSkipFirstUpdate) then
-        tActual.update();
+            tActual.theta = atan2(dy, dx)
+        end
     end
 
-    --return it
-    return tDecoy;
+    -- Reactive proxy for endpoints
+    local function makePointProxy(point)
+
+        return setmetatable({}, {
+            __index = point,
+            __newindex = function(_, k, v)
+                if k == "x" or k == "y" then
+                    point[k] = v
+                    if autoUpdate then
+                        recompute()
+                    end
+                end
+            end
+        })
+    end
+
+    tActual.start = makePointProxy(tActual.start)
+    tActual.stop  = makePointProxy(tActual.stop)
+
+    tActual.update = recompute
+
+    local tPublic = setmetatable({}, {
+        __index = tActual,
+        __newindex = function(_, k, v)
+            if k == "autoUpdate" and type(v) == "boolean" then
+                autoUpdate = v
+                tActual.autoUpdate = v
+            end
+        end,
+        __tostring = function()
+            return string.format("Line(start: (%.2f, %.2f), stop: (%.2f, %.2f), length: %.2f, slope: %.2f, theta: %.2f)",
+            tActual.start.x, tActual.start.y,
+            tActual.stop.x, tActual.stop.y,
+            tActual.length, tActual.slope or 0, tActual.theta);
+        end
+    })
+
+    if not bSkipFirstUpdate then
+        recompute();
+    end
+
+    return tPublic
 end
