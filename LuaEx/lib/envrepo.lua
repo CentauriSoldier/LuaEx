@@ -75,16 +75,24 @@ tRepo = {
 
     --[[!
     @fqxn LuaEx.Libraries.envrepo.Methods.setDefault
-    @desc Sets the default environment for the repository. This method checks if the specified
-          environment name corresponds to an existing environment and updates the default if valid.
-          If the specified environment does not exist, the default environment remains unchanged.
+    @desc Sets the default environment for the repository.
+          If the specified environment name corresponds to an existing registered
+          environment, it becomes the new default environment.
+          If the environment does not exist or is invalid, the current default
+          environment remains unchanged.
     @param string sEnv The name of the environment to be set as the default.
+    @return boolean bSuccess True if the default environment was updated; false otherwise.
     !]]
     setDefault = function(sEnv)
-        local bRet      = false;
-        tRepo.envs[_sDefaultName] = type(tRepo.envs[k]) == "table" and tRepo.envs[k] or _wDefault;
+        if (type(sEnv) == "string" and type(tRepo.envs[sEnv]) == "table") then
+            tRepo.envs[_sDefaultName] = tRepo.envs[sEnv];
+            return true;
+        end
+        return false;
     end,
-};
+    };
+
+
 local tRepoDecoy    = {};
 local tRepoMeta     = {
     __index = function(t, k)

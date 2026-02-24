@@ -382,7 +382,7 @@ end
     5	four
     \]\]
 !]]
-function string.totableOLD(sInput, sDelimiter, bAllowBlank, fCallback) --allows only one char as delimiter
+function stringtotableOLD(sInput, sDelimiter, bAllowBlank, fCallback) --allows only one char as delimiter
     local tRet      = {};
     local fCallback = rawtype(fCallback) == "function" and fCallback or false;
 
