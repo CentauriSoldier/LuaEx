@@ -158,6 +158,7 @@ function table.lock(tInput)
 end
 
 
+
 function table.purge(tInput, bIgnoreMetaTable)
 
     if (rawtype(tInput) == "table") then
@@ -190,6 +191,41 @@ function table.purge(tInput, bIgnoreMetaTable)
 
 end
 
+
+-- Build a read-only shadow for a backing table (closure-based, simple).
+function table.shadowreadonly(tRoot, sErr)
+    if (rawtype(tRoot) ~= "table") then
+        error("table.shadow_readonly: tRoot must be table. Got " .. rawtype(tRoot) .. ".", 2);
+    end
+
+    sErr = (rawtype(sErr) == "string" and sErr ~= "") and sErr
+        or "Attempt to write to read-only table.";
+
+    local tCache = setmetatable({}, { __mode = "k" }); -- real -> shadow
+
+    local function Wrap(tReal)
+        local tShadow = tCache[tReal];
+        if (tShadow) then return tShadow end
+
+        tShadow = {};
+        tCache[tReal] = tShadow;
+
+        setmetatable(tShadow, {
+            __index = function(_, k)
+                local v = tReal[k]
+                return (rawtype(v) == "table") and Wrap(v) or v
+            end,
+            __newindex = function()
+                error(sErr, 2)
+            end,
+            __metatable = false,
+        })
+
+        return tShadow;
+    end
+
+    return Wrap(tRoot);
+end
 
 
 --TODO move these alias to somewhere else
