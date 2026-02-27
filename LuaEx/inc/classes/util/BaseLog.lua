@@ -8,7 +8,7 @@ local function writeToFile(this, cdat, tEntry)
 
     if hFile then
         --hFile:write(pro.dateTimeFunction()..' ['..tostring(tEntry.level).."]-> "..tEntry.message.."\n");
-        hFile:write(tEntry.datetime..'['..tostring(tEntry.level).."] "..tEntry.message.."\n");
+        hFile:write(tEntry.datetime.." ["..tostring(tEntry.level).."] "..tEntry.message.."\n");
         hFile:close();
     end
 
@@ -56,6 +56,9 @@ return class("BaseLog",
     path                        = "",
     AutoWrite__auto__           = false,
     dateTimeFunction            = null,
+    callbacks                   = {
+        onLog                   = false,
+    },
     Level__auto_F               = eLevels.INFO;
 },
 {--PUBLIC
@@ -65,10 +68,10 @@ return class("BaseLog",
     @param string pFile The path to the log file (or where it should be created).
     @param boolean|nil bDoNotAutoWrite If set to true, it prevents autowriting to file. This can be changed at anytime by setting the autowrite value.
     !]]
-    BaseLog = function(this, cdat, pFile, hDateTime, bDoNotAutoWrite)
+    BaseLog = function(this, cdat, pFile, fDateTime, fOnLogCallback, bDoNotAutoWrite)
         local pro = cdat.pro;
         type.assert.string(pFile, "%S+");
-        type.assert["function"](hDateTime);
+        type.assert["function"](fDateTime);
 
         -- Open the file in append mode
         local hFile = io.open(pFile, "a")
@@ -76,15 +79,16 @@ return class("BaseLog",
         -- Check if the file was successfully opened
         if not (hFile) then
             error("Error createing BaseLog instance. Path is invalid or file could not be opened.");
-            hFile:close();
             --TODO auto import old from file...?
         end
 
         pro.AutoWrite        = not (rawtype(bDoNotAutoWrite) == "boolean" and bDoNotAutoWrite or false);
-        pro.dateTimeFunction = hDateTime;
+        pro.dateTimeFunction = fDateTime;
         pro.path             = pFile;
+        pro.callbacks.onLog  = rawtype(fOnLogCallback) == "function" and fOnLogCallback or false;
 
-        local tEntries = cdat.pro.entries;
+        local tEntries = {};
+        cdat.pro.entries = tEntries;
 
         --create the log entires table
         for nIndex, eLevel in eLevels() do
@@ -122,7 +126,7 @@ return class("BaseLog",
             message             = sMessage,
         };
 
-        tEntries[eLevel][#tEntries + 1] = tEntry;
+        tEntries[eLevel][#tEntries[eLevel] + 1] = tEntry;
 
         if (pro.AutoWrite) then
             writeToFile(this, cdat, tEntry);
@@ -149,6 +153,8 @@ return class("BaseLog",
     writeToFile = function(this, cdat)
         --TODO FINISH
     end,
+
+    --TODO add SetCallback
 },
 nil,   --extending class
 false, --if the class is final (or (if a table is provided) limited to certain subclasses)
