@@ -105,7 +105,7 @@ return class("DoxBlockTag",
     @param boolean|nil bMultipleAllowed Whether multiple of this DoxBlockTag are permitted in a BoxBlock. Defaults to false if nil.
     @param boolean|nil bCombined Whether the content in each of multiple of this DoxBlockTag should be combined under one section. Defaults to false if nil.
     @param boolean|nil bIsUtil Whether this DoxBlockTag is a utility tag. If so, it may still be used by the builder but its contents should be ignored in the builder's final output. Defaults to false if nil.
-    @param number|nil nExtraColumns The number of extra column this DoxBlockTag has. Defaults to 0 if nil. If set to 0, it will have the standard number of 3 total columns (as demonstrated in the \@param DoxBlockTag).
+    @param number|nil nExtraColumns The number of extra columns this DoxBlockTag has. Defaults to 0 if nil. If set to 0, it will have the standard number of 3 total columns (as demonstrated in the \@param DoxBlockTag).
     !]]
     DoxBlockTag = function(this, cdat, tAliases, sDisplay, bRequired, bMultipleAllowed, bCombined, bIsUtil, nExtraColumns)
         local pri = cdat.pri;

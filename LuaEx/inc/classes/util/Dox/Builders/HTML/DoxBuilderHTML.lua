@@ -1,14 +1,64 @@
 --load in the builder's required files
 local _pRequirePath     = "LuaEx.inc.classes.util.Dox.Builders.HTML.Data";
 --local _sBanner          = require(_pRequirePath..".Banner");
-local _sCSS             = require(_pRequirePath..".CSS");
-local _sHTML            = require(_pRequirePath..".HTML")
-local _sJS              = require(_pRequirePath..".JS");
+--local _sCSS             = require(_pRequirePath..".CSS");
+--local _sHTML            = require(_pRequirePath..".HTML")
+--local _sJS              = require(_pRequirePath..".JS");
+local function LoadDoxAsset(mod)
+    -- 1) Try normal package.path first
+    local path, err = package.searchpath(mod, package.path)
+    if path then
+        return dofile(path)
+    end
+
+    -- 2) Fallback: resolve relative to THIS file (DoxBuilderHTML.lua)
+    local src = debug.getinfo(1, "S").source
+    local thisFile = (type(src) == "string" and src:sub(1,1) == "@") and src:sub(2) or nil
+
+    assert(
+        thisFile,
+        ("DoxBuilderHTML: cannot resolve builder source path via debug.getinfo for '%s'.\n" ..
+         "package.searchpath failed first.\nDetails:\n%s")
+            :format(mod, tostring(err))
+    )
+
+    -- directory containing DoxBuilderHTML.lua
+    local dir = thisFile:match("^(.*)[/\\]") or "."
+
+    -- Data folder sits next to this file: ...\HTML\Data\*.lua
+    local relPath = dir .. "/Data/" .. mod:match("([^.]+)$") .. ".lua"
+
+    local f = io.open(relPath, "rb")
+    assert(
+        f,
+        ("DoxBuilderHTML: failed to locate required asset module '%s'.\n" ..
+         "package.searchpath failed.\nDetails:\n%s\n" ..
+         "Also tried relative path:\n%s")
+            :format(mod, tostring(err), relPath)
+    )
+    f:close()
+
+    return dofile(relPath)
+end
+local _sCSS  = LoadDoxAsset(_pRequirePath .. ".CSS");
+local _sHTML = LoadDoxAsset(_pRequirePath .. ".HTML");
+local _sJS   = LoadDoxAsset(_pRequirePath .. ".JS");
+
 local _tPrismLanguages  = require(_pRequirePath..".PrismLanguages");
 local _sPrismStable     = "1.30.0"; --TODO allow theme change
 local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
 local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};--why is this not being used? If not, delete it.
 local _sDefaultFilename = "index";
+
+local function reload_module(sModule)
+    local path = package.searchpath(sModule, package.path)
+    if not path then
+        error("DoxBuilderHTML: cannot locate module on package.path: "..sModule, 2)
+    end
+    package.loaded[sModule] = nil
+    return dofile(path) -- executes fresh every time, no require cache
+end
+
 
 
 return class("DoxBuilderHTML",
@@ -238,6 +288,10 @@ return class("DoxBuilderHTML",
     build = function(this, cdat, sTitle, sIntro, tFinalizedData)
         type.assert.string(sTitle);
         local pri        = cdat.pri;
+
+        _sCSS  = LoadDoxAsset(_pRequirePath .. ".CSS");
+        _sHTML = LoadDoxAsset(_pRequirePath .. ".HTML");
+        _sJS   = LoadDoxAsset(_pRequirePath .. ".JS");
 
         --update and write the html
         local sHTML = _sHTML % {__DOX__CSS__ = _sCSS};

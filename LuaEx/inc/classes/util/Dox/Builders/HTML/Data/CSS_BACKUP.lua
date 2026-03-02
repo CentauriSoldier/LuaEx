@@ -10,7 +10,7 @@ return [[
 
             /* Color Scheme  */
             --title-heading: #93B3A3;
-            --navbackground: #2F2F2F;
+            --navbackground: #3F3F3F;
             --navlink: #F0DFAF;
             --navlinkhover: #7F9F7F;
             --sectiontitle: #2E4340;
@@ -234,6 +234,7 @@ return [[
     }
 
     #DOX_navmenu .nav-link {
+
         display: block; /* Ensure full width */
         padding: 10px 15px; /* Adjust padding */
         color: var(--navlink); /* Text color */
@@ -274,7 +275,7 @@ return [[
 
     /* Specific adjustments for individual elements */
     #DOX_breadcrumb-wrapper {
-        background-color: #343F46; /*var(--navbackground);*/
+        background-color: var(--navbackground);
     }
 
     .breadcrumb-item + .breadcrumb-item::before {
@@ -283,11 +284,7 @@ return [[
     }
 
     .breadcrumb-item.active {
-        color: #C73131;
-
-        text-shadow:
-            0 0 2px rgba(255,255,255,0.6),
-            0 0 5px rgba(255,255,255,0.35);
+        color: var(--navlinkhover);
     }
 
     .breadcrumb a {
@@ -295,11 +292,7 @@ return [[
     }
 
     .breadcrumb a:hover {
-        color: #631F1F;
-
-        text-shadow:
-            0 0 2px rgba(255,255,255,0.6),
-            0 0 5px rgba(255,255,255,0.35);
+        color: var(--navlinkhover);
     }
 
     .breadcrumb {
@@ -357,12 +350,7 @@ return [[
     }
 
     .custom-section {
-        margin: 10px 0;
-        border-radius: 16px;
-        overflow: hidden;
-        border: 3px solid rgba(255, 255, 255, 0.65);
-        box-shadow: 0 2px 6px rgba(125,108,46,0.35) inset;
-        background: #1f1f1f;
+      margin: 20px 0;
     }
 
     #DOX_content_wrapper {
@@ -370,38 +358,16 @@ return [[
     }
 
     .section-title {
-        background: linear-gradient(
-            90deg,
-           #2E3941 0%,
-           #3E4A52 40%,
-           #4A5963 100%
-        );
-        color: #D8E3EA;
-        position: relative;
-        padding: 10px 10px 10px 16px; /* Adjust padding as needed */
+        background-color: var(--sectiontitlebg);
+        color: var(--sectiontitle);
+        padding: 10px; /* Adjust padding as needed */
         font-weight: bold; /* Make the title bold */
-    }
-
-    .section-title::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 6px;
-        height: 100%;
-        background: #4E1313;
-        border-radius: 3px;
-
-        box-shadow:
-        0 0 6px rgba(120, 30, 30, 0.6),
-        0 0 12px rgba(80, 15, 15, 0.4);
     }
 
     .section-content {
         color: var(--sectioncontent);
-        background-color: #3B3B38; /* var(--navbackground); */
-        padding: 10px;
+        background-color: var(--navbackground);
+        padding: 10px; /* Adjust padding as needed */
         border: 1px solid #ccc; /* Add border for content area */
     }
 
