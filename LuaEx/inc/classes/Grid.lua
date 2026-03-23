@@ -23,24 +23,66 @@ local Grid = class("Grid",
 
 },
 {--STATIC PUBLIC
-    --__INIT = function(stapub) end, --static initializer (runs before class object creation)
-    --Grid = function(this) end, --static constructor (runs after class object creation)
 },
 {--PRIVATE
 
 },
 {--PROTECTED
+    caseSensitiveLookup = true,
     columnCount         = 0,
-    rows                = {}, --holds public-facing decoy tables that reference rowsRaw
-    --rowsRaw             = {}, --keeps raw row data for adding, removing rows and resetting meta for rows
+    columnIDByName      = {},
+    columnNames         = {},
+    delimiter           = ",",
     rowCount            = 0,
+    rows                = {},
+    rowsRaw             = {},
+
+    getColumnInfo = function(this, cdat, vColumn, bErrorOnFail, sPrefix)
+        local pro       = cdat.pro;
+        local zColumn   = type(vColumn);
+        local sErr      = rawtype(sPrefix) == "string" and sPrefix or "";
+        local nColumn;
+        local sName;
+
+        if (zColumn == "number") then
+            type.assert.number(vColumn, false, true, false, true, false, -1, pro.columnCount, sErr.."Invalid column index.", 1);
+            nColumn = (vColumn == -1) and pro.columnCount or vColumn;
+            sName = pro.columnNames[nColumn];
+
+        elseif (zColumn == "string") then
+            local sKey = pro.caseSensitiveLookup and vColumn or vColumn:upper()
+            nColumn = pro.columnIDByName[sKey];
+
+            if (nColumn == nil) then
+                if (bErrorOnFail) then
+                    error(sErr.."Column \""..tostring(vColumn).."\" does not exist.", 2);
+                end
+
+                return nil;
+            end
+
+            sName = pro.columnNames[nColumn];
+
+        else
+            if (bErrorOnFail) then
+                error(sErr.."Column must be a number or string. Got "..zColumn..".", 2);
+            end
+
+            return nil;
+        end
+
+        return {
+            index   = nColumn,
+            name    = sName,
+        };
+    end,
 
     setRowMeta = function(this, cdat, tRow)
-        local pro = cdat.pro;
-        local nColumnCount = pro.columnCount;
+        local pro           = cdat.pro;
+        local nColumnCount  = pro.columnCount;
 
         local function fIterator()
-        local nIndex = 0;
+            local nIndex = 0;
 
             return function()
                 nIndex = nIndex + 1;
@@ -53,46 +95,56 @@ local Grid = class("Grid",
 
         end
 
-        local tDecoy    = {};
-        local tMeta     = {
+        local tDecoy = {};
+        local tMeta  = {
             __index = function(t, k)
                 local zKey = type(k);
-                local sRet = "";
 
-                if (zKey == "number" and (k == -1 or (k >= 1 and k <= nColumnCount))) then
+                if (zKey == "number") then
+                    local nIndex = (k == -1) and nColumnCount or k;
 
-                    if (k == -1) then
-                        sRet = tRow[nColumnCount];
-                    else
-                        sRet = tRow[k];
+                    if (nIndex >= 1 and nIndex <= nColumnCount) then
+                        return tRow[nIndex];
                     end
+
+                    return nil;
 
                 elseif (zKey == "string") then
-
-                    if (pro.columnIDByName[k] ~= nil) then
-                        return tRow[pro.columnIDByName[k]];
-                    else
-                        --TODO ERROR
-                    end
-
-                else
-                    --TODO ERROR
+                    local sKey          = pro.caseSensitiveLookup and k or k:upper()
+                    local nColumnID     = pro.columnIDByName[sKey];
+                    return nColumnID    ~= nil and tRow[nColumnID] or nil;
                 end
 
-                return sRet;
-
+                return nil;
             end,
             __newindex = function(t, k, v)
                 local zKey = type(k);
-                error("Not yet implemented.")
+                local nColumnID;
 
+                if (zKey == "number") then
+                    nColumnID = (k == -1) and nColumnCount or k;
+                    type.assert.number(nColumnID, false, true, false, true, false, 1, nColumnCount, "\nGrid Error: Invalid row column index.", 1);
 
+                elseif (zKey == "string") then
+                    local sKey = pro.caseSensitiveLookup and k or k:upper()
+                    nColumnID = pro.columnIDByName[sKey];
+
+                    if (nColumnID == nil) then
+                        error("\nGrid Error: Column \""..tostring(k).."\" does not exist.", 2);
+                    end
+
+                else
+                    error("\nGrid Error: Invalid row key type \""..zKey.."\".", 2);
+                end
+
+                tRow[nColumnID] = tostring(v);
             end,
             __call = fIterator,
             __pairs = fIterator,
-            __len = function() return nColumnCount end,
-            __metatable = false;
-            __ipairs
+            __len = function()
+                return nColumnCount;
+            end,
+            __metatable = false,
         };
 
         setmetatable(tDecoy, tMeta);
@@ -104,37 +156,56 @@ local Grid = class("Grid",
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.Grid
         @des The constructor for the class.
+        @param string|nil sDelimiter The delimiter string to use for parsing and export. If omitted, a comma is used.
     !]]
-    Grid = function(this, cdat)
+    Grid = function(this, cdat, sDelimiter)
+        local pro = cdat.pro;
+
+        if (rawtype(sDelimiter) ~= "nil") then
+
+            if (rawtype(sDelimiter) ~= "string") then
+                error("\nGrid Error in 'Grid': Delimiter must be a string or nil. Got "..rawtype(sDelimiter)..".", 2);
+            end
+
+            if (#sDelimiter == 0) then
+                error("\nGrid Error in 'Grid': Delimiter cannot be empty.", 2);
+            end
+
+            pro.delimiter = sDelimiter;
+
+        end
     end,
+
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.columnExists
         @des Detrmines whether a column exists.
-        @param number nColumn The index of the column to check.
+        @param number|string vColumn The index or name of the column to check.
         @ret boolean bExists A boolean value indicating whether the column exists.
     !]]
-    columnExists = function(this, cdat, nColumn)
-        return
-    end,
-    --TODO
-    clear = function(this, cdat)
-        error("Not yet implemented.")
-    end,
-    --TODO
-    --@param number|string vColumn The index or name of the column from which to get the data.
-    deleteColumn = function(this, cdat, vColumn)
-        error("Not yet implemented.")
+    columnExists = function(this, cdat, vColumn)
         local pro = cdat.pro;
-        local tColumnInfo   = pro.getColumnInfo(vColumn, true, "Could not delete column.");
-        --local nColumnCount
 
-        if (nColumnCount == 0) then
-            error("\nGrid Error in 'deleteColumn': There are no columns to delete.");
+        if (type(vColumn) == "number") then
+            local nColumn = (vColumn == -1) and pro.columnCount or vColumn;
+            return nColumn >= 1 and nColumn <= pro.columnCount;
+
+        elseif (type(vColumn) == "string") then
+            local sKey = pro.caseSensitiveLookup and vColumn or vColumn:upper()
+            return pro.columnIDByName[sKey] ~= nil;
+
         end
 
+        return false;
     end,
 
+    clear = function(this, cdat)
+        local pro = cdat.pro;
+        pro.rows = {};
+        pro.rowsRaw = {};
+        pro.rowCount = 0;
+        return this;
+    end,
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.deleteRow
@@ -152,26 +223,23 @@ local Grid = class("Grid",
             error("\nGrid Error in 'deleteRow': There are no rows to delete.");
         end
 
-        --remove the row
-        table.remove(pro.rows[nRow]);
-        table.remove(pro.rowsRaw[nRow]);
+        type.assert.number(nRow, false, true, false, true, false, 1, nRowCount, "\nGrid Error in 'deleteRow': Row is out of bounds.", 1);
 
-        --update the row count
+        table.remove(pro.rows, nRow);
+        table.remove(pro.rowsRaw, nRow);
+
         pro.rowCount = pro.rowCount - 1;
 
         return this;
     end,
 
-
-    --TODO
     duplicateRow = function(this, cdat)
         error("Not yet implemented.");
     end,
-    --TODO
+
     duplicateColumn = function(this, cdat)
         error("Not yet implemented.");
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.eachCell
@@ -194,28 +262,25 @@ local Grid = class("Grid",
         local tColumnNames  = pro.columnNames;
 
         return function()
-
-            if (nRowID <= nMaxRows) then
-                nColumnID = nColumnID + 1;
-
-                if (nColumnID <= nMaxColumns) then
-                    return nRowID, nColumnID, tColumnNames[nColumnID], tRows[nRowID][nColumnID];
-                else
-                    nColumnID = 1;
-                    nRowID = nRowID + 1;
-
-                    if (nRowID <= nMaxRows) then
-                        return nRowID, nColumnID, tColumnNames[nColumnID], tRows[nRowID][nColumnID];
-                    end
-
-                end
-
+            if (nRowID > nMaxRows) then
+                return nil;
             end
 
+            nColumnID = nColumnID + 1;
+
+            if (nColumnID > nMaxColumns) then
+                nColumnID = 1;
+                nRowID = nRowID + 1;
+
+                if (nRowID > nMaxRows) then
+                    return nil;
+                end
+            end
+
+            return nRowID, nColumnID, tColumnNames[nColumnID], tRows[nRowID][nColumnID];
         end
 
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.eachColumn
@@ -225,10 +290,9 @@ local Grid = class("Grid",
     eachColumn = function(this, cdat)
         local pro           = cdat.pro;
         local tRows         = pro.rowsRaw;
-        local nRowCount     = pro.rowCount;
+        local tColumnNames  = pro.columnNames;
+        local nMaxColumns   = pro.columnCount;
         local nColumnID     = 0;
-        local tColumnNames  = pro.columnCount;
-        local nMaxColumns   = #tColumnNames;
 
         return function()
             nColumnID = nColumnID + 1;
@@ -247,11 +311,10 @@ local Grid = class("Grid",
 
     end,
 
-
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.eachRow
         @des Returns a sequential iterator that steps over each row in the Grid object.
-        @ret function fRows A sequential iterator function that, when traversed, returns the row index and row table (whose keys are column indices and values are cell data) on each iteration.
+        @ret function fRows A sequential iterator function that, when traversed, returns the row index and row table (whose keys are column indices and whose values are cell data) on each iteration.
     !]]
     eachRow = function(this, cdat)
         local pro       = cdat.pro;
@@ -270,7 +333,6 @@ local Grid = class("Grid",
 
     end,
 
-
     --[[!
     @fqxn LuaEx.Classes.Grid.Methods.export
     @des Exports the contents of the Grid object to file.
@@ -279,56 +341,248 @@ local Grid = class("Grid",
     @ret Grid oGrid The Grid object.
     !]]
     export = function(this, cdat, pFile, vAppend)
-        --TODO file arg assertions
         local pro               = cdat.pro;
         local bAppend           = rawtype(vAppend) == "boolean" and vAppend or false;
         local sMode             = bAppend and "a+" or "w";
         local tRows             = pro.rowsRaw;
         local sDelimiter        = pro.delimiter;
         local nColumnCount      = pro.columnCount;
-        local nRowCount         = pro.rowCount;
         local sNewLine          = "\n";
         local sBlank            = "";
         local sData             = "";
         local bAppendNewline    = true;
 
-        local hFile             = io.open(pFile, sMode);
+        local hFile = io.open(pFile, sMode);
 
         if (not hFile) then
-            error("bad file stuff here.")--TODO ERROR
+            error("bad file stuff here.");
         end
 
-        --append the header (if needed) and check for ending newline
         if (bAppend) then
             local sFile = hFile:read("*a");
             bAppendNewline = sFile:sub(-1) ~= "\n";
-
         else
-
             for nColumn, sColumn in ipairs(pro.columnNames) do
-                sData = sData..sColumn..( (nColumn < nColumnCount) and sDelimiter or sBlank);
+                sData = sData..sColumn..((nColumn < nColumnCount) and sDelimiter or sBlank);
             end
-
         end
 
         for nRow, tRow in ipairs(tRows) do
-
-            if ( (nRow == 1 and bAppendNewline) or nRow ~= 1) then
+            if ((nRow == 1 and bAppendNewline) or nRow ~= 1) then
                 sData = sData..sNewLine;
             end
 
             for nColumn, sCellData in ipairs(tRow) do
-                sData = sData..sCellData..( (nColumn < nColumnCount) and sDelimiter or sBlank);
+                sData = sData..sCellData..((nColumn < nColumnCount) and sDelimiter or sBlank);
             end
-
         end
 
-        --append final newline --TODO allow skipping this
         sData = sData..sNewLine;
 
-        --write and close the file
         hFile:write(sData);
         hFile:close();
+
+        return this;
+    end,
+
+
+    --[[!
+        @fqxn LuaEx.Classes.Grid.Methods.fromFile
+        @des Replaces the Grid's contents with data parsed from a delimiter-separated file. This method reads the file contents, then passes the raw text to <strong>fromString</strong>.
+        @param string pFile The file path from which to read the Grid data.
+        @ret Grid oGrid The Grid object.
+    !]]
+    fromFile = function(this, cdat, pFile)
+        type.assert.string(pFile, "%S+", "\nGrid Error in 'fromFile': Invalid file path.", 1);
+
+        local hFile = io.open(pFile, "r");
+
+        if not (hFile) then
+            error("\nGrid Error in 'fromFile': Could not open file \""..tostring(pFile).."\".", 2);
+        end
+
+        local sData = hFile:read("*a");
+        hFile:close();
+
+        if (rawtype(sData) ~= "string") then
+            error("\nGrid Error in 'fromFile': Could not read file \""..tostring(pFile).."\".", 2);
+        end
+
+        return this.fromString(sData);
+    end,
+
+
+    --[[!
+        @fqxn LuaEx.Classes.Grid.Methods.fromString
+        @des Replaces the Grid's contents with data parsed from a delimiter-separated string. The first record is treated as the header row.
+        @param string sData The raw delimiter-separated text to parse.
+        @ret Grid oGrid The Grid object.
+    !]]
+    fromString = function(this, cdat, sData)
+        type.assert.string(sData, nil, "\nGrid Error in 'fromString': Invalid input for string data.", 1);
+        local pro           = cdat.pro;
+        local sDelimiter    = pro.delimiter;
+        local nDelimiterLen = #sDelimiter;
+        local nLength       = #sData;
+        local nIndex        = 1;
+        local nRecord       = 1;
+        local tRecords      = {};
+
+        local function pushField(tFields, tBuffer)
+            tFields[#tFields + 1] = table.concat(tBuffer);
+        end
+
+        local function pushRecord(tFields)
+            local bBlank = (#tFields == 1 and tFields[1] == "");
+
+            if not (bBlank and #tRecords > 0) then
+                tRecords[#tRecords + 1] = tFields;
+            end
+        end
+
+        local function parse()
+            local tFields    = {};
+            local tBuffer    = {};
+            local bInQuotes  = false;
+
+            while (nIndex <= nLength) do
+                local sChar = sData:sub(nIndex, nIndex);
+
+                if (bInQuotes) then
+
+                    if (sChar == "\"") then
+                        local sNext = sData:sub(nIndex + 1, nIndex + 1);
+
+                        if (sNext == "\"") then
+                            tBuffer[#tBuffer + 1] = "\"";
+                            nIndex = nIndex + 2;
+                        else
+                            bInQuotes = false;
+                            nIndex = nIndex + 1;
+                        end
+
+                    else
+                        tBuffer[#tBuffer + 1] = sChar;
+                        nIndex = nIndex + 1;
+                    end
+
+                else
+
+                    if (sChar == "\"") then
+                        bInQuotes = true;
+                        nIndex = nIndex + 1;
+
+                    elseif (sData:sub(nIndex, nIndex + nDelimiterLen - 1) == sDelimiter) then
+                        pushField(tFields, tBuffer);
+                        tBuffer = {};
+                        nIndex = nIndex + nDelimiterLen;
+
+                    elseif (sChar == "\r") then
+                        pushField(tFields, tBuffer);
+                        pushRecord(tFields);
+                        tFields = {};
+                        tBuffer = {};
+                        nRecord = nRecord + 1;
+
+                        if (sData:sub(nIndex + 1, nIndex + 1) == "\n") then
+                            nIndex = nIndex + 2;
+                        else
+                            nIndex = nIndex + 1;
+                        end
+
+                    elseif (sChar == "\n") then
+                        pushField(tFields, tBuffer);
+                        pushRecord(tFields);
+                        tFields = {};
+                        tBuffer = {};
+                        nRecord = nRecord + 1;
+                        nIndex = nIndex + 1;
+
+                    else
+                        tBuffer[#tBuffer + 1] = sChar;
+                        nIndex = nIndex + 1;
+                    end
+
+                end
+
+            end
+
+            if (bInQuotes) then
+                error("\nGrid Error in 'fromString': Unterminated quoted field in record "..nRecord..".", 2);
+            end
+
+            pushField(tFields, tBuffer);
+            pushRecord(tFields);
+        end
+
+        -- strip UTF-8 BOM if present
+        if (sData:sub(1, 3) == "\239\187\191") then
+            sData = sData:sub(4);
+            nLength = #sData;
+        end
+
+        -- reset everything
+        pro.rows            = {};
+        pro.rowsRaw         = {};
+        pro.rowCount        = 0;
+        pro.columnCount     = 0;
+        pro.columnNames     = {};
+        pro.columnIDByName  = {};
+
+        if (sData == "") then
+            return this;
+        end
+
+        parse();
+
+        if (#tRecords == 0) then
+            return this;
+        end
+
+        -- build header
+        do
+            local tHeader = tRecords[1];
+
+            if (#tHeader == 0) then
+                error("\nGrid Error in 'fromString': Header row is empty.", 2);
+            end
+
+            pro.columnCount = #tHeader;
+
+            for nColumn = 1, pro.columnCount do
+                local sColumn = tostring(tHeader[nColumn] or "");
+                local sKey    = pro.caseSensitiveLookup and sColumn or sColumn:upper();
+
+                if (pro.columnIDByName[sKey] ~= nil) then
+                    error("\nGrid Error in 'fromString': Duplicate column name \""..sColumn.."\" in header.", 2);
+                end
+
+                pro.columnNames[nColumn]    = sColumn;
+                pro.columnIDByName[sKey]    = nColumn;
+            end
+        end
+
+        -- build rows
+        for nRow = 2, #tRecords do
+            local tSourceRow = tRecords[nRow];
+            local tRow       = {};
+
+            if (#tSourceRow ~= pro.columnCount) then
+                error(
+                    "\nGrid Error in 'fromString': Record "..nRow..
+                    " has "..#tSourceRow.." field(s); expected "..pro.columnCount..".",
+                    2
+                );
+            end
+
+            for nColumn = 1, pro.columnCount do
+                tRow[nColumn] = tostring(tSourceRow[nColumn] or "");
+            end
+
+            pro.rowCount = pro.rowCount + 1;
+            pro.rowsRaw[pro.rowCount] = tRow;
+            pro.rows[pro.rowCount] = pro.setRowMeta(tRow);
+        end
 
         return this;
     end,
@@ -343,11 +597,11 @@ local Grid = class("Grid",
     !]]
     getCell = function(this, cdat, nRow, vColumn)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nGrid Error in 'getCell': Row is out of bounds or invalid.", 1);
-        local tColumnInfo   = pro.getColumnInfo(vColumn, true, "\nError in 'getCell': Cannot get cell in row "..nRow..'. ');
-        return pro.rowsRaw[nRow][tColumnInfo.index];
+        local nRowResolved = (nRow == -1) and pro.rowCount or nRow;
+        type.assert.number(nRowResolved, false, true, false, true, false, 1, pro.rowCount, "\nGrid Error in 'getCell': Row is out of bounds or invalid.", 1);
+        local tColumnInfo = pro.getColumnInfo(vColumn, true, "\nError in 'getCell': Cannot get cell in row "..nRowResolved..". ");
+        return pro.rowsRaw[nRowResolved][tColumnInfo.index];
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.getColumn
@@ -360,8 +614,7 @@ local Grid = class("Grid",
         local tRet          = {};
         local tRows         = pro.rowsRaw;
         local tColumnInfo   = pro.getColumnInfo(vColumn, true, "\nError in getColumn: Cannot get column.");
-
-        local nColumnID = tColumnInfo.index;
+        local nColumnID     = tColumnInfo.index;
 
         for nRow, tRowData in ipairs(tRows) do
             tRet[nRow] = tRowData[nColumnID];
@@ -369,7 +622,6 @@ local Grid = class("Grid",
 
         return tRet;
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.getColumnCount
@@ -380,7 +632,6 @@ local Grid = class("Grid",
         return cdat.pro.columnCount;
     end,
 
-
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.getColumnIndex
         @des Gets the index of a column given its name.
@@ -388,9 +639,10 @@ local Grid = class("Grid",
         @ret number nColumn The index of the column or nil if it doesn't exist.
     !]]
     getColumnIndex = function(this, cdat, sColumn)
-        return cdat.pro.columnIDByName[sColumn] or nil;
+        local pro = cdat.pro;
+        local sKey = pro.caseSensitiveLookup and sColumn or sColumn:upper()
+        return cdat.pro.columnIDByName[sKey] or nil;
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.getColumnName
@@ -400,10 +652,10 @@ local Grid = class("Grid",
     !]]
     getColumnName = function(this, cdat, nColumn)
         local pro = cdat.pro;
-        type.assert.number(nColumn, true, true, false, true, false, 1, pro.columnCount, "\nGrid Error in 'getColumnName': Invalid column index given.", 1);
-        return cdat.pro.columnNames[nColumn];
+        local nResolved = (nColumn == -1) and pro.columnCount or nColumn;
+        type.assert.number(nResolved, true, true, false, true, false, 1, pro.columnCount, "\nGrid Error in 'getColumnName': Invalid column index given.", 1);
+        return cdat.pro.columnNames[nResolved];
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.getColumnNames
@@ -420,7 +672,6 @@ local Grid = class("Grid",
         return tRet;
     end,
 
-
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.getRow
         @des Gets the row table for given the row's index.
@@ -429,10 +680,10 @@ local Grid = class("Grid",
     !]]
     getRow = function(this, cdat, nRow)
         local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, pro.rowCount, "\nGrid Error in 'getRow': Invalid row index given.", 1);
-        return pro.rows[nRow];
+        local nResolved = (nRow == -1) and pro.rowCount or nRow;
+        type.assert.number(nResolved, false, true, false, true, false, 1, pro.rowCount, "\nGrid Error in 'getRow': Invalid row index given.", 1);
+        return pro.rows[nResolved];
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.getRowCount
@@ -442,20 +693,6 @@ local Grid = class("Grid",
     getRowCount = function(this, cdat)
         return cdat.pro.rowCount;
     end,
-
---TODO
-    insertColumn = function(this, cdat, sColumn, vValues, vIndex)
-        type.assert.string(sColumn, "%S+");
-        local nIndex = rawtype(vIndex) == "number" and vIndex or -1;
-        local zValues = type(vValues);
-
-        if zValues == "table" then
-            --LEFT OFF HERE
-        end
-
-        type.assert.number(vColumn, false, true, false, true, false, -1, nColumnCount, 2);
-    end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.insertRow
@@ -474,67 +711,37 @@ local Grid = class("Grid",
         local nRows             = (rawtype(vRows) == "number") and (vRows > 0 and vRows or 1) or 1;
         local nColumnCount      = pro.columnCount;
 
-        --determine (or set to default) the row insert position
         if (rawtype(nPosition) ~= "number") then
             nPosition = pro.rowCount + 1;
         else
-            type.assert.number(nPosition, false, true, false, true, false, -1, pro.rowCount, "\nGrid Error in 'insertRow': Invalid input for row insert position.", 1);
+            type.assert.number(nPosition, false, true, false, true, false, -1, pro.rowCount + 1, "\nGrid Error in 'insertRow': Invalid input for row insert position.", 1);
             nPosition = (nPosition == -1) and (pro.rowCount + 1) or nPosition;
         end
 
-        --verify the table's data if it's a table
         if (bDataIsTable) then
-
             for nColumnID = 1, nColumnCount do
-
                 if (rawget(vData, nColumnID) == nil) then
-                    error("bad things here!!!")--TODO ERROR
+                    error("bad things here!!!");
                 end
-
             end
-
         end
 
-        --create the row(s)
         for nRow = 1, nRows do
-
-            --build the row table
             local tRow = {};
 
             for nColumnIndex = 1, nColumnCount do
                 tRow[nColumnIndex] = bDataIsTable and tostring(rawget(vData, nColumnIndex)) or vData;
             end
 
-            --update the actual insert position
             local nIndex = nPosition + nRow - 1;
 
-            --store the row
             table.insert(pro.rowsRaw, nIndex, tRow);
-
-            --create and store the row decoy
-            local tDecoy = pro.setRowMeta(tRow);
-            table.insert(pro.rows, nIndex, tDecoy);
-
-            --update the row count
+            table.insert(pro.rows, nIndex, pro.setRowMeta(tRow));
             pro.rowCount = pro.rowCount + 1;
         end
 
         return this;
     end,
-
-
-    --TODO
-    moveColumn = function(this, cdat, vColumn, nPosition)
-        type.assert.number(nPosition, false, true, false, true, false, -1, pro.columnCount, "\nGrid Error in 'moveColumn': Invalid input for column position.", 1);
-        local tColumnInfo = pro.getColumnInfo(vColumn, true, "\nError in renameColumn: Cannot rename column.");
-
-    end,
---TODO
-
-    moveRow = function(this, cdat, nRow, nPosition)
-
-    end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.rowExists
@@ -545,13 +752,13 @@ local Grid = class("Grid",
     rowExists = function(this, cdat, nRow)
         local pro = cdat.pro;
         type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nGrid Error in 'rowExists': Invalid input for row.", 1);
-        return pro.rows[nRow] ~= nil;
+        local nResolved = (nRow == -1) and pro.rowCount or nRow;
+        return nResolved >= 1 and nResolved <= pro.rowCount and pro.rows[nResolved] ~= nil;
     end,
-    --TODO
+
     sortByColumn = function(this, cdat, nColumn)
         error("Not yet implemented.");
     end,
-
 
     --[[!
         @fqxn LuaEx.Classes.Grid.Methods.setCell
@@ -562,66 +769,19 @@ local Grid = class("Grid",
         @ret boolean bExists A boolean value indicating whether the row exists.
     !]]
     setCell = function(this, cdat, nRow, vColumn, vValue)
-        local pro = cdat.pro;
-        type.assert.number(nRow, false, true, false, true, false, -1, nil, "\nGrid Error in 'setCell': Invalid input for row.", 1);
+        local pro           = cdat.pro;
+        local nRowResolved  = (nRow == -1) and pro.rowCount or nRow;
+        type.assert.number(nRowResolved, false, true, false, true, false, 1, pro.rowCount, "\nGrid Error in 'setCell': Invalid input for row.", 1);
         local tColumnInfo = cdat.pro.getColumnInfo(vColumn, true, "\nError in 'setCell'.");
-        pro.rowsRaw[nRow][tColumnInfo.index] = tostring(vValue);
+        pro.rowsRaw[nRowResolved][tColumnInfo.index] = tostring(vValue);
 
         return this;
     end,
 
 },
-nil,   --extending class
-false, --if the class is final
-nil    --interface(s) (either nil, or interface(s))
+nil,
+false,
+nil
 );
-
-
-local oRes = Grid();
-oRes.import(io.normalizepath(sSourcePath.."\\..\\resources\\Grid_Read_Test.csv"), false);
-
---TODO __newindex
---oRes.getRow(1).name = "Boots"
---oRes.getRow(1).name = "Cats"
-
-
-local tRow = oRes.getRow(1);
---print((oRes.getRow(1).name))
-for k, v in oRes.getRow(1)() do
---print(oRes.getColumnName(k), v)
-end
-
-for k, v in ipairs(oRes.getColumnNames()) do
-    --print(k, v)
-end
-
-for id, data in ipairs(oRes.getColumn(2)) do
-    --print(id, data)
-end
-
-for row, column, name, data in oRes.eachCell() do
-    --print(row, column, name, data)
-end
-
---oRes.setCell(1, 2, "BoogA!")
---oRes.insertRow(2, 67, 2);
---print(oRes.getCell(1, 2))
---print(oRes.getCell(2, 2))
---print(oRes.getCell(3, 2))
---print(oRes.getCell(4, 2))
-
---oRes.insertRow(7, "e", 4)
-oRes.renameColumn("Symbol", "Booga44!");
-oRes.export(io.normalizepath(sSourcePath.."\\..\\resources\\Grid_Write_Test.csv"), false);
---oRes.deleteRow(118);
-
-
-
-oGrid = Grid();
---print(oGrid.getColumn(1))
-
---print(oRes.columnExists("name"));
-
---print(oRes.getColumnIndex("name"))
 
 return Grid;

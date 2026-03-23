@@ -1,44 +1,72 @@
 --load in the builder's required files
-local _pRequirePath     = "LuaEx.inc.classes.util.Dox.Builders.HTML.Data";
+local _pRequirePath        = "LuaEx.inc.classes.util.Dox.Builders.HTML.Data";
 --local _sBanner          = require(_pRequirePath..".Banner");
 --local _sCSS             = require(_pRequirePath..".CSS");
 --local _sHTML            = require(_pRequirePath..".HTML")
 --local _sJS              = require(_pRequirePath..".JS");
-local function LoadDoxAsset(mod)
-    -- 1) Try normal package.path first
-    local path, err = package.searchpath(mod, package.path)
-    if path then
-        return dofile(path)
+
+local function LoadDoxAsset(sModule)
+    local pFile, sErr = package.searchpath(sModule, package.path);
+
+    if (pFile) then
+        return dofile(pFile);
     end
 
-    -- 2) Fallback: resolve relative to THIS file (DoxBuilderHTML.lua)
-    local src = debug.getinfo(1, "S").source
-    local thisFile = (type(src) == "string" and src:sub(1,1) == "@") and src:sub(2) or nil
+    local function IsAbsolutePath(pPath)
+        return type(pPath) == "string"
+            and (
+                pPath:match("^%a:[/\\]") ~= nil
+                or pPath:match("^[/\\][^/\\]") ~= nil
+            );
+    end
 
-    assert(
-        thisFile,
-        ("DoxBuilderHTML: cannot resolve builder source path via debug.getinfo for '%s'.\n" ..
-         "package.searchpath failed first.\nDetails:\n%s")
-            :format(mod, tostring(err))
-    )
+    local function TryOpenAndLoad(pPath)
+        local hFile = io.open(pPath, "rb");
 
-    -- directory containing DoxBuilderHTML.lua
-    local dir = thisFile:match("^(.*)[/\\]") or "."
+        if (hFile) then
+            hFile:close();
+            return dofile(pPath);
+        end
 
-    -- Data folder sits next to this file: ...\HTML\Data\*.lua
-    local relPath = dir .. "/Data/" .. mod:match("([^.]+)$") .. ".lua"
+        return nil;
+    end
 
-    local f = io.open(relPath, "rb")
-    assert(
-        f,
+    local sLeaf = sModule:match("([^.]+)$");
+    local tTried = {};
+
+    -- resolve relative to THIS loaded file, not package.path
+    local tInfo = debug.getinfo(LoadDoxAsset, "S");
+    local sSource = tInfo and tInfo.source or nil;
+    local pThisFile = (type(sSource) == "string" and sSource:sub(1, 1) == "@") and sSource:sub(2) or nil;
+
+    if (type(pThisFile) == "string" and not pThisFile:isempty()) then
+        local pDir = pThisFile:match("^(.*)[/\\]") or ".";
+        local pAsset = pDir.."\\Data\\"..sLeaf..".lua";
+        tTried[#tTried + 1] = pAsset;
+
+        local vRet = TryOpenAndLoad(pAsset);
+        if (vRet ~= nil) then
+            return vRet;
+        end
+
+        if not (IsAbsolutePath(pAsset)) and type(_SourceFolder) == "string" and not _SourceFolder:isempty() then
+            local pAnchored = (_SourceFolder.."\\ "..pAsset):gsub("\\ ", "\\"):gsub("[/\\]+", "\\");
+            tTried[#tTried + 1] = pAnchored;
+
+            vRet = TryOpenAndLoad(pAnchored);
+            if (vRet ~= nil) then
+                return vRet;
+            end
+        end
+    end
+
+    error(
         ("DoxBuilderHTML: failed to locate required asset module '%s'.\n" ..
          "package.searchpath failed.\nDetails:\n%s\n" ..
-         "Also tried relative path:\n%s")
-            :format(mod, tostring(err), relPath)
-    )
-    f:close()
-
-    return dofile(relPath)
+         "Paths tried:\n%s")
+            :format(sModule, tostring(sErr), table.concat(tTried, "\n")),
+        2
+    );
 end
 local _sCSS  = LoadDoxAsset(_pRequirePath .. ".CSS");
 local _sHTML = LoadDoxAsset(_pRequirePath .. ".HTML");

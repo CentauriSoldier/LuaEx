@@ -13,7 +13,7 @@
 
 ### Fixed
 - Private **IsinScope** function used by **class** helper functions not properly checking scope.
-
+- ***DoxBuilderHTML*** **LoadDoxAsset** function not working in all cases.
 ---
 
 ## [**v0.60**]
