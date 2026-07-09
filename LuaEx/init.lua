@@ -360,6 +360,7 @@ math 		= require("LuaEx.hook.mathhook");
 string		= require("LuaEx.hook.stringhook");
 table		= require("LuaEx.hook.tablehook");
 base64 		= require("LuaEx.lib.base64");
+qr          = require("LuaEx.lib.qr");
 
 --import cloner
 cloner      = require("LuaEx.lib.cloner");
