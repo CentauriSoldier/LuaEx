@@ -137,10 +137,11 @@ local function splitpath(sPath);
         -- Split into directory + leaf.
         sDirPart, sLeaf = sWork:match("^(.*)"..sRootSep.."([^"..sRootSep.."]+)$");
         if (rawtype(sDirPart) == "string") then
-            tRet.directory = (bAbsolute and sRootSep or "")..sDirPart;
+            tRet.directory = tRet.drive..(bAbsolute and sRootSep or "")..sDirPart;
             tRet.filename  = rawtype(sLeaf) == "string" and sLeaf or "";
         else
             tRet.filename = sWork;
+            tRet.directory = tRet.drive..(bAbsolute and sRootSep or "");
         end
 
         -- Extension handling:
@@ -970,8 +971,8 @@ function io.isdir(sPath);
     local vOK;
 
     if (_bOSIsWindows) then
-        -- NUL exists inside directories, and this is the classic fast dir test.
-        vOK = os.execute('cmd /c if exist "'..sPath..'\\NUL" (exit /b 0) else (exit /b 1)');
+        -- A trailing separator distinguishes directories from regular files.
+        vOK = os.execute('cmd /c if exist "'..sPath..'\\" (exit /b 0) else (exit /b 1)');
     elseif (_bOSIsUnix) then
         vOK = os.execute('test -d "'..sPath..'"');
     else
