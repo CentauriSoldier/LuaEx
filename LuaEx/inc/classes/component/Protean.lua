@@ -22,7 +22,7 @@
     E.g.,
     <br>
     <ul>
-        <li>1 	 = 100%</li>
+        <li>1    = 100%</li>
         <li>0.2  = 20%</li>
         <li>1.65 = 165%</li>
     </ul>
@@ -42,14 +42,11 @@
     <br>
     <br>
     There may be some instances where a client may use several Protean objects but wants the
-    same base value for all of them. In this case, it would be cumbersome to have to set the
-    base value for each Protean object. So, a Protean object may be told to use an external
-    reference for the base value. In this case, a table is provided to the Protean object with a key
-    of PROTEAN.EXTERNAL_INDEX and a number value. This allows for multiple Protean objects to reference
-    the same base value without the need for resetting the base value of each object. Note: the table
-    input will have a metamethod (__index) added to it which will update the final value of the Protean objects
-    whenever the value is changed. If the table input already has a metamethod of __index, the Protean's __index
-    metamethod will overwrite it.
+    same base value for all of them. Call <code>setLinker(number)</code> to create or join a linker,
+    and <code>getLinkerID()</code> to share its ID. Call <code>setLinker()</code> to detach,
+    retaining the current shared base. Modifiers and limits remain per instance.
+    Cloning creates an independent, unlinked copy of the current shared base.
+    Cloning retains callback references. Serialization is supplied by the class system.
     </p>
 @license <p>The Unlicense<br>
 <br>
@@ -86,22 +83,17 @@
 </ul>
 @website https://github.com/CentauriSoldier
 *]]
-local tProteans = {};
 local Protean;
 
-local class 	= class;
-local constant 	= constant;
-local math 		= math;
-local pairs 	= pairs;
-local table 	= table;
-local type 		= type;
-local rawtype 	= rawtype;
+local class     = class;
+local constant  = constant;
+local math      = math;
+local pairs     = pairs;
+local table     = table;
+local type      = type;
+local rawtype   = rawtype;
 
 
-
-local ProteanValue 	= ProteanValue;
-local ProteanLimit 	= ProteanLimit;
-local ProteanMod 	= ProteanMod;
 
 --placeholder so higher functions can access it
 local calculateFinalValue;
@@ -117,15 +109,15 @@ local _nAddPenalty    = 8;
 local _nLimitMin      = 9;
 local _nLimitMax      = 10;
 --for value getting/setting
-_nIndexMin      = _nValueBase;
-_nIndexMax      = _nLimitMax;
+local _nIndexMin = _nValueBase;
+local _nIndexMax = _nLimitMax;
 
 local function onChangePlaceHolder() end
 
 --[[
  Stores linkers for Protean objects with a shared base value.
  The table is structure is as follows:
- tLinkers[nLinkerID] = {
+ _tLinkers[nLinkerID] = {
          baseValue = x,
         index = {--for fast existential queries of a Protean object within a linker
             Proteanobject1 = true,
@@ -140,21 +132,21 @@ local function onChangePlaceHolder() end
         totalLinked = 0,
     };
 ]]
-local tLinkers = {};
+local _tLinkers = {};
 
 --[[
-    @desc
+    @desc Checks whether the supplied ID refers to an existing linker.
     @mod
     @param this
     @param nLinkerID
     @scope local
 ]]
 local function linkerIDIsValid(nLinkerID)
-    return rawtype(nLinkerID) == "number" and math.floor(nLinkerID) == nLinkerID and nLinkerID > 0 and tLinkers[nLinkerID];
+    return rawtype(nLinkerID) == "number" and math.floor(nLinkerID) == nLinkerID and nLinkerID > 0 and _tLinkers[nLinkerID];
 end
 
 --[[
-    @desc
+    @desc Detaches the object from its linker and retains the current shared base value.
     @mod
     @param this
     @param nLinkerID
@@ -164,17 +156,17 @@ local function unlink(this, cdat)
     local pri = cdat.pri;
     local nLinkerID = pri.linkerID;
 
-    if (pri.isLinked and linkerIDIsValid(nLinkerID) and tLinkers[nLinkerID].Proteans[this]) then
+    if (pri.isLinked and linkerIDIsValid(nLinkerID) and _tLinkers[nLinkerID].Proteans[this]) then
 
         --set the object's base value to it's original value or the linker's base value
-        pri.values[_nValueBase] = tLinkers[nLinkerID].baseValue;
+        pri.values[_nValueBase] = _tLinkers[nLinkerID].baseValue;
 
         --update its linked status and linkerID
         pri.isLinked = false;
         pri.linkerID = -1;
 
         --remove the object from the linker
-        tLinkers[nLinkerID].Proteans[this] = nil;
+        _tLinkers[nLinkerID].Proteans[this] = nil;
     end
 
 end
@@ -187,34 +179,32 @@ end
 ]]
 local function link(this, cdat, nLinkerID)
     local pri = cdat.pri;
-    nLinkerID = linkerIDIsValid(nLinkerID) and nLinkerID or #tLinkers + 1;
+    nLinkerID = linkerIDIsValid(nLinkerID) and nLinkerID or #_tLinkers + 1;
 
     --make sure it's not trying to be linked to its current linker
     if not (pri.linkerID == nLinkerID) then
 
         --create the linker if it doesn't exist
-        if not (tLinkers[nLinkerID]) then
-            tLinkers[nLinkerID] = {
+        if not (_tLinkers[nLinkerID]) then
+            _tLinkers[nLinkerID] = {
                 --the new linker will start with the creating object's base value
                 baseValue   = pri.values[_nValueBase],
                 --byObject    = {},
-                Proteans	= {},
+                Proteans    = {},
             };
         end
 
         --unlink if currently linked
         if (pri.isLinked) then
-            unlink(pri, false);
+            unlink(this, cdat);
         end
 
-        local tLinker = tLinkers[nLinkerID];
+        local tLinker = _tLinkers[nLinkerID];
 
         --link it only if it's not already linked
         if not (tLinker.Proteans[this]) then
             local tValues = pri.values;
 
-            --get the object's original value
-            local nOriginalValue = tValues[_nValueBase]
 
             --set the object's base value to be the same as the linker's
             tValues[_nValueBase] = tLinker.baseValue;
@@ -243,12 +233,12 @@ local function link(this, cdat, nLinkerID)
 end
 
 --local function ExternalTableIsValid(tTable)
---	return rawtype(tTable) == "table" and rawtype(tTable[PROTEAN.EXTERNAL_INDEX]) == "number";
+--  return rawtype(tTable) == "table" and rawtype(tTable[PROTEAN.EXTERNAL_INDEX]) == "number";
 --end
 
 
 --[[
-    @desc
+    @desc Calculates and stores the final value using the modifiers and enabled limits.
     @mod
     @param this
     @param nLinkerID
@@ -257,13 +247,13 @@ end
 calculateFinalValue = function(this, cdat)
     local pri       = cdat.pri;
     local tValues   = pri.values;
-    local nBase     = pri.isLinked and tLinkers[pri.linkerID].baseValue or tValues[_nValueBase];
+    local nBase     = pri.isLinked and _tLinkers[pri.linkerID].baseValue or tValues[_nValueBase];
 
-    local nBaseBonus	= tValues[_nBaseBonus];
-    local nBasePenalty	= tValues[_nBasePenalty];
-    local nMultBonus	= tValues[_nMultBonus];
-    local nMultPenalty	= tValues[_nMultPenalty];
-    local nAddBonus		= tValues[_nAddBonus];
+    local nBaseBonus    = tValues[_nBaseBonus];
+    local nBasePenalty  = tValues[_nBasePenalty];
+    local nMultBonus    = tValues[_nMultBonus];
+    local nMultPenalty  = tValues[_nMultPenalty];
+    local nAddBonus     = tValues[_nAddBonus];
     local nAddPenalty   = tValues[_nAddPenalty];
     local nFinal        = ((nBase + nBaseBonus - nBasePenalty) * (1 + nMultBonus - nMultPenalty)) + nAddBonus - nAddPenalty;
 
@@ -283,72 +273,59 @@ calculateFinalValue = function(this, cdat)
 end
 
 --[[
-    @desc
+    @desc Assigns a value, refreshes automatic final values and invokes active callbacks.
     @mod
     @param this
     @param nLinkerID
     @scope local
 ]]
-local function setValue(this, cdat, nType, nValue)--TODO send old and new final values through callback
+local function setValue(this, cdat, nType, nValue)
     local pri = cdat.pri;
-    local bCalculated 		= false;
-    local bCallbackCalled 	= false;
-    local tValues           = pri.values;
-    local nFinal            = -1;
+    local tValues = pri.values;
+    local nOldValue = this.getValue(nType);
 
-    --get the old value (for the callback function)
-    local nOldValue = tValues[nType];
-
-    --set the value
     tValues[nType] = nValue;
 
     if (nType == _nLimitMin or nType == _nLimitMax) then
-
         if (tValues[_nLimitMin] > tValues[_nLimitMax]) then
             tValues[_nLimitMin] = tValues[_nLimitMax];
         end
-
     end
 
-    --check if this object is linked and, if so, update the linker and it's Proteans
-    if (pri.isLinked and nType == _nValueBase) then
-        local nLinkerID = pri.linkerID;
+    local tNotifications = {};
 
-        tLinkers[nLinkerID].baseValue = nValue;
+    local function update(oProtean, tCDat)
+        local pri = tCDat.pri;
 
-        --update the linked Proteans' final value
-        for oProtean, tCDAT in pairs(tLinkers[nLinkerID].Proteans) do
-            local tPrivate = tCDAT.pri;
-
-            if (tPrivate.autoCalculate) then
-                --(re)calculate the final value
-                nFinal = calculateFinalValue(oProtean, tCDAT);
-            end
-
-            if (tPrivate.isCallbackActive) then
-                --process the callback function
-                oProtean.onChange(oProtean, nType, nOldValue, nValue, nFinal);
-            end
-
+        if (pri.autoCalculate) then
+            calculateFinalValue(oProtean, tCDat);
         end
 
-        --indicate that this Protean has also been calulated
-        bCalculated 	= true;
-        --and the callback has been called
-        bCallbackCalled = true;
+        if (pri.isCallbackActive) then
+            tNotifications[#tNotifications + 1] = {
+                callback = pri.onChange,
+                object = oProtean,
+                final = pri.values[_nValueFinal],
+            };
+        end
     end
 
-    if (not bCalculated and pri.autoCalculate) then
-        ---(re)calculate the final value
-        nFinal = calculateFinalValue(this, cdat);
+    if (pri.isLinked and nType == _nValueBase) then
+        local tLinker = _tLinkers[pri.linkerID];
+        tLinker.baseValue = nValue;
+
+        for oProtean, tCDat in pairs(tLinker.Proteans) do
+            update(oProtean, tCDat);
+        end
+    else
+        update(this, cdat);
     end
 
-    if (not bCallbackCalled and pri.isCallbackActive) then
-        pri.onChange(this, nType, nOldValue, nValue, nFinal);
+    --Refresh every member before callbacks can inspect or change the group.
+    for _, tNotification in ipairs(tNotifications) do
+        tNotification.callback(tNotification.object, nType, nOldValue, nValue, tNotification.final);
     end
-
 end
-
 
 --[[
     @desc returns a number that is one greater than the maximum number of linkers in the Hub. This is used for determining the next, empty, available linker ID.
@@ -356,52 +333,54 @@ end
     @module Protean
     @return nLinkerID number The next open index in the Hub.
 ]]
-function ProteangetAvailableLinkerID()
-    return #tLinkers + 1;
+local function getAvailableLinkerID()
+    return #_tLinkers + 1;
 end
 
-return class("Protean",
+local function categoryIsValid(nType)
+    return rawtype(nType) == "number" and nType == math.floor(nType) and
+           nType >= _nIndexMin and nType <= _nIndexMax;
+end
+
+local function validateValue(nValue)
+    assert(rawtype(nValue) == "number" and nValue == nValue, "Protean value must be a number other than NaN.");
+end
+
+Protean = class("Protean",
 {--METAMETHODS
+    --[[!
+    @fqxn LuaEx.Classes.Protean.Metamethods.__clone
+    @desc Creates an independent, unlinked snapshot. Copies modifiers, bounds, calculation mode, cached final value and callback locks. Retains the callback reference and active state. Does not invoke callbacks.
+    @ret Protean oClone A new snapshot instance.
+    @ex
+    local oCopy = clone(oProtean);
+    !]]
     __clone = function(this, cdat)
+        local oClone       = Protean();
+        local pri          = cdat.pri;
+        local tCopyPrivate = cdat.ins[oClone].pri;
 
-    end,
-    --[[
-    @desc Serializes the object's data. Note: This does NOT serialize callback functions.
-    @func Protean.serialize
-    @module Protean
-    @param bDefer boolean Whether or not to return a table of data to be serialized instead of a serialize string (if deferring serializtion to another object).
-    @ret sData StringOrTable The data returned as a serialized table (string) or a table is the defer option is set to true.
-    ]]
-    __serialize = function(this, cdat)
-        local tFields = tProteans[this];
-
-
-        local tData = {
-            [ProteanValue.Base]					= tFields.isLinked and tLinkers[tFields.linkerID].baseValue or tFields[ProteanValue.Base],
-            [ProteanMod.BaseBonus] 				= tFields[ProteanMod.BaseBonus],
-            [ProteanMod.BasePenalty] 			= tFields[ProteanMod.BasePenalty],
-            [ProteanMod.MultiplicativeBonus] 	= tFields[ProteanMod.MultiplicativeBonus],
-            [ProteanMod.MultiplicativePenalty] 	= tFields[ProteanMod.MultiplicativePenalty],
-            [ProteanMod.AddativeBonus] 			= tFields[ProteanMod.AddativeBonus],
-            [ProteanMod.AddativePenalty] 		= tFields[ProteanMod.AddativePenalty],
-            [ProteanValue.Final]				= tFields[ProteanValue.Final],
-            [ProteanLimit.Min]	 				= tFields[ProteanLimit.Min],
-            [ProteanLimit.Max] 					= tFields[ProteanLimit.Max],
-            isLinked							= tFields.isLinked,
-            linkerID							= tFields.linkerID,
-            autoCalculate						= tFields.autoCalculate,
-            onChange 							= tFields.onChange,
-            isCallbackActive					= tFields.isCallbackActive,
-        };
-
-        if (not bDefer) then
-            tData = serialize.table(tData);
+        for sField, vValue in pairs(pri) do
+            if (rawtype(vValue) ~= "function" and sField ~= "values" and sField ~= "isLinked" and sField ~= "linkerID") then
+                tCopyPrivate[sField] = vValue;
+            end
         end
 
-        return tData;
+        for nType = _nIndexMin, _nIndexMax do
+            tCopyPrivate.values[nType] = this.getValue(nType);
+        end
+
+        tCopyPrivate.onChange = pri.onChange;
+        return oClone;
     end,
 },
 {--STATIC PUBLIC
+--[[!
+    @fqxn LuaEx.Classes.Protean.Static Methods.getAvailableLinkerID
+    @desc Returns the next available linker ID without creating a linker. Linker IDs are retained and are not recycled when their members detach.
+    @ret number nLinkerID The next linker ID.
+    !]]
+    getAvailableLinkerID = getAvailableLinkerID,
     --[[!
     @fqxn LuaEx.Classes.Protean.Fields.VALUE_BASE
     @desc An alias for the number referring this specific value category. Used in Protean operations.
@@ -464,55 +443,36 @@ return class("Protean",
     LIMIT_MAX__RO               = _nLimitMax,
 
     --LIMIT   = enum("Protean.LIMIT",     {"MIN", "MAX"}, true);
-    --MOD     = enum("Protean.MOD", 	    {"ADDATIVE_BONUS",       "ADDATIVE_PENALTY",
+    --MOD     = enum("Protean.MOD",         {"ADDATIVE_BONUS",       "ADDATIVE_PENALTY",
     --                                     "BASE_BONUS",           "BASE_PENALTY",
     --                                     "MULTIPLICATIVE_BONUS", "MULTIPLICATIVE_PENALTY"}, true);
-    --VALUE   = enum("Protean.VALUE", 	{"BASE", "FINAL"}, true);
+    --VALUE   = enum("Protean.VALUE",   {"BASE", "FINAL"}, true);
     --Protean = function(stapub) end,
-    --[[
-        @desc Deserializes data and sets the object's properties accordingly.
-        @func Protean.deserialize
-        @module Protean
-    ]]
-    deserialize = function(this, sTable)
-        local oProtean 	= tProteans[this];
-        local tData 	= deserialize.table(sTable);
-        local eValue 	= ProteanValue
-        local eMod 		= ProteanMod;
-        local eLimit	= ProteanLimit;
-
-        oProtean[eValue.Base] 					= tData[eValue.Base];
-        oProtean[eMod.BaseBonus] 				= tData[eMod.BaseBonus];
-        oProtean[eMod.BasePenalty] 				= tData[eMod.BasePenalty];
-        oProtean[eMod.MultiplicativeBonus] 		= tData[eMod.MultiplicativeBonus];
-        oProtean[eMod.MultiplicativePenalty] 	= tData[eMod.MultiplicativePenalty];
-        oProtean[eMod.AddativeBonus] 			= tData[eMod.AddativeBonus];
-        oProtean[eMod.AddativePenalty]			= tData[eMod.AddativePenalty];
-        oProtean[eValue.Final]					= tData[eValue.Final];
-        oProtean[eLimit.Min]					= tData[eLimit.Min];
-        oProtean[eLimit.Max] 					= tData[eLimit.Max];
-        oProtean.isLinked						= tData.isLinked;
-        oProtean.linkerID						= tData.linkerID;
-        oProtean.autoCalculate					= tData.autoCalculate;
-        oProtean.onChange						= tData.onChange;
-        oProtean.isCallbackActive 				= tData.isCallbackActive;
-
-        --relink this object if it was before
-        if (oProtean.isLinked) then
-            link(this, tData.linkerID);
-        end
-
-    end,
 },
 {--PRIVATE
     limitMin                = false,
     limitMax                = false,
-    linkerID			    = -1,
-    isLinked			    = false, --for fast queries
-    autoCalculate		    = true,
+    linkerID                = -1,
+    --[[!
+    @fqxn LuaEx.Classes.Protean.Methods.isLinked
+    @desc Reports whether the base value belongs to a shared linker.
+    @ret boolean bLinked Whether this instance is linked.
+    !]]
+    isLinked                = false, --for fast queries
+    autoCalculate           = true,
     onChange                = onChangePlaceHolder,
     isCallbackActive        = false,
+    --[[!
+    @fqxn LuaEx.Classes.Protean.Methods.isCallbackLocked
+    @desc Reports whether callback replacement or clearing is locked.
+    @ret boolean bLocked Whether callback changes are locked.
+    !]]
     isCallbackLocked        = false,
+    --[[!
+    @fqxn LuaEx.Classes.Protean.Methods.isCallbackToggleLocked
+    @desc Reports whether callback activation changes are locked.
+    @ret boolean bLocked Whether callback toggling is locked.
+    !]]
     isCallbackToggleLocked  = false,
     values = {
         [_nValueBase]       = 0,
@@ -521,9 +481,9 @@ return class("Protean",
         [_nBasePenalty]     = 0,
         [_nMultBonus]       = 0,
         [_nMultPenalty]     = 0,
-        [_nAddBonus]	    = 0,
+        [_nAddBonus]        = 0,
         [_nAddPenalty]      = 0,
-        [_nLimitMin] 	    = 0,
+        [_nLimitMin]        = 0,
         [_nLimitMax]        = 0,
     },
 },
@@ -543,7 +503,7 @@ return class("Protean",
     @param nAddativePenalty number/nil This value is Ap where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
     @param nMinLimit number/nil This is the minimum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no minimum value.
     @param nMaxLimit number/nil This is the maximum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no maximum value.
-    @param fonChange function/nil If the (optional) input is a function, this will be called whenever a change is made to this object (unless callback is inactive).
+    @param fonChange function/nil Called with instance, category, old value, new value and cached final value. In manual mode the final value is not refreshed.
     <br>Note: the callback function must accept the following paramters:
     <ol>
         <li>The Protean object. <em>(Protean)</em>.</li>
@@ -552,7 +512,7 @@ return class("Protean",
         <li>The changed value. <em>(number)</em></li>
         <li>The final value. <em>(number)</em></li>
     </ol>
-    @param bDoNotAutoCalculate Whether or not this object should auto-calculate the final value whenever a change is made. This is true by default. If set to nil, it will default to true.
+    @param bDontAutoCalculate boolean|nil Set true to disable automatic recalculation. Initial construction always calculates once.
     @return oProtean Protean A Protean object.
     !]]
     Protean = function(this, cdat, nBaseValue,  nBaseBonus,             nBasePenalty,
@@ -563,6 +523,13 @@ return class("Protean",
 
         local pri       = cdat.pri;
         local tValues   = pri.values;
+for _, nValue in pairs({nBaseValue, nBaseBonus, nBasePenalty, nMultiplicativeBonus, nMultiplicativePenalty,
+                               nAddativeBonus, nAddativePenalty, nMinLimit, nMaxLimit}) do
+            if (rawtype(nValue) == "number") then
+                validateValue(nValue);
+            end
+        end
+
         local bHasCallbackFunction  = rawtype(fonChange) == "function";
         pri.limitMin = rawtype(nMinLimit) == "number";
         pri.limitMax = rawtype(nMaxLimit) == "number";
@@ -571,52 +538,47 @@ return class("Protean",
         --local eMod      = Protean.MOD;
         --local eValue    = Protean.VALUE;
 
-        tValues[_nValueBase]	= rawtype(nBaseValue) 				== "number" 	and nBaseValue 				or 0;
-        tValues[_nBaseBonus] 	= rawtype(nBaseBonus) 				== "number"		and nBaseBonus  			or 0;
-        tValues[_nBasePenalty]  = rawtype(nBasePenalty) 			== "number"		and nBasePenalty 			or 0;
-        tValues[_nMultBonus] 	= rawtype(nMultiplicativeBonus) 	== "number"		and nMultiplicativeBonus 	or 0;
-        tValues[_nMultPenalty]  = rawtype(nMultiplicativePenalty) 	== "number"		and nMultiplicativePenalty 	or 0;
-        tValues[_nAddBonus] 	= rawtype(nAddativeBonus) 			== "number"		and nAddativeBonus 			or 0;
-        tValues[_nAddPenalty]	= rawtype(nAddativePenalty) 		== "number"		and nAddativePenalty 		or 0;
-        tValues[_nLimitMin] 	= pri.limitMin                                      and nMinLimit               or -math.huge;
-        tValues[_nLimitMax] 	= pri.limitMax                                      and nMaxLimit               or math.huge;
-        tValues[_nValueFinal]	= 0; --this is (re)calcualted whenever another item is changed
-        pri.autoCalculate		= not (rawtype(bDontAutoCalculate) == "boolean"     and bDontAutoCalculate      or false);
-        pri.onChange 			= bHasCallbackFunction						 		and fonChange				or onChangePlaceHolder;
+        tValues[_nValueBase]    = rawtype(nBaseValue)               == "number"     and nBaseValue              or 0;
+        tValues[_nBaseBonus]    = rawtype(nBaseBonus)               == "number"     and nBaseBonus              or 0;
+        tValues[_nBasePenalty]  = rawtype(nBasePenalty)             == "number"     and nBasePenalty            or 0;
+        tValues[_nMultBonus]    = rawtype(nMultiplicativeBonus)     == "number"     and nMultiplicativeBonus    or 0;
+        tValues[_nMultPenalty]  = rawtype(nMultiplicativePenalty)   == "number"     and nMultiplicativePenalty  or 0;
+        tValues[_nAddBonus]     = rawtype(nAddativeBonus)           == "number"     and nAddativeBonus          or 0;
+        tValues[_nAddPenalty]   = rawtype(nAddativePenalty)         == "number"     and nAddativePenalty        or 0;
+        tValues[_nLimitMin]     = pri.limitMin                                      and nMinLimit               or -math.huge;
+        tValues[_nLimitMax]     = pri.limitMax                                      and nMaxLimit               or math.huge;
+        tValues[_nValueFinal]   = 0; --this is (re)calcualted whenever another item is changed
+        pri.autoCalculate       = not (rawtype(bDontAutoCalculate) == "boolean"     and bDontAutoCalculate      or false);
+        pri.onChange            = bHasCallbackFunction                              and fonChange               or onChangePlaceHolder;
         pri.isCallbackActive    = bHasCallbackFunction;
+
+        if (tValues[_nLimitMin] > tValues[_nLimitMax]) then
+            tValues[_nLimitMin] = tValues[_nLimitMax];
+        end
 
         --calculate the final value for the first time
         calculateFinalValue(this, cdat);
-    end,
+
+end,
     --[[!
     @fqxn LuaEx.Classes.Protean.Methods.adjust
-    @desc Adjusts the given value by the amount input. Note: if using an external table which contains the base value, and the rawtype provided is ProteanValue.Base, nil will be returned. An external base value cannot be adjusted from inside the Protean	object (although the base bonus and base penalty may be).
+    @desc Adjusts a value by the amount input. Adjusting a linked base updates every member of that linker.
     @note If only one parameter is given, it is assumed that the base value is intended to be adjusted using the value input.
     @param nType number The type of value to adjust.
     @param nValue number The value by which to adjust the given value.
     @return oProtean Protean This Protean object.
     !]]
     adjustValue = function(this, cdat, nType, nValue)
-        local pri = cdat.pri;
-
-        if not (rawtype(nType) == "number") then
-            error("Error adjusting Protean value.\nValue category type expected: number. Type given: "..rawtype(nType));
+        if (nValue == nil) then
+            nValue = nType;
+            nType = _nValueBase;
         end
 
-        if (nType < _nIndexMin or nType > _nIndexMax or nType == _nValueFinal) then
-            error("Error setting Protean value.\nValue category out of range.");
-        end
-
-        if (sValueType == "nil") then
-            nValue  = nType;
-            nType   = _nValueBase;
-        end
-
-        if not (rawtype(nValue) == "number") then
-            error("Error adjusting Protean value.\nNew value must be of type number. Type given: "..rawtype(nValue));
-        end
-
-        setValue(this, cdat, nType, pri.values[nType] + nValue);
+        assert(categoryIsValid(nType) and nType ~= _nValueFinal, "Protean value category out of range.");
+        validateValue(nValue);
+        local nAdjusted = this.getValue(nType) + nValue;
+        validateValue(nAdjusted);
+        setValue(this, cdat, nType, nAdjusted);
         return this;
     end,
 
@@ -624,6 +586,17 @@ return class("Protean",
         @fqxn LuaEx.Classes.Protean.Methods.calculateFinalValue
         @desc Calculates the final value of the Protean. This is done on-change by default so that the final value (when requested) is always up-to-date and accurate. There is no need to call this unless auto-calculate has been disabled. In that case, this serves an external utility function to perform the normally-internal operation of calculating and updating the final value.
         @return nValue number The calculated final value.
+    !]]
+    calculateFinalValue = function(this, cdat)
+        calculateFinalValue(this, cdat);
+        return this;
+    end,
+
+    --Compatibility alias for the original spelling.
+    --[[!
+    @fqxn LuaEx.Classes.Protean.Methods.calulateFinalValue
+    @desc Compatibility alias for calculateFinalValue(), retaining its original spelling and behavior.
+    @ret Protean oProtean This instance, for chaining.
     !]]
     calulateFinalValue = function(this, cdat)
         calculateFinalValue(this, cdat);
@@ -634,34 +607,20 @@ return class("Protean",
     --[[!
         @fqxn LuaEx.Classes.Protean.Methods.get
         @desc Gets the value of the given value type. Note: if the type provided is ProteanValue.Final and MIN or MAX limits have been set, the returned value will fall within the confines of those paramter(s).
-        @note If no parameter is given, the base value is returned.
+        @note If no parameter is given, the final value is returned.
         @param nType number The type of value to adjust.
         @return nValue number The value of the given type.
     !]]
     getValue = function(this, cdat, nType)
-        local pri   = cdat.pri;
-        local sType = rawtype(nType);
+        nType = nType == nil and _nValueFinal or nType;
+        assert(categoryIsValid(nType), "Protean value category out of range.");
+        local pri = cdat.pri;
 
-        if (sType == "nil") then
-            nType = _nValueFinal;
-            sType = "number";
+        if (nType == _nValueBase and pri.isLinked) then
+            return _tLinkers[pri.linkerID].baseValue;
         end
 
-        if not (sType == "number") then
-            error("Error getting Protean value.\nValue category type expected: number. Type given: "..rawtype(nType));
-        end
-
-        if (nType < _nIndexMin or nType > _nIndexMax) then
-            error("Error getting Protean value.\nValue category out of range.");
-        end
-
-        if (nType == _nValueBase) then
-            nRet = pri.isLinked and tLinkers[pri.linkerID].baseValue or pri.values[_nValueBase];
-        else
-            nRet = pri.values[nType];
-        end
-
-        return nRet;
+        return pri.values[nType];
     end,
 
     --[[!
@@ -704,10 +663,20 @@ return class("Protean",
         return cdat.pri.isLinked;
     end,
 
+    --[[!
+    @fqxn LuaEx.Classes.Protean.Methods.lockCallback
+    @desc Permanently prevents setCallback() from replacing or clearing this instance's callback. Activation remains independently controlled by the toggle lock.
+    @ret nil No return value.
+    !]]
     lockCallback = function(this, cdat)
         cdat.pri.isCallbackLocked = true;
     end,
 
+    --[[!
+    @fqxn LuaEx.Classes.Protean.Methods.lockCallbackToggle
+    @desc Permanently prevents setCallbackActive() calls and prevents setCallback() from changing the active state. Callback replacement with unchanged activation remains possible unless the callback itself is locked.
+    @ret nil No return value.
+    !]]
     lockCallbackToggle = function(this, cdat)
         cdat.pri.isCallbackToggleLocked = true;
     end,
@@ -719,7 +688,13 @@ return class("Protean",
         @return oProtean Protean This Protean object.
     !]]
     setAutoCalculate = function(this, cdat, bFlag)
-        tProteans[this].autoCalculate = rawtype(bFlag) == "boolean" and bFlag or false;
+        local pri = cdat.pri;
+        pri.autoCalculate = rawtype(bFlag) == "boolean" and bFlag or false;
+
+        if (pri.autoCalculate) then
+            calculateFinalValue(this, cdat);
+        end
+
         return this;
     end,
 
@@ -737,13 +712,16 @@ return class("Protean",
             error("Error setting Protean callback function.\nCallback is locked.");
         end
 
+        local bActive = rawtype(fCallback) == "function" and bDoNotSetActive ~= true;
+        assert(not pri.isCallbackToggleLocked or bActive == pri.isCallbackActive, "Protean callback toggling is locked.");
+
         if (rawtype(fCallback) == "function") then
-            pri.onChange 			= fCallback;
-            pri.isCallbackActive 	= not (rawtype(bDoNotSetActive) == "boolean" and bDoNotSetActive or false);
+            pri.onChange            = fCallback;
+            pri.isCallbackActive    = not (rawtype(bDoNotSetActive) == "boolean" and bDoNotSetActive or false);
 
         else
-            pri.onChange 			= nil;
-            pri.isCallbackActive	= false;
+            pri.onChange            = onChangePlaceHolder;
+            pri.isCallbackActive    = false;
         end
 
         return this;
@@ -784,7 +762,13 @@ return class("Protean",
         @return oProtean Protean This Protean object.
     !]]
     setLimitMax = function(this, cdat, bFlag)
-        cdat.pri.limitMax = rawtype(bFlag) == "boolean" and bFlag or false;
+        local pri = cdat.pri;
+        pri.limitMax = rawtype(bFlag) == "boolean" and bFlag or false;
+
+        if (pri.autoCalculate) then
+            calculateFinalValue(this, cdat);
+        end
+
         return this;
     end,
 
@@ -796,7 +780,13 @@ return class("Protean",
         @return oProtean Protean This Protean object.
     !]]
     setLimitMin = function(this, cdat, bFlag)
-        cdat.pri.limitMin = rawtype(bFlag) == "boolean" and bFlag or false;
+        local pri = cdat.pri;
+        pri.limitMin = rawtype(bFlag) == "boolean" and bFlag or false;
+
+        if (pri.autoCalculate) then
+            calculateFinalValue(this, cdat);
+        end
+
         return this;
     end,
 
@@ -832,26 +822,13 @@ return class("Protean",
         @return oProtean Protean This Protean object.
     !]]
     setValue = function(this, cdat, nType, nValue)
-
-        if not (rawtype(nType) == "number") then
-            error("Error setting Protean value.\nValue category type expected: number. Type given: "..rawtype(nType));
+        if (nValue == nil) then
+            nValue = nType;
+            nType = _nValueBase;
         end
 
-        local sValueType = rawtype(nValue);
-
-        if (sValueType == "nil") then
-            nValue  = nType;
-            nType   = _nValueBase;
-        end
-
-        if (nType < _nIndexMin or nType > _nIndexMax or nType == _nValueFinal) then
-            error("Error setting Protean value.\nValue category out of range.");
-        end
-
-        if not (rawtype(nValue) == "number") then
-            error("Error setting Protean value.\nNew value must be of type number. Type given: "..rawtype(nValue));
-        end
-
+        assert(categoryIsValid(nType) and nType ~= _nValueFinal, "Protean value category out of range.");
+        validateValue(nValue);
         setValue(this, cdat, nType, nValue);
         return this;
     end,
@@ -860,3 +837,5 @@ nil,   --extending class
 false, --if the class is final
 nil    --interface(s) (either nil, or interface(s))
 );
+
+return Protean;

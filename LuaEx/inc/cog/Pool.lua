@@ -3,7 +3,6 @@ local floor 			= math.floor;
 local math				= math;
 local rawtype           = rawtype;
 local type				= type;
---TODO NEXT LEFT OFF HERE Do events on other items (onFull, Empty etc.)
 --CLASS-LEVEL ENUMS                                       Note: AVAILABLE, CYCLE and RESERVED are calculated values and cannot be set directly
 --[[!
     @fqxn CoG.Pool.Enums.ASPECT
@@ -47,7 +46,10 @@ local type				= type;
     print("Max: "..oPool.get(Pool.ASPECT.MAX)); --> Max: 220.0
     print("Reserved: "..oPool.get(Pool.ASPECT.RESERVED)); --> Reserved: 79.2
     print("Available: "..oPool.get(Pool.ASPECT.AVAILABLE)); --> Available: 140.8
-    @ex More Coming Soon (or later)
+    @ex
+    local oPool = Pool(100, 20);
+    oPool.set(10, Pool.ASPECT.CYCLE_FLAT);
+    oPool.cycle(); --current is now 30
 !]]
 local _eAspect      = enum("Pool.ASPECT",   {"AVAILABLE", "CURRENT", "CYCLE", "RESERVED", "MAX", "CYCLE_FLAT", "CYCLE_PERCENT", "RESERVED_FLAT", "RESERVED_PERCENT"},
                                             {"available", "current", "cycle", "reserved", "max", "cycle_flat", "cycle_percent", "reserved_flat", "reserved_percent"}, true);
@@ -56,34 +58,37 @@ local _eAspect      = enum("Pool.ASPECT",   {"AVAILABLE", "CURRENT", "CYCLE", "R
     @desc Used in class methods for getting/setting modifier values of <a href="#CoG.Pool.Enums.ASPECT" target="_blank">ASPECTS</a>.
     <ul>
         <li><b class="text-primary">BASE</b>
-            <p></p>
+            <p>The unmodified starting value.</p>
         </li>
         <li><b class="text-primary">FINAL</b>
-            <p></p>
+            <p>The calculated value; read-only.</p>
         </li>
         <li><b class="text-primary">MAX</b>
-            <p></p>
+            <p>An upper cap on the calculated modifier-bearing value.</p>
         </li>
         <li><b class="text-primary">BASE_BONUS</b>
-            <p></p>
+            <p>Added to the base before multiplication.</p>
         </li>
         <li><b class="text-primary">BASE_PENALTY</b>
-            <p></p>
+            <p>Subtracted from the base before multiplication.</p>
         </li>
         <li><b class="text-primary">MULTIPLICATIVE_BONUS</b>
-            <p></p>
+            <p>Added to the multiplier; 0.2 represents a 20% bonus.</p>
         </li>
         <li><b class="text-primary">MULTIPLICATIVE_PENALTY</b>
-            <p></p>
+            <p>Subtracted from the multiplier.</p>
         </li>
         <li><b class="text-primary">ADDITIVE_BONUS</b>
-            <p></p>
+            <p>Added after multiplication.</p>
         </li>
         <li><b class="text-primary">ADDITIVE_PENALTY</b>
-            <p></p>
+            <p>Subtracted after multiplication.</p>
         </li>
     </ul>
-    @ex coming soon!
+    @ex
+    local oPool = Pool(100, 50);
+    oPool.set(0.2, Pool.ASPECT.MAX, Pool.MODIFIER.MULTIPLICATIVE_BONUS);
+    print(oPool.get(Pool.ASPECT.MAX)); --120
 !]]
 local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
                                                 "BASE_BONUS",           "BASE_PENALTY",
@@ -101,8 +106,8 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
         <li>Create the function, ensuring it accepts the relevant arguments for that specific event (as shown below).</li>
         <li>Set the event by using the object's <b>setEventCallback</b> method.</li>
     </ol>
-    <br><b>Note</b>: event callbacks are auto-enabled once set. To prevent this, provide false as a second argument to <b>setEventCallback</b>.
-    <br><b>Note</b>: event callbacks can be changed (or deleted using nil as the first argument).
+    <br><b>Note</b>: event callbacks are auto-enabled once set. To prevent this, provide true as the third argument to <b>setEventCallback</b>.
+    <br><b>Note</b>: event callbacks can be changed (or deleted using nil as the callback argument).
     <br><b>Note</b>: events can be activated/deactivated by using the <b>setEventActive</b> method.
     </p>
     <ul>
@@ -142,7 +147,23 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
             <br>Let <b><i>m</i></b> be the max value of the Pool.
             <b><i>LowThreshold</i></b> = <b><i>l</i></b> * <b><i>m</i></b>
             <br><br>The <b>Low</b> threshold can be set using the object's <b>setLowMarker</b> method.
-            <br><b>Note</b>: the <b>Low</b> value must be less than the <b>Full</b> value.</p>
+            <br><b>Note</b>: the <b>Low</b> value must be less than the <b>High</b> value.</p>
+            <p>This event callback function must accept the following arguments:
+                <ul>
+                    <li><b><i>Pool</i></b> <i>oPool</i> The Pool object.</li>
+                    <li><b><i>number</i></b> <i>nOld</i> The old <b>Current</b> value.</li>
+                    <li><b><i>number</i></b> <i>nNew</i> The new <b>Current</b> value.</li>
+                </ul>
+            </p>
+        </li>
+        <li><b class="text-primary">ON_HIGH</b>
+            <p>This event occurs whenever the current value moves to or above the <b>High</b> threshold.
+            <br>The <b>High</b> threshold is determined by the following formula:
+            <br>Let <b><i>f</i></b> be a value greater than 0 and no greater than 1.
+            <br>Let <b><i>m</i></b> be the max value of the Pool.
+            <b><i>HighThreshold</i></b> = <b><i>f</i></b> * <b><i>m</i></b>
+            <br><br>The <b>High</b> threshold can be set using the object's <b>setHighMarker</b> method.
+            <br><b>Note</b>: the <b>High</b> value must be greater than the <b>Low</b> value.</p>
             <p>This event callback function must accept the following arguments:
                 <ul>
                     <li><b><i>Pool</i></b> <i>oPool</i> The Pool object.</li>
@@ -152,23 +173,11 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
             </p>
         </li>
         <li><b class="text-primary">ON_FULL</b>
-            <p>This event occurs whenever the current value moves to or above the <b>Full</b> threshold.
-            <br>The <b>Full</b> threshold is determined by the following formula:
-            <br>Let <b><i>f</i></b> be a float value between 0 and 1 (exlusive).
-            <br>Let <b><i>m</i></b> be the max value of the Pool.
-            <b><i>FullThreshold</i></b> = <b><i>f</i></b> * <b><i>m</i></b>
-            <br><br>The <b>Full</b> threshold can be set using the object's <b>setFullMarker</b> method.
-            <br><b>Note</b>: the <b>Full</b> value must be greater than the <b>Low</b> value.</p>
-            <p>This event callback function must accept the following arguments:
-                <ul>
-                    <li><b><i>Pool</i></b> <i>oPool</i> The Pool object.</li>
-                    <li><b><i>number</i></b> <i>nOld</i> The old <b>Current</b> value.</li>
-                    <li><b><i>number</i></b> <i>nNew</i> The new <b>Current</b> value.</li>
-                </ul>
-            </p>
+            <p>This event occurs when current fills the available capacity (maximum minus reserved). A Pool can be full and low at the same time.</p>
+            <p>The callback receives the Pool, old current value and new current value.</p>
         </li>
         <li><b class="text-primary">ON_CYCLE</b>
-            <p>This event occurs whenever the object's <b>cycle</b> method is called.
+            <p>This event occurs when the object's <b>cycle</b> method changes the current value.
             <b>Note</b>: this event fires after other events that may fire in this call.</p>
             <p>This event callback function must accept the following arguments:
                 <ul>
@@ -220,11 +229,11 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
     local function adjustLifeUI(this, nPrevious, nCurrent)
         UI.LifeBar.SetCurrent(nCurrent);
     end
-    --optionally, disable auto-activation by providing false as the second argument.
-    oPool.setEventCallback(adjustLifeUI);
+    --optionally, disable auto-activation by providing true as the third argument.
+    oPool.setEventCallback(Pool.EVENT.ON_INCREASE, adjustLifeUI);
 !]]
-local _eEvent       = enum("Pool.EVENT",    {"ON_INCREASE", "ON_DECREASE",  "ON_EMPTY", "ON_LOW",   "ON_FULL",  "ON_CYCLE", "ON_RESERVE", "ON_UNRESERVE"},
-                                            {"onIncrease",  "onDecrease",   "onEmpty",  "onLow",    "onFull",   "onCycle",  "OnReserve",  "onUnreserve"}, true);
+local _eEvent       = enum("Pool.EVENT",    {"ON_INCREASE", "ON_DECREASE",  "ON_EMPTY", "ON_LOW",   "ON_FULL",  "ON_CYCLE", "ON_RESERVE", "ON_UNRESERVE", "ON_HIGH"},
+                                            {"onIncrease",  "onDecrease",   "onEmpty",  "onLow",    "onFull",   "onCycle",  "OnReserve",  "onUnreserve", "onHigh"}, true);
 
 --ASPECT LOCALIZATION
 local _eAspectAvailable         = _eAspect.AVAILABLE;
@@ -279,6 +288,7 @@ local _nAddPenalty  = _eAddPenalty.value;
 local _eOnIncrease  = _eEvent.ON_INCREASE;
 local _eOnDecrease  = _eEvent.ON_DECREASE;
 local _eOnEmpty     = _eEvent.ON_EMPTY;
+local _eOnHigh      = _eEvent.ON_HIGH;
 local _eOnFull      = _eEvent.ON_FULL;
 local _eOnLow       = _eEvent.ON_LOW;
 local _eOnCycle     = _eEvent.ON_CYCLE;
@@ -288,80 +298,147 @@ local _eOnUnreserve = _eEvent.ON_UNRESERVE;
 local _sOnIncrease  = _eOnIncrease.value;
 local _sOnDecrease  = _eOnDecrease.value;
 local _sOnEmpty     = _eOnEmpty.value;
+local _sOnHigh      = _eOnHigh.value;
 local _sOnFull      = _eOnFull.value;
 local _sOnLow       = _eOnLow.value;
 local _sOnCycle     = _eOnCycle.value;
 local _sOnReserve   = _eOnReserve.value;
 local _sOnUnreserve = _eOnUnreserve.value;
 
---TODO move _nDefaultReverseMax to config
-local _nDefaultReverseMax       = 0.9999999999999;
+local _nDefaultReverseMax       = luaex.cog.config.Pool.reservationMax;
 local _nReverseHardMax          = 0.9999999999999; --the max reservation allowed
+assert(rawtype(_nDefaultReverseMax) == "number" and _nDefaultReverseMax >= 0 and _nDefaultReverseMax <= _nReverseHardMax, "Pool reservationMax config must be within the supported nonnegative reservation range.");
 local eventPlaceholder          = function() end
 
+local _tDeferredEvents;
 
-local function setCurrent(this, cdat, nNew)
+local function dispatchEvent(fCallback, ...)
+    if (_tDeferredEvents ~= nil) then
+        _tDeferredEvents[#_tDeferredEvents + 1] = {callback = fCallback, args = table.pack(...)};
+    else
+        fCallback(...);
+    end
+end
+
+local function withDeferredEvents(fAction)
+    type.assert.custom(fAction, "function");
+    local bOwnQueue = _tDeferredEvents == nil;
+
+    if (bOwnQueue) then
+        _tDeferredEvents = {};
+    end
+
+    local tResult = table.pack(pcall(fAction));
+    local sError = not tResult[1] and tResult[2] or nil;
+
+    if (bOwnQueue) then
+        local tEvents = _tDeferredEvents;
+        _tDeferredEvents = nil;
+
+        for _, tEvent in ipairs(tEvents) do
+            local bCalled, sCallbackError = pcall(tEvent.callback, table.unpack(tEvent.args, 1, tEvent.args.n));
+
+            if (not bCalled and sError == nil) then
+                sError = sCallbackError;
+            end
+        end
+    end
+
+    if (sError ~= nil) then
+        error(sError, 0);
+    end
+
+    return table.unpack(tResult, 2, tResult.n);
+end
+
+
+
+local function validateNumber(nValue, bAllowInfinity)
+    type.assert.number(nValue);
+    assert(nValue == nValue and (bAllowInfinity or (nValue ~= math.huge and nValue ~= -math.huge)), "Pool values must be finite numbers.");
+end
+
+local function updateStatus(this, cdat, bFireEvents)
     local pro           = cdat.pro;
-    local nMax          = pro[_sAspectMax][_nFinal];
     local nCurrent      = pro[_sAspectCurrent];
-    local nReserved     = pro[_sAspectReserved];
-    local nAvailable    = nMax - nReserved;
+    local nStatus       = nCurrent;
+    local nMax          = pro[_sAspectMax][_nFinal];
     local bWasEmpty     = pro.isEmpty;
     local bWasLow       = pro.isLow;
     local bWasFull      = pro.isFull;
-    local bIsEmpty      = bWasEmpty;
-    local bIsLow        = bWasLow;
-    local bIsFull       = bWasFull;
-    local bIsIncrease   = nNew > nCurrent;
-    local bIsDecrease   = nNew < nCurrent;
-    local bChanged      = bIsIncrease or bIsDecrease;
-    local bCanGoUp      = bIsIncrease and nCurrent < nAvailable;
-    local bCanGoDown    = bIsDecrease and nCurrent > 0;
+    local bWasHigh      = pro.isHigh;
 
-    if (bCanGoUp or bCanGoDown) then
+    pro.isEmpty = nCurrent <= 0;
+    pro.isLow   = not pro.isEmpty and nStatus <= nMax * pro.lowMarker;
+    pro.isHigh  = nStatus >= nMax * pro.highMarker;
+    pro.isFull  = nCurrent >= pro[_sAspectAvailable];
 
-        --clamp the value
-        if (nNew <= 0) then
-            nNew = 0;
-            pro[_sAspectCurrent] = nNew;
-            pro.isEmpty,    bIsEmpty = true,    true;
-            pro.isLow,      bIsLow   = false,   false;
-            pro.isFull,     bIsFull  = false,   false;
-        else
-            --set the current value
-            nNew = (nNew <= nAvailable) and nNew or nAvailable;
-            pro[_sAspectCurrent] = nNew;
+    if (bFireEvents) then
 
-            bIsEmpty    = false;
-            bIsLow      = nNew <= (nMax * pro.lowMarker);
-            bIsFull     = nNew >= (nMax * pro.fullMarker);
-
-            pro.isEmpty     = bIsEmpty;
-            pro.isLow       = bIsLow;
-            pro.isFull      = bIsFull;
+        if (pro.isEmpty and not bWasEmpty and pro.activeEvents[_sOnEmpty]) then
+            dispatchEvent(pro.events[_sOnEmpty], this, nCurrent);
+        elseif (pro.isLow and not bWasLow and pro.activeEvents[_sOnLow]) then
+            dispatchEvent(pro.events[_sOnLow], this, nCurrent, nCurrent);
         end
 
-        --process events
-        local tActiveEvents = pro.activeEvents;
-        local tEvents       = pro.events;
-
-        if (bIsIncrease and tActiveEvents[_sOnIncrease]) then
-            tEvents[_sOnIncrease](this, nCurrent, nNew);
-        elseif (bIsDecrease and pro.activeEvents[_sOnDecrease]) then
-            pro[_sOnDecrease](this, nCurrent, nNew);
+        if (pro.isHigh and not bWasHigh and pro.activeEvents[_sOnHigh]) then
+            dispatchEvent(pro.events[_sOnHigh], this, nCurrent, nCurrent);
         end
 
-        if (bIsEmpty    and bIsEmpty    ~= bWasEmpty    and tActiveEvents[_sOnEmpty])   then
-            tEvents[_sOnEmpty](this, nCurrent);
-        elseif (bIsLow  and bIsLow      ~= bWasLow      and tActiveEvents[_sOnLow])     then
-            tEvents[_sOnLow](this, nCurrent, nNew);
-        elseif (bIsFull and bIsFull     ~= bWasFull     and tActiveEvents[_sOnFull])    then
-            tEvents[_sOnFull](this, nCurrent, nNew);
+        if (pro.isFull and not bWasFull and pro.activeEvents[_sOnFull]) then
+            dispatchEvent(pro.events[_sOnFull], this, nCurrent, nCurrent);
+        end
+
+    end
+end
+
+local function setCurrent(this, cdat, nNew)
+    validateNumber(nNew);
+    local pro           = cdat.pro;
+    local nCurrent      = pro[_sAspectCurrent];
+    local nAvailable    = pro[_sAspectAvailable];
+    local bWasEmpty     = pro.isEmpty;
+    local bWasLow       = pro.isLow;
+    local bWasFull      = pro.isFull;
+    local bWasHigh      = pro.isHigh;
+
+    --clamp the value
+    nNew = math.max(0, math.min(nNew, nAvailable));
+    local bChanged = nCurrent ~= nNew;
+
+    --set the current value
+    pro[_sAspectCurrent] = nNew;
+    updateStatus(this, cdat, false);
+
+    --process events
+    local tActiveEvents = pro.activeEvents;
+    local tEvents       = pro.events;
+
+    if (bChanged) then
+
+        if (nNew > nCurrent and tActiveEvents[_sOnIncrease]) then
+            dispatchEvent(tEvents[_sOnIncrease], this, nCurrent, nNew);
+        elseif (nNew < nCurrent and tActiveEvents[_sOnDecrease]) then
+            dispatchEvent(tEvents[_sOnDecrease], this, nCurrent, nNew);
+        end
+
+        if (pro.isEmpty and not bWasEmpty and tActiveEvents[_sOnEmpty]) then
+            dispatchEvent(tEvents[_sOnEmpty], this, nCurrent);
+        elseif (pro.isLow and not bWasLow and tActiveEvents[_sOnLow]) then
+            dispatchEvent(tEvents[_sOnLow], this, nCurrent, nNew);
+        end
+
+        if (pro.isHigh and not bWasHigh and tActiveEvents[_sOnHigh]) then
+            dispatchEvent(tEvents[_sOnHigh], this, nCurrent, nNew);
+        end
+
+        if (pro.isFull and not bWasFull and tActiveEvents[_sOnFull]) then
+            dispatchEvent(tEvents[_sOnFull], this, nCurrent, nNew);
         end
 
     end
 
-    return nCurrent ~= nNew, nNew;
+    return bChanged, nNew;
 end
 
 
@@ -369,9 +446,10 @@ end
 local function calculateFinal(this, cdat, sIndex)
     local pro       = cdat.pro;
     local tValue    = pro[sIndex];
-    return (    tValue[_nBase] +
+    local nFinal = (    tValue[_nBase] +
                 tValue[_nBaseBonus] - tValue[_nBasePenalty]) *
-                (1 + tValue[_nMultBonus] - tValue[_nMultPenalty]);
+                (1 + tValue[_nMultBonus] - tValue[_nMultPenalty]) + tValue[_nAddBonus] - tValue[_nAddPenalty];
+    return math.min(nFinal, tValue[_nMax]);
 end
 
 local function setCycle(this, cdat, sAspect, nValue, nModifier)
@@ -393,6 +471,7 @@ local function setCycle(this, cdat, sAspect, nValue, nModifier)
     local nPercentFinal     = calculateFinal(this, cdat, _sAspectCyclePercent);
     tCyclePercent[_nFinal]  = nPercentFinal;
     pro[_sAspectCycle] = nFlatFinal + (nPercentFinal * pro[_sAspectMax][_nFinal]);
+    return true, 0;
 end
 
 
@@ -422,7 +501,7 @@ local function attemptSettingMax(this, cdat, nValue, nModifier)
     --calculate the new available
     local nNewAvailable = nNewFinal - nTotalReserved;
     --check the success
-    bRet = nNewAvailable > tMax.min;
+    bRet = nNewFinal >= tMax.min and nTotalReserved >= 0 and nNewAvailable > 0 and nTotalReserved / nNewFinal <= _nReverseHardMax;
 
     if (bRet) then
         --set the new max
@@ -434,13 +513,18 @@ local function attemptSettingMax(this, cdat, nValue, nModifier)
         --set the new avaiable
         pro[_sAspectAvailable] = nNewAvailable;
 
+        pro[_sAspectCycle] = pro[_sAspectCycleFlat][_nFinal] + pro[_sAspectCyclePercent][_nFinal] * nNewFinal;
+
         --check current and adjust if needed
         if (pro[_sAspectCurrent] > nNewAvailable) then
             setCurrent(this, cdat, nNewAvailable);
+        else
+            updateStatus(this, cdat, true);
         end
 
     else
-        nOverage = nNewAvailable - tMax.min;
+        tMax[nModifier] = nOldValue;
+        nOverage = math.max(0, tMax.min - nNewFinal, -nNewAvailable);
     end
 
     return bRet, nOverage
@@ -448,12 +532,11 @@ end
 
 
 
-local function attemptSettingReserved(this, cdat, sAspect, nValue, nModifier)--TODO return overage
+local function attemptSettingReserved(this, cdat, sAspect, nValue, nModifier)
     local pro           = cdat.pro;
     local bRet          = false;
     local nOverage      = 0;
 
-    --TODO check input values!!!
     --_nReverseHardMax
 
     local bIsFlat       = sAspect == _sAspectReservedFlat;
@@ -482,8 +565,9 @@ local function attemptSettingReserved(this, cdat, sAspect, nValue, nModifier)--T
     local nTotalReserved = nResFlat + (nMax * nResPercent);
 
     --determine if the reservation is permitted
-    bRet = (    (nOldTotalReserved ~= nTotalReserved) and
-                (nTotalReserved / nMax) <= tResPercent[_nMax]);
+    bRet = (nResFlat >= 0 and nResPercent >= 0 and
+                nTotalReserved < nMax and
+                (nTotalReserved / nMax) <= math.min(tResPercent[_nMax], _nReverseHardMax));
 
     --if the reservation is allowed, process it
     if (bRet) then
@@ -501,6 +585,8 @@ local function attemptSettingReserved(this, cdat, sAspect, nValue, nModifier)--T
 
         if (bChangeInCurrent) then
             local bSuccess, nNew = setCurrent(this, cdat, nNewCurrent);
+        else
+            updateStatus(this, cdat, true);
         end
 
         --check for and fire reserve event
@@ -508,16 +594,16 @@ local function attemptSettingReserved(this, cdat, sAspect, nValue, nModifier)--T
         local bOnUnReserve = nOldTotalReserved > nTotalReserved;
 
         if (bOnReserve and pro.activeEvents[_sOnReserve]) then
-            pro.events[_sOnReserve](this, nOldTotalReserved, nTotalReserved, bChangeInCurrent, nNewCurrent, nAvailable, nMax);
-        elseif (bOnUnReserve and pro.activeEvents[_sOnUnReserve]) then
-            pro.events[_sOnUnReserve](this, nOldTotalReserved, nTotalReserved, bChangeInCurrent, nNewCurrent, nAvailable, nMax);
+            dispatchEvent(pro.events[_sOnReserve], this, nOldTotalReserved, nTotalReserved, bChangeInCurrent, nNewCurrent, nAvailable, nMax);
+        elseif (bOnUnReserve and pro.activeEvents[_sOnUnreserve]) then
+            dispatchEvent(pro.events[_sOnUnreserve], this, nOldTotalReserved, nTotalReserved, bChangeInCurrent, nNewCurrent, nAvailable, nMax);
         end
 
     else
         --set the old value
         tActive[nModifier] = nOldValue;
         --indicate the overage
-        --nOverage = bIsPercent and nResPercent or nResFlat TODO
+        nOverage = math.max(0, nTotalReserved - nMax * math.min(tResPercent[_nMax], _nReverseHardMax));
     end
 
 
@@ -527,6 +613,20 @@ end
 
 --@see class method of the same name
 local function set(this, cdat, nValue, eAspectOrNil, eModifierOrNil)
+    validateNumber(nValue, eModifierOrNil == _eMax);
+
+    if (eModifierOrNil == _eMax) then
+        assert(nValue >= 0, "Modifier caps must be nonnegative.");
+    end
+
+    if (eAspectOrNil ~= nil) then
+        type.assert.custom(eAspectOrNil, "Pool.ASPECT");
+    end
+
+    if (eModifierOrNil ~= nil) then
+        type.assert.custom(eModifierOrNil, "Pool.MODIFIER");
+    end
+
     local pro           = cdat.pro;
     local bSuccess      = false;
     local nOverage      = 0;
@@ -582,27 +682,165 @@ local function set(this, cdat, nValue, eAspectOrNil, eModifierOrNil)
 end
 
 
+local function operandValue(this, other, bMaximum)
+    type.assert.custom(this, "Pool");
+    local nValue;
+
+    if (type(other) == "Pool") then
+        nValue = other.get(bMaximum and _eAspectMax or _eAspectCurrent);
+    else
+        validateNumber(other);
+        nValue = other;
+    end
+
+    return nValue;
+end
+
 --[[!
     @fqxn CoG.Pool
     @author Centauri Soldier
     @desc <h2>Pool</h2><h3>Utility class used to keep track of things like Health, Magic, etc.</h3><p>You can operate on <strong>Pool</strong> objects using some math operators.</p>
-    <b>TODO</b>
     <ul>
-        <li><p><b>+</b>: adds a number to the Pool's CURRENT value or, if adding another Pool object instead of a number, it will add the other Pool's CURRENT value to it's own <em>(up to it's MAX)</em> value.</p></li>
+        <li><p><b>+</b>: adds a number to the Pool's CURRENT value or, if adding another Pool object instead of a number, it will add the other Pool's CURRENT value to it's own <em>(up to its available capacity)</em> value.</p></li>
         <li><p><b>-</b>: does the same as addition but for subtraction. Will not go below the Pool's MIN value.</p></li>
-        <li><p><b>%</b>: will modify a Pool's MAX value using a number value or another Pool object <em>(uses it's MAX value)</em>. Will not allow itself to be set at or below the MIN value.</p></li>
+        <li><p><b>%</b>: will modify a Pool's MAX value using a number value or another Pool object <em>(uses it's MAX value)</em>. Requires a calculated maximum of at least 1 and enough capacity for existing reservations.</p></li>
         <li><p><b>*</b>: operates as expected on the object's CURRENT value.</p></li>
         <li><p><b>/</b>: operates as expected on the object's CURRENT value. All div is floored.</p></li>
         <li><p><b>-</b><em>(unary minus)</em>: will set the object's CURRENT value to the value of MIN.</p></li>
-        <li><p><b>#</b>: will set the object's CURRENT value to the value of MAX.</p></li>
-        <li><p><b></b></p></li>
-        <li><p><b></b></p></li>
+        <li><p><b>#</b>: will set the object's CURRENT value to the available capacity and return that current value.</p></li>
     </ul>
     @version 2.1
-    @todo Complete the binary operator metamethods.
-!]]
+    @note Arithmetic operators update the left Pool in place and return it. Unary minus empties it; length fills available capacity and returns current. Numbers on the left are not supported.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool.set(10, Pool.ASPECT.CYCLE_FLAT);
+    oPool.cycle();
+    assert(oPool.get() == 50);
+    !]]
 return class("Pool",
 {--METAMETHODS
+--[[!
+    @fqxn CoG.Pool.Metamethods.__add
+    @desc Adds a number or another Pool's current value to this Pool, clamped to available capacity.
+    @param Pool|number other The right operand.
+    @ret Pool oPool This Pool.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool = oPool + 10;
+    assert(oPool.get() == 50);
+    oPool = oPool + Pool(100, 20);
+    assert(oPool.get() == 70);
+    !]]
+    __add = function(this, other, cdat)
+        local nValue = operandValue(this, other, false);
+        this.adjust(nValue);
+        return this;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Metamethods.__sub
+    @desc Subtracts a number or another Pool's current value from this Pool, clamped at zero.
+    @param Pool|number other The right operand.
+    @ret Pool oPool This Pool.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool = oPool - 10;
+    assert(oPool.get() == 30);
+    !]]
+    __sub = function(this, other, cdat)
+        local nValue = operandValue(this, other, false);
+        this.adjust(-nValue);
+        return this;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Metamethods.__mul
+    @desc Multiplies current by a number or another Pool's current value, applying current bounds.
+    @param Pool|number other The right operand.
+    @ret Pool oPool This Pool.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool = oPool * 2;
+    assert(oPool.get() == 80);
+    !]]
+    __mul = function(this, other, cdat)
+        local nValue = operandValue(this, other, false);
+        this.set(this.get() * nValue);
+        return this;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Metamethods.__div
+    @desc Divides current by a number or another Pool's current value and floors the result. Zero divisors are rejected.
+    @param Pool|number other The right operand.
+    @ret Pool oPool This Pool.
+    @ex
+    local oPool = Pool(100, 41);
+    oPool = oPool / 2;
+    assert(oPool.get() == 20); --division is floored
+    !]]
+    __div = function(this, other, cdat)
+        local nValue = operandValue(this, other, false);
+        assert(nValue ~= 0, "Cannot divide a Pool by zero.");
+        this.set(floor(this.get() / nValue));
+        return this;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Metamethods.__mod
+    @desc Sets maximum base from a number or another Pool's calculated maximum, using normal capacity validation.
+    @param Pool|number other The right operand.
+    @ret Pool oPool This Pool.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool = oPool % 200; --sets maximum base, rather than calculating a remainder
+    assert(oPool.get(Pool.ASPECT.MAX) == 200);
+    !]]
+    __mod = function(this, other, cdat)
+        local nValue = operandValue(this, other, true);
+        this.set(nValue, _eAspectMax);
+        return this;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Metamethods.__unm
+    @desc Empties this Pool in place.
+    @ret Pool oPool This Pool.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool = -oPool;
+    assert(oPool.get() == 0);
+    !]]
+    __unm = function(this, cdat)
+        this.setEmpty();
+        return this;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Metamethods.__len
+    @desc Fills available capacity and returns the new current value.
+    @ret number nCurrent The filled current value.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool.set(20, Pool.ASPECT.RESERVED_FLAT);
+    assert(#oPool == 80); --also fills the Pool
+    assert(oPool.isFull());
+    !]]
+    __len = function(this, cdat)
+        this.setFull();
+        return this.get();
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Metamethods.__clone
+    @desc Creates an independent Pool with the same values, thresholds and event activation. Callback function references are retained.
+    @ret Pool oCopy The cloned Pool.
+    @ex
+    local oPool = Pool(100, 40);
+    local oCopy = clone(oPool);
+    oCopy.adjust(10);
+    assert(oCopy.get() == 50 and oPool.get() == 40);
+    !]]
     __clone = function(this, cdat)
         local pro       = cdat.pro;
         local oNew      = Pool(1, 1);
@@ -627,8 +865,9 @@ return class("Pool",
         end
 
         newpro.lowMarker            = pro.lowMarker;
-        newpro.fullMarker           = pro.fullMarker;
+        newpro.highMarker           = pro.highMarker;
         newpro.isEmpty              = pro.isEmpty;
+        newpro.isHigh               = pro.isHigh;
         newpro.isFull               = pro.isFull;
         newpro.isLow                = pro.isLow;
         newpro[_sAspectAvailable]   = pro[_sAspectAvailable];
@@ -639,9 +878,25 @@ return class("Pool",
         return oNew;
     end,
 },
---TODO __serialize
 {--STATIC PUBLIC
-    ASPECT__RO      = _eAspect,
+    --[[!
+    @fqxn CoG.Pool.Static Methods.withDeferredEvents
+    @desc Runs a synchronous action, deferring Pool callbacks until it finishes. Values and status update immediately; callbacks then run in order and all queued callbacks are attempted. Nested calls share the outer queue. This is not a rollback transaction: action or callback errors leave committed values intact and the first error is rethrown after notifications. The action must not yield.
+    @param function fAction The action to run.
+    @ret any ... The action's return values.
+    @ex
+    local oFirst = Pool(100, 40);
+    local oSecond = Pool(100, 40);
+    oFirst.setEventCallback(Pool.EVENT.ON_DECREASE, function()
+        assert(oFirst.get() == 30 and oSecond.get() == 30);
+    end);
+    Pool.withDeferredEvents(function()
+        oFirst.adjust(-10);
+        oSecond.adjust(-10);
+    end);
+    !]]
+    withDeferredEvents = withDeferredEvents,
+ASPECT__RO      = _eAspect,
     EVENT__RO       = _eEvent,
     --MODE__RO        = _eMode,
     MODIFIER__RO    = _eModifier,
@@ -652,9 +907,11 @@ return class("Pool",
 },
 {--PROTECTED
     activeEvents = {
+        [_sOnLow]       = false,
         [_sOnIncrease]  = false,
         [_sOnDecrease]  = false,
         [_sOnEmpty]     = false,
+        [_sOnHigh]      = false,
         [_sOnFull]      = false,
         [_sOnCycle]     = false,
         [_sOnReserve]   = false,
@@ -662,9 +919,11 @@ return class("Pool",
     },
     events = {
 
+        [_sOnLow]       = eventPlaceholder,
         [_sOnIncrease]  = eventPlaceholder,
         [_sOnDecrease]  = eventPlaceholder,
         [_sOnEmpty]     = eventPlaceholder,
+        [_sOnHigh]      = eventPlaceholder,
         [_sOnFull]      = eventPlaceholder,
         [_sOnCycle]     = eventPlaceholder,
         [_sOnReserve]   = eventPlaceholder,
@@ -735,9 +994,10 @@ return class("Pool",
         [_nAddPenalty]  = 0,
         final           = 0, --cached value updated on change
     },
-    lowMarker       = 0.3,  --TODO
-    fullMarker      = 1,    --TODO QUESTION should full include reserved?
+    lowMarker       = 0.3,
+    highMarker      = 1,
     isEmpty         = false,
+    isHigh          = false,
     isFull          = false,
     isLow           = false,
 },
@@ -748,13 +1008,16 @@ return class("Pool",
     @desc The constructor for the <b>Pool</b> class.
     @param number|nil nMax The maximum value of the Pool (minimum 1).
     @param number|nil nCurrent The current value of the Pool (minimum 0, maximum nMax).
+    @ex
+    local oPool = Pool(100, 40); --maximum, current
+    assert(oPool.get(Pool.ASPECT.MAX) == 100 and oPool.get() == 40);
     !]]
     Pool = function(this, cdat, nMax, nCurrent)
         local pro   = cdat.pro;
         nMax        = type(nMax) 		== "number"	and nMax	    or 1;
         nCurrent	= type(nCurrent) 	== "number" and nCurrent    or 1;
-        nCycle 	    = type(nCycle) 		== "number" and nCycle 		or 0;
-        nReserved   = type(nReserved)   == "number" and nReserved   or 0;
+        validateNumber(nMax);
+        validateNumber(nCurrent);
 
         if (nMax < 1) then
             error("Error creating Pool object.\nMax value must be positive number greater than or equal to 1.");
@@ -765,16 +1028,34 @@ return class("Pool",
         end
 
         --set the values
-        --TODO check and clamp ALL values!
         pro[_sAspectMax][_nBase]        = nMax;
         pro[_sAspectMax][_nFinal]       = nMax;
         pro[_sAspectAvailable]          = nMax;
 
         local bSuccess, nNew = setCurrent(this, cdat, nCurrent);
-    end,
+
+end,
 
 
-    adjust = function()
+    --[[!
+    @fqxn CoG.Pool.Methods.adjust
+    @desc Adjusts the selected value by an amount. Defaults to CURRENT; modifier-bearing aspects default to their BASE value. Uses the same bounds and events as set.
+    @param number nAmount The amount to add or subtract.
+    @param Pool.ASPECT|nil eAspect The aspect to adjust.
+    @param Pool.MODIFIER|nil eModifier The modifier to adjust.
+    @ret Pool oPool This pool.
+    @ret boolean bSuccess Whether the adjustment was accepted or changed CURRENT.
+    @ret number nOverage The rejected capacity or reservation overage; zero for CURRENT changes.
+    @ex
+    local oPool = Pool(100, 40);
+    local oResult, bSuccess, nOverage = oPool.adjust(-10);
+    assert(oResult == oPool and bSuccess and nOverage == 0);
+    assert(oPool.get() == 30);
+    !]]
+    adjust = function(this, cdat, nAmount, eAspect, eModifier)
+        validateNumber(nAmount);
+        local nCurrent = this.get(eAspect, eModifier or _eBase);
+        return this.set(nCurrent + nAmount, eAspect, eModifier);
     end,
 
 
@@ -782,24 +1063,31 @@ return class("Pool",
     @fqxn CoG.Pool.Methods.cycle
     @desc Causes the Pool to cycle based on the cycle value (after all modifiers have been applied).
     <br>This is used for things like regeneration of mana, regen and/or poisoning of life, consumption of fuel, etc.
-    @param number|nil nMultiple If a number is provided, it will cycle the number of times input, otherwise, once.
+    @param number|nil nMultiplier If a number is provided, it will cycle the number of times input, otherwise, once.
     <br>Note: regardless of the multiple provided (if any), the <strong>onCycle</strong> event will fire only once per cycle.
     @ret Pool oPool The Pool object.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool.set(10, Pool.ASPECT.CYCLE_FLAT);
+    oPool.cycle(2); --two regeneration amounts in one call
+    assert(oPool.get() == 60);
     !]]
     cycle = function(this, cdat, nMultiplier)
+        nMultiplier = nMultiplier == nil and 1 or nMultiplier;
+        validateNumber(nMultiplier);
         local pro           = cdat.pro;
         local nCurrent      = pro[_sAspectCurrent];
         --local nMax          = pro[_sAspectMax][_nFinal];
         local nAvailable    = pro[_sAspectAvailable];
         local nCycle        = pro[_sAspectCycle];
-        local bIsNegative   = nCycle < 0;
-        local bIsPositive   = nCycle > 0;
+        local nDelta        = nCycle * nMultiplier;
+        local bIsNegative   = nDelta < 0;
+        local bIsPositive   = nDelta > 0;
         local bCanGoDown    = nCurrent > 0;
         local bCanGoUp      = nCurrent < nAvailable;
 
         if ( (bIsNegative and bCanGoDown) or (bIsPositive and bCanGoUp) ) then
             --process the cycle
-            nMultiplier = (rawtype(nMultiplier) == "number" and nMultiplier ~= 0) and nMultiplier or 1;
             local nTotalChange = pro[_sAspectCurrent] + (nCycle * nMultiplier);
 
             --clamp the current value
@@ -807,7 +1095,7 @@ return class("Pool",
 
             --run the cycle event if active (and something changed)
             if (bSuccess and pro.activeEvents[_sOnCycle]) then
-                pro.events[_sOnCycle](this, nCurrent, nNew, nCycle, nMultiplier, nTotalChange, bIsPositive, nCurrent ~= nNew);
+                dispatchEvent(pro.events[_sOnCycle], this, nCurrent, nNew, nCycle, nMultiplier, nDelta, bIsPositive, nCurrent ~= nNew);
             end
 
         end
@@ -821,6 +1109,9 @@ return class("Pool",
     @desc Determines whether the Pool is empty.
     <br>This is true when the current value is less than or equal to 0.
     @ret boolean bEmpty True if the Pool is empty, false otherwise.
+    @ex
+    local oPool = Pool(100, 0);
+    assert(oPool.isEmpty());
     !]]
     isEmpty = function(this, cdat)
         return cdat.pro.isEmpty;
@@ -830,8 +1121,12 @@ return class("Pool",
     --[[!
     @fqxn CoG.Pool.Methods.isFull
     @desc Determines whether the Pool is full.
-    <br>This is true when the current value is (<em>greater than or</em>) equal to the TODO value.
-    @ret boolean bEmpty True if the Pool is full, false otherwise.
+    <br>This is true when current fills available capacity (maximum minus reserved), independently of low/high status.
+    @ret boolean bFull True if the Pool is full, false otherwise.
+    @ex
+    local oPool = Pool(100, 80);
+    oPool.set(20, Pool.ASPECT.RESERVED_FLAT);
+    assert(oPool.isFull()); --80 fills the available capacity
     !]]
     isFull = function(this, cdat)
         return cdat.pro.isFull;
@@ -839,10 +1134,26 @@ return class("Pool",
 
 
     --[[!
+    @fqxn CoG.Pool.Methods.isHigh
+    @desc Determines whether current reaches the configurable high marker times total maximum. Reservations do not count toward this threshold.
+    @ret boolean bHigh Whether the Pool is high.
+    @ex
+    local oPool = Pool(100, 80);
+    oPool.setHighMarker(0.8);
+    assert(oPool.isHigh());
+    !]]
+    isHigh = function(this, cdat)
+        return cdat.pro.isHigh;
+    end,
+
+    --[[!
     @fqxn CoG.Pool.Methods.isLow
     @desc Determines whether the Pool is low.
-    <br>This is true when the current value is (<em>greater than or</em>) equal to the TODO value.
-    @ret boolean bEmpty True if the Pool is low, false otherwise.
+    <br>This is true when a nonempty Pool has a status value at or below maximum times the low marker.
+    @ret boolean bLow True if the Pool is low, false otherwise.
+    @ex
+    local oPool = Pool(100, 20);
+    assert(oPool.isLow()); --default low marker is 30% of total maximum
     !]]
     isLow = function(this, cdat)
         return cdat.pro.isLow;
@@ -851,16 +1162,28 @@ return class("Pool",
 
     --[[!
     @fqxn CoG.Pool.Methods.get
-    @desc TODO
-    @ex TODO
+    @desc Gets a Pool aspect or one of its modifiers.
     @param Pool.ASPECT|nil eAspect If provided, this refers to the aspect of the pool to get such as MAX or CYCLE.
     <br>If not provided it will default to CURRENT.
     @param Pool.MODIFIER|nil eModifier If provided, this indicates which modifier to get such as BASE, BASE_BONUS, etc.
-    <br>If not provided, it will default to BASE.
+    <br>If not provided, it will default to FINAL.
     <br><strong>Note</strong>: not all aspects have all modifiers. E.g., Pool.ASPECT.RESERVED, Pool.ASPECT.CURRENT Pool.ASPECT.AVAILABLE have no modifiers whatsoever and only accessor methods.
     @ret number nRet The value requested in either a flat value or a percentage between 0 and 1.
+    @ex
+    local oPool = Pool(100, 40);
+    assert(oPool.get() == 40);
+    assert(oPool.get(Pool.ASPECT.MAX, Pool.MODIFIER.BASE) == 100);
     !]]
     get = function(this, cdat, eAspectOrNil, eModifierOrNil)
+
+        if (eAspectOrNil ~= nil) then
+            type.assert.custom(eAspectOrNil, "Pool.ASPECT");
+        end
+
+        if (eModifierOrNil ~= nil) then
+            type.assert.custom(eModifierOrNil, "Pool.MODIFIER");
+        end
+
         local nRet;
         local pro       = cdat.pro;
         local eAspect   = (type(eAspectOrNil)   == "Pool.ASPECT")   and eAspectOrNil    or _eAspectCurrent;
@@ -894,14 +1217,22 @@ return class("Pool",
 
     --[[!
     @fqxn CoG.Pool.Methods.set
-    @desc TODO
-    @ex TODO
+    @desc Sets a writable aspect or modifier. CURRENT is clamped to available capacity; invalid capacity or reservation changes are rejected without changing the prior settings.
     @param number nValue The value to which the item should be set.
     @param Pool.ASPECT|nil eAspect If provided, this refers to the aspect of the pool to set such as MAX or CYCLE.
     <br>If not provided it will default to <b>CURRENT</b>.
     @param Pool.MODIFIER|nil eModifier If provided, this indicates which modifier to set such as BASE, BASE_BONUS, etc.
     <br>If not provided, it will default to BASE.
     <br><strong>Note</strong>: not all aspects have all modifiers. E.g., Pool.ASPECT.CURRENT has no modifiers whatsoever.
+    @ret Pool oPool This pool.
+    @ret boolean bSuccess Whether the setting was accepted or changed CURRENT.
+    @ret number nOverage The rejected capacity or reservation overage; zero for CURRENT changes.
+    @ex
+    local oPool = Pool(100, 40);
+    local oResult, bSuccess, nOverage = oPool.set(120);
+    assert(oResult == oPool and bSuccess and nOverage == 0);
+    assert(oPool.get() == 100);
+    oPool.set(10, Pool.ASPECT.CYCLE_FLAT); --BASE is the default modifier
     !]]
     set = set,
 
@@ -910,6 +1241,10 @@ return class("Pool",
     @fqxn CoG.Pool.Methods.setEmpty
     @desc Set the Pool to empty (if not already empty).
     @ret Pool oPool The Pool object.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool.setEmpty();
+    assert(oPool.isEmpty());
     !]]
     setEmpty = function(this, cdat)
 
@@ -927,8 +1262,19 @@ return class("Pool",
     @desc Enables\disables an event from triggering.
     <br>Note: this does not affect any current callback function for this event, it simply makes<br>
     the event dormant until manually reactivated.
-    @param boolean bEnable Enables the event if true, disables it otherwise.
+    @param Pool.EVENT eEvent The event to enable or disable.
+    @param boolean bFlag Enables the event if true, disables it otherwise.
     @ret Pool oPool The Pool object.
+    @ex
+    local oPool = Pool(100, 40);
+    local nCalls = 0;
+    oPool.setEventCallback(Pool.EVENT.ON_INCREASE, function() nCalls = nCalls + 1; end);
+    oPool.setEventActive(Pool.EVENT.ON_INCREASE, false);
+    oPool.adjust(10);
+    assert(nCalls == 0);
+    oPool.setEventActive(Pool.EVENT.ON_INCREASE, true);
+    oPool.adjust(10);
+    assert(nCalls == 1);
     !]]
     setEventActive = function(this, cdat, eEvent, bFlag)
         local pro = cdat.pro;
@@ -938,7 +1284,8 @@ return class("Pool",
         end
 
         local sEvent = eEvent.value;
-        pro.activeEvents[sEvent] = rawtype(bFlag == "boolean") and (bFlag and pro.events[sEvent] ~= eventPlaceholder) or false;
+        type.assert.custom(bFlag, "boolean");
+        pro.activeEvents[sEvent] = bFlag and pro.events[sEvent] ~= eventPlaceholder;
 
         return this;
     end,
@@ -946,13 +1293,20 @@ return class("Pool",
 
     --[[!
     @fqxn CoG.Pool.Methods.setEventCallback
-    @desc Sets a callback function for the specified event. The funciton will fire whenever the event is triggered.
+    @desc Sets a callback function for the specified event. The function will fire whenever the event is triggered.
     @param Pool.EVENT eEvent The event for which the function should be called.
     @param function|nil fCallback The callback function.
     <br>Note: If a function is not input, it will delete any previous callback function and disable the event trigger.
     @param boolean|nil bDoNotAutoActivate If a true value is input, it will prevent the event from being activated by this call.
     <br>If nothing is provided, the event is active by default and the callback function will fire on event trigger.
     @ret Pool oPool The Pool object.
+    @ex
+    local oPool = Pool(100, 40);
+    local nCalls = 0;
+    oPool.setEventCallback(Pool.EVENT.ON_INCREASE, function() nCalls = nCalls + 1; end);
+    oPool.adjust(10);
+    assert(nCalls == 1);
+    oPool.setEventCallback(Pool.EVENT.ON_INCREASE, nil); --clears and disables the callback
     !]]
     setEventCallback = function(this, cdat, eEvent, fCallback, bDoNotAutoActivate)
         local pro = cdat.pro;
@@ -984,8 +1338,13 @@ return class("Pool",
     <br>Note: this is not the same as the maximum value.
     <br>For instance, if 20% of a Pool (whose max is 100) is reserved, the value would be set to 80.
     @ret Pool oPool The Pool object.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool.set(20, Pool.ASPECT.RESERVED_FLAT);
+    oPool.setFull();
+    assert(oPool.get() == 80);
     !]]
-    setFull = function(this, cdat) --TODO account for reserved
+    setFull = function(this, cdat)
         local pro           = cdat.pro;
         local nMax          = pro[_sAspectMax][_nFinal];
         local nAvailable    = nMax - pro[_sAspectReserved];
@@ -999,12 +1358,69 @@ return class("Pool",
         return this;
     end,
 
-    setFullMarker = function(this, cdat, nValue)
-        --must be float
-        --must be great than low
+    --[[!
+    @fqxn CoG.Pool.Methods.setHighMarker
+    @desc Sets the high threshold as a fraction of total maximum. Must be greater than the low marker and no greater than 1. Recalculates status immediately.
+    @param number nValue The high marker.
+    @ret Pool oPool This pool.
+    @ex
+    local oPool = Pool(100, 80);
+    oPool.setHighMarker(0.8);
+    assert(oPool.isHigh());
+    !]]
+    setHighMarker = function(this, cdat, nValue)
+        validateNumber(nValue);
+        assert(nValue > cdat.pro.lowMarker and nValue <= 1, "High marker must exceed low marker and be at most 1.");
+        cdat.pro.highMarker = nValue;
+        updateStatus(this, cdat, true);
+        return this;
     end,
-    --TODO setLow
-    --TODO setLowMarker
+
+    --[[!
+    @fqxn CoG.Pool.Methods.setLowMarker
+    @desc Sets the low threshold as a fraction of total maximum. Must be greater than 0 and less than the high marker. Recalculates status immediately.
+    @param number nValue The low marker.
+    @ret Pool oPool This pool.
+    @ex
+    local oPool = Pool(100, 20);
+    oPool.setLowMarker(0.2);
+    assert(oPool.isLow());
+    !]]
+    setLowMarker = function(this, cdat, nValue)
+        validateNumber(nValue);
+        assert(nValue > 0 and nValue < cdat.pro.highMarker, "Low marker must be positive and below full marker.");
+        cdat.pro.lowMarker = nValue;
+        updateStatus(this, cdat, true);
+        return this;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Methods.getHighMarker
+    @desc Gets the high-status fraction of total maximum.
+    @ret number nMarker The configured value.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool.setHighMarker(0.8);
+    assert(oPool.getHighMarker() == 0.8);
+    !]]
+    getHighMarker = function(this, cdat)
+        return cdat.pro.highMarker;
+    end,
+
+    --[[!
+    @fqxn CoG.Pool.Methods.getLowMarker
+    @desc Gets the low-status fraction of total maximum.
+    @ret number nMarker The configured value.
+    @ex
+    local oPool = Pool(100, 40);
+    oPool.setLowMarker(0.2);
+    assert(oPool.getLowMarker() == 0.2);
+    !]]
+    getLowMarker = function(this, cdat)
+        return cdat.pro.lowMarker;
+    end,
+
+
 },
 nil,   --extending class
 false, --if the class is final

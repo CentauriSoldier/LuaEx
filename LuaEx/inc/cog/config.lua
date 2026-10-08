@@ -24,7 +24,7 @@ local tConfig = {--TODO basic things like units of measurement
         },
     },
     Pool = {
-
+        reservationMax = 0.9999999999999,
     },
     BaseObject = {
 

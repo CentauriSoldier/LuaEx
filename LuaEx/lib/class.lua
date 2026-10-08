@@ -1137,7 +1137,7 @@ function instance.build(oInstance, tData, tKit, tParentActual, sType)
         local sKitName = tInstance.metadata.kit.name;
         local tMyData = tData[sKitName];
 
-        if not (tMyVisData) then
+        if not (tMyData) then
             error("Error deserializing data for instance object in class, '${name}'. Data is malformed." % {name = sKitName}, 2);
         end
 

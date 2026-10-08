@@ -187,6 +187,12 @@ tNonPackables = {--the tNonPackables FUNCTIONS table
         return "null";
     end,
     ["number"]                  = function(nValue)--TODO check for nan, inf and undefined (or do I even need to given the __tostring metamethods of those items?)
+        if (nValue == math.huge) then
+            return "math.huge";
+        elseif (nValue == -math.huge) then
+            return "-math.huge";
+        end
+
         return ""..nValue.."";
     end,
     ["string"]                  = function(sInput)
