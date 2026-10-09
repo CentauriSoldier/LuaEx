@@ -1,0 +1,6 @@
+return {
+    nodeEdges = {
+        entry   = {},
+        exit    = {},
+    },
+};

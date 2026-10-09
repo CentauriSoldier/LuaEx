@@ -96,6 +96,80 @@ end
 table.setreadonly = copyTable;
 
 
+--[[!
+    @fqxn LuaEx.Lua Hooks.table.Functions.readonly
+    @desc Creates an independent, recursively read-only snapshot of an ordinary table. The source remains unchanged and subsequent source edits do not affect the snapshot. Shared subtables and cycles retain their identity within the snapshot. Dot/bracket reads, pairs, ipairs, and length access remain available; ordinary assignments, deletions, and metatable replacement raise errors. LuaEx objects such as enum members are retained by reference rather than rebuilt; their own mutation rules still apply. Source metatables are not copied. Table keys are retained by reference. Raw access and debug facilities can bypass the decoy; use pairs rather than next to enumerate it. Length and iteration metamethods require a supporting Lua runtime (verified with Lua 5.4).
+    @param table tInput The ordinary table to snapshot.
+    @ret table tReadonly The recursive read-only snapshot.
+    @ex local tSettings = table.readonly({damage = {10, 20}});
+        print(tSettings.damage[1], #tSettings.damage);
+        -- tSettings.damage[1] = 30; -- raises an error
+!]]
+function table.readonly(tInput)
+    assert(type(tInput) == "table", "table.readonly: input must be an ordinary table.");
+
+    -- Empty decoys route every ordinary assignment through __newindex, including
+    -- replacement or removal of existing entries. Private storage never escapes.
+    local tDecoys = {};
+
+    local function buildReadonly(tInput)
+        local ReadonlyDecoy = tDecoys[tInput];
+
+        if (ReadonlyDecoy == nil) then
+            local tValues = {};
+            ReadonlyDecoy = {};
+            tDecoys[tInput] = ReadonlyDecoy;
+
+            for k, v in pairs(tInput) do
+
+                -- LuaEx enum members already enforce their own object semantics.
+                -- Wrap only ordinary data tables.
+                tValues[k] = type(v) == "table" and buildReadonly(v) or v;
+            end
+
+            local ReadonlyMeta = {
+                __index = tValues,
+
+                __newindex = function()
+                    error("Error: attempt to modify read-only table.", 2);
+                end,
+
+                __len = function()
+                    return #tValues;
+                end,
+
+                -- Iterators must receive the decoy, never the private storage as
+                -- their state; callers can capture all three values from pairs.
+                __pairs = function()
+                    return function(_, vKey)
+                        return next(tValues, vKey);
+                    end, ReadonlyDecoy, nil;
+                end,
+
+                __ipairs = function()
+                    return function(_, nIndex)
+                        nIndex = nIndex + 1;
+                        local vValue = tValues[nIndex];
+
+                        if (vValue ~= nil) then
+                            return nIndex, vValue;
+                        end
+                    end, ReadonlyDecoy, 0;
+                end,
+
+                __metatable = "read-only table",
+            };
+
+            setmetatable(ReadonlyDecoy, ReadonlyMeta);
+        end
+
+        return ReadonlyDecoy;
+    end
+
+    return buildReadonly(tInput);
+end
+
+
 function table.lock(tInput)
 
     if (rawtype(tInput) == "table") then

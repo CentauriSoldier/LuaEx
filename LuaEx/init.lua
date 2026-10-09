@@ -1,4 +1,9 @@
 ---------🇩‌🇴‌ 🇳‌🇴‌🇹‌ 🇲‌🇴‌🇩‌🇮‌🇫‌🇾‌ 🇹‌🇭‌🇮‌🇸‌ 🇧‌🇱‌🇴‌🇨‌🇰---------
+-- require caches this module; the guard also protects explicit repeated execution.
+if (_G.LUAEX_INIT) then
+    return;
+end
+
 local _nClassSystem         = 1;
 local _nBasicClasses        = 2;
 local _nComponentClasses    = 3;
@@ -37,7 +42,7 @@ local _tClassLoadValues = {
     [_nCoGClasses]          = true,  --(Code of Gaming) game system classes
 };
 
-local _bUseBootDirectives = true;
+-- Project modules are loaded explicitly; initialization does not scan the filesystem.
 
 --🅴🅽🅳 🆄🆂🅴🆁 🆅🅰🆁🅸🅰🅱🅻🅴🆂---------------------------------------------------
 
@@ -256,7 +261,7 @@ local tKeyWords = {	"and", 		"break", 	"do", 		"else", 	"elseif", 	"end",
 
 --create the 'protected' table used by LuaEx
 local tLuaEx = {--TODO fix inconsistency in naming and underscores
-        __isbooting = type(_bUseBootDirectives) == "boolean" and _bUseBootDirectives or false,
+        __isbooting = true,
         --__config, --set below
         --these metatables are protected from modification and general access
         __metaguard  = {"class", "classfactory", "enum", "enumfactory",
@@ -267,7 +272,7 @@ local tLuaEx = {--TODO fix inconsistency in naming and underscores
                 error("Attempt to perform illegal operation: adding keyword to __keywords__ table.");
             end,
             __pairs		= function (t)
-                return next, tKeyWords, nil;
+                return function(_, vKey) return next(tKeyWords, vKey); end, t, nil;
             end,
             __metatable = false,
         }),
@@ -277,12 +282,12 @@ local tLuaEx = {--TODO fix inconsistency in naming and underscores
 };
 
 --_G.luaex = setmetatable({},
-_ENV.luaex = setmetatable({},
+_G.luaex = setmetatable({},
 {
     __index 		= tLuaEx,
     __newindex 		= function(t, k, v)
 
-        if tLuaEx[k] then
+        if tLuaEx[k] ~= nil then
             error("Attempt to overwrite luaex value in key '"..tostring(k).."' ("..type(k)..") with value "..tostring(v).." ("..type(v)..") .");
         end
 
@@ -297,13 +302,11 @@ assert((type(debug) == "table" and type(debug.getinfo) == "function"), "LuaEx re
 --store the original package path;
 local sOriginalPackagePath = package.path;
 --determine the call location
-local sPath = debug.getinfo(1, "S").source;
---remove the calling filename
-sPath = sPath:gsub("@", ""):gsub("[Ii][Nn][Ii][Tt].[Ll][Uu][Aa]", "");
---remove the "/" at the end
-sPath = sPath:sub(1, sPath:len() - 1);
---update the package.path (use the main directory to prevent namespace issues)
-package.path = package.path..";"..sPath.."\\..\\?.lua";
+local sSource = debug.getinfo(1, "S").source;
+local sPath = sSource:match("^@(.+)[/\\][^/\\]+$") or ".";
+
+-- Windows also accepts forward slashes; use a portable package template.
+package.path = package.path..";"..sPath.."/../?.lua";
 
 cloner, clone = nil; --delcared here so all lower modules can use it
 --QUESTION do i need serializer here too? I think not but double check
@@ -340,7 +343,7 @@ local tGMeta = getmetatable(_G) or {};
 tGMeta.__newindex = function(t, k, v)
 
     --make sure functions such as constant, enum, etc., constant values and enums values aren't being overwritten
-    if _G.luaex[k] then
+    if _G.luaex[k] ~= nil then
         error("Attempt to overwrite protected item '"..tostring(k).."' ("..type(_G.luaex[k])..") with '"..tostring(v).."' ("..type(v)..").");
     end
 
@@ -373,10 +376,12 @@ cloner.registerFactory(eventrix);
 cloner.registerFactory(struct);
 cloner.registerFactory(structfactory);
 
-interface	= require("LuaEx.lib.interface");
-class 		= require("LuaEx.lib.class");
---🆁🅴🅶🅸🆂🆃🅴🆁 🆃🅷🅴 🅲🅻🅰🆂🆂 🅵🅰🅲🆃🅾🆁🆈 🆆🅸🆃🅷 🆃🅷🅴 🅲🅻🅾🅽🅴🆁
-cloner.registerFactory(class);
+if (_tClassLoadValues[_nClassSystem]) then
+    interface = require("LuaEx.lib.interface");
+    class = require("LuaEx.lib.class");
+
+    cloner.registerFactory(class);
+end
 
 --import serialization
 serializer  = require("LuaEx.lib.serializer");
@@ -442,10 +447,10 @@ if (_tClassLoadValues[_nClassSystem]) then
                         --Scaler  = require(pCoG..".Scaler"),
                     };
 
-                    setmetatable(tCoG, {__newindex = function() end});
+
 
                     --import CoG's table into the luaex global table
-                    rawset(tLuaEx, "cog", tCoG);
+                    rawset(tLuaEx, "cog", table.readonly(tCoG));
 
                     Scaler          = require(pCoG..".Scaler");
                     Shuffler        = require(pCoG..".Shuffler");
@@ -460,6 +465,11 @@ if (_tClassLoadValues[_nClassSystem]) then
                     IConsumable     = require(pCoG..".Interfaces.IConsumable");
 
                     TagSystem       = require(pCoG..".TagSystem");
+                    Targetor        = require(pCoG..".Targetor");
+
+                    -- Register lightweight instance types with their exact names.
+                    type.TagSystem = true;
+                    type.Targetor = true;
 
                     --affix system
                     --local pAffixSystem  = pCoG..".AffixSystem";
@@ -487,7 +497,7 @@ if (_tClassLoadValues[_nClassSystem]) then
             end
 
             if (_tClassLoadValues[_nUtilClasses]) then
-                pDox                    = pClasses..".util.Dox";
+                local pDox              = pClasses..".util.Dox";
                 local pDoxBuilders      = pDox..".Builders";
                 local pDoxComponents    = pDox..".Components";
                 local pDoxParsers       = pDox..".Parsers";
@@ -561,133 +571,10 @@ unpack = unpack or table.unpack;--TODO move this to table hook
 ]]
 
 
-if (_bUseBootDirectives and 1 == 5) then--TODO FINISH move to ext file
-
-    local function isdirectory(path)
-        local p = io.popen('cd "' .. path .. '" 2>nul && echo ok')
-        local result = p:read("*a")
-        p:close()
-        return result:match("ok") ~= nil
-    end
-
-    local function removeFilename(pDir)
-        local sRet = pDir;
-
-        local nPos = pDir:match(".*\\()");
-
-        if (nPos) then
-            sRet = pDir:sub(1, nPos - 2);
-            sRet = sRet:gsub("\\%?", ' ');
-        end
-
-        return sRet;
-    end
-
-
-    local tDirs             = string.totable(package.path, ';');
-    local tPathsToSearch    = {};
-    local nPathsToSearch    = 0;
-
-    if not (type(tDirs) == "table") then
-        --TODO THROW ERROR
-    end
-
-    --find and store the legitmate directory paths
-    for _, pDirRaw in pairs(tDirs) do
-        local pDir = io.normalizepath(removeFilename(pDirRaw)):trim();
-
-        if (isdirectory(pDir) and
-            pDir ~= "\\" and pDir ~= "\\." and
-            (tPathsToSearch[pDir] == nil)) then
-            tPathsToSearch[pDir] = true;
-            nPathsToSearch = nPathsToSearch + 1;
-        end
-
-    end
-
-    local tClasses = {};
-    local tClassesIndexer = {};
-    local tClassesByName = {};
-
-    local function getIndex(sName)
-
-    end
-
-    if (nPathsToSearch > 0) then
-
-        local function addClassFile(pFile)
-
-            if (tClassesIndexer[pFile] == nil) then
-                local tParts = io.splitpath(pFile);
-
-                if (tParts) then
-                    local sName = tParts.filename;
-                    local nIndex = #tClasses + 1;
-
-                    tClassesByName[sName] = {
-                        index = nIndex,
-                        path = pFile,
-                    };
-
-                    tClassesIndexer[pFile] = {
-                        index = nIndex,
-                        name = sName,
-                    };
-
-                    tClasses[nIndex] = {
-                        name = sName,
-                        path = pFile,
-                    };
-                end
-
-            end
-
-        end
-
-        for pDir, _ in pairs(tPathsToSearch) do
-            listfiles(pDir, true, addClassFile, 'class');
-        end
-
-    end
-
-    local nSafety   = math.factorial(#tClasses);
-    local fLoader   = nil;
-    local bSuccess  = true;
-    local sMessage  = "";
-
-    --attempt to load the classes
-    for nID, tClassInfo in ipairs(tClasses) do
-        local sClass    = tClassInfo.name;
-        local pFile     = tClassInfo.path;
-
-        fLoader, sMessage = loadfile(tClassInfo.path);
-
-        if not (fLoader) then
-            error("Error loading class, '"..sClass.."'\n"..sMessage);
-        end
-
-        bSuccess, sMessage = pcall(fLoader);
-
-        if not (bSuccess) then
-            local nGlobalErrorStart = sMessage:find("attempt to call a nil value (global '");
-
-            if nGlobalErrorStart then
-                local nIndex = tClassesIndexer[pFile].index;
-                --print(nIndex, sMessage);
-
-            else
-                error("Error loading class, '"..sClass.."'\n"..sMessage);
-            end
-
-        end
-
-    end
-
-end
-
-
 --useful if using LuaEx as a dependency in multiple modules to prevent the need for loading multilple times
 constant("LUAEX_INIT", true); --TODO should this be a required check at the beginning of this module?\
+
+rawset(tLuaEx, "__isbooting", false);
 
 --restore the original package path;
 package.path = sOriginalPackagePath;

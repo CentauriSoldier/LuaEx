@@ -1,590 +1,465 @@
 local math      = math;
 local rawtype   = rawtype;
 local string    = string;
-local floor = math.floor;
-local rand = math.random;
+local type      = type;
 
+local _nExactIntegerMax = 9007199254740991;
+local _sDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+local function validateNumber(nValue)
+    type.assert.number(nValue);
+    assert(rawtype(nValue) == "number" and nValue == nValue, "Expected a native number other than NaN.");
+end
+
+
+local function validateFinite(nValue)
+    validateNumber(nValue);
+    assert(nValue > -math.huge and nValue < math.huge, "Expected a finite number.");
+end
+
+
+local function validateInteger(nValue)
+    validateFinite(nValue);
+    assert(nValue % 1 == 0 and math.abs(nValue) <= _nExactIntegerMax,
+           "Expected an exact integer between -9007199254740991 and 9007199254740991.");
+end
+
+
+local function validateBase(nBase)
+    validateInteger(nBase);
+    assert(nBase >= 2 and nBase <= 36, "Base must be between 2 and 36.");
+end
+
+
+local function validateFlag(bFlag)
+    assert(bFlag == nil or rawtype(bFlag) == "boolean", "Rounding flag must be a boolean or nil.");
+end
+
+
+local function validateChannel(nChannel)
+    validateInteger(nChannel);
+    assert(nChannel >= 0 and nChannel <= 255, "RGB channels must be between 0 and 255.");
+end
+
+
+-- Native floating-point values retain Lua's arithmetic and comparison rules.
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Constants.e
+    @desc Euler's number, calculated as exp(1).
+!]]
 math.e = math.exp(1);
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Constants.inf
+    @desc Native positive infinity, an alias of math.huge. Negate it for negative infinity.
+!]]
+math.inf = math.huge;
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Constants.nan
+    @desc A native floating-point NaN. NaN is unequal to itself; use math.isnan to detect it.
+!]]
+math.nan = math.huge / math.huge;
 
---local constant = _G.__LUAEX__.constant;
---constant("MATH_ARL", 	"all real numbers");
---constant("MATH_UNDEF", 	"undefined");
---TODO complete these
-local nanDivision = math.huge / math.huge;
-
-
-
-math.allrealnumbers = setmetatable(
-{
-    deserialize = function()
-        return math.huge + 42;
-    end,
-    serialize = function()
-        return "inf";
-    end,
-},
-{--TODO other metamethods
-    __add = function(left, right)
-
-        if (type(right) ~= "number") then
-            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
-        end
-
-        return math.huge + 42 + right;
-    end,
-    __div = function(left, right)
-        local vRet = "undefined";
-
-        if (type(right) ~= "number") then
-            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
-        end
-
-        if (right == math.nan) then
-            vRet = math.nan;
-        elseif (right == math.undefined) then
-            vRet = math.undefined;
-        elseif (right == math.inf) then
-            vRet = 1;
-        else
-            vRet = (math.huge + 42) / right;
-        end
-
-        return vRet;
-    end,
-    __eq = function(left, right)
-        return type(left) == type(right) and right == math.huge + 42;
-    end,
-    __le = function(left, right)
-        return type(left) == type(right) and right <= math.huge + 42;
-    end,
-    __lt = function(left, right)
-        return type(left) == type(right) and right < math.huge + 42;
-    end,
-    __sub = function(left, right)--TODO apply thius logic to all metatables for each math.x item
-        if (type(right) ~= "number") then
-            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
-        end
-
-        local vRet = math.huge + 42;
-
-        if (right == math.nan) then
-            vRet = math.nan;
-        elseif (right == math.undefined) then
-            vRet = math.undefined;
-        elseif (right == math.inf) then
-            vRet = 0;
-        end
-
-        return vRet;
-    end,
-    __tostring = function()
-        return "inf";
-    end,
-    __type = "number",
-    __unm = function(this)
-        return -(math.huge + 42);
-    end
-});
+-- Geometry has its own implementation while retaining the math.geometry API.
+math.geometry = require("LuaEx.hook.math.geometry");
 
 
-
-
-math.inf = setmetatable(
-{
-    deserialize = function()
-        return math.huge;
-    end,
-    serialize = function()
-        return "inf";
-    end,
-},
-{--TODO other metamethods
-    __add = function(left, right)
-
-        if (type(right) ~= "number") then
-            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
-        end
-
-        return math.huge + right;
-    end,
-    __div = function(left, right)
-        local vRet = "undefined";
-
-        if (type(right) ~= "number") then
-            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
-        end
-
-        if (right == math.nan) then
-            vRet = math.nan;
-        elseif (right == math.undefined) then
-            vRet = math.undefined;
-        elseif (right == math.inf) then
-            vRet = 1;
-        else
-            vRet = math.huge / right;
-        end
-
-        return vRet;
-    end,
-    __eq = function(left, right)
-        return type(left) == type(right) and right == math.huge;
-    end,
-    __le = function(left, right)
-        return type(left) == type(right) and right <= math.huge;
-    end,
-    __lt = function(left, right)
-        return type(left) == type(right) and right < math.huge;
-    end,
-    __sub = function(left, right)--TODO apply thius logic to all metatables for each math.x item
-        if (type(right) ~= "number") then
-            error("Error: attempt to perform arithmatic on non-number type, ${rightitem} (${type})." % {type = type(right), rightitem = tostring(rightitem)});
-        end
-
-        local vRet = math.huge;
-
-        if (right == math.nan) then
-            vRet = math.nan;
-        elseif (right == math.undefined) then
-            vRet = math.undefined;
-        elseif (right == math.inf) then
-            vRet = 0;
-        end
-
-        return vRet;
-    end,
-    __tostring = function()
-        return "inf";
-    end,
-    __type = "number",
-    __unm = function(this)
-        return -math.huge;
-    end
-});
-
-
-
-math.nan = setmetatable(
-{
-
-    deserialize = function()
-        return nanDivision;
-    end,
-    serialize = function()
-        return "nan";
-    end,
-},
-{
-    __add = function(left, right)
-        return nanDivision;
-    end,
-    __div = function(lef, right)
-        return nanDivision;
-    end,
-    __eq = function(left, right)
-        return type(left) == type(right) and left == nanDivision and right == nanDivision;
-    end,
-    __le = function(left, right)
-        return false;
-    end,
-    __lt = function(left, right)
-        return false;
-    end,
-    __mul = function(lef, right)
-        return nanDivision;
-    end,
-    __sub = function(left, right)
-        return nanDivision;
-    end,
-    __tostring = function()
-        return "nan";
-    end,
-    __type = "number",
-    __unm = function(this)
-        return nanDivision;
-    end
-});
-
-
-math.undefined = setmetatable(
-{
-    deserialize = function()
-        return math.huge / 0;
-    end,
-    serialize = function()
-        return "undefined";
-    end,
-},
-{
-
-    __tostring = function()
-        return "undefined";
-    end,
-    __type = "number",
-});
-
-
-function math.isabstract(vInput)
-    return  type(vInput) == "number"        and
-            (vInput == math.allrealnumbers  or
-            vInput  == math.inf             or
-            vInput  == math.nan             or
-            vInput  == math.undefined       or
-            vInput  == 1 / 0);
-end
-
-
--- Function to convert a number from base x to base b
-function math.convertbase(number, fromBase, toBase)
-    -- Convert number to base 10
-    local base10Number = tonumber(number, fromBase)
-
-    -- Convert base 10 number to desired base
-    local result = ""
-    repeat
-        local remainder = base10Number % toBase
-        result = string.format("%X", remainder) .. result
-        base10Number = math.floor(base10Number / toBase)
-    until base10Number == 0
-
-    return result
-end
-
---the Eucclidian algorithm for finding the gcf
---[[local function eucclidiangcf(nDividend, nDivisor)
-    local nRet = 0;
-
-    local nRemainder = nDividend % nDivisor;
-    local nQuotient	= (nDividend - nRemainder) / nDivisor;
-
-    if (nRemainder == 0) then
-        nRet = nDivisor;
-    else
-        nRet = eucclidiangcf(nDivisor, nRemainder);
-    end
-
-    return nRet;
-end]]
-
-local function eucclidiangcf(nDividend, nDivisor)
-    local nRemainder = nDividend % nDivisor;
-    local nQuotient	= (nDividend - nRemainder) / nDivisor;
-
-    return nRemainder == 0 and nDivisor or eucclidiangcf(nDivisor, nRemainder);
-end
-
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.clamp
+    @desc Clamps a native number to inclusive ordered bounds. Infinity is supported; NaN and reversed bounds are rejected.
+    @param number nValue The value.
+    @param number nMinValue Minimum bound.
+    @param number nMaxValue Maximum bound.
+    @ret number nRet The clamped value.
+    @ex print(math.clamp(12, 0, 10)); -- 10
+!]]
 function math.clamp(nValue, nMinValue, nMaxValue)
-    local nRet = nValue;
+    validateNumber(nValue);
+    validateNumber(nMinValue);
+    validateNumber(nMaxValue);
+    assert(nMinValue <= nMaxValue, "Clamp minimum exceeds maximum.");
 
-    if (nRet < nMinValue) then
-        nRet = nMinValue;
-    elseif (nRet > nMaxValue) then
-        nRet = nMaxValue;
+    return math.max(nMinValue, math.min(nValue, nMaxValue));
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.convertbase
+    @desc Converts a signed integer string between bases 2 through 36, using uppercase output digits. Numeric input is accepted only for base 10. Values must lie in the exact integer range -9007199254740991 through 9007199254740991; invalid digits and overflow are rejected.
+    @param string|number vInput The input integer.
+    @param number nFromBase Input base.
+    @param number nToBase Output base.
+    @ret string sRet The converted integer.
+    @ex print(math.convertbase("FF", 16, 2)); -- 11111111
+!]]
+function math.convertbase(vInput, nFromBase, nToBase)
+    validateBase(nFromBase);
+    validateBase(nToBase);
+    local nValue;
+
+    if (rawtype(vInput) == "number") then
+        assert(nFromBase == 10, "Numeric base conversion input requires source base 10.");
+        validateInteger(vInput);
+        nValue = vInput;
+    else
+        type.assert.string(vInput);
+        local sInput = vInput:match("^%s*(.-)%s*$");
+        assert(sInput:match("^[+-]?[%w]+$"), "Invalid base conversion input.");
+        local bNegative = sInput:sub(1, 1) == "-";
+        sInput = sInput:gsub("^[+-]", ""):upper();
+        nValue = 0;
+
+        -- Parse explicitly so tonumber's integer wrapping cannot conceal an
+        -- oversized source string before the range check.
+        for x = 1, #sInput do
+            local nPosition = _sDigits:find(sInput:sub(x, x), 1, true);
+            local nDigit = nPosition and nPosition - 1;
+            assert(nDigit and nDigit < nFromBase, "Input contains digits outside its source base.");
+            assert(nValue <= math.floor((_nExactIntegerMax - nDigit) / nFromBase),
+                   "Base conversion input exceeds the exact integer range.");
+            nValue = nValue * nFromBase + nDigit;
+        end
+
+        if (bNegative) then
+            nValue = -nValue;
+        end
     end
+
+    local bNegative = nValue < 0;
+    nValue = math.abs(nValue);
+    local sRet = "";
+
+    repeat
+        local nDigit = nValue % nToBase;
+        sRet = _sDigits:sub(nDigit + 1, nDigit + 1)..sRet;
+        nValue = (nValue - nDigit) / nToBase;
+    until nValue == 0
+
+    if (bNegative) then
+        sRet = "-"..sRet;
+    end
+
+    return sRet;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.counting
+    @desc Converts a finite number's magnitude to a counting number (at least one). Floors by default, or rounds upward when requested.
+    @param number nValue The input.
+    @param boolean|nil bRaise Round upward; defaults to false.
+    @ret number nRet The counting number.
+    @ex print(math.counting(-2.7)); -- 2
+!]]
+function math.counting(nValue, bRaise)
+    validateFinite(nValue);
+    validateFlag(bRaise);
+
+    local fRound = bRaise and math.ceil or math.floor;
+    return math.max(1, fRound(math.abs(nValue)));
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.drift
+    @desc Adds a uniformly selected integer offset in the inclusive range [-nDrift, nDrift] to a finite value.
+    @param number nValue The base value.
+    @param number nDrift Nonnegative exact integer offset limit.
+    @ret number nRet The shifted value.
+    @ex print(math.drift(10, 0)); -- 10
+!]]
+function math.drift(nValue, nDrift)
+    validateFinite(nValue);
+    validateInteger(nDrift);
+    assert(nDrift >= 0, "Drift must be nonnegative.");
+    local nRet = nValue + math.random(-nDrift, nDrift);
+    validateFinite(nRet);
 
     return nRet;
 end
 
 
-function math.factorial(nVal)
-    local nRet = 1;
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.driftf
+    @desc Applies a random proportional drift using randomf's four-decimal grid. A drift of 0.1 permits offsets up to ten percent of the value in either direction.
+    @param number nValue The finite base value.
+    @param number nDrift Nonnegative finite proportional limit.
+    @ret number nRet The shifted value.
+    @ex print(math.driftf(10, 0)); -- 10
+!]]
+function math.driftf(nValue, nDrift)
+    validateFinite(nValue);
+    validateFinite(nDrift);
+    assert(nDrift >= 0, "Drift must be nonnegative.");
 
-    for x = 2, nVal do
+    local nRet = nValue + nValue * math.randomf(-nDrift, nDrift);
+    validateFinite(nRet);
+
+    return nRet;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.factorial
+    @desc Calculates the factorial of a nonnegative integer, including 0! = 1. Returns a floating-point number; larger results may be rounded. Values above 170 are rejected to prevent infinity.
+    @param number nValue Integer from 0 through 170.
+    @ret number nRet The factorial.
+    @ex print(math.factorial(5)); -- 120
+!]]
+function math.factorial(nValue)
+    validateInteger(nValue);
+    assert(nValue >= 0 and nValue <= 170, "Factorial input must be between 0 and 170.");
+    local nRet = 1.0;
+
+    for x = 2, nValue do
         nRet = nRet * x;
     end
 
     return nRet;
 end
 
---TODO put a safety switch in here
---gets the largest rectangle that will fit within the given rectangle (then, optionally, scales it and centers it if requested)
---[[function math.fitrect(tContainer, tOriginal, nScale, bCenter)
-    --this is the original container
-    local nOuterWidth 	= tContainer.width;
-    local nOuterHeight 	= tContainer.height;
-    local nRectX 		= tContainer.x;
-    local nRectY 		= tContainer.y;
-    --get the container ratios
-    local tWidthRatio = math.ratio(tOriginal.width, tOriginal.height);
-    local tHeightRatio = math.ratio(tOriginal.height, tOriginal.width);
-    --get the width and height factors
-    local nWidthFactor = tWidthRatio.left / tWidthRatio.right;
-    local nHeightFactor = tHeightRatio.left / tHeightRatio.right;
 
-    --the final, resultant values
-    local nWidth 		= 0;
-    local nHeight 		= 0;
-    --the position of the new rectangle inside the parent
-    local nX			= tContainer.x;
-    local nY			= tContainer.y;
-    --this tells when the tested size falls outside of the parent's boundary
-    local bIsSmaller	= true;
-    --increments each iteration to increase the test rectangle size
-    local nCounter 		= 0;
-    --the values to be tested each iteration
-    local nTestWidth	= nWidth;
-    local nTestHeight	= nHeight;
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.gcf
+    @desc Gets the nonnegative greatest common factor of two exact integers. Signs are ignored; gcf(0, n) is abs(n), and gcf(0, 0) is zero.
+    @param number nLeft First integer.
+    @param number nRight Second integer.
+    @ret number nRet The greatest common factor.
+    @ex print(math.gcf(12, 18)); -- 6
+!]]
+function math.gcf(nLeft, nRight)
+    validateInteger(nLeft);
+    validateInteger(nRight);
+    local nA = math.abs(nLeft);
+    local nB = math.abs(nRight);
 
-    --check and clamp the scale value
-    nScale = (type(nScale) == "number") 	and nScale or 1;
-    nScale = (nScale >= 0) 					and nScale or -nScale;
-
-    --check the center value
-    bCenter = type(bCenter) == "boolean" and bCenter or false;
-
-    while (bIsSmaller) do
-        --increment the counter
-        nCounter = nCounter + 1;
-
-        --create the new test rectangle size
-        nTestWidth 	= nWidthFactor  * nCounter;
-        nTestHeight = nHeightFactor * nCounter;
-
-        --check to see if it fits inside the parent...
-        if (nTestWidth <= nOuterWidth and nTestHeight <= nOuterHeight) then
-
-            --...and, store it as a valid size if it does fit
-            nWidth 	= nTestWidth;
-            nHeight = nTestHeight;
-
-        else
-            --...or, end the loop (using the last, viable size) if it does not fit
-            bIsSmaller = false;
-
-            --scale the rectangle
-            nWidth 	= nWidth  * nScale;
-            nHeight = nHeight * nScale;
-
-            --calculate the centered position of the rectangle inside the parent
-            if (bCenter) then
-                nX = nRectX + (nOuterWidth 	- nWidth) 	/ 2;
-                nY = nRectY + (nOuterHeight 	- nHeight) 	/ 2;
-            end
-
-        end
-
+    -- The iterative Euclidean algorithm also handles either zero input.
+    while (nB ~= 0) do
+        nA, nB = nB, nA % nB;
     end
 
-    return {width = nWidth, height = nHeight, x = nX, y = nY};
-end]]
-
-
-
-
-math.geometry = {};
-
-function math.geometry.rectcontains(tMe, tOther)
-  -- Calculate the bounding coordinates for each object
-  local leftMe = tMe.x
-  local rightMe = tMe.x + tMe.width
-  local topMe = tMe.y
-  local bottomMe = tMe.y + tMe.height
-
-  local leftOther = tOther.x
-  local rightOther = tOther.x + tOther.width
-  local topOther = tOther.y
-  local bottomOther = tOther.y + tOther.height
-
-  -- Check for collision by comparing the bounding coordinates
-  if leftMe <= rightOther and
-     rightMe >= leftOther and
-     topMe <= bottomOther and
-     bottomMe >= topOther then
-    -- Collision detected
-    local intersectionLeft = math.max(leftMe, leftOther)
-    local intersectionRight = math.min(rightMe, rightOther)
-    local intersectionTop = math.max(topMe, topOther)
-    local intersectionBottom = math.min(bottomMe, bottomOther)
-
-    local intersectionWidth = intersectionRight - intersectionLeft
-    local intersectionHeight = intersectionBottom - intersectionTop
-
-    return intersectionWidth > 0 and intersectionHeight > 0
-  else
-    -- No collision
-    return false
-  end
-
-end
-
-function math.geometry.rectcontainsfully(tMe, tOther)
-    local bRet = false;
-
-    -- Calculate the bounding coordinates for each object
-    local leftMe = tMe.x
-    local rightMe = tMe.x + tMe.width
-    local topMe = tMe.y
-    local bottomMe = tMe.y + tMe.height
-
-    local leftOther = tOther.x
-    local rightOther = tOther.x + tOther.width
-    local topOther = tOther.y
-    local bottomOther = tOther.y + tOther.height
-
-    -- Check for collision by comparing the bounding coordinates
-    if leftMe <= rightOther and
-     rightMe >= leftOther and
-     topMe <= bottomOther and
-     bottomMe >= topOther then
-    -- Collision detected
-    bRet = true
-    end
-
-    return bRet;
-end
-
-function math.geometry.fitrect(tOuter, tInner, bCenter)
-
-    if tInner.height == 0 or tOuter.height == 0 then
-        return nil;
-    end
-
-    local nInnerAspectRatio = tInner.width / tInner.height;
-    local nOuterAspectRatio = tOuter.width / tOuter.height;
-
-    local nWidth, nHeight;
-    local nX = tOuter.x;
-    local nY = tOuter.y;
-
-    if (nInnerAspectRatio >= nOuterAspectRatio) then
-      nWidth = tOuter.width;
-      nHeight = nWidth / nInnerAspectRatio;
-    else
-      nHeight = tOuter.height;
-      nWidth = nHeight * nInnerAspectRatio;
-    end
-
-    if (bCenter) then
-      nX = tOuter.x + (tOuter.width - nWidth) / 2;
-      nY = tOuter.y + (tOuter.height - nHeight) / 2;
-    end
-
-    return {width = nWidth, height = nHeight, x = nX, y = nY};
-end
-
-
-
-
-
-function math.gcf(nNum, nDen)
-    local nRet 		= 1;
-    local nSmall 	= 0;
-    local nLarge 	= 0;
-
-    if (nNum ~= 0 and nDen ~= 0) then
-            nSmall = math.abs(nNum);
-            nLarge = math.abs(nDen);
-
-            --get the largest of the numbers
-            if (nSmall > nLarge) then
-                local nTemp = nSmall;
-                nSmall = nLarge;
-                nLarge = nTemp;
-                nTemp = nil;
-            end
-
-            --perfom the Eucclidian algorithm
-            nRet = eucclidiangcf(nLarge, nSmall);
-        end
-
-    return nRet;
-end
-
-function math.iseven(nValue)
-    return (nValue % 2 == 0);
-end
-
-function math.isinteger(nValue)
-    return (nValue == math.floor(nValue));
-end
-
-function math.isodd(nValue)--TODO check if this is an integer first
-    return (nValue % 2 ~= 0);
-end
-
-function math.counting(nValue, bRaise) --natural numbers excluding zero
-    local f = bRaise and math.ceil or math.floor;
-    local nRet = f(math.abs(nValue));
-    return nRet > 0 and nRet or 1;
-end
-
-function math.whole(nValue, bRaise) --natural numbers including zero
-    local f = bRaise and math.ceil or math.floor;
-    return f(math.abs(nValue));
-end
-
-function math.ratio(nLeft, nRight)
-    local nGCD = math.gcf(nLeft, nRight);
-    return 	{left = nLeft / nGCD, right = nRight / nGCD};
-end
---TODO move these to a color module and put that module in CoG
-function math.rgbtoint(nR, nG, nB)
-    return nR + (nG * 256) + (nB * 65536)
-end
-
--- Function to convert RGB values to hexadecimal color code
-function math.rgbtohex(r, g, b)
-    -- Ensure values are clamped between 0 and 255
-    r = math.max(0, math.min(r, 255))
-    g = math.max(0, math.min(g, 255))
-    b = math.max(0, math.min(b, 255))
-
-    -- Convert RGB values to hexadecimal format
-    local hex = string.format("0x%02X%02X%02X", r, g, b)
-    return hex
-end
---[[
-nR = nR;
-nG = nG * 256
-nB = nB * 65536
-l = r + (b * 256) + (g * 65536)
-
-x = r
-y = b * 256
-z = g * 65536
-l = x + y + z
-]]
-function math.inttorgb(long_color)
-    local red   = math.floor(long_color / 65536)
-    local green = math.floor((long_color % 65536) / 256)
-    local blue  = long_color % 256
-    return red, green, blue
+    return nA;
 end
 
 
 --[[!
-    @fqxn LuaEx.Lua Hooks.math.randomf
-    @desc Generates a random float between two values with 4-decimal precision.
-    @param number nMin The minimum value (float).
-    @param number nMin The maximum value (float).
-    @ret number nResult The result (float).
+    @fqxn LuaEx.Lua Hooks.math.Functions.inttorgb
+    @desc Unpacks a 24-bit color matching rgbtoint: red is the low byte, green the middle byte, and blue the high byte.
+    @param number nColor Integer from 0 through 16777215.
+    @ret number nR The red channel.
+    @ret number nG The green channel.
+    @ret number nB The blue channel.
+    @ex print(math.inttorgb(math.rgbtoint(10, 20, 30))); -- 10 20 30
 !]]
-local nPrecision = 10000;
+function math.inttorgb(nColor)
+    validateInteger(nColor);
+    assert(nColor >= 0 and nColor <= 16777215, "Color must be a 24-bit nonnegative integer.");
+
+    local nR = nColor % 256;
+    local nG = math.floor(nColor / 256) % 256;
+    local nB = math.floor(nColor / 65536);
+
+    return nR, nG, nB;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.isabstract
+    @desc Checks whether a value is a native nonfinite number: NaN, positive infinity, or negative infinity. Returns false for finite numbers and non-numbers. Retained for compatibility; prefer math.isnan or math.isinf when checking a specific condition.
+    @param any vInput The value to check.
+    @ret boolean bIsAbstract Whether the value is a native nonfinite number.
+    @ex print(math.isabstract(math.inf)); -- true
+!]]
+function math.isabstract(vInput)
+    return math.isnan(vInput) or math.isinf(vInput);
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.iseven
+    @desc Checks whether a value is a finite integer divisible by two. Returns false for fractions and non-numbers.
+    @param any vInput The value to check.
+    @ret boolean bIsEven Whether the value is even.
+    @ex print(math.iseven(4)); -- true
+!]]
+function math.iseven(vInput)
+    return math.isinteger(vInput) and vInput % 2 == 0;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.isfinite
+    @desc Checks whether a value is a native finite number, excluding NaN and either infinity. Returns false for non-numbers, including objects presenting a custom number type.
+    @param any vInput The value to check.
+    @ret boolean bIsFinite Whether the value is finite.
+    @ex print(math.isfinite(42)); -- true
+!]]
+function math.isfinite(vInput)
+    return rawtype(vInput) == "number" and vInput == vInput and
+           vInput ~= math.huge and vInput ~= -math.huge;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.isinf
+    @desc Checks whether a value is native positive or negative infinity. Returns false for non-numbers.
+    @param any vInput The value to check.
+    @ret boolean bIsInfinity Whether the value is infinite.
+    @ex print(math.isinf(math.inf)); -- true
+!]]
+function math.isinf(vInput)
+    return rawtype(vInput) == "number" and
+           (vInput == math.huge or vInput == -math.huge);
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.isinteger
+    @desc Checks whether a value is a native finite number with no fractional part. Returns false for non-numbers, NaN, and infinity.
+    @param any vInput The value to check.
+    @ret boolean bIsInteger Whether the value is an integer.
+    @ex print(math.isinteger(2.5)); -- false
+!]]
+function math.isinteger(vInput)
+    return math.isfinite(vInput) and vInput % 1 == 0;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.isnan
+    @desc Checks whether a value is native NaN. NaN is unequal to itself; equality with math.nan cannot identify it. Returns false for non-numbers.
+    @param any vInput The value to check.
+    @ret boolean bIsNaN Whether the value is NaN.
+    @ex print(math.isnan(math.nan)); -- true
+!]]
+function math.isnan(vInput)
+    return rawtype(vInput) == "number" and vInput ~= vInput;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.isodd
+    @desc Checks whether a value is a finite integer not divisible by two. Returns false for fractions and non-numbers.
+    @param any vInput The value to check.
+    @ret boolean bIsOdd Whether the value is odd.
+    @ex print(math.isodd(-3)); -- true
+!]]
+function math.isodd(vInput)
+    return math.isinteger(vInput) and vInput % 2 ~= 0;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.randomf
+    @desc Generates a uniform random float on a four-decimal grid within inclusive finite bounds. Reversed bounds are accepted. Rejects intervals containing no grid value and scaled bounds outside the exact integer range. Uses the shared math.random stream.
+    @param number nMinRaw One interval endpoint.
+    @param number nMaxRaw The other endpoint.
+    @ret number nResult The result.
+    @ex print(math.randomf(1, 1)); -- 1
+!]]
 function math.randomf(nMinRaw, nMaxRaw)
-    local nTempMin  = math.floor(nMinRaw * nPrecision);
-    local nTempMax  = math.floor(nMaxRaw * nPrecision);
-    local nMin      = nTempMin < nTempMax and nTempMin or nTempMax;
-    local nMax      = nTempMin < nTempMax and nTempMax or nTempMin;
+    validateFinite(nMinRaw);
+    validateFinite(nMaxRaw);
+    local nMin = math.ceil(math.min(nMinRaw, nMaxRaw) * 10000);
+    local nMax = math.floor(math.max(nMinRaw, nMaxRaw) * 10000);
+    validateInteger(nMin);
+    validateInteger(nMax);
+    assert(nMin <= nMax, "Random float interval contains no four-decimal grid value.");
 
-    return math.random(nMin, nMax) / nPrecision;
+    return math.random(nMin, nMax) / 10000;
 end
 
-local randf = math.randomf;
 
-function math.drift(nValue, nDrift)      -- additive
-    return nValue + rand(-nDrift, nDrift);
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.ratio
+    @desc Reduces an integer ratio by its greatest common factor, preserving each input sign. A single zero is supported; the ratio 0:0 is undefined and rejected.
+    @param number nLeft Left integer.
+    @param number nRight Right integer.
+    @ret table tRatio The reduced left and right values.
+    @ex local tRatio = math.ratio(12, 18); print(tRatio.left, tRatio.right); -- 2 3
+!]]
+function math.ratio(nLeft, nRight)
+    local nGCF = math.gcf(nLeft, nRight);
+    assert(nGCF ~= 0, "The ratio 0:0 is undefined.");
+
+    return {left = nLeft / nGCF, right = nRight / nGCF};
 end
 
-function math.driftf(nValue, nDrift)     -- multiplicative (ratio)
-    return nValue + nValue * randf(-nDrift, nDrift);
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.rgbtohex
+    @desc Converts RGB channels to an uppercase 0xRRGGBB string. Finite integer channels are clamped to the range 0 through 255.
+    @param number nR Red channel.
+    @param number nG Green channel.
+    @param number nB Blue channel.
+    @ret string sHex The hexadecimal color.
+    @ex print(math.rgbtohex(255, 0, 16)); -- 0xFF0010
+!]]
+function math.rgbtohex(nR, nG, nB)
+    validateInteger(nR);
+    validateInteger(nG);
+    validateInteger(nB);
+    nR = math.clamp(nR, 0, 255);
+    nG = math.clamp(nG, 0, 255);
+    nB = math.clamp(nB, 0, 255);
+
+    return string.format("0x%02X%02X%02X", nR, nG, nB);
 end
 
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.rgbtoint
+    @desc Packs RGB integer channels in the range 0 through 255 into a 24-bit value. Retains the existing byte order: R + G * 256 + B * 65536. This byte order differs from the displayed 0xRRGGBB string.
+    @param number nR Red channel.
+    @param number nG Green channel.
+    @param number nB Blue channel.
+    @ret number nColor The packed color.
+    @ex print(math.rgbtoint(1, 2, 3)); -- 197121
+!]]
+function math.rgbtoint(nR, nG, nB)
+    validateChannel(nR);
+    validateChannel(nG);
+    validateChannel(nB);
+
+    return nR + nG * 256 + nB * 65536;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.sum
+    @desc Adds all supplied finite numbers in argument order. No arguments returns zero; nil holes, non-numbers, and nonfinite results are rejected.
+    @param number ... Values to add.
+    @ret number nRet The sum.
+    @ex print(math.sum(1, 2, 3)); -- 6
+!]]
 function math.sum(...)
-    local nRet = 0;
+    local nRet = 0.0;
 
-    for _, nValue in pairs({...}) do
+    for x = 1, select("#", ...) do
+        local nValue = select(x, ...);
+        validateFinite(nValue);
         nRet = nRet + nValue;
+        validateFinite(nRet);
     end
 
     return nRet;
 end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.math.Functions.whole
+    @desc Converts a finite number's magnitude to a whole number, including zero. Floors by default, or rounds upward when requested.
+    @param number nValue The input.
+    @param boolean|nil bRaise Round upward; defaults to false.
+    @ret number nRet The whole number.
+    @ex print(math.whole(-0.7)); -- 0
+!]]
+function math.whole(nValue, bRaise)
+    validateFinite(nValue);
+    validateFlag(bRaise);
+
+    local fRound = bRaise and math.ceil or math.floor;
+    return fRound(math.abs(nValue));
+end
+
+
 return math;

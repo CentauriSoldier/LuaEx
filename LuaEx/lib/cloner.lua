@@ -1,245 +1,217 @@
-local loader = load or loadstring;
+--[[!
+    @fqxn LuaEx.cloner
+    @desc Read-only copying service. Public operations are clone, cloneIndependent,
+    registerCopy, and registerFactory. Hooks define domain-specific copies;
+    ordinary table values are copied recursively using one traversal record.
+!]]
 
-local function returnPure(vItem)
-    return vItem;
+-- Each coroutine owns its traversal, so a yielding hook cannot mix two copies.
+local _tContexts  = setmetatable({}, {__mode = "k"});
+local _tFactories = {};
+
+local function getContext()
+    local oThread = coroutine.running();
+    return _tContexts[oThread], oThread;
 end
 
-local function unimplemented(vType)
-    error("Cloning for type "..type(vType).." has not been implemented.");
+--[[!
+    @fqxn LuaEx.cloner.registerCopy
+    @desc Records a hook's newly allocated object before its contents are copied.
+    Call from __clone to reconnect circular references through private object state.
+    Nested clone calls share the current traversal. Existing hooks need no change
+    unless their state can lead back to an object whose hook is still running.
+    @param table oSource The source currently being copied by its __clone hook.
+    @param table oCopy The new object allocated by that hook.
+    @ex cloner.registerCopy(this, oCopy);
+!]]
+local function registerCopy(oSource, oCopy)
+    local tContext = getContext();
+
+    assert(tContext and tContext.active[oSource], "registerCopy must be called inside the source object's clone hook.");
+    assert(rawtype(oCopy) == "table", "The registered copy must be an object or table.");
+    assert(tContext.seen[oSource] == nil or rawequal(tContext.seen[oSource], oCopy), "A different copy has already been registered.");
+
+    tContext.seen[oSource] = oCopy;
 end
 
-local tPure = {
-    ["boolean"]  = returnPure,
-    ["function"] = returnPure,
-    ["functionOLD"] = function(fItem)
-        local sFunction = string.dump(fItem);
-        return loader(sFunction);
-    end,
-    ["functionTEST"] = function(fItem)
-        local dump = string.dump(fItem)  -- Serialize the function into bytecode
+local copyValue;
 
-        local function loadWithUpvalues(dump, upvalues)
-            local clonedFunc = load(dump)  -- Load the bytecode into a function
+local function copyTable(tSource, bIgnoreMetaTable, tContext, tMeta)
+    local tCopy = {};
+    tContext.seen[tSource] = tCopy;
 
-            -- Check if we need to set upvalues
-            if upvalues and type(upvalues) == "table" then
-                local i = 1
-                local name, value = debug.getupvalue(fItem, i)
-                while name do
-                    -- Set the upvalue in the cloned function
-                    debug.setupvalue(clonedFunc, i, upvalues[name])
-                    i = i + 1
-                    name, value = debug.getupvalue(fItem, i)
-                end
-            end
-
-            return clonedFunc
-        end
-
-        -- Get the upvalues of the original function
-        local upvalues = {}
-        local i = 1
-        local name, value = debug.getupvalue(fItem, i)
-        while name do
-            upvalues[name] = value
-            i = i + 1
-            name, value = debug.getupvalue(fItem, i)
-        end
-
-        -- Return a function that can load the bytecode with upvalues
-        return function()
-            return loadWithUpvalues(dump, upvalues)
-        end
-    end,
-    ["nil"]      = returnPure,
-    ["number"]   = returnPure,
-    ["string"]   = returnPure,
-    ["tableTEST"]    = function (tItem, bIgnoreMetaTable, tSeen)
-        tSeen = tSeen or {}
-
-        -- If we've already seen this table, return the already cloned version to handle self-references
-        if tSeen[tItem] then
-            return tSeen[tItem]
-        end
-
-        local tRet = {}
-        tSeen[tItem] = tRet
-
-        for vIndex, vItem in pairs(tItem) do
-            -- Recursively clone nested tables
-            if type(vItem) == "table" then
-                tRet[vIndex] = clone(vItem, bIgnoreMetaTable, tSeen)
-            else
-                tRet[vIndex] = clone(vItem);
-            end
-        end
-
-        -- Clone the metatable if not ignored
-        if not bIgnoreMetaTable then
-            local tMeta = getmetatable(tItem)
-            if tMeta then
-                setmetatable(tRet, tMeta)
-            end
-        end
-
-        return tRet
-    end,
-    ["table"]    = function (tItem, bIgnoreMetaTable)
-        local tRet = {};
-        --clone each item in the table
-        --if (type(tItem) == "table") then
-
-            for vIndex, vItem in pairs(tItem) do
---TODO what about indices? those should probably not be cloned
-                if (type(vItem) == "table") then --TODO account for self references
-
-                    if  (tItem == vItem) then --self reference
-                        rawset(tRet, vIndex, vItem);
-                        --tRet[vIndex] = vItem;
-                    else
-                        rawset(tRet, vIndex, clone(vItem, bIgnoreMetaTable));
-                        --tRet[vIndex] = clone(vItem, bIgnoreMetaTable);
-                    end
-
-                else
-                    --rawset(tRet, vIndex, clone(vItem)); --TODO LEFT OFF HERE... This has to get fixed!
-                    rawset(tRet, vIndex, clone(vItem, bIgnoreMetaTable));
-                    --tRet[vIndex] = clone(vItem, bIgnoreMetaTable);
-                end
-
-            end
-
-            --clone the metatable
-            if (not bIgnoreMetaTable) then
-                local tMeta = getmetatable(tItem);
-
-                if (type(tMeta) == "table") then
-                    setmetatable(tRet, tMeta);
-                end
-
-            end
-
-        --end
-
-        return tRet;
-    end,
-    ["thread"]   = unimplemented,
-    ["userdata"] = unimplemented,
-};
-
-local tSynth = {
-    ["array"]                   = function(aItem) return rawgetmetatable(aItem).__clone(aItem) end,
-    ["class"]                   = function(cItem)--TODO is this ever called? We don't actually want to clone class objects (such as Point)
-                                    --local tMeta = rawgetmetatable(cItem);
-                                    --print(serialize(tMeta))
-                                    --if (rawtype(tMeta.__clone) ~= "function") then
-                                        --TODO get the class name and FIX this error ...make sure it works
-                                    --    error("Class, '"..tostring(cItem).."', is not clonable.\n", 2);
-                                    --end
-                                    --no need to infuse cItem since it's already injected by the class
-                                    --return rawgetmetatable(cItem).__clone(); --TODO FIX since we can't use the method above to validate clonability, we must do an xpcall!
-                                    --return rawgetmetatable(cItem).__name;--QUESTION is this right? Is the name what should be returned or the __call metamethod?
-                                    return cItem;
-                                end,
-    --["enum"]                    = function(eItem) return rawgetmetatable(eItem).__clone(eItem) end,
-    ["null"]                    = returnPure,
-    ["struct"]                  = function(rItem) return rawgetmetatable(rItem).__clone(rItem) end,
-};
-
-local function registerType(sType, oType) --TODO  do i need to require type string? Get this using type (do same for serializer 'registerType' function)
-    local sErrorPrefix = "Error registering object type with cloner.\n";
-
-    assert(rawtype(oType) == "table", sErrorPrefix.."Object must be of rawtype table.", 2);
-
-    local tMeta = getmetatable(oType);
-
-    assert(type(tMeta)                      == "table", sErrorPrefix.."Object of type '"..sType.."' does not have an accessible metatable.", 2);
-    assert(type(sType)                      == "string" and sType:isvariablecompliant(true), sErrorPrefix.."Object must have a __type metatable index whose value is a unique, variable-compliant string.", 2);
-    assert(type(tMeta.__clone)               == "function", sErrorPrefix.."Object ("..sType..") must have a __clone metamethod capable of creating the (equivilant) object instance.")
-    assert(not tSynth[sType], sErrorPrefix.."Object of type "..sType.." already exists.");
-    --assert(type(oType.clone)                == "function", sErrorPrefix.."Object must have a clone method capable of creating the (equivilant) object instance.", 2)
-
-        tSynth[sType] = oType;
-end
-
-
-local function registerFactory(xFactory)
-    local sType = type(xFactory);
-
-    --make sure the type is valid
-    if (sType == "table" or rawtype(xFactory) ~= "table") then
-        error("Error registering factory with cloner.\nType, ${type} (of rawtype, ${rawtype}), is not a factory." % {type = sType, rawtype = rawtype(xFactory)}, 2);
+    -- Keys retain identity: tables used as lookup keys remain usable by callers.
+    -- Allocate before descent so values can refer to any earlier copied table.
+    for vKey, vValue in pairs(tSource) do
+        rawset(tCopy, vKey, copyValue(vValue, bIgnoreMetaTable, tContext));
     end
 
-    --make sure it has a call metamethod
-    local tMeta = rawgetmetatable(xFactory);
+    if (not bIgnoreMetaTable and tMeta) then
+        rawsetmetatable(tCopy, tMeta);
+    end
 
-    if (tMeta and rawtype(tMeta.__call) == "function") then
+    return tCopy;
+end
 
-        tSynth[sType] = function()
-            return xFactory;
-        end
+copyValue = function(vItem, bIgnoreMetaTable, tContext)
+    local sRawType = rawtype(vItem);
+    local sType    = type(vItem);
+    local vCopy;
+
+    if (sRawType == "table" and tContext.seen[vItem] == nil and
+        not tContext.done[vItem] and not tContext.active[vItem]) then
+        tContext.order[#tContext.order + 1] = vItem;
+    end
+
+    if (sRawType ~= "table") then
+        assert(sRawType ~= "thread" and sRawType ~= "userdata", "Cloning for type '"..sRawType.."' has not been implemented.");
+        vCopy = vItem;
+
+    elseif (tContext.seen[vItem] ~= nil or tContext.done[vItem]) then
+        vCopy = tContext.seen[vItem];
+
+    elseif (sType == "class" or sType == "null" or rawequal(_tFactories[sType], vItem)) then
+        vCopy = vItem;
+        tContext.seen[vItem] = vCopy;
 
     else
-        error("Error registering factory with cloner.\nType, ${type}, is not a factory; does not have an accessible __call metamethod or type function." % {type = sType}, 2);
+        -- Internal copying needs the actual metatable, not a protected public facade.
+        -- It is shared rather than copied, preserving behavior and protection.
+        local tMeta = debug.getmetatable(vItem);
+        local fClone = tMeta and tMeta.__clone;
+
+        if (rawtype(fClone) == "function") then
+            assert(not tContext.active[vItem], "Circular clone hook for type '"..sType.."': register the new object with cloner.registerCopy before copying its contents.");
+            tContext.active[vItem] = true;
+
+            vCopy = fClone(vItem);
+
+            assert(tContext.seen[vItem] == nil or rawequal(tContext.seen[vItem], vCopy), "Clone hook returned a different object than its registered copy.");
+
+            tContext.active[vItem] = nil;
+            tContext.seen[vItem] = vCopy;
+            tContext.done[vItem] = true;
+
+        elseif (sType == "table") then
+            vCopy = copyTable(vItem, bIgnoreMetaTable, tContext, tMeta);
+
+        else
+            error("Cloner not found for item of type '"..sType.."'.", 2);
+        end
     end
 
-end
+    return vCopy;
+end;
 
-
-
+--[[!
+    @fqxn LuaEx.cloner.clone
+    @desc Copies tables and cloneable objects while preserving repeated references
+    and circular plain-table values. Explicit __clone hooks take precedence over
+    table copying. Hooks own their object's contents and may use registerCopy for
+    circular state. Table keys and metatables retain identity. Functions retain
+    identity and captured variables; class factories, registered factories, and
+    null retain identity. Class instances and other typed objects require __clone.
+    Threads and userdata are unsupported. Also exposed globally as clone.
+    Hook return values are retained as supplied, including false and nil.
+    @param any vItem The value to copy.
+    @param boolean bIgnoreMetaTable Optional; defaults to false. Omits metatables
+    from ordinary copied tables at every depth; does not disable __clone hooks.
+    @ret any The copied value.
+    @ex local tCopy = clone({value = 1});
+!]]
 local function clone(vItem, bIgnoreMetaTable)
-    local sType = type(vItem);
-    local vRet;
-    local bFoundCloner = false;
+    assert(bIgnoreMetaTable == nil or rawtype(bIgnoreMetaTable) == "boolean", "Ignore-metatable option must be a boolean.");
 
-    if (tPure[sType]) then
-        vRet = tPure[sType](vItem, bIgnoreMetaTable);
-        bFoundCloner = true;
+    local tContext, oThread = getContext();
+    local bRoot = tContext == nil;
 
-    elseif (tSynth[sType]) then
-        vRet = tSynth[sType](vItem);
-        bFoundCloner = true;
+    if (bRoot) then
+        tContext = {seen = {}, active = {}, done = {}, order = {}};
+        _tContexts[oThread] = tContext;
+    end
 
-    elseif(rawtype(vItem) == "table") then
-        local tMeta = getmetatable(vItem);
+    -- Cleanup also runs after hook errors. Nested failures roll back their records
+    -- if caught by a hook, leaving the enclosing traversal usable.
+    local nCheckpoint = #tContext.order;
+    local bOK, vCopy = pcall(copyValue, vItem, bIgnoreMetaTable == true, tContext);
 
-        if (tMeta and rawtype(tMeta.__clone) == "function") then
-            vRet = tMeta.__clone(vItem);
-            bFoundCloner = true;
+    if (bRoot) then
+        _tContexts[oThread] = nil;
+    elseif (not bOK) then
+        for nIndex = #tContext.order, nCheckpoint + 1, -1 do
+            local oSource = tContext.order[nIndex];
+
+            tContext.seen[oSource]   = nil;
+            tContext.active[oSource] = nil;
+            tContext.done[oSource]   = nil;
+            tContext.order[nIndex]   = nil;
         end
-
     end
 
-    if not (bFoundCloner) then
-        --error(  "Error cloning item. Cloner not found for item of type ${type}:\n'${item}'." %
-        --        {item = tostring(vItem), type = sType}, 2);
-        error(  "Error cloning item. Cloner not found for item of type '${type}'." %
-                {type = sType}, 2);
+    if (not bOK) then
+        error(vCopy, 0);
     end
 
-    return vRet;
+    return vCopy;
 end
 
+--[[!
+    @fqxn LuaEx.cloner.cloneIndependent
+    @desc Starts a separate copy traversal even inside an active clone hook.
+    Class construction uses this for defaults: each new instance owns its own
+    defaults rather than reusing copies made for another newly constructed instance.
+    @param any vItem The value to copy.
+    @param boolean bIgnoreMetaTable Optional; same meaning as clone.
+    @ret any The independently copied value.
+    @ex local tDefaults = cloner.cloneIndependent({value = 1});
+!]]
+local function cloneIndependent(vItem, bIgnoreMetaTable)
+    local tOuter, oThread = getContext();
+    _tContexts[oThread] = nil;
 
-local tClonerActual = {
-    clone           = clone,
-    registerFactory = registerFactory,
-    --registerType = registerType,
+    local bOK, vCopy = pcall(clone, vItem, bIgnoreMetaTable);
+    _tContexts[oThread] = tOuter;
+
+    if (not bOK) then
+        error(vCopy, 0);
+    end
+
+    return vCopy;
+end
+
+--[[!
+    @fqxn LuaEx.cloner.registerFactory
+    @desc Registers a callable typed factory whose identity is retained by clone.
+    Re-registering the same factory is harmless; a different factory using that
+    type name is rejected. Registration never changes instance clone behavior.
+    @param table xFactory A typed table with a callable metatable.
+    @ex cloner.registerFactory(array);
+!]]
+local function registerFactory(xFactory)
+    local sType = type(xFactory);
+    local tMeta = rawtype(xFactory) == "table" and debug.getmetatable(xFactory);
+
+    assert(rawtype(xFactory) == "table" and sType ~= "table" and tMeta and rawtype(tMeta.__call) == "function", "Expected a callable typed factory.");
+    assert(_tFactories[sType] == nil or rawequal(_tFactories[sType], xFactory), "A different factory is already registered for type '"..sType.."'.");
+
+    _tFactories[sType] = xFactory;
+end
+
+local _tClonerActual = {
+    clone            = clone,
+    cloneIndependent = cloneIndependent,
+    registerCopy     = registerCopy,
+    registerFactory  = registerFactory,
 };
-local tClonerDecoy  = {};
-local tClonerMeta   = {
-    __index = function(t, k)
 
-        if (rawtype(tClonerActual[k]) ~= "nil") then
-            return tClonerActual[k];
-        end
-
+local ClonerDecoy = {};
+local ClonerMeta = {
+    __index = _tClonerActual,
+    __newindex = function()
+        error("Attempt to modify the read-only cloner.", 2);
     end,
-    __newindex = function(t, k, v)
-        error("Error: attempting to modify read-only cloner at index ${index} with ${value} (${type})." % {index = tostring(k), value = tostring(v), type = type(v)}, 2);
-    end,--TODO remove the tostring as it sometimes fails if the item is a table without a __tostring metamethod
+    __metatable = false,
 };
 
-setmetatable(tClonerDecoy, tClonerMeta);
-return tClonerDecoy;
+setmetatable(ClonerDecoy, ClonerMeta);
+return ClonerDecoy;

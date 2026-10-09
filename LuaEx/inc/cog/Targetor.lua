@@ -1,509 +1,410 @@
---[[*
-@moduleid targetor
-@authors Centauri Soldier
-@copyright Copyright © 2020 Centauri Soldier
-@description <h2>Targetor</h2><h3>Targetor objects for target matching and determination.</p>
-<h3>Implentation must create the following enums:</h3>
-<ul>
-	<li>TARGET <em>(enum type)</em></li>
-</ul>
-<p>Any number of target types may be created for this constant type. The types may then be assigned to targetor objects and be used to check targetability</p>
-<p>IMMUNITY and PREREQ are similar but differ in that ANY immunity makes this object untargetable by an object with the given TARGETOR type. Regarding PREREQs,
-a potential targetor of this object must have at least one of the object's TARGTOR type as a TARGETABLE and must also have all PREREQs as TARGETABLEs in order to target this object.</p>
-@features
-@usage <p>Once a <strong>Targetor</strong> object has been created, it can be operated upon using TARGET types
-<em>(or numerically indexed tables containing multiple TARGET types)</em> or other <strong>Targetor</strong> objects.</p>
-@todo <p>create <strong>__tostring</strong> metamethod.
-@version 0.1
-*]]
-local tTargetors 	= {};
-local tCategoryIdicesByName; 	--used for quick checking existence of a type enum in __add, __sub (each entry will return the order value given the name)
-local tCategoryTypesByName;		-- used for getting a type based on its name
-
-local type					= type;
-local rawtype				= rawtype;
-local tableremove			= table.remove;
-local pairs 				= pairs;
-local tostring				= tostring;
-local isvariablecompliant 	= string.isvariablecompliant;
-
-
-local function typeTableIsValid(tInput)
-	local bRet = false;
-
-	if (rawtype(tInput) == "table") then
-		local bError = false;
-
-		for _, sInputType in pairs(tInput) do
-
-			if (type(sInputType) ~= "targetor.TARGET") then
-				bError = true;
-				break;
-			end
-
-		end
-
-		bRet = not bError;
-	end
-
-	return bRet;
-end
-
-local function importTypes(eTypes)
-	local tRet = {
-		byIndex 	= {},--values are enums
-		byName		= {},--values are enums
-		indexByName = {},--values are indices
-		nameByIndex = {},--values are names
-	};
-
-	for nIndex, eType in pairs(eTypes) do
-		--storing all this data makes for fast processing by the functions which use it
-		tRet.byIndex[nIndex] 			= eType;
-		tRet.byName[eType.name] 		= eType;
-		tRet.indexByName[eType.name]	= nIndex;
-		tRet.nameByIndex[nIndex]		= eType.name;
-	end
-
-	return tRet;
-end
-
-
-
-
-
-local function instanceInputIsValid(tInput)
-	local sError 		= "Success";
-	local sInputType 	= rawtype(tInput);
-
-	--check the table type
-	local bCont = sInputType == "table";
-	sError 		= bCont and sError or "Input is of type "..sInputType.."; expected type table.";
-
-	--check the table length
-	if (bCont) then
-		bCont = #tInput > 0;
-		sError 	= bCont and sError or "Input table is empty or is not numerically indexed.";
-	end
-
-	--check the indices and values
-	if (bCont) then
-		local tUnique = {};
-
-		for nIndex, oTarget in pairs(tInput) do
-
-			if (bCont) then
-				local sTargetType 	= type(targetor.TARGET);
-				bCont				= rawtype(oTarget.isA) == "function" and oTarget:isA(targetor.TARGET);
-				sError				= bCont and sError or "Item at index "..nIndex.." is of type "..sTargetType..". Expected type TARGET.";
-
-				--uniqueness
-				if (bCont) then
-					bCont 	= tUnique[oTarget] == nil;
-					sError 	= bCont and sError or "Duplicate target type '"..oTarget.."' at index "..nIndex..".";
-					tUnique[oTarget] = true;
-				end
-
-			end
-
-		end
-
-	end
-
-	return bCont, sError;
-end
-
-local function hasPrereqsFor(oThis, oOther)
-	local bRet = true;
-
-	for sPrereq, ePrereq in pairs(oOther[targetor.PREREQ].byName) do
-
-		if (oThis[targetor.TARGETABLE].byName[sPrereq] == nil) then
-			bRet = false;
-			break;
-		end
-
-	end
-
-	return bRet;
-end
-
-local function hasTargetableFor(oThis, oOther)
-	local bRet = false;
-
-	for sType, eType in pairs(oThis[targetor.TARGETABLE].byName) do
-
-		if (oOther[targetor.TARGETOR].byName[sType] ~= nil) then
-			bRet = true;
-			break;
-		end
-
-	end
-
-	return bRet;
-end
-
-
-local function isImmuneTo(oThis, oOther)
-	local bRet = false;
-
-	for sImmunity, eImmunity in pairs(oThis[targetor.IMMUNITY].byName) do
-
-		if (oOther[targetor.TARGETOR].byName[sImmunity] ~= nil) then
-			bRet = true;
-			break;
-		end
-
-	end
-
-	return bRet;
-end
-
-local function isInterdictedBy(oThis, oOther)
-	local bRet = false;
-
-	for sInterdictor, eInterdictor in pairs(oThis[targetor.INTERDICTOR].byName) do
-
-		if (oOther[targetor.TARGETOR].byName[sInterdictor] ~= nil) then
-			bRet = true;
-			break;
-		end
-
-	end
-
-	return bRet;
-end
-
-
-
-local targetor = class "targetor" {
-
-	__construct = function(this, tProt, ...)--tTheTargetors, tTargetables, tImmunities, tInterdictors, tPrereqs, tProrities, tThreats
-		local tArgs = args or {...};
-		tTargetors[this] = {};
-
-		for eType, nIndex in pairs(tCategoryIdicesByName) do
-
-			if (nIndex > 0) then --skips the TARGET type since it's not part of the object's types
-				local tInput 	= tArgs[nIndex] or nil;
-
-				if (tInput) then
-					local bSuccess, sError 		= instanceInputIsValid(tInput);
-					assert(bSuccess, "Error creating targetor. "..tostring(eType).." table is not valid.\n"..sError);
-				end
-
-				tTargetors[this][tCategoryTypesByName[eType]] = typeTableIsValid(tInput) and
-			 													importTypes(tInput)		or
-																{byIndex = {}, byName = {}, indexByName = {}, nameByIndex = {}};
-			end
-
-		end
-
-	end,
-	destroy = function(this)
-		tTargetors[this] = nil;
-	end,
-	get = function(this, eType)
-
-		if (tTargetors[this][eType] ~= nil) then
-			local tRet = {};
-
-			for nIndex, eExistingType in pairs(tTargetors[this][eType].byIndex) do
-				tRet[nIndex] = eExistingType;
-			end
-
-			return tRet;
-		end
-
-	end,
-	getAll = function()
-
-	end,
-	has = function(this, eType)
-		return (tTargetors[this][eType.enum].byName[eType.name] ~= nil);
-	end,
-	hasPrereqsFor = function(this, other)
-		return hasPrereqsFor(tTargetors[this], tTargetors[other]);
-	end,
-	hasTargetableFor = function(this, other)
-		return hasTargetableFor(tTargetors[this], tTargetors[other]);
-	end,
-	isImmuneTo = function(this, other)
-		return isImmuneTo(tTargetors[this], tTargetors[other]);
-	end,
-	isInterdictedBy = function(this, other)
-		return isInterdictedBy(tTargetors[this], tTargetors[other]);
-	end,
-	addAll = function(this, eType)
-	end,
-	removeAll = function(this, eType)
-	end,
-	sortByPriority = function(this, ...)
-		local tArgs = arg or {...};
-		local tRet = {};
-
-		for _, oTargetor in pairs(tArgs) do
-
-
-		end
-
-		return tRet;
-	end,
-	sortByThreat = function(this, ...)
-		local tArgs = arg or {...};
-
-	end,
-	--[[#
-	@module targetor
-	@func __add
-	@scope local
-	@desc <p>Adds the given TARGET type to the given target category of the object.</p>
-	@ret targetor oTargetor Returns the targetor object.
-	!]]
-	__add = function(vLeft, vRight)
-		local oRet		 	= nil;
-		local sLeftType 	= type(vLeft);
-		local sRightType 	= type(vRight);
-
-		if (sLeftType == "targetor") then
-			oRet = vLeft;
-
-			if (tCategoryIdicesByName[sRightType]) then
-				local tType 		= tTargetors[vLeft][vRight.enum];
-
-				if (tType.byName[vRight.name] == nil) then
-					local nNextIndex 	= #tType.byIndex + 1;
-
-					tType.byIndex[nNextIndex] 		= vRight;
-					tType.byName[vRight.name]		= vRight;
-					tType.indexByName[vRight.name] 	= nNextIndex;
-					tType.nameByIndex[nNextIndex]	= vRight.name;
-				end
-
-			end
-
-		elseif (sRightType == "targetor") then
-			oRet = vRight;
-
-			if (tCategoryIdicesByName[sLeftType]) then
-				local tType 		= tTargetors[vRight][vLeft.enum];
-
-				if (tType.byName[vLeft.name] == nil) then
-					local nNextIndex 	= #tType.byIndex + 1;
-
-					tType.byIndex[nNextIndex] 		= vLeft;
-					tType.byName[vLeft.name]		= vLeft;
-					tType.indexByName[vLeft.name] 	= nNextIndex;
-					tType.nameByIndex[nNextIndex]	= vLeft.name;
-				end
-
-			end
-
-		end
-
-		return oRet;
-	end,
-	--[[$
-	@module targetor
-	@func __sub
-	@scope local
-	@desc <p>Removes the given TARGET type in the given target category from the object.</p>
-	@ret targetor oTargetor Returns the targetor object.
-	!]]
-	__sub = function(vLeft, vRight)
-		local oRet		 	= nil;
-		local sLeftType 	= type(vLeft);
-		local sRightType 	= type(vRight);
-
-		if (sLeftType == "targetor") then
-			oRet = vLeft;
-
-			if (tCategoryIdicesByName[sRightType]) then
-				local tType 	= tTargetors[vLeft][vRight.enum];
-
-				if (tType.byName[vRight.name] ~= nil) then
-					local nIndex 	= tType.indexByName[vRight.name];
-
-					tableremove(tType.byIndex, nIndex);
-					tType.byName[vRight.name]		= nil;
-					tType.indexByName[vRight.name] 	= nil;
-					tableremove(tType.nameByIndex, nIndex);
-				end
-
-			end
-
-		elseif (sRightType == "targetor") then
-			oRet = vRight;
-
-			if (tCategoryIdicesByName[sLeftType]) then
-				local tType 	= tTargetors[vRight][vLeft.enum];
-
-				if (tType.byName[vLeft.name] ~= nil) then
-					local nIndex 	= tType.indexByName[vLeft.name];
-
-					tableremove(tType.byIndex, nIndex);
-					tType.byName[vLeft.name]		= nil;
-					tType.indexByName[vLeft.name] 	= nil;
-					tableremove(tType.nameByIndex, nIndex);
-				end
-
-			end
-
-		end
-
-		return oRet;
-	end,
-	--[[#
-	@module targetor
-	@func __lt
-	@desc <p>Determines whether the right object can target the left (or, if using the greater-than symbol, whether the left can target the right).
-			This function accounts for all assocaiations inlcuding targetable types, prerequisites, immunitites and interdictors.</p>
-	@ret boolean bCanTarget Returns true if it can target and false otherwise.
-	!]]
-	__lt = function(vLeft, vRight)
-		local sLeftType 	= type(vLeft);
-		local sRightType	= type(vRight);
-		assert(sLeftType 	== "targetor", "Left side of operator is of type "..sLeftType..". Expected type targetor.");
-		assert(sRightType 	== "targetor", "Right side of operator is of type "..sRightType..". Expected type targetor.");
-		local oDefender		= tTargetors[vLeft];
-		local oAttacker		= tTargetors[vRight];
-		--oLeft < oRight
-		--oRight > oLeft
-		return 	hasTargetableFor(oAttacker, oDefender) 	and hasPrereqsFor(oAttacker, oDefender) and
-		 		(not isImmuneTo(oDefender, oAttacker)) 	and (not isInterdictedBy(oAttacker, oDefender));
-	end,
-};
-
-
-
-local function initInputIsValid(tInput)
-	local sError 	= "Success";
-	local sType 	= type(tInput);
-
-	--check the table type
-	local bCont = sType == "table";
-	sError 		= bCont and sError or "Input is of type "..sType.."; expected type table.";
-
-	--check the table length
-	if (bCont) then
-		bCont = #tInput > 0;
-		sError 	= bCont and sError or "Input table is empty or is not numerically indexed.";
-	end
-
-
-	--check the indices and values
-	if (bCont) then
-		local tUnique = {};
-
-		for nIndex, sTarget in pairs(tInput) do
-
-			if (bCont) then
-				--index type
-				sType	= type(nIndex);
-				bCont	= sType == "number";
-				sError	= bCont and sError or "Index is of type "..sType.."; expected type number.";
-
-				--target type
-				if (bCont) then
-					sType	= type(sTarget);
-					bCont	= sType == "string";
-					sError	= bCont and sError or "Index is of type "..sType.."; expected type string.";
-				end
-
-				--variable compliant
-				if (bCont) then
-					bCont				= isvariablecompliant(sTarget);
-					sError				= bCont and sError or "Value of '"..tostring(sTarget).."' is not a proper variable name.\r\nAll target type names must be variable-compliant strings.";
-				end
-
-				--uniqueness
-				if (bCont) then
-					bCont 	= tUnique[sTarget] == nil;
-					sError 	= bCont and sError or "Duplicate target type '"..sTarget.."' at index "..nIndex..".\r\nEach target type must be unique.";
-					tUnique[sTarget] = true;
-				end
-
-			end
-
-		end
-
-	end
-
-	return bCont, sError;
-end
-
---[[#@
-@module targetor
-@func init
-@scope global
-@desc <p>Initializes the targetor class using the given target type strings.</p>
-@param table tTargets A numically-indexed table whose values are variable-name-compliant strings (e.g., DOG, HUMAN | ).
-@ret Nil nil Returns nothing.
+--[[!
+@fqxn CoG.Targetor
+@desc A lightweight targeting factory with Types, Targetable, Immunities, and
+Interdictors category objects. Configure categories using flat, nonempty tables
+of target types. Each vararg table is one TargetGroup. Strings are validated,
+trimmed, uppercased, deduplicated, and sorted. Groups match exactly regardless
+of order. Public checks accept Targetor objects. Restrictions always win.
+The group {"*"} means every group outside Types and cannot coexist with other
+groups in its category. Empty categories mean none.
+@ex
+local oGhost = Targetor();
+oGhost.Types.add({"GHOST", "UNDEAD"});
+local oHunter = Targetor();
+oHunter.Targetable.add({"UNDEAD", "GHOST"}, {"BEAST"});
+assert(oHunter.canTarget(oGhost));
 !]]
-function targetor.init(tTargets)
-	local bSuccess, sError = initInputIsValid(tTargets);
-	assert(bSuccess, "Error initializing targetor system.\r\nInput must be a numerically-indexed table whose values are variable-compliant strings.\r\n"..sError);
 
-	--localize the unpack function
-	local unp = unpack or table.unpack;
+local function normalizeGroup(tInput, sCategory)
 
-	--create the class enums
-	targetor.TARGET 		= enum("targetor.TARGET", 		{unp(tTargets)}, nil, true);
-	targetor.TARGETABLE 	= enum("targetor.TARGETABLE", 	{unp(tTargets)}, nil, true);
-	targetor.TARGETOR 		= enum("targetor.TARGETOR", 	{unp(tTargets)}, nil, true);
-	targetor.IMMUNITY 		= enum("targetor.IMMUNITY", 	{unp(tTargets)}, nil, true);
-	targetor.INTERDICTOR	= enum("targetor.INTERDICTOR", 	{unp(tTargets)}, nil, true);
-	targetor.PREREQ 		= enum("targetor.PREREQ", 		{unp(tTargets)}, nil, true);
-	targetor.PRIORITY 		= enum("targetor.PRIORITY", 	{unp(tTargets)}, nil, true);
-	targetor.THREAT 		= enum("targetor.THREAT", 		{unp(tTargets)}, nil, true);
+    -- Sort a new copy rather than the caller's table. Identity includes every
+    -- normalized member; no subset or partial group match is permitted.
+    type.assert.table(tInput, "number", "string", 1);
+    local tGroup = {};
+    local tSeen = {};
 
-	local sTarget 		= type(targetor.TARGET[1]);
-	local sTargetor		= type(targetor.TARGETOR[1]);
-	local sTargetable 	= type(targetor.TARGETABLE[1]);
-	local sImmunity 	= type(targetor.IMMUNITY[1]);
-	local sInterdictor 	= type(targetor.INTERDICTOR[1]);
-	local sPrereq 		= type(targetor.PREREQ[1]);
-	local sPriority 	= type(targetor.PRIORITY[1]);
-	local sThreat 		= type(targetor.THREAT[1]);
+    for nIndex, sType in pairs(tInput) do
+        assert(nIndex >= 1 and nIndex % 1 == 0, "TargetGroup indices must be positive integers.");
+        type.assert.string(sType, "%S+");
+        sType = sType:match("^%s*(.-)%s*$"):upper();
 
-	tCategoryIdicesByName = {
-		[sTarget] 		= 0;
-		[sTargetor] 	= 1;
-		[sTargetable] 	= 2;
-		[sImmunity] 	= 3;
-		[sInterdictor] 	= 4;
-		[sPrereq] 		= 5;
-		[sPriority] 	= 6;
-		[sThreat] 		= 7;
-	};
-
-	tCategoryTypesByName = {
-		[sTarget] 		= targetor.TARGET;
-		[sTargetor] 	= targetor.TARGETOR;
-		[sTargetable] 	= targetor.TARGETABLE;
-		[sImmunity] 	= targetor.IMMUNITY;
-		[sInterdictor] 	= targetor.INTERDICTOR;
-		[sPrereq] 		= targetor.PREREQ;
-		[sPriority] 	= targetor.PRIORITY;
-		[sThreat] 		= targetor.THREAT;
-	};
-
-	--setup the help system
-	local tHelp = {
-		["TARGET"]		= {desc = "Generic target types used in creation of a targetor object."},
-		["TARGETOR"]	= {desc = "What kind of target types I am (my types)."},
-		["TARGETABLE"]	= {desc = "Types I can target (if the target is not immune and I have no interdictor for it) (inclusive list). In order for me to target something, it is nessecary that my potential target have at least one of these as a TARGETOR type."},
-		["IMMUNITY"]	= {desc = "Target types that cannot target me regardless of any other factors (highest precendence)."},
-		["INTERDICTOR"]	= {desc = "Target types that I cannot target regardless of any other factors (highest precendence)."},
-		["PREREQ"]		= {desc = "The must-have type(s) required in order to target me (exclusive list); does not guarantee aquisition by a potential targetor; that is, it's nessecary, for the object attempting to target me, to have every PREREQ but not sufficient; they must also possess at least one proper targetable type that matches one of my TARGETOR types."},
-		["PRIORITY"]	= {desc = "What I try to target first. Items in this list are considered most important to least important, from first to last respectively (ascending in index value)."},
-		["THREAT"]		= {desc = "What I try to avoid first. Items in this list are considered most important to least important, from first to last respectively (ascending in index value)."},
-		["init"]		= {desc	= "Sets up the targetor system. This must be setup before instantiating any targetor objects."},
-	};
-
-	--create the help system
-	--print(type(comhelp(targetor, {}, tHelp)))
-	targetor.help = infusedhelp(targetor, {}, tHelp);
+        if not (tSeen[sType]) then
+            tSeen[sType] = true;
+            tGroup[#tGroup + 1] = sType;
+        end
+    end
+    assert(not tSeen["*"] or (#tGroup == 1 and sCategory ~= "Types"),
+           "The wildcard must be a standalone group outside Types.");
+    table.sort(tGroup);
+    return tGroup;
 end
 
-return targetor;
+local function groupsEqual(tLeft, tRight)
+
+    local bEqual = #tLeft == #tRight;
+
+    if (bEqual) then
+
+        for nIndex, sType in ipairs(tLeft) do
+
+            if (sType ~= tRight[nIndex]) then
+                bEqual = false;
+                break;
+            end
+        end
+    end
+
+    return bEqual;
+end
+
+local function findGroup(tGroups, tGroup)
+
+    local nFound;
+
+    for nIndex, tExisting in ipairs(tGroups) do
+
+        if (groupsEqual(tExisting, tGroup)) then
+            nFound = nIndex;
+            break;
+        end
+    end
+
+    return nFound;
+end
+
+local function copyGroups(tGroups)
+
+    local tCopy = {};
+
+    for nIndex, tGroup in ipairs(tGroups) do
+        local tNewGroup = {};
+
+        for nType, sType in ipairs(tGroup) do
+            tNewGroup[nType] = sType;
+        end
+        tCopy[nIndex] = tNewGroup;
+    end
+
+    return tCopy;
+end
+
+-- Keep explicit nil arguments visible so they fail validation.
+local function normalizeBatch(sCategory, ...)
+
+    local tGroups = {};
+
+    for nIndex = 1, select("#", ...) do
+        local tGroup = normalizeGroup(select(nIndex, ...), sCategory);
+
+        if not (findGroup(tGroups, tGroup)) then
+            tGroups[#tGroups + 1] = tGroup;
+        end
+    end
+
+    return tGroups;
+end
+
+local function validateWildcard(tGroups)
+
+    local bWildcard = false;
+
+    for _, tGroup in ipairs(tGroups) do
+        bWildcard = bWildcard or tGroup[1] == "*";
+    end
+    assert(not bWildcard or #tGroups == 1, "A wildcard category cannot contain other groups.");
+end
+
+--[[!
+@fqxn CoG.Targetor.Methods.Targetor
+@desc Creates an empty Targetor. Populate its categories with add or set.
+@return Targetor oTargetor The new object.
+!]]
+local function build(tState)
+
+    local tCategories = {Types = {}, Targetable = {}, Immunities = {}, Interdictors = {}};
+    local Targetor = {};
+    local TargetorDecoy = {};
+
+    for sCategory in pairs(tCategories) do
+        local Category = {};
+
+        --[[!
+        @fqxn CoG.Targetor.Categories.Methods.add
+        @desc Adds one or more flat TargetGroup tables. Duplicate groups are ignored.
+        The entire batch is validated before mutation. Zero arguments changes nothing.
+        @param table ... Each argument is one nonempty TargetGroup.
+        @return number nAdded Number of distinct groups added.
+        !]]
+        Category.add = function(...)
+
+            local tInput = normalizeBatch(sCategory, ...);
+            -- Stage the complete result so a wildcard conflict leaves storage intact.
+            local tNew = copyGroups(tCategories[sCategory]);
+            local nAdded = 0;
+
+            for _, tGroup in ipairs(tInput) do
+
+                if not (findGroup(tNew, tGroup)) then
+                    tNew[#tNew + 1] = tGroup;
+                    nAdded = nAdded + 1;
+                end
+            end
+            validateWildcard(tNew);
+            tCategories[sCategory] = tNew;
+            return nAdded;
+        end;
+
+        --[[!
+        @fqxn CoG.Targetor.Categories.Methods.set
+        @desc Replaces the category with the supplied TargetGroups after validating
+        the complete batch. Zero arguments clears it.
+        @param table ... Each argument is one nonempty TargetGroup.
+        !]]
+        Category.set = function(...)
+
+            local tNew = normalizeBatch(sCategory, ...);
+            validateWildcard(tNew);
+            tCategories[sCategory] = tNew;
+        end;
+
+        --[[!
+        @fqxn CoG.Targetor.Categories.Methods.remove
+        @desc Removes exact groups after validating the entire batch. Removing {"*"}
+        removes a wildcard; removing an ordinary group does not alter a wildcard.
+        @param table ... Each argument is one nonempty TargetGroup.
+        @return number nRemoved Number of distinct groups removed.
+        !]]
+        Category.remove = function(...)
+
+            local tInput = normalizeBatch(sCategory, ...);
+            local tNew = copyGroups(tCategories[sCategory]);
+            local nRemoved = 0;
+
+            for _, tGroup in ipairs(tInput) do
+                local nIndex = findGroup(tNew, tGroup);
+
+                if (nIndex) then
+                    table.remove(tNew, nIndex);
+                    nRemoved = nRemoved + 1;
+                end
+            end
+            tCategories[sCategory] = tNew;
+            return nRemoved;
+        end;
+
+        --[[!
+        @fqxn CoG.Targetor.Categories.Methods.get
+        @desc Returns independent copies of the stored TargetGroups for inspection.
+        @return table tGroups The list of groups, or an empty table.
+        !]]
+        Category.get = function()
+
+            -- Copies prevent callers from bypassing validation through returned data.
+            return copyGroups(tCategories[sCategory]);
+        end;
+
+        --[[!
+        @fqxn CoG.Targetor.Categories.Methods.clear
+        @desc Removes all groups from this category.
+        !]]
+        Category.clear = function()
+
+            tCategories[sCategory] = {};
+        end;
+
+        --[[!
+        @fqxn CoG.Targetor.Categories.Methods.has
+        @desc Checks whether any of the other Targetor's Types groups matches this
+        category. A wildcard matches every object, including an untyped one.
+        This is a category match only; canTarget evaluates all restrictions.
+        @param Targetor oOther The object whose Types are checked.
+        @return boolean bMatches Whether there is a match.
+        !]]
+        Category.has = function(oOther)
+
+            type.assert.custom(oOther, "Targetor");
+            local tGroups = tCategories[sCategory];
+            local bMatches = #tGroups == 1 and tGroups[1][1] == "*";
+            -- Category matching is separate from the final permission decision.
+
+            if not (bMatches) then
+                local tTypes = oOther.Types.get();
+
+                for _, tGroup in ipairs(tTypes) do
+
+                    if (findGroup(tGroups, tGroup)) then
+                        bMatches = true;
+                        break;
+                    end
+                end
+            end
+
+            return bMatches;
+        end;
+
+        local CategoryDecoy = {};
+        local CategoryMeta = {
+            __index = function(t, k)
+
+                return Category[k] or nil;
+            end,
+            __newindex = function(t, k, v)
+
+                error("Targetor categories must be changed through their methods.", 2);
+            end,
+            __len = function()
+
+                return #tCategories[sCategory];
+            end,
+        };
+        setmetatable(CategoryDecoy, CategoryMeta);
+        Targetor[sCategory] = CategoryDecoy;
+    end
+
+    --[[!
+    @fqxn CoG.Targetor.Methods.isImmuneTo
+    @desc Checks whether this object's Immunities match the source's Types.
+    @param Targetor oSource The source object.
+    @return boolean bImmune Whether this object is immune to the source.
+    !]]
+    Targetor.isImmuneTo = function(oSource)
+
+        return Targetor.Immunities.has(oSource);
+    end;
+
+    --[[!
+    @fqxn CoG.Targetor.Methods.isInterdictedBy
+    @desc Checks whether this object's Interdictors match the candidate's Types.
+    @param Targetor oCandidate The potential target.
+    @return boolean bBlocked Whether this object's interdictors block the candidate.
+    !]]
+    Targetor.isInterdictedBy = function(oCandidate)
+
+        return Targetor.Interdictors.has(oCandidate);
+    end;
+
+    --[[!
+    @fqxn CoG.Targetor.Methods.canTarget
+    @desc Requires a typed candidate matching Targetable, no candidate immunity to
+    this source, and no source interdictor against the candidate. Restrictions win.
+    @param Targetor oCandidate The potential target.
+    @return boolean bAllowed Whether this source can target the candidate.
+    !]]
+    Targetor.canTarget = function(oCandidate)
+
+        type.assert.custom(oCandidate, "Targetor");
+        local bAllowed = #oCandidate.Types > 0 and Targetor.Targetable.has(oCandidate);
+        -- Immunities belongs to the candidate; Interdictors belongs to this source.
+
+        if (bAllowed) then
+            bAllowed = not oCandidate.Immunities.has(TargetorDecoy);
+        end
+
+        if (bAllowed) then
+            bAllowed = not Targetor.isInterdictedBy(oCandidate);
+        end
+
+        return bAllowed;
+    end;
+
+    -- Nested lists belong only to serialized storage, never public entry input.
+
+    if (tState ~= nil) then
+        type.assert.table(tState, "string", "table");
+
+        for sCategory, tGroups in pairs(tState) do
+            assert(tCategories[sCategory] ~= nil, "Unknown Targetor state category.");
+            type.assert.table(tGroups, "number", "table");
+            local tNew = {};
+
+            for nIndex, tGroup in pairs(tGroups) do
+                assert(nIndex >= 1 and nIndex % 1 == 0, "State indices must be positive integers.");
+                tNew[#tNew + 1] = normalizeGroup(tGroup, sCategory);
+            end
+            Targetor[sCategory].set(table.unpack(tNew));
+        end
+    end
+
+    local function getState()
+
+        local tCopy = {};
+
+        for sCategory, tGroups in pairs(tCategories) do
+            tCopy[sCategory] = copyGroups(tGroups);
+        end
+
+        return tCopy;
+    end
+
+    local TargetorMeta = {
+        __type = "Targetor",
+        __index = function(t, k)
+
+            return Targetor[k] or nil;
+        end,
+        __newindex = function(t, k, v)
+
+            error("Targetor members cannot be assigned directly.", 2);
+        end,
+
+        --[[!
+        @fqxn CoG.Targetor.Metamethods.__serialize
+        @desc Returns independent plain category state for global serialize().
+        @return table tState The category state.
+        !]]
+        __serialize = getState,
+        --[[!
+        @fqxn CoG.Targetor.Metamethods.__clone
+        @desc Creates an independent copy with all category groups preserved.
+        @return Targetor oCopy The copied object.
+        !]]
+        __clone = function()
+
+            return build(getState());
+        end,
+    };
+    setmetatable(TargetorDecoy, TargetorMeta);
+    return TargetorDecoy;
+end
+
+local TargetorFactory = {
+    --[[!
+    @fqxn CoG.Targetor.Methods.deserialize
+    @desc Restores independent storage from the state produced by __serialize.
+    @param table tState The serialized category state.
+    @return Targetor oTargetor The restored object.
+    !]]
+    deserialize = function(tState)
+
+        type.assert.table(tState, "string", "table");
+        return build(tState);
+    end,
+};
+local TargetorFactoryMeta = {
+    __call = function(this, ...)
+
+        assert(select("#", ...) == 0, "Use Targetor() and configure its categories with flat TargetGroup tables.");
+        return build();
+    end,
+    __index = function(t, k)
+
+        return TargetorFactory[k] or nil;
+    end,
+    __newindex = function(t, k, v)
+
+        error("Targetor factory members cannot be assigned directly.", 2);
+    end,
+};
+local TargetorFactoryDecoy = {};
+TargetorFactoryMeta.__type = "TargetorFactory";
+TargetorFactoryMeta.__clone = function() return TargetorFactoryDecoy; end;
+TargetorFactoryMeta.__serialize = function() return "Targetor"; end;
+TargetorFactoryMeta.__metatable = table.readonly({
+    __type = TargetorFactoryMeta.__type,
+    __call = TargetorFactoryMeta.__call,
+    __clone = TargetorFactoryMeta.__clone,
+    __serialize = TargetorFactoryMeta.__serialize,
+});
+setmetatable(TargetorFactoryDecoy, TargetorFactoryMeta);
+require("LuaEx.lib.serializer").registerFactory(TargetorFactoryDecoy, {name = "Targetor", types = {"Targetor"}});
+return TargetorFactoryDecoy;

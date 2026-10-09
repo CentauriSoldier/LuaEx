@@ -1,527 +1,520 @@
-local rawtype 		= rawtype;
-local pairs 		= pairs;
-local setmetatable 	= setmetatable;
-local subtype       = subtype;
-local type 			= type;
---TODO documentation
+--[[!
+    @fqxn LuaEx.Libraries.struct
+    @desc Fixed-field records built by named factories. Field types are fixed;
+    a null default acquires its type on the first non-null assignment.
+    Read-only records protect field bindings, not the contents of referenced objects.
+    Defaults are copied for each instance; supplied values retain their identity.
+    Instances compare by identity and support pairs, cloning and serialization.
+    @ex
+    require("LuaEx.init");
 
---[[
-██╗      ██████╗  ██████╗ █████╗ ██╗
-██║     ██╔═══██╗██╔════╝██╔══██╗██║
-██║     ██║   ██║██║     ███████║██║
-██║     ██║   ██║██║     ██╔══██║██║
-███████╗╚██████╔╝╚██████╗██║  ██║███████╗
-╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝]]
+    -- Define the fields once, then create as many records as needed.
+    local BulletFactory = structfactory("DoxBullet", {
+        speed = 5,
+        damage = 10,
+        caliber = "9mm",
+        enabled = false,
+    });
 
-local factory = {
-    restrictedKeys = {},
-    repo = {
-        byName   = {},
-        byObject = {},
-    },
-};
-local struct = {
-    restrictedKeys = {__readOnly = true, __name},
-    repo = {
-        byName = {},
-    },
-};
+    local oStandard = BulletFactory();
+    local oHeavy = BulletFactory({damage = 25, caliber = ".45"});
+    oHeavy.speed = 3;
 
+    assert(oStandard.damage == 10);
+    assert(oHeavy.damage == 25 and oHeavy.speed == 3);
+    assert(oHeavy.enabled == false); -- false is a value, not a missing field.
 
---TODO force null values to be set before allow retrieval
-local function dummy() end --INCOMPLETE TODO change this to use an actrual table for newindex, and index
+    -- Only declared fields exist, and their types cannot change.
+    assert(not pcall(function() oHeavy.damage = "high"; end));
+    assert(not pcall(function() oHeavy.weight = 20; end));
+    assert(not pcall(function() return oHeavy.weight; end));
 
-local function errbit()
-    error("Attempt to perform bitwise operation on struct factory constructor.", 3);
-end
-
-local function errmath()
-    error("Attempt to perform mathmatical operation on struct factory constructor.", 3);
-end
-
-local function errlen()
-    error("Attempt to get length of struct factory constructor.", 3);
-end
-
-local function erriterate()
-    error("Attempt to iterate over struct factory constructor.", 3);
-end
-
-local function errbitinstance()
-    error("Attempt to perform bitwise operation on struct factory.", 3);
-end
-
-local function errmathinstance()
-    error("Attempt to perform mathmatical operation on struct factory.", 3);
-end
-
-local function errleninstance()
-    error("Attempt to get length of struct factory.", 3);
-end
-
-local function erriterateinstance()
-    error("Attempt to improperly iterate over struct factory using ipairs.\nOnly pairs is supported.", 3);
-end
-
-local function validateName(sName)
-    local bIsValidString = rawtype(sName) == "string" and sName:gsub("[%s]", "") ~= "";
-    --TODO also check for class and enum names FIX tthese all need regsitered with the luaex table
-
-    if not (bIsValidString) then
-        error("Error creating struct factory. Argument 1 (name) must be a non-blank string.\nType given: "..type(sName)..'.', 3);
+    local tFields = {};
+    for sKey, vValue in pairs(oHeavy) do
+        tFields[sKey] = vValue;
     end
+    assert(tFields.caliber == ".45" and tFields.enabled == false);
+!]]
+local _tFactories = {};
+local _tFactoryObjects = setmetatable({}, {__mode = "k"});
+local _tInstances = setmetatable({}, {__mode = "k"});
+local _tReserved = {__name = true, __readOnly = true, deserialize = true};
 
-    local bNameExists = rawtype(factory.repo.byName[sName]) ~= "nil";
+local buildInstance;
+local buildFactory;
+local deserializeInstance;
 
-    if (bNameExists) then
-        error("Error creating struct factory. Factory of type '"..sName.."' already exists; Cannot overwrite.", 3);
-    end
-
+local function fail(sMessage)
+    error("Struct: "..sMessage, 3);
 end
 
-local function processPropertiesTable(sName, tProperties, tConstraint, bReadOnly)
+local function plainTable(vInput, sLabel)
+    assert(type(vInput) == "table", "Struct: "..sLabel.." must be a plain table.");
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.struct.EnumKeys
+    @desc Enum members may be field keys. Use the member itself when constructing,
+    reading and assigning; its name string is a different key.
+    @ex
+    require("LuaEx.init");
+
+    local Stat = enum("DoxStructStat", {"HEALTH", "ARMOR"}, nil, true);
+    local StatsFactory = structfactory("DoxStats", {
+        [Stat.HEALTH] = 100,
+        [Stat.ARMOR] = 0,
+    });
+
+    local oStats = StatsFactory({[Stat.ARMOR] = 15});
+    oStats[Stat.HEALTH] = 75;
+
+    assert(oStats[Stat.HEALTH] == 75 and oStats[Stat.ARMOR] == 15);
+    assert(not pcall(function() return oStats.HEALTH; end));
+!]]
+local function validKey(vKey)
+    local bRet = rawtype(vKey) == "string" or require("LuaEx.lib.enum").isitem(vKey);
+    return bRet;
+end
+
+-- Preserve public type metadata without exposing lifecycle hooks or mutable metadata.
+-- Struct loads before table hooks, so this facade has no dependency on table.readonly.
+local function protect(oDecoy, tMeta)
+    local tInfo = {__type = tMeta.__type, __subtype = tMeta.__subtype, __name = tMeta.__name};
+    local MetaDecoy = {};
+
+    rawsetmetatable(MetaDecoy, {
+        __index = tInfo,
+        __newindex = function() fail("metadata is read-only."); end,
+        __metatable = false,
+    });
+
+    tMeta.__metatable = MetaDecoy;
+    rawsetmetatable(oDecoy, tMeta);
+end
+
+local function validateFields(tValues, tTypes)
+    plainTable(tValues, "field values");
+
+    for vKey, vValue in pairs(tValues) do
+        local sExpected = tTypes[vKey];
+        assert(sExpected ~= nil, "Struct: unknown field '"..tostring(vKey).."'.");
+        local sGiven = type(vValue);
+        assert(sGiven ~= "nil", "Struct: fields cannot be nil.");
+        assert(sExpected == "null" or sGiven == sExpected or sGiven == "null",
+               "Struct: field '"..tostring(vKey).."' expects "..sExpected..", got "..sGiven..".");
+    end
+end
+
+local function copyTypes(tTypes)
     local tRet = {};
 
-    if (type(tProperties) ~= "table") then
-        error("Error creating read-only struct factory, '"..sName.."'.\nArgument 2 (Properies Input Table) must be of type table and have at least one key.", 3);
-    end
-
-    local bHasAtLeastOneKey = false;
-
-    for vKey, vValue in pairs(tProperties) do
-
-        --ensure all keys are valid strings
-        if not (rawtype(vKey) == "string" or subtype(vKey) == "enumitem") then
-            error("Error creating struct factory, '"..sName.."' at key "..tostring(vKey)..".\nKey type expected: string (or subtype: enumitem). Type and subtype given: "..type(vKey).." | "..subtype(vKey), 3);
-        end
-
-        local sValType = type(vValue);
-
-        --make sure this is not a restricted keys
-        if (struct.restrictedKeys[vKey]) then
-            error("Error creating struct factory, '"..sName.."' with key, '"..tostring(vKey).."'.\nKey is restricted.", 3);
-        end
-
-        --check for null values if this is read-only
-        if (bReadOnly and sValType == "null") then
-            error("Error creating read-only struct factory, '"..sName.."'.\nValue at key '"..vKey.."' is null.", 3);
-        end
-
-        tRet[vKey] = {
-            type 			= sValType,
-            defaultvalue 	= vValue, --FIX if this is a table or object, it will shared...this is bad; clone it
-        };
-
-        --log the string key if it exists
-        bHasAtLeastOneKey = true;
-    end
-
-    if not (bHasAtLeastOneKey) then
-        error("Error creating read-only struct factory, '"..sName.."'.\nArgument 2 (Properies Input Table) must be of type table and have at least one key.", 3);
+    for vKey, sType in pairs(tTypes) do
+        tRet[vKey] = sType;
     end
 
     return tRet;
 end
 
---TODO make sure the subtype name does not exist (because it could be an enum, class, etc.)
---TODO go through this to make sure all the values are accessing the correct tbales (tfactory, tFactory, etc.)
+-- Allocate before copying values so the cloner can reconnect circular private state.
+--[[!
+    @fqxn LuaEx.Libraries.struct.CloningAndOwnership
+    @desc Defaults are captured when the factory is defined and independently copied
+    for each instance. Explicit overrides retain their supplied identity. Cloning
+    copies current values and preserves aliases/cycles within the copied record.
+    @ex
+    require("LuaEx.init");
 
+    local tDefault = {quantity = 1};
+    local InventoryFactory = structfactory("DoxInventory", {stock = tDefault});
+    tDefault.quantity = 99; -- The factory already owns a snapshot of this default.
 
+    local oFirst = InventoryFactory();
+    local oSecond = InventoryFactory();
+    oFirst.stock.quantity = 5;
+    assert(oSecond.stock.quantity == 1);
 
+    local tSupplied = {quantity = 8};
+    local oThird = InventoryFactory({stock = tSupplied});
+    assert(rawequal(oThird.stock, tSupplied));
 
---[[
-███████╗ █████╗  ██████╗████████╗ ██████╗ ██████╗ ██╗   ██╗
-██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝
-█████╗  ███████║██║        ██║   ██║   ██║██████╔╝ ╚████╔╝
-██╔══╝  ██╔══██║██║        ██║   ██║   ██║██╔══██╗  ╚██╔╝
-██║     ██║  ██║╚██████╗   ██║   ╚██████╔╝██║  ██║   ██║
-╚═╝     ╚═╝  ╚═╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ]]
+    local oCopy = clone(oThird);
+    assert(oCopy.stock.quantity == 8 and not rawequal(oCopy.stock, tSupplied));
+    oCopy.stock.quantity = 12;
+    assert(oThird.stock.quantity == 8);
+    assert(rawequal(clone(InventoryFactory), InventoryFactory));
+!]]
+local function newInstance(tFactory, tValues, tTypes)
+    local InstanceDecoy = {};
+    local tData = {factory = tFactory, values = tValues, types = tTypes};
+    _tInstances[InstanceDecoy] = tData;
 
+    protect(InstanceDecoy, {
+        __type = "struct",
+        __subtype = tFactory.name,
+        __name = tFactory.name.." struct",
 
-function factory.build(__IGNORE__, sName, tProperties, bReadOnlyCheck)
-    validateName(sName);
-    local bReadOnly     = rawtype(bReadOnlyCheck) == "boolean" and bReadOnlyCheck or false;
-    local tConstraints  = processPropertiesTable(sName, tProperties, bReadOnly);
-
-    local tFactoryData = {
-        actual      = {
-            __readOnly  = bReadOnly,
-            __name      = sName,
-            deserialize = function()--FINISH
-
-            end,
-        },
-        constraints = tConstraints,
-        decoy       = {}, --this is the returned factory object
-        name        = sName, --TODO is this ever used"? Maybe for checks involving only the object type?
-        readOnly    = bReadOnly,
-    };
-
-    --store the factory in the repo
-    factory.repo.byName[sName]                = tFactoryData;
-    factory.repo.byObject[tFactoryData.decoy] = tFactoryData;
-
-    --set the metatable
-    factory.setMetatable(sName);
-
-    return tFactoryData.decoy;
-end
-
-
-function factory.setMetatable(sName)
-    local tFactory = factory.repo.byName[sName]
-
-    local tMeta = {
-        __add 		= errmath,
-        __band 		= errbit,
-        __bor 		= errbit,
-        __bnot 		= errbit,
-        __bxor 		= errbit,
-        __call 		= function (this, ...)
-            return struct.build(sName, ...);
-        end,
-        __close 	= false,
-        __concat	= errmath,
-        --__count 	= factoryscount,
-        __div		= errmath,
-        __eq 		= eq,
-        __gc		= false,
-        __idiv		= errmath,
-        __index 	= function(t, k)
+        __index = function(_, vKey)
             local vRet;
 
-            if (rawtype(tFactory.actual[k]) == "nil") then
-                error("Attempt to index nonexistent key, '${key}', in struct, '${structobject}'." % {key = tostring(k), structobject = sName}, 3);
-            end
-
-
-            return tFactory.actual[k];
-        end,
-        __ipairs	= erriterate,
-        __le		= le,--FINISH
-        __len 		= errlen,
-        __lt		= lt,--FINISH
-        __mod		= errmath,
-        --__mode,
-        __metaguard = true,
-        --__metatable	= nil,
-        __mul		= errmath,
-        __name		= "struct",
-        __newindex 	= function(t, k, v)
-            error("Attempt to modify struct factory, '"..sName.."'");
-        end,
-        __pairs		= erriterate,
-        __pow		= errmath,
-        __shl  		= errbit,
-        __shr  		= errbit,
-        __serialize = function()
-            local tRet = {
-                constraints = {},
-                name        = sName,
-                readOnly    = tFactory.actual.__readOnly,
-            };
-
-            for k, v in pairs(tFactory.constraints) do
-                tRet.constraints[k] = v.defaultvalue;
-            end
-
-            return tRet;
-        end,
-        __sub		= errbit,
-        __subtype	= sName,
-        __tostring	= function()--TODO finish
-            return "'"..sName.."' struct factory\nread-only: "..tostring(tFactory.actual.__readOnly)..'\n'..serialize(tFactory.constraints);
-        end,
-        __type		= "structfactory",--NOTE these also need is functions if they don't have them already!!
-        __unm		= errmath,
-    };
-
-    rawsetmetatable(tFactory.decoy, tMeta);
-end
-
-
---[[
-███████╗████████╗██████╗ ██╗   ██╗ ██████╗████████╗
-██╔════╝╚══██╔══╝██╔══██╗██║   ██║██╔════╝╚══██╔══╝
-███████╗   ██║   ██████╔╝██║   ██║██║        ██║
-╚════██║   ██║   ██╔══██╗██║   ██║██║        ██║
-███████║   ██║   ██║  ██║╚██████╔╝╚██████╗   ██║
-╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝  ╚═════╝   ╚═╝   ]]
---TOTO QUESTION WHY are these not all localized functions?
-
-function struct.build(sName, tInputArgs)
-    local tArgs		    = type(tInputArgs) == "table" and tInputArgs or nil;
-    local tFactory      = factory.repo.byName[sName];
-    local tConstraints  = tFactory.constraints;
-    local tStructActual = {};
-    local tStructInfo   = {};
-    local tStructDecoy  = {};
-
-    --setup the default values first
-    for sKey, tVals in pairs(tConstraints) do
-        tStructActual[sKey] = {
-            type 	= tVals.type,
-            value 	= clone(tVals.defaultvalue),
-        };
-    end
-
-    --next, try to process any valid input
-    if (tArgs) then
-
-        for sKey, vValue in pairs(tArgs) do
-            local sValType 		= type(vValue);
-            local bValueIsNull	= sValType == "null";
-
-            --make certain the key exists in the tConstraints table
-            if (rawtype(tConstraints[sKey]) == "nil") then
-                error("Error setting key in struct factory, '"..sName.."'.\nKey, '"..sKey.."', does not exist.", 3);
-            end
-
-            --handle cases of default tConstraints value types being null
-            if (tStructActual[sKey].type == "null" and not bValueIsNull) then
-                tStructActual[sKey].type  = sValType;
-            end
-
-            --be sure the value type is correct
-            if (sValType ~= tStructActual[sKey].type) then
-                error(  "Error setting value at key, '${key}', in struct factory, '${subtype}'.\nType expected: ${expected}. Type given: ${given}." %
-                        {subtype = sName, key= sKey, expected = tStructActual[sKey].type, given = sValType}, 3);
-            end
-
-            tStructActual[sKey].value = vValue;--TODO clone this too;
-        end
-
-    end
-
-    --set the reserved properties
-    tStructInfo.__readOnly = tFactory.actual.__readOnly;
-    --tStructInfo.__factory  = tFactory.decoy;
-    tStructInfo.__name     = sName;
-
-
-    --set this struct's metatable
-    struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy, tFactory);
-
-    --register the struct type with the serializer
-    --serializer.registerType(sName, tStructDecoy);
-
-    return tStructDecoy;
-end
-
-
-function struct.setMetatable(sName, tStructInfo, tStructActual, tStructDecoy, tFactory)
-    local tMeta = {
-        __clone     = function()
-            local tArgs = {};
-
-            for sKey, tValue in pairs(tStructActual) do
-                tArgs[sKey] = tValue.value; --TODO FIX CLONE ALL CLONEABLE ITEMS such as tables
-            end
-
-            return tFactory.decoy(sName, tArgs, tStructActual.__readOnly);
-        end,
-        __close 	= false,
-        __concat	= errmathinstance,
-        __div		= errmathinstance,
-        __eq 		= eq,--TODO finish
-        __gc		= false,
-        __idiv		= errmathinstance,
-        --__ipairs	= erriterateinstance,
-        __le		= le,--TODO finish
-        __len 		= errleninstance,
-        __lt		= lt,--TODO finish
-        __mod		= errmathinstance,
-        __call 		= nil,
-        __index 	= function(t, k)
-            local vRet;
-            local sActualType = rawtype(tStructActual[k]);
-            local sInfoType;
-
-            if (sActualType == "nil") then
-                sInfoType = rawtype(tStructInfo[k]);
-
-                if (sInfoType == "nil") then
-                    error("Attempt to index nonexistent key, '${key}', in struct, '${structobject}'." % {key = tostring(k), structobject = sName}, 3);
-
-                else
-                    vRet = tStructInfo[k];
-                end
-
+            if (vKey == "__name") then
+                vRet = tFactory.name;
+            elseif (vKey == "__readOnly") then
+                vRet = tFactory.readOnly;
             else
-                vRet = tStructActual[k].value;
+                assert(tTypes[vKey] ~= nil, "Struct: unknown field '"..tostring(vKey).."'.");
+                vRet = tData.values[vKey];
             end
 
             return vRet;
         end,
-        __lt = function(l, r)
-            return false;
+
+        __newindex = function(_, vKey, vValue)
+            assert(not tFactory.readOnly, "Struct: cannot modify read-only '"..tFactory.name.."'.");
+            assert(tTypes[vKey] ~= nil, "Struct: unknown field '"..tostring(vKey).."'.");
+            assert(vValue ~= nil, "Struct: fields cannot be nil.");
+            local sGiven = type(vValue);
+            local sExpected = tTypes[vKey];
+            assert(sExpected == "null" or sGiven == sExpected or sGiven == "null",
+                   "Struct: field '"..tostring(vKey).."' expects "..sExpected..", got "..sGiven..".");
+
+            if (sExpected == "null" and sGiven ~= "null") then
+                tTypes[vKey] = sGiven;
+            end
+
+            tData.values[vKey] = vValue;
         end,
-        __mul		= errmathinstance,
-        __name		= sName.." struct",
-        __newindex 	= function(t, k, v)
-            local sIndexType = type(k);
-            local sValType 	 = type(v);
 
-            --check for immutability
-            if (bReadOnly) then
-                error("Attempt to modify read-only struct, '"..sName.."'.", 3);
-            end
-
-            if (sIndexType ~= "string") then
-                error("Attempt to index non-string key, '${key}' (${type}), in struct, '${struct}'." %
-                {key = tostring(k), type = sIndexType, struct = sName}, 3);
-            end
-
-            --make certain the key exists in the table
-            if (rawtype(tStructActual[k]) == "nil") then
-                error("Attempt to index nonexistent key, '${key}', in struct, '${struct}'." %
-                {key = k, struct = sName}, 3);
-            end
-
-            if (sValType == "nil") then
-                error("Attempt to set key, '${key}' (${type}), in struct, '${struct}' to nil." %
-                {key = tostring(k), type = sIndexType, struct = sName}, 3);
-            end
-
-            --handle cases of default value types being null
-            if (tStructActual[k].type == "null") then
-                tStructActual[k].type = sValType;
-            end
-
-            --be sure the value type is correct
-            if (sValType ~= tStructActual[k].type) then
-                error(  "Error setting value at key, '${key}', in struct, '${subtype}'.\nType expected: ${expected}. Type given: ${given}." %
-                        {subtype = sName, key = tostring(k), expected = tStructActual[k].type, given = sValType}, 3);
-            end
-
-            --if nothing has gone awry, set the value
-            tStructActual[k].value = v;
+        __pairs = function()
+            -- Do not expose the private values table as the iterator's state.
+            return function(_, vKey)
+                return next(tData.values, vKey);
+            end, nil, nil;
         end,
-        __pairs = function(t)
-            return function(_, k)
-                local v;
-                k, v = next(tStructActual, k)
 
-                if k then
-                    return k, v.value
-                end
+        __clone = function(oSource)
+            local CopyDecoy = newInstance(tFactory, {}, copyTypes(tTypes));
+            cloner.registerCopy(oSource, CopyDecoy);
+            _tInstances[CopyDecoy].values = clone(tData.values);
 
-            end, t, nil
+            return CopyDecoy;
         end,
-        __pow		= errmathinstance,
-        __serialize = function()--LEFT OFF HERE
-            --FINISH
-            local tData = {
-                factory  = sName,
-                readOnly = tStructInfo.__readOnly,
-                values   = {},
-            };
 
-            for sKey, tValue in pairs(tStructActual) do
-                tData.values[sKey] = tValue.value;
-            end
-
-            return tData;
+        __serialize = function()
+            return {factory = tFactory.decoy, readOnly = tFactory.readOnly,
+                    values = tData.values, types = copyTypes(tTypes)};
         end,
-        __shl  		= errbitinstance,
-        __shr  		= errbitinstance,
-        __sub		= errbitinstance,
-        __subtype	= sName,
-        __tostring	= function()
-            return "'"..sName.."'\nread-only: "..tStructInfo.__readOnly..'\n'..serialize(tStructActual);
-        end,
-        __type		= "struct",
-        __unm		= errmathinstance,
-    };
 
-    rawsetmetatable(tStructDecoy, tMeta);
+        __tostring = function()
+            return "'"..tFactory.name.."' struct (read-only: "..tostring(tFactory.readOnly)..")";
+        end,
+    });
+
+    return InstanceDecoy;
 end
 
+buildInstance = function(tFactory, tInput)
+    assert(tInput == nil or type(tInput) == "table", "Struct: initializer must be a plain table or nil.");
 
+    if (tInput ~= nil) then
+        validateFields(tInput, tFactory.types);
+    end
 
+    -- Copy all defaults together to preserve aliases within one instance, while
+    -- starting an independent traversal for defaults owned by another instance.
+    local tValues = cloner.cloneIndependent(tFactory.defaults);
+    local tTypes = copyTypes(tFactory.types);
 
+    for vKey, vValue in pairs(tInput or {}) do
+        assert(not tFactory.readOnly or type(vValue) ~= "null", "Struct: read-only fields cannot be null.");
+        tValues[vKey] = vValue;
 
---[[
-██████╗ ███████╗████████╗██╗   ██╗██████╗ ███╗   ██╗
-██╔══██╗██╔════╝╚══██╔══╝██║   ██║██╔══██╗████╗  ██║
-██████╔╝█████╗     ██║   ██║   ██║██████╔╝██╔██╗ ██║
-██╔══██╗██╔══╝     ██║   ██║   ██║██╔══██╗██║╚██╗██║
-██║  ██║███████╗   ██║   ╚██████╔╝██║  ██║██║ ╚████║
-╚═╝  ╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝]]
+        if (tTypes[vKey] == "null" and type(vValue) ~= "null") then
+            tTypes[vKey] = type(vValue);
+        end
+    end
 
+    return newInstance(tFactory, tValues, tTypes);
+end
 
-local tStructActual = {
-    deserialize = function(tData)
-        local sName             = tData.factory;
-        local tFactory          = factory.repo.byName[sName] or nil;
+--[[!
+    @fqxn LuaEx.Libraries.struct.deserialize
+    @desc Restores a record snapshot. Accepts current factory references and legacy
+    factory names. Chosen null-field types and read-only policy are validated before allocation.
+    @param table tData The snapshot returned by the instance serialization hook.
+    @ret struct The restored record.
+    @ex
+    require("LuaEx.init");
 
-        if not (tFactory) then
-            error("Error deserializing struct, '"..sName.."'.\nNo such struct factory exists.", 3);
+    local ProfileFactory = structfactory("DoxProfile", {score = 0, owner = null});
+    local oProfile = ProfileFactory({score = 42});
+    oProfile.owner = "James"; -- First non-null value binds this field to string.
+    oProfile.owner = null; -- Clearing it does not forget that binding.
+    assert(not pcall(function() oProfile.owner = 123; end));
+
+    -- Global persistence reconstructs the factory dependency and current fields.
+    local sSave = serialize(oProfile);
+    local oRestored = deserialize(sSave);
+    assert(oRestored.score == 42 and oRestored.owner == null);
+    assert(not pcall(function() oRestored.owner = false; end));
+    oRestored.owner = "Kaeley";
+    assert(oProfile.owner == null);
+
+    -- Explicit restoration takes a snapshot table, not the serialized string.
+    -- Omit types only for legacy snapshots without historical null-field bindings.
+    local oExplicit = ProfileFactory.deserialize({
+        factory = ProfileFactory,
+        readOnly = false,
+        values = {score = 7, owner = "Alex"},
+        types = {score = "number", owner = "string"},
+    });
+    assert(oExplicit.score == 7 and oExplicit.owner == "Alex");
+!]]
+deserializeInstance = function(tData)
+    plainTable(tData, "snapshot");
+    local tFactory = rawtype(tData.factory) == "string" and _tFactories[tData.factory]
+                     or _tFactoryObjects[tData.factory];
+    assert(tFactory, "Struct: snapshot factory is not registered.");
+    assert(tData.readOnly == nil or tData.readOnly == tFactory.readOnly,
+           "Struct: snapshot read-only policy conflicts with its factory.");
+    validateFields(tData.values, tFactory.types);
+    local tTypes = copyTypes(tFactory.types);
+
+    if (tData.types ~= nil) then
+        plainTable(tData.types, "snapshot types");
+
+        for vKey, sType in pairs(tData.types) do
+            assert(tTypes[vKey] ~= nil and rawtype(sType) == "string" and sType ~= "nil" and sType ~= "",
+                   "Struct: invalid snapshot field type.");
+            assert(tTypes[vKey] == "null" or tTypes[vKey] == sType, "Struct: snapshot changes a declared field type.");
+            tTypes[vKey] = sType;
+        end
+    end
+
+    for vKey in pairs(tTypes) do
+        assert(tData.values[vKey] ~= nil, "Struct: snapshot is missing field '"..tostring(vKey).."'.");
+        assert(tData.types == nil or tData.types[vKey] ~= nil, "Struct: snapshot is missing a field type.");
+        assert(not tFactory.readOnly or type(tData.values[vKey]) ~= "null", "Struct: read-only fields cannot be null.");
+
+        if (tTypes[vKey] == "null" and type(tData.values[vKey]) ~= "null") then
+            tTypes[vKey] = type(tData.values[vKey]);
+        end
+    end
+
+    validateFields(tData.values, tTypes);
+    -- Decoder-provided values already form an owned graph; keep their aliases.
+    return newInstance(tFactory, tData.values, tTypes);
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.structfactory.__call
+    @desc Defines a named fixed-field factory. Keys may be strings or enum members;
+    metadata names are reserved. Defaults are captured independently. A read-only
+    factory cannot have null defaults. Calling the returned factory accepts optional field overrides.
+    @param string sName Unique non-blank factory name.
+    @param table tDefaults Nonempty field defaults.
+    @param boolean bReadOnly Optional; defaults to false.
+    @ret structfactory The record factory.
+    @ex
+    require("LuaEx.init");
+
+    local SettingsFactory = structfactory("DoxFrozenSettings", {
+        enabled = false,
+        options = {volume = 50},
+    }, true);
+    local oSettings = SettingsFactory({enabled = true});
+
+    assert(oSettings.__name == "DoxFrozenSettings" and oSettings.__readOnly);
+    assert(not pcall(function() oSettings.enabled = false; end));
+    assert(not pcall(function() oSettings.options = {}; end));
+
+    -- Read-only protects bindings; a referenced table's contents are still mutable.
+    oSettings.options.volume = 25;
+    assert(oSettings.options.volume == 25);
+
+    local oRestored = deserialize(serialize(oSettings));
+    assert(oRestored.enabled and oRestored.options.volume == 25);
+    assert(not pcall(function() oRestored.enabled = false; end));
+    assert(not pcall(structfactory, "DoxInvalidFrozen", {owner = null}, true));
+!]]
+buildFactory = function(sName, tDefaults, bReadOnly)
+    assert(rawtype(sName) == "string" and sName:find("%S"), "Struct: name must be a non-blank string.");
+    assert(_tFactories[sName] == nil, "Struct: factory '"..sName.."' already exists.");
+    assert(bReadOnly == nil or rawtype(bReadOnly) == "boolean", "Struct: read-only flag must be boolean.");
+    plainTable(tDefaults, "defaults");
+    local tTypes = {};
+    local nCount = 0;
+
+    for vKey, vValue in pairs(tDefaults) do
+        assert(validKey(vKey) and not _tReserved[vKey], "Struct: invalid or reserved field '"..tostring(vKey).."'.");
+        assert(not bReadOnly or type(vValue) ~= "null", "Struct: read-only defaults cannot be null.");
+        tTypes[vKey] = type(vValue);
+        nCount = nCount + 1;
+    end
+
+    assert(nCount > 0, "Struct: defaults cannot be empty.");
+    local tFactory = {name = sName, readOnly = bReadOnly == true, types = tTypes,
+                      defaults = cloner.cloneIndependent(tDefaults), decoy = {}};
+
+    protect(tFactory.decoy, {
+        __type = "structfactory",
+        __subtype = sName,
+        __name = sName.." struct factory",
+        __call = function(_, tInput, ...)
+            assert(select("#", ...) == 0, "Struct: expected at most one initializer.");
+            return buildInstance(tFactory, tInput);
+        end,
+        __index = function(_, vKey)
+            local vRet;
+
+            if (vKey == "__name") then
+                vRet = sName;
+            elseif (vKey == "__readOnly") then
+                vRet = tFactory.readOnly;
+            elseif (vKey == "deserialize") then
+                vRet = function(tData)
+                    local oRet = deserializeInstance(tData);
+                    assert(_tInstances[oRet].factory == tFactory, "Struct: snapshot belongs to another factory.");
+                    return oRet;
+                end;
+            else
+                fail("unknown factory member '"..tostring(vKey).."'.");
+            end
+
+            return vRet;
+        end,
+        __newindex = function() fail("factory is read-only."); end,
+        __clone = function() return tFactory.decoy; end,
+        __serialize = function()
+            return {name = sName, readOnly = tFactory.readOnly, constraints = tFactory.defaults};
+        end,
+        __tostring = function()
+            return "'"..sName.."' struct factory (read-only: "..tostring(tFactory.readOnly)..")";
+        end,
+    });
+
+    -- Publish only after validation, copying and metatable construction succeed.
+    _tFactories[sName] = tFactory;
+    _tFactoryObjects[tFactory.decoy] = tFactory;
+
+    return tFactory.decoy;
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.structfactory.deserialize
+    @desc Restores a factory definition. An existing name is reused only when its
+    field names/types and read-only policy agree. Existing defaults remain authoritative.
+    @param table tData Factory snapshot with name, constraints and readOnly.
+    @ret structfactory The restored or existing factory.
+    @ex
+    require("LuaEx.init");
+
+    -- A definition snapshot can create a factory that does not exist yet.
+    local PointFactory = structfactory.deserialize({
+        name = "DoxStructPoint",
+        readOnly = false,
+        constraints = {x = 0, y = 0},
+    });
+    local oPoint = PointFactory({x = 3, y = 4});
+    assert(oPoint.x == 3 and oPoint.y == 4);
+
+    -- A saved existing factory resolves to the same registered factory identity.
+    local RestoredFactory = deserialize(serialize(PointFactory));
+    assert(rawequal(RestoredFactory, PointFactory));
+
+    -- An existing name cannot silently acquire a different field schema.
+    assert(not pcall(structfactory.deserialize, {
+        name = "DoxStructPoint",
+        readOnly = false,
+        constraints = {x = "wrong", y = 0},
+    }));
+!]]
+local function deserializeFactory(tData)
+    plainTable(tData, "factory snapshot");
+    assert(rawtype(tData.name) == "string" and tData.name:find("%S"), "Struct: invalid snapshot factory name.");
+    local bReadOnly = tData.readOnly;
+    if (bReadOnly == nil) then bReadOnly = tData.isReadOnly; end
+    assert(bReadOnly == nil or rawtype(bReadOnly) == "boolean", "Struct: invalid snapshot read-only flag.");
+    plainTable(tData.constraints, "factory snapshot defaults");
+    local tExisting = _tFactories[tData.name];
+    local Factory;
+
+    if (tExisting) then
+        assert(tExisting.readOnly == (bReadOnly == true), "Struct: factory read-only policy conflict.");
+        local nCount = 0;
+
+        for vKey, vValue in pairs(tData.constraints) do
+            assert(tExisting.types[vKey] == type(vValue), "Struct: factory schema conflict.");
+            nCount = nCount + 1;
         end
 
-        return struct.build(sName, tData.values);
-    end,
-};
-local tStructDecoy = {};
+        for vKey in pairs(tExisting.types) do
+            assert(tData.constraints[vKey] ~= nil, "Struct: factory schema is missing a field.");
+        end
 
-setmetatable(tStructDecoy,
-{
-    __call 		= function(t, ...)
-        local xStruct = factory.build(...);
-        return xStruct();
+        assert(nCount > 0, "Struct: factory defaults cannot be empty.");
+        Factory = tExisting.decoy;
+    else
+        Factory = buildFactory(tData.name, tData.constraints, bReadOnly);
+    end
+
+    return Factory;
+end
+
+local StructDecoy = {};
+local StructFactoryDecoy = {};
+
+--[[!
+    @fqxn LuaEx.Libraries.struct.__call
+    @desc Defines a factory and returns its default instance. Use structfactory
+    when multiple instances of the same named record are needed.
+    @param string sName Unique non-blank factory name.
+    @param table tDefaults Nonempty field defaults.
+    @param boolean bReadOnly Optional; defaults to false.
+    @ret struct The default record.
+    @ex
+    require("LuaEx.init");
+
+    -- For a single record, define its factory and create its default instance together.
+    local oWindow = struct("DoxWindowSize", {width = 800, height = 600});
+    oWindow.width = 1024;
+    assert(oWindow.width == 1024 and oWindow.height == 600);
+
+    local oCopy = clone(oWindow);
+    oCopy.height = 768;
+    assert(oWindow.height == 600 and oCopy.height == 768);
+
+    -- Names identify factory definitions; use a factory for repeated construction.
+    assert(not pcall(struct, "DoxWindowSize", {width = 1, height = 1}));
+!]]
+protect(StructDecoy, {
+    __type = "structfactory",
+    __call = function(_, sName, tDefaults, bReadOnly, ...)
+        assert(select("#", ...) == 0, "Struct: too many constructor arguments.");
+        local Factory = buildFactory(sName, tDefaults, bReadOnly);
+        return Factory();
     end,
-    __clones     = function()
-        return tStructDecoy;
-    end,
-    __index 	= function(t, k, v)
-        return tStructActual[k] or nil;
-    end,
-    __newindex 	= dummy,--THROW ERROR HERE
-    __serialize = function()
-        return "struct";
-    end,
-    __tostring = function()
-        return "structfactory";
-    end,
-    __type 		= "structfactory",
+    __index = {deserialize = deserializeInstance},
+    __newindex = function() fail("struct constructor is read-only."); end,
+    __clone = function() return StructDecoy; end,
+    __serialize = function() return "struct"; end,
+    __tostring = function() return "struct"; end,
 });
 
-
-
-
-
-
-local tStructFactoryActual = {
-    deserialize = function(tData)
-        local  sName = tData.name;
-        return factory.repo.byName[sName]       and
-               factory.repo.byName[sName].decoy or
-               factory.build(__IGNORE__, sName,
-                             tData.constraints,
-                             tData.isReadOnly);
+protect(StructFactoryDecoy, {
+    __type = "structfactorybuilder",
+    __call = function(_, sName, tDefaults, bReadOnly, ...)
+        assert(select("#", ...) == 0, "Struct: too many constructor arguments.");
+        return buildFactory(sName, tDefaults, bReadOnly);
     end,
-};
-
-local tStructFactoryDecoy = {};
-
-setmetatable(tStructFactoryDecoy,
-{
-    __call 		= factory.build,
-    __clone     = function()
-        return tStructFactoryDecoy;
-    end,
-    __index 	= function(t, k, v)
-        return tStructFactoryActual[k] or nil;
-    end,
-    __len 	 	= factorycount,
-    __newindex 	= dummy,--THROW ERROR HERE
-    __serialize = function()
-        return "structfactory";
-    end,
-    __tostring = function()
-        return "structfactorybuilder";
-    end,
-    __type 		= "structfactorybuilder",
+    __index = {deserialize = deserializeFactory},
+    __newindex = function() fail("struct factory constructor is read-only."); end,
+    __clone = function() return StructFactoryDecoy; end,
+    __serialize = function() return "structfactory"; end,
+    __tostring = function() return "structfactory"; end,
 });
 
-return {struct = tStructDecoy, structfactory = tStructFactoryDecoy};
+local _cSerializer = require("LuaEx.lib.serializer");
+_cSerializer.registerFactory(StructDecoy, {name = "struct", types = {"struct"}});
+_cSerializer.registerFactory(StructFactoryDecoy, {name = "structfactory", types = {"structfactory"}});
+
+return {struct = StructDecoy, structfactory = StructFactoryDecoy};

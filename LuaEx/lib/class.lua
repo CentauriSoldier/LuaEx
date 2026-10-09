@@ -824,12 +824,79 @@ end
 <br>For info on class initializers and constructors, see <a href="#LuaEx.Class System.Initialization">Initialization</a>.
 @ret class A class object.
 !]]
+-- Copy snapshot containers rather than invoking domain __clone behavior. Class
+-- instances and other typed objects have already been decoded by the serializer;
+-- keep their identity, while preserving aliases/cycles among plain state tables.
+local function copySnapshot(vValue, tSeen)
+    local vRet = vValue;
+
+    if (type(vValue) == "table") then
+        vRet = tSeen[vValue];
+
+        if (not vRet) then
+            vRet = {};
+            tSeen[vValue] = vRet;
+
+            for k, v in pairs(vValue) do
+                vRet[copySnapshot(k, tSeen)] = copySnapshot(v, tSeen);
+            end
+        end
+    end
+
+    return vRet;
+end
+
+
+local function validateClassSnapshot(tKit, tState)
+    type.assert.table(tState);
+
+    for sVisibility in pairs(tState) do
+        assert(sVisibility == "pri" or sVisibility == "pro" or sVisibility == "pub",
+               "Unexpected class snapshot visibility: "..tostring(sVisibility));
+    end
+
+    for _, sVisibility in ipairs(_tSerializerIndices) do
+        type.assert.table(tState[sVisibility]);
+    end
+
+    if (rawtype(tKit.pri.validateSnapshot) == "function") then
+        tKit.pri.validateSnapshot(tState);
+    end
+
+    for _, sVisibility in ipairs(_tSerializerIndices) do
+
+        for sField, vField in pairs(tState[sVisibility]) do
+            local vDefault = tKit[sVisibility][sField];
+            assert(vDefault ~= nil, "Unknown class snapshot field: "..tostring(sField));
+            assert(rawtype(vDefault) ~= "function",
+                   "Class snapshots cannot replace declared methods: "..tostring(sField));
+            local bCompatible = vDefault == null or type(vField) == type(vDefault);
+            local cExpected = of(vDefault);
+            local cActual = of(vField);
+
+            if (not bCompatible and cExpected and cActual) then
+                bCompatible = ischildorself(cActual, cExpected);
+            end
+
+            assert(bCompatible, "Class snapshot field type mismatch: "..tostring(sField));
+
+            local tReadOnly = tKit.readOnlyFields[sVisibility][sField];
+            if (tReadOnly and tReadOnly.fixed and rawtype(vDefault) ~= "table") then
+                local bSame = vField == vDefault or
+                              (rawtype(vDefault) == "number" and vDefault ~= vDefault and vField ~= vField);
+                assert(bSame, "Snapshot changes a declared immutable scalar: "..tostring(sField));
+            end
+        end
+    end
+end
+
+
 function class.build(tKit)
     local oClass    = {}; --this is the class object that gets returned
     local sName     = tKit.name;
 
     --this is the actual, hidden class table referenced by the returned class object
-    local tClass    = clone(tKit.stapub);   --create the static public members
+    local tClass    = cloner.cloneIndependent(tKit.stapub);   --create the static public members
 
     --execute then delete the static initializer (if it exists)
     if (rawtype(tClass[_sClassStaticInitializer]) == "function") then
@@ -941,8 +1008,30 @@ function class.build(tKit)
 
     --create and set (or overwrite) the static public deserialize function
     local function fDeserialize(tData)
-        rawsetmetatable(tData, {__deserialmarker = "serializeddata"});
-        local oInstance = buildInstance(tData);
+        type.assert.table(tData);
+        local tExpected = {};
+        local tHierarchy = {};
+        local tCurrent = tKit;
+
+        while (tCurrent) do
+            tExpected[tCurrent.name] = true;
+            table.insert(tHierarchy, 1, tCurrent);
+            tCurrent = tCurrent.parent;
+        end
+
+        for sClass in pairs(tData) do
+            assert(tExpected[sClass], "Unexpected class snapshot section: "..tostring(sClass));
+        end
+
+        -- Preflight the entire hierarchy before registering any parent instance.
+        -- Domain validators are side-effect-free and see copied plain tables.
+        local tSnapshot = copySnapshot(tData, {});
+        for _, tCurrent in ipairs(tHierarchy) do
+            validateClassSnapshot(tCurrent, tSnapshot[tCurrent.name]);
+        end
+
+        rawsetmetatable(tSnapshot, {__deserialmarker = "serializeddata"});
+        local oInstance = buildInstance(tSnapshot);
         return oInstance;
     end
     rawset(tClass, "deserialize", fDeserialize);
@@ -1117,19 +1206,19 @@ end
 function instance.build(oInstance, tData, tKit, tParentActual, sType)
     --local oInstance     = {};                       --this is the decoy instance object that gets returned
     local tInstance     = {                         --this is the actual, hidden instance table referenced by the returned decoy, instance object
-        met = clone(tKit.met), --create the metamethods
-        pri = clone(tKit.pri), --create the private members
-        pro = clone(tKit.pro), --etc.
-        pub = clone(tKit.pub), --TODO should I use clone item or will this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
+        met = cloner.cloneIndependent(tKit.met), --create the metamethods
+        pri = cloner.cloneIndependent(tKit.pri), --create the private members
+        pro = cloner.cloneIndependent(tKit.pro), --etc.
+        pub = cloner.cloneIndependent(tKit.pub), --TODO should I use clone item or will this do for cloning custom class types? Shoudl I also force a clone method for this in classes? I could also have attributes in classes that could ask if cloneable...
         --children            = {},    --TODO move to class level or to here? Is there any use for it here? IS THIS EVER USED AT ALL? Perhaps for class-level funtions?
         constructorcalled   = false, --helps enforce constructor calls
         decoy               = oInstance,            --for internal reference if I need to reach the decoy of a given actual
-        isAChecks           = clone(tKit.isAChecks),
+        isAChecks           = cloner.cloneIndependent(tKit.isAChecks),
         metadata            = {                     --info about the instance
             kit = tKit,
         },
         parent              = tParentActual,         --the actual parent (if one exists)
-        readOnlyFields      = clone(tKit.readOnlyFields),
+        readOnlyFields      = cloner.cloneIndependent(tKit.readOnlyFields),
     };
 
     --import deserialize data (if any exists)
@@ -1151,10 +1240,33 @@ function instance.build(oInstance, tData, tKit, tParentActual, sType)
 
             for sField, vField in pairs(tMyVisData) do
                 tInstance[sVisibility][sField] = vField;
+
+                local tReadOnly = tInstance.readOnlyFields[sVisibility][sField];
+                if (tReadOnly and vField ~= null) then
+                    tReadOnly.fixed = true;
+                end
+
+                if (not tInstance.isAChecks[sVisibility][sField] and isinstance(vField)) then
+                    tInstance.isAChecks[sVisibility][sField] = {
+                        class = of(vField), type = type(vField), value = vField,
+                    };
+                end
             end
 
         end
 
+    end
+
+    -- Descendants access inherited storage through their own class-data decoys;
+    -- carry restored read-only locks into those decoys as well.
+    if (tData and tParentActual) then
+        for _, sVisibility in ipairs(_tSerializerIndices) do
+            for sField, tReadOnly in pairs(tParentActual.readOnlyFields[sVisibility]) do
+                if (tReadOnly.fixed) then
+                    tInstance.readOnlyFields[sVisibility][sField].fixed = true;
+                end
+            end
+        end
     end
 
     --create and set the serialize method for the instance
@@ -1202,6 +1314,10 @@ end
 --TODO add optional hash value for data integrity checks
 --TODO handle self-refences
 --[[!
+@fqxn LuaEx.Class System.Snapshot Hooks
+@desc Classes retain autogenerated serialization and static deserialization. The reserved private hooks prepareSnapshot(tState) and validateSnapshot(tState) customize generated state without replacing those methods. These internal hooks receive the class's plain {pri, pro, pub} state directly, without this/cdat injection. Plain state tables and table keys are copied with aliases/cycles preserved; typed objects, class instances, and functions retain their identity and must be treated as read-only by hooks. prepareSnapshot may edit or omit copied fields. validateSnapshot may validate or normalize copied state and must avoid runtime side effects. Hooks run base-to-derived, separately for each declaring class; the entire hierarchy validates before any instance is constructed. Runtime fields omitted from snapshots retain class defaults. Unknown fields, incompatible field types, replacement declared methods, and changed immutable scalars are rejected. Restored initialized read-only fields remain locked. The global serializer's support for cyclic graphs is separate from copying snapshot tables.
+!]]
+--[[!
 @fqxn LuaEx.Class System.instance.Functions.buildSerializer
 @param table tInstance The (actual) instance table.
 @scope local
@@ -1212,9 +1328,11 @@ end
 function instance.buildSerializer(tInstance)
     --local sHash = "";
     local tCDats    = {};
+    local tOrder    = {};
     local tParent = tInstance.parent;
 
     while tParent do
+        table.insert(tOrder, 1, tParent.metadata.kit.name);
         tCDats[tParent.metadata.kit.name] = {
             pri     = tParent.pri,
             pro     = tParent.pro,
@@ -1231,6 +1349,7 @@ function instance.buildSerializer(tInstance)
         pub     = tInstance.pub,
         kit     = tInstance.metadata.kit;
     };
+    tOrder[#tOrder + 1] = tInstance.metadata.kit.name;
 
     return function()
         local tRet = {};
@@ -1260,6 +1379,18 @@ function instance.buildSerializer(tInstance)
 
             end
 
+        end
+
+        -- Hooks may edit nested plain state without touching the live owner.
+        tRet = copySnapshot(tRet, {});
+
+        for _, sKitName in ipairs(tOrder) do
+            local tCDat = tCDats[sKitName];
+            local fPrepare = tCDat.kit.pri.prepareSnapshot;
+
+            if (rawtype(fPrepare) == "function") then
+                fPrepare(tRet[sKitName]);
+            end
         end
 
         return serialize(tRet);
@@ -1819,11 +1950,11 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
         name 			= sName,
         parent			= nil, --set in kit.mayExtend() (if it does)
         --tables
-        met 	        = clone(tMetamethods, 	true),
-        stapub 	        = clone(tStaticPublic, 	true),
-        pri			    = clone(tPrivate, 		true),
-        pro 		    = clone(tProtected, 	true),
-        pub      	    = clone(tPublic, 		true),
+        met 	        = cloner.cloneIndependent(tMetamethods, 	true),
+        stapub 	        = cloner.cloneIndependent(tStaticPublic, 	true),
+        pri			    = cloner.cloneIndependent(tPrivate, 		true),
+        pro 		    = cloner.cloneIndependent(tProtected, 	true),
+        pub      	    = cloner.cloneIndependent(tPublic, 		true),
         readOnlyFields  = {
             stapub  = {},
             pri     = {},
