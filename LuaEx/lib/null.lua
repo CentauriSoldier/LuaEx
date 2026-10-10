@@ -1,5 +1,6 @@
 --[[!
 @fqxn LuaEx.Libraries.null
+@pulsarlua table null
 @desc The immutable null singleton represents an explicitly empty value. Unlike nil,
 it retains table entries and sequence slots. LuaEx publishes the same object as null
 and NULL. Null supports placeholder propagation, empty iteration, cloning and persistence.
@@ -22,6 +23,7 @@ assert(rawequal(NULL, null));
 
 --[[!
 @fqxn LuaEx.Libraries.null.TypeAndIdentity
+@pulsarlua table null.TypeAndIdentity
 @desc type(null) returns "null", subtype(null) returns "null", and type.isnull(null)
 is true. NULL is an alias of the same singleton. Null differs from nil, false, zero
 and ordinary tables. Lua's equality dispatch invokes null's __eq hook for applicable
@@ -35,6 +37,7 @@ assert(null ~= nil and null ~= false and null ~= 0 and null ~= {});
 
 --[[!
 @fqxn LuaEx.Libraries.null.Truthiness
+@pulsarlua table null.Truthiness
 @desc Null is truthy because it is a Lua object. Its operators cannot change Lua's
 if, not, and or behavior. Test a value explicitly against null when checking emptiness.
 @ex
@@ -52,6 +55,7 @@ assert(sOwner == "unassigned");
 
 --[[!
 @fqxn LuaEx.Libraries.null.Indexing
+@pulsarlua table null.Indexing
 @desc Named and other nonnumeric indexing propagates null unless the key names an
 actual method (clone or serialize). Numeric indexing returns nil, including zero,
 negative and fractional indices. This permits modern ipairs to terminate. A chain
@@ -67,6 +71,7 @@ assert(rawget(null, "owner") == nil); -- Raw access bypasses propagation.
 
 --[[!
 @fqxn LuaEx.Libraries.null.Immutability
+@pulsarlua table null.Immutability
 @desc Ordinary assignment to any null key raises an error, including assignment to
 existing method names. Its metatable cannot be replaced through setmetatable.
 Raw writes and debug APIs bypass normal Lua object protection and are outside this
@@ -82,6 +87,7 @@ assert(null.owner == null and null.clone() == null);
 
 --[[!
 @fqxn LuaEx.Libraries.null.__len
+@pulsarlua table null.__len
 @desc #null returns zero. A surrounding sequence containing null has real occupied
 slots, so its length is independent of null's own length. Ordinary Lua rules for
 sequences containing nil holes still apply.
@@ -95,6 +101,7 @@ for nIndex = 1, #tSlots do assert(tSlots[nIndex] == null); end
 
 --[[!
 @fqxn LuaEx.Libraries.null.Iteration
+@pulsarlua table null.Iteration
 @desc pairs(null) and ipairs(null) produce no entries. Their hooks return a real
 empty iterator. Numeric indexing also returns nil for runtimes that ignore __ipairs.
 No meaningful fields are stored directly on the singleton; next(null) returns nil.
@@ -126,6 +133,7 @@ assert(null() == nil);
 
 --[[!
 @fqxn LuaEx.Libraries.null.Arithmetic
+@pulsarlua table null.Arithmetic
 @desc Addition (+), subtraction (-), multiplication (*), division (/), integer division
 (//), modulo (%) and exponentiation (^) return null when Lua dispatches to null's
 operator hook. Unary minus also returns null. These operations propagate emptiness;
@@ -145,6 +153,7 @@ assert(-null == null);
 
 --[[!
 @fqxn LuaEx.Libraries.null.Bitwise
+@pulsarlua table null.Bitwise
 @desc Bitwise and (&), or (|), exclusive or (~), left shift (<<), right shift (>>)
 and unary bitwise not (~) propagate null when its hook is selected. Lua's logical
 keywords and/or/not retain their ordinary truthiness behavior.
@@ -160,6 +169,7 @@ assert((~null) == null);
 
 --[[!
 @fqxn LuaEx.Libraries.null.__concat
+@pulsarlua table null.__concat
 @desc Concatenation propagates the null object when its hook is selected; it does
 not produce a string containing "null". Call tostring(null) explicitly to produce text.
 @ex
@@ -171,6 +181,7 @@ assert("owner: "..tostring(null) == "owner: null");
 
 --[[!
 @fqxn LuaEx.Libraries.null.Comparisons
+@pulsarlua table null.Comparisons
 @desc When null's comparison hooks are selected, null is strictly less than a value
 whose LuaEx type is neither null nor nil. Less-or-equal returns true when the left
 value is null and the right value is non-nil, or both operands have the same LuaEx
@@ -190,6 +201,7 @@ assert(not (null > 1) and not (null >= 1));
 
 --[[!
 @fqxn LuaEx.Libraries.null.__tostring
+@pulsarlua table null.__tostring
 @desc tostring(null) returns the string "null". This is a textual representation,
 not a different placeholder object. print(null) uses this representation.
 @ex
@@ -200,6 +212,7 @@ assert(type(tostring(null)) == "string");
 
 --[[!
 @fqxn LuaEx.Libraries.null.clone
+@pulsarlua function null.clone
 @desc Returns the same immutable singleton. The __clone hook and global clone(null)
 share this behavior; no new null instance is allocated. Dot and colon calls are both accepted.
 @ret null The original singleton.
@@ -212,6 +225,7 @@ assert(rawequal(clone({owner = null}).owner, null));
 
 --[[!
 @fqxn LuaEx.Libraries.null.serialize
+@pulsarlua function null.serialize
 @desc Returns the Lua expression string "null". The __serialize hook and global
 serialize(null) use the same representation. Deserialization restores the singleton;
 its identity is retained when it occurs inside a larger saved graph. LuaEx must be

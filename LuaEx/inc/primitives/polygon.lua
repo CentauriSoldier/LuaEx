@@ -241,61 +241,73 @@ local function calculate(tVertices)
     local tData = {
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.verticesCount
+        @pulsarlua number polygon.verticesCount
         @desc Read-only number of vertices.
         !]]
         verticesCount = nCount,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.edgesCount
+        @pulsarlua number polygon.edgesCount
         @desc Read-only number of boundary edges, equal to verticesCount.
         !]]
         edgesCount = nCount,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.area
+        @pulsarlua number polygon.area
         @desc Read-only non-negative enclosed area.
         !]]
         area = (abs(nTwiceArea) * 0.5 * nScale) * nScale,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.perimeter
+        @pulsarlua number polygon.perimeter
         @desc Read-only sum of boundary edge lengths.
         !]]
         perimeter = nPerimeter,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.isConcave
+        @pulsarlua boolean polygon.isConcave
         @desc Read-only boolean: at least one interior angle exceeds pi.
         !]]
         isConcave = bConcave,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.isConvex
+        @pulsarlua boolean polygon.isConvex
         @desc Read-only boolean: no interior angle exceeds pi; straight boundary subdivisions are allowed.
         !]]
         isConvex = not bConcave,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.isRegular
+        @pulsarlua boolean polygon.isRegular
         @desc Read-only boolean: convex with equal edge lengths and equal interior angles, within the documented relative tolerance.
         !]]
         isRegular = bRegular and not bConcave,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.winding
+        @pulsarlua number polygon.winding
         @desc Read-only Cartesian orientation: +1 counterclockwise, -1 clockwise.
         !]]
         winding = nWinding,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.sumOfInteriorAngles
+        @pulsarlua number polygon.sumOfInteriorAngles
         @desc Read-only interior-angle sum in radians, (vertex count - 2) times pi.
         !]]
         sumOfInteriorAngles = (nCount - 2) * _nPi,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.sumOfExteriorAngles
+        @pulsarlua number polygon.sumOfExteriorAngles
         @desc Read-only orientation-adjusted exterior-angle sum in radians, two pi.
         !]]
         sumOfExteriorAngles = _nTau,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.bounds
+        @pulsarlua table polygon.bounds
         @desc Read-only axis-aligned bounds exposing minX, maxX, minY and maxY.
         !]]
         bounds = tBounds,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.centroid
+        @pulsarlua table polygon.centroid
         @desc Read-only area centroid. Use the selected anchor to move the polygon; the centroid of a concave polygon may lie outside it.
         !]]
         centroid = tCentroid,
@@ -303,11 +315,13 @@ local function calculate(tVertices)
         edges = tEdges,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.interiorAngles
+        @pulsarlua table polygon.interiorAngles
         @desc Read-only indexed interior angles in radians, including reflex angles above pi.
         !]]
         interiorAngles = tInterior,
         --[[!
         @fqxn LuaEx.Primitives.polygon.Properties.exteriorAngles
+        @pulsarlua table polygon.exteriorAngles
         @desc Read-only indexed exterior angles in radians, defined as pi minus interior angle. Concave vertices have negative exterior angles.
         !]]
         exteriorAngles = tExterior,
@@ -337,6 +351,7 @@ end
 
 --[[!
 @fqxn LuaEx.Primitives.polygon
+@pulsarlua function polygon
 @desc A simple polygon from at least three flat numeric X/Y pairs. Boundary edges follow input order and close last-to-first. Clockwise and counterclockwise boundaries are accepted; concave shapes are allowed. Crossings, nonadjacent touching, overlapping edges and zero-area shapes are rejected before mutation. No holes or automatic vertex reordering. All geometry is derived except vertices, selected anchor and autoUpdate. Top bounding anchors use minimum Y, preserving screen-coordinate naming. Numeric limits and a normalized 1e-12 tolerance may reject ambiguous inputs. Rawset and debug tools bypass ordinary Lua protections.
 @param number ... Consecutive X/Y pairs, at least six numbers and an even count.
 @ret primitive A polygon primitive.
@@ -354,17 +369,20 @@ return function(...)
     local bDirty = false;
     --[[!
     @fqxn LuaEx.Primitives.polygon.Properties.autoUpdate
+    @pulsarlua boolean polygon.autoUpdate
     @desc Writable boolean. False defers publication until a read or update call. Geometry candidates are calculated before mutation for validation; reads never repeat calculation.
     !]]
     local bAutoUpdate = true;
     --[[!
     @fqxn LuaEx.Primitives.polygon.Properties.anchorIndex
+    @pulsarlua number polygon.anchorIndex
     @desc Writable existing anchor constant or positive vertex index. Defaults to SHAPE_ANCHOR_DEFAULT, normally the area centroid. Selection changes the positioning reference without moving vertices.
     !]]
     local nAnchorIndex = _nAnchorDefault;
 
     --[[!
     @fqxn LuaEx.Primitives.polygon.Methods.update
+    @pulsarlua function polygon.update
     @desc Publishes dirty candidate geometry once. Candidates are calculated before coordinate mutation for atomic validation; clean reads do not repeat calculations.
     !]]
     local function update()
@@ -421,6 +439,7 @@ return function(...)
 
     --[[!
     @fqxn LuaEx.Primitives.polygon.Methods.setVertex
+    @pulsarlua function polygon.setVertex
     @desc Copies two numeric coordinates into one vertex and validates the complete candidate polygon once. Invalid edits preserve the old shape.
     @param number nIndex Vertex index.
     @param number nX New X coordinate.
@@ -452,6 +471,7 @@ return function(...)
 
     --[[!
     @fqxn LuaEx.Primitives.polygon.Methods.setPosition
+    @pulsarlua function polygon.setPosition
     @desc Moves the selected anchor to numeric X/Y coordinates by translating every vertex together. Selection itself never moves the polygon.
     @param number nX Target anchor X coordinate.
     @param number nY Target anchor Y coordinate.
@@ -551,6 +571,7 @@ return function(...)
 
     --[[!
     @fqxn LuaEx.Primitives.polygon.Properties.vertices
+    @pulsarlua table polygon.vertices
     @desc Protected indexed vertex collection. Write vertices[index].x or .y, or use setVertex for a two-coordinate edit. No table assignment; indices follow constructor order.
     !]]
     local tPublicVertices = rawsetmetatable({}, {
@@ -585,6 +606,7 @@ return function(...)
 
     --[[!
     @fqxn LuaEx.Primitives.polygon.Properties.edges
+    @pulsarlua table polygon.edges
     @desc Read-only indexed edges joining vertex i to i+1, with the final edge returning to vertex 1. Each exposes protected start/stop coordinates, length, deltaX, deltaY, slope, slopeIsUndefined and theta in radians.
     !]]
     local tPublicEdges = rawsetmetatable({}, {
@@ -644,6 +666,7 @@ return function(...)
 
     --[[!
     @fqxn LuaEx.Primitives.polygon.Properties.anchors
+    @pulsarlua table polygon.anchors
     @desc Read-only bounding-box corners and area centroid indexed by existing SHAPE_ANCHOR constants. The centroid may lie outside a concave polygon.
     !]]
     local tPublicAnchors = rawsetmetatable({}, {
@@ -684,6 +707,7 @@ return function(...)
 
     --[[!
     @fqxn LuaEx.Primitives.polygon.Properties.anchor
+    @pulsarlua table polygon.anchor
     @desc Selected anchor coordinate proxy. Writing x or y translates the entire polygon. setPosition moves both coordinates atomically.
     !]]
     local tPublicAnchor = rawsetmetatable({}, {

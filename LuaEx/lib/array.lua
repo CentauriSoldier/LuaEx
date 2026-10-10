@@ -6,6 +6,7 @@ local _tStates      = setmetatable({}, {__mode = "k"});
 
 --[[!
     @fqxn LuaEx.Libraries.array
+    @pulsarlua table array
     @desc A fixed-length, one-based container whose occupied slots share one LuaEx type. Construct from a finite nonnegative integer length or a dense list; zero length and empty lists are valid. Slots may contain null, which means unoccupied. The first non-null value establishes the type, and clear() retains that type. Assigning nil, a different type, or an invalid index raises an error. Numeric reads require an integer within bounds. Both length and # report the fixed capacity. Iterate with array() or pairs(array).
     @ex local aValues = array({3, null, 1});
         aValues.sort(); -- {1, 3, null}
@@ -56,6 +57,7 @@ In summary, Array.Copy offers more flexibility for copying specific ranges of el
 local tArrayActual = {
     --[[!
         @fqxn LuaEx.Libraries.array.Functions.deserialize
+        @pulsarlua function array.deserialize
         @desc Restores a validated array state containing length, type, and a dense items list. Null slots and the established type are retained, even when every slot is empty. Normally invoked through the global deserialize function.
         @param table tData The serialized array state.
         @ret array aRet The restored independent array container.
@@ -108,6 +110,7 @@ local ArrayFactoryDecoy = setmetatable({},
             length = 0,             --the length of the array
             --[[!
                 @fqxn LuaEx.Libraries.array.Methods.clear
+                @pulsarlua function array.clear
                 @desc Clears every slot to null without changing capacity or the established item type.
             !]]
             clear = function()
@@ -148,6 +151,7 @@ local ArrayFactoryDecoy = setmetatable({},
             end,
             --[[!
                 @fqxn LuaEx.Libraries.array.Methods.sort
+                @pulsarlua function array.sort
                 @desc Sorts occupied values using Lua's normal ordering or a supplied comparator and moves null slots to the end. Commits only after success; comparator errors leave slot order unchanged. Comparators cannot assign, clear, or recursively sort this array. Sorting is not stable. Mutations inside contained objects are outside the slot transaction.
                 @param function|nil fSorter Optional comparator returning whether its first value comes before its second.
             !]]

@@ -30,6 +30,7 @@ local _bOSIsWindows  = package.config:sub(1, 1) == "\\";
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.cap
+    @pulsarlua function string.cap
     @desc Capatalizes the first letter of the input. If the second argument is true, it also lowers all letters after the first (string).
     @param string sInput The string to capatalize.
     @param boolean|nil bLowerRemaining Whether to forcibly lower everything after the first letter (false by default, left as-is).
@@ -64,6 +65,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.capall
+    @pulsarlua function string.capall
     @desc Capatalizes the first letter of each word in a sentence.
     @param string sInput The string to capatalize.
     @param string|nil sDelimiter The delmiter between words (a blank space by default).
@@ -106,6 +108,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isempty
+    @pulsarlua function string.isempty
     @desc Determines whether a string is empty (blank or space-only characters).
     @param string sInput The string to capatalize.
     @ret boolean bIsEmpty Returns true if empty, false otherwise.
@@ -122,6 +125,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isdatevalid
+    @pulsarlua function string.isdatevalid
     @desc Determines whether a date given is valid.
     @param string sInput The string to check.<br><b>Note:</b>The default pattern is YYYY-MM-DD.
     @ret boolean bValid Returns true if the date is valid, false otherwise.
@@ -175,6 +179,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isfilesafe
+    @pulsarlua function string.isfilesafe
     @desc Determines whether a string is safe for use as a file name.
     @param string sInput The string to check.
     @ret boolean bSafe Returns true if file-safe, false otherwise.
@@ -220,6 +225,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.iskeyword
+    @pulsarlua function string.iskeyword
     @desc Determines whether a string is keyword.
     @param string sInput The string to capatalize.
     @ret boolean Returns true if empty, false otherwise.
@@ -249,6 +255,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isnumeric
+    @pulsarlua function string.isnumeric
     @desc Determines whether a string is a numeric string.
     @param string sInput The string to check.
     @ex
@@ -264,6 +271,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isuuid
+    @pulsarlua function string.isuuid
     @desc Determin wether a string is a uuid (as created by <a href="#LuaEx.Lua Hooks.string.uuid">string.uuid</a>).</b>
     @param string sInput The string to check.
     @ret boolean bIsUUID True if it's a UUID, false otherwise.
@@ -282,6 +290,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isvariablecompliant
+    @pulsarlua function string.isvariablecompliant
     @desc Determines whether a string is a valid, variable-compliant string.
     @param string sInput The string to check.
     @param boolean|nil bSkipKeywordCheck Whether to skip LuaEx keyword checks.
@@ -452,6 +461,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.trim
+    @pulsarlua function string.trim
     @desc Trims blank space from the beginning and end of a string.
     @param string sInput The string to trim.
     @ret string The trimmed string.
@@ -467,6 +477,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.trimleft
+    @pulsarlua function string.trimleft
     @desc Trims blank space from the beginning of a string.
     @param string sInput The string to trim.
     @ret string The trimmed string.
@@ -482,6 +493,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.trimright
+    @pulsarlua function string.trimright
     @desc Trims blank space from the beginning of a string.
     @param string sInput The string to trim.
     @ret string The trimmed string.
@@ -497,6 +509,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.uuid
+    @pulsarlua function string.uuid
     @desc Creates a Universally Unique Identifier in the following format:
     <br><b>6430425f-dfe0-d7c8-cf55-dc0f133e07ef</b>
     @ret string sUUID A Universally Unique Identifier in the following format:

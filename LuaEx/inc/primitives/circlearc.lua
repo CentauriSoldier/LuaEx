@@ -58,6 +58,7 @@ end
 
 --[[!
 @fqxn LuaEx.Primitives.circlearc
+@pulsarlua function circlearc
 @desc A circular arc defined by a center, radius and two angles in radians. Its direction is counterclockwise in Cartesian coordinates; on a screen with downward-positive Y it appears clockwise. Angles wrap through zero. Equal angles give zero arc; nonzero whole-turn differences give a full circle. Length and sector area are read-only. Invalid assignments preserve existing state. Rawset and debug tools bypass normal Lua protections.
 @param number nCenterX Finite center X coordinate.
 @param number nCenterY Finite center Y coordinate.
@@ -84,11 +85,13 @@ return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstU
     local tCenterActual = {
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.center.x
+        @pulsarlua number circlearc.center.x
         @desc Writable finite center X coordinate; moving the center does not change size.
         !]]
         x = nCenterX,
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.center.y
+        @pulsarlua number circlearc.center.y
         @desc Writable finite center Y coordinate; moving the center does not change size.
         !]]
         y = nCenterY,
@@ -96,31 +99,37 @@ return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstU
     local tActual = {
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.autoUpdate
+        @pulsarlua boolean circlearc.autoUpdate
         @desc Writable boolean, initially true. False defers derived updates until a read or update call. Clean values are not recalculated.
         !]]
         autoUpdate = true,
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.radius
+        @pulsarlua number circlearc.radius
         @desc Writable non-negative finite radius. Changes invalidate derived values.
         !]]
         radius = nRadius,
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.startAngle
+        @pulsarlua number circlearc.startAngle
         @desc Writable finite start angle in radians. Changing it updates the counterclockwise sweep.
         !]]
         startAngle = nStartAngle,
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.endAngle
+        @pulsarlua number circlearc.endAngle
         @desc Writable finite end angle in radians. Lower end angles wrap through zero.
         !]]
         endAngle = nEndAngle,
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.length
+        @pulsarlua number circlearc.length
         @desc Read-only non-negative arc length: radius times counterclockwise sweep.
         !]]
         length = 0,
         --[[!
         @fqxn LuaEx.Primitives.circlearc.Properties.area
+        @pulsarlua number circlearc.area
         @desc Read-only non-negative sector area: half the radius squared times sweep. This is the wedge including the center, not circular-segment area.
         !]]
         area = 0,
@@ -128,6 +137,7 @@ return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstU
 
     --[[!
     @fqxn LuaEx.Primitives.circlearc.Methods.update
+    @pulsarlua function circlearc.update
     @desc Refreshes dirty arc length and sector area once. Call with dot syntax and no arguments. Repeated clean calls do not recalculate.
     !]]
     local function update()
@@ -142,6 +152,7 @@ return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstU
 
     --[[!
     @fqxn LuaEx.Primitives.circlearc.Properties.center
+    @pulsarlua table circlearc.center
     @desc Protected coordinate proxy. Change center.x or center.y individually; the center reference itself is read-only.
     !]]
     tActual.center = rawsetmetatable({}, {

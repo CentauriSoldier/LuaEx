@@ -165,6 +165,7 @@ return class("Set",
 {--static public
     --[[!
     @fqxn LuaEx.Classes.Set.Static Methods.deserialize
+    @pulsarlua function Set.deserialize
     @scope static public
     @desc Deserializes the Set object from a string.
     !]]
@@ -243,6 +244,7 @@ return class("Set",
 {--public
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.Set
+    @pulsarlua function Set
     @scope public
     @param table|nil A table of items to add to the Set (optional).
     @desc Constructs a new Set object.
@@ -262,6 +264,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.add
+    @pulsarlua function Set.add
     @scope public
     @desc Adds an item to the Set.
     @param any vItem The item to add to the Set.
@@ -275,6 +278,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.clear
+    @pulsarlua function Set.clear
     @scope public
     @desc Removes all items from the Set.
     @ret Set The Set object after adding the item.
@@ -290,6 +294,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.contains
+    @pulsarlua function Set.contains
     @scope public
     @desc Checks if the Set contains a specific item.
     @param any vItem The item to check for.
@@ -302,6 +307,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.importSet
+    @pulsarlua function Set.importSet
     @scope public
     @desc Adds all items from another Set to this Set.
     @param Set oOther The other Set containing items to add.
@@ -322,6 +328,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.intersection
+    @pulsarlua function Set.intersection
     @scope public
     @desc Returns the intersection of this Set with another Set.
     @param Set other The other Set with which to find the intersection.
@@ -348,6 +355,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.isEmpty
+    @pulsarlua function Set.isEmpty
     @scope public
     @desc Checks if the Set is empty.
     @ret boolean Returns true if the Set is empty, false otherwise.
@@ -359,6 +367,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.isSubset
+    @pulsarlua function Set.isSubSet
     @scope public
     @desc Checks if the input Set a subset of this Set.
     @param Set other The other Set to detemine subsetness.
@@ -385,6 +394,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.remove
+    @pulsarlua function Set.remove
     @scope public
     @desc Removes an item from the Set if it exists.
     @param any vItem The item to remove from the Set.
@@ -398,6 +408,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.purgeSet
+    @pulsarlua function Set.purgeSet
     @scope public
     @desc Removes all items from this Set that are present in another Set.
     @param Set other The other Set containing items to remove.
@@ -423,6 +434,7 @@ return class("Set",
 
     --[[!
     @fqxn LuaEx.Classes.Set.Methods.size
+    @pulsarlua function Set.size
     @scope public
     @desc Returns the number of items in the Set (Same as #MySet).
     @ret number The number of items in the Set.

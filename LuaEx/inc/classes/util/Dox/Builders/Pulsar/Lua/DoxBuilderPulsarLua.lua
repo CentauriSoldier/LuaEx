@@ -1,529 +1,441 @@
-local _sPulsarLua = "PulsarLua";
-local _sOutputWrapperPre = [[
-{
-    "global": {
-        "type": "table",
-        "fields": {
-            ]];
-local _sOutputWrapperPost = [[
-            }
-        }
-    }
-}]];
---[[
-@fxqn Dox.Builders.PulsarLua.filterBlocks
-@desc Looks for the PulsarLua tag name and adds the entire block to the return table for processing if found.
-@scope Local
-!]]
-local function filterBlocks(tAllBlocks)
-    local tRet = {};
+local DoxBuilder = DoxBuilder;
+local class      = class;
+local error      = error;
+local ipairs     = ipairs;
+local next       = next;
+local pairs      = pairs;
+local require    = require;
+local string     = string;
+local table      = table;
+local type       = type;
 
-    --determine which blocks are eligible for processing
-    for _, oBlock in ipairs(tAllBlocks) do
 
-        for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-            local sDisplay = oBlockTag.getDisplay();
+local _pModules = "LuaEx.inc.classes.util.Dox.Builders.Pulsar.Lua";
+local _tJSON    = require(_pModules..".JSON");
+local _tPackage = require(_pModules..".PulsarPackage");
 
-            --add eligible blocks to the processing table
-            if (sDisplay == _sPulsarLua) then
-                tRet[#tRet + 1] = oBlock;
-                break;
-            end
+local definition;
+local insert;
+local normalizeName;
+local prepareBlock;
 
-        end
-
-    end
-
-    return tRet;
-end
 
 --[[!
-    @fqxn Dox.Builders.PulsarLua.prepBlocks
-    @desc Called by the refresh method, this readies relevant blocks for organizing.
-    @scope Local
-    @param table tFilteredBlocks A table created by the <b><i>filterBlocks</i></b> function.
-    @param function fProcessBlockItem This function is passed by the Dox class and properly processes and formats each block item.
-    @ret table tPreppedBlocks A table containing the prepped blocks.<br>
-    Table layout is as follows:<br>
-    tRet[nIndex] = {
-        blockItems = {},
-        pulsarLua  = {
-            name = "",
-            type = "",
-        },
-    };
---!]]
-local function prepBlocks(tFilteredBlocks, fProcessBlockItem)
-    local tRet      = {};
-    local nIndex    = 0;
+@fqxn Dox.Builders.PulsarLua.Functions.definition
+@desc Maps documented Lua primitive types or references to named documentation types. Ambiguous union types remain unknown.
+@param string sType Documented type.
+@return table tDefinition Provider type definition.
+!]]
+definition = function(sType)
+    local tPrimitive = {boolean = true, ["function"] = true, number = true, string = true, table = true, unknown = true};
 
-    --prep eligible blocks
-    for _, oBlock in ipairs(tFilteredBlocks) do
-        nIndex = nIndex + 1;
+    if (tPrimitive[sType]) then
+        local tDefinition = {type = sType};
 
-        tRet[nIndex] = {
-            blockItems = {},
-            pulsarLua  = {
-                name = "",
-                type = "",
+        if (sType == "table") then
+            tDefinition.fields = {};
+        end
+
+        return tDefinition;
+    end
+
+    if (sType and sType:match("^[%a_][%w_%.]*$")) then
+        return {type = "ref", name = sType};
+    end
+
+    return {type = "unknown"};
+end;
+
+
+--[[!
+@fqxn Dox.Builders.PulsarLua.Functions.insert
+@desc Inserts a dotted name into nested provider tables, preserving existing children. Callable classes retain their table members.
+@param table tRoot Global environment definition.
+@param string sName Dotted name.
+@param table tDefinition Documentation definition.
+@return table tNode Inserted node.
+!]]
+insert = function(tRoot, sName, tDefinition)
+    local tNode = tRoot;
+    local tParts = {};
+
+    for sPart in sName:gmatch("[^%.]+") do
+        tParts[#tParts + 1] = sPart;
+    end
+
+    for _, sPart in ipairs(tParts) do
+        tNode.fields = tNode.fields or {};
+        tNode.fields[sPart] = tNode.fields[sPart] or {type = "table", fields = {}};
+        tNode = tNode.fields[sPart];
+    end
+
+    for sKey, vValue in pairs(tDefinition) do
+        if (sKey ~= "fields") then
+            tNode[sKey] = vValue;
+        end
+    end
+
+    if (tDefinition.fields) then
+        tNode.fields = tNode.fields or {};
+
+        for sKey, vValue in pairs(tDefinition.fields) do
+            tNode.fields[sKey] = vValue;
+        end
+    end
+
+    return tNode;
+end;
+
+
+--[[!
+@fqxn Dox.Builders.PulsarLua.Functions.normalizeName
+@desc Maps the conventional Methods documentation section to its callable owner. Explicit PulsarLua names bypass this convention.
+@param string sName Documentation-qualified name.
+@return string sName Code-qualified name.
+!]]
+normalizeName = function(sName)
+    return sName:gsub("%.Methods%.", ".");
+end;
+
+
+--[[!
+@fqxn Dox.Builders.PulsarLua.Functions.prepareBlock
+@desc Converts all documentation entries into provider definitions; honors existing PulsarLua overrides without requiring that tag.
+@param DoxBlock oBlock Parsed documentation block.
+@return table tEntry Name, type, parameters, returns and field metadata.
+!]]
+prepareBlock = function(oBlock)
+    local tArgs       = _tJSON.array();
+    local tArgTypes   = _tJSON.array();
+    local tDescriptions = {};
+    local tFields     = {};
+    local tNames      = {};
+    local tReturns    = _tJSON.array();
+    local tParameterDocs = {};
+    local sExplicit;
+    local sInherited;
+    local sType;
+
+    for _, _, sPart in oBlock.fqxn() do
+        tNames[#tNames + 1] = sPart;
+    end
+
+    local sName = table.concat(tNames, ".");
+    local sOriginalName = sName;
+    local bFunction = sName:find("%.Methods%.") ~= nil or sName:find("%.Functions%.") ~= nil;
+
+    for oTag, sRaw in oBlock.eachItem() do
+        local sDisplay = oTag.getDisplay();
+        local sText = string.htmltomd(sRaw):trim();
+
+        if (sDisplay == "PulsarLua") then
+            sType, sExplicit = sText:match("^(%S+)%s+(%S+)$");
+
+            if (not sType or not sExplicit) then
+                error("PulsarLua metadata must contain a type and code name.", 2);
+            end
+        elseif (sDisplay == "Inheritdoc") then
+            sInherited = sText;
+        elseif (sDisplay == "Description" or sDisplay == "Summary") then
+            tDescriptions[#tDescriptions + 1] = sText;
+        elseif (sDisplay == "Parameter(s)") then
+            local sArgType, sArgName, sDescription = sText:match("^(%S+)%s+(%S+)%s*(.*)$");
+
+            if (not sArgName) then
+                error("Pulsar parameter requires a type and name in "..sName..".", 2);
+            end
+
+            bFunction = true;
+            tArgs[#tArgs + 1] = {name = sArgName, displayName = sArgName};
+            tArgTypes[#tArgTypes + 1] = definition(sArgType);
+            tParameterDocs[#tParameterDocs + 1] = sArgName.." ("..sArgType.."): "..sDescription;
+        elseif (sDisplay == "Return(s)") then
+            local sReturnType = sText:match("^(%S+)");
+
+            bFunction = true;
+            tReturns[#tReturns + 1] = definition(sReturnType);
+            tParameterDocs[#tParameterDocs + 1] = "Returns: "..sText;
+        elseif (sDisplay:find("Field(s)", 1, true) == 1) then
+            local sFieldType, sFieldName, sDescription = sText:match("^(%S+)%s+(%S+)%s*(.*)$");
+
+            if (sFieldName) then
+                local tField = definition(sFieldType);
+                tField.description = sDescription;
+                tFields[sFieldName] = tField;
+            end
+        end
+    end
+
+    sName = sExplicit or normalizeName(sName);
+    sType = sType or (bFunction and "function" or "table");
+
+    local tDefinition = definition(sType);
+    tDefinition.description = table.concat(tDescriptions, "\n\n");
+
+    if (#tParameterDocs > 0) then
+        tDefinition.description = tDefinition.description.."\n\n"..table.concat(tParameterDocs, "\n");
+    end
+
+    if (sType == "function") then
+        local tArgNames = {};
+
+        for _, tArg in ipairs(tArgs) do
+            tArgNames[#tArgNames + 1] = tArg.name;
+        end
+
+        tDefinition.args = tArgs;
+        tDefinition.argTypes = tArgTypes;
+        tDefinition.argsDisplay = table.concat(tArgNames, ", ");
+        tDefinition.returnTypes = tReturns;
+    else
+        tDefinition.fields = tFields;
+    end
+
+    return {name = sName, sourceName = sOriginalName, inherited = sInherited, definition = tDefinition};
+end;
+
+
+--[[!
+@fqxn Dox.Builders.PulsarLua
+@desc Builds Lua autocomplete data for every imported Dox entry and project-named Pulsar option-provider packages. No documented source is executed.
+!]]
+return class("DoxBuilderPulsarLua", {}, {}, {}, {}, {
+    --[[!
+    @fqxn Dox.Builders.PulsarLua.Constructor
+    @pulsarlua function DoxBuilderPulsarLua
+    @desc Initializes a JSON completion exporter with no HTML wrappers.
+    !]]
+    DoxBuilderPulsarLua = function(this, cdat, super)
+        super("DoxBuilderPulsarLua", DoxBuilder.MIME.LUACOMPLETERC, "", "completions", "\n", {});
+    end,
+
+
+    --[[!
+    @fqxn Dox.Builders.PulsarLua.Methods.build
+    @pulsarlua function DoxBuilderPulsarLua.build
+    @desc Builds a project-named Pulsar package ZIP using the shared documentation export interface.
+    @param string sTitle Documentation project title.
+    @param string sIntro Unused HTML introduction.
+    @param table tData Prepared completion definitions.
+    @return string sZIP Package archive bytes.
+    !]]
+    build = function(this, cdat, sTitle, sIntro, tData)
+        return this.buildPackage(sTitle, tData);
+    end,
+
+
+    --[[!
+    @fqxn Dox.Builders.PulsarLua.Methods.buildPackage
+    @pulsarlua function DoxBuilderPulsarLua.buildPackage
+    @desc Creates a project-named ZIP ready to unpack into Pulsar's packages directory. The installed Lua provider supplies completion UI and inference.
+    @param string sTitle Project title used for the package name.
+    @param table tData Prepared completion definitions.
+    @return string sZIP ZIP bytes.
+    @return string sName Generated package directory name.
+    !]]
+    buildPackage = function(this, cdat, sTitle, tData)
+        local sName = sTitle:lower():gsub("[^%w]+", "-"):gsub("^-+", ""):gsub("-+$", "");
+
+        if (sName == "") then
+            error("Pulsar package title must contain letters or digits.", 2);
+        end
+
+        sName = "dox-"..sName;
+
+        local tManifest = {
+            name = sName,
+            version = "1.0.0",
+            description = "Dox autocomplete definitions for "..sTitle,
+            main = "lib/main.js",
+            engines = {atom = ">=1.0.0"},
+            providedServices = {
+                ["autocomplete-lua.options-provider"] = {
+                    versions = {["1.0.0"] = "getOptionProvider"},
+                },
             },
         };
 
-        local tPrepped = tRet[nIndex];
-
-        for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-
-            if (oBlockTag.isUtil()) then
-
-                if (oBlockTag.getDisplay() == _sPulsarLua) then
-                    local tInfoRAW  = fProcessBlockItem(oBlockTag, sRawInnerContent);
-                    local tInfo     = tInfoRAW.content:totable(' ');
-                    tPrepped.pulsarLua.name = tInfo[2];
-                    tPrepped.pulsarLua.type = tInfo[1];
-
-                    --TODO FINISH Check and THROW ERROR on bad values data..eg, type can be only function and table atm...more later perhaps
-                end
-
-            else
-                sInnerContent = string.htmltomd(sRawInnerContent);
-                tPrepped.blockItems[#tPrepped.blockItems + 1] = fProcessBlockItem(oBlockTag, sInnerContent);
-
-            end
-
-        end
-
-    end
-
-    return tRet;
-end
-
---used to build the actual text entry that will be stored in the output file
-
-local function buildText(sType, sName, tName, tBlockItems)
-
-    if (sType == "function") then
-        --LEFT OFF HERE
-        local sDescription          = "";
-        local sParamDescriptions    = "";
-        local sArgs                 = "";
-        local tArgNames             = {};
-
-        for _, tItem in ipairs(tBlockItems) do
-            --print(tItem.content:htmltomd())
-            if (tItem.display == "Parameter(s)") then
-
-                local function splitBySpaceLimit(input, limit)
-                  local result = {}
-                  local i = 1
-                  for word in input:gmatch("%S+") do
-                    if i < limit then
-                      table.insert(result, word)
-                    else
-                      -- Grab the rest of the string from the remaining position
-                      local pos = 0
-                      for _ = 1, i - 1 do
-                        pos = input:find("%S+%s*", pos + 1)
-                      end
-                      table.insert(result, input:sub(pos + 1):match("^%s*(.-)%s*$"))
-                      break
-                    end
-                    i = i + 1
-                  end
-                  return result
-                end
-
-
-                local tArg = splitBySpaceLimit(tItem.content, 3);
-                --print(#tArg)
-
-                tArgNames[#tArgNames + 1] = tArg[2];
-                sParamDescriptions = sParamDescriptions.."\\n"..tItem.content;
-                --print(_, tItem)
-                --print(tItem.content:htmltomd())
-            elseif (tItem.display == "Description") then
-                sDescription = tItem.content:trim():htmltomd():gsub("\n", "\\n");
-            end
-
-        end
-
-        if (#tArgNames > 0) then
-            local function formatArgs(paramNames)
-                local parts = { '"args": [' }
-
-                for i, name in ipairs(paramNames) do
-                    local comma = (i < #paramNames) and "," or ""
-                    table.insert(parts, string.format('  { "name": "%s" }%s', name, comma))
-                end
-
-                table.insert(parts, "],")
-
-                return table.concat(parts, "\n")
-            end
-
-            sArgs = formatArgs(tArgNames);
-        end
-
-        return (sDescription.."\\n"..sParamDescriptions:trim()):gsub("\n", "\\n");
-
-        --[[tFunctions[#tFunctions + 1] = {
-            description = (sDescription.."\\n"..sParamDescriptions:trim()):gsub("\n", "\\n"),
-            name        = sName,
-            args        = sArgs,
-        };]]
-
-    --TODO FINISH TABLES< STRING< Etc
-
-    else
-
-        return "";
-
-    end
-
-end
-
---sorts the blocks into a table format based on type (table, function, etc.)
-local function organizeBlocks(tPreppedBlocks)
-    local tRet = {};
-
-    for _, tBlockData in ipairs(tPreppedBlocks) do
-        local tBlockItems   = tBlockData.blockItems;
-        local tPulsarLua    = tBlockData.pulsarLua;
-        local sType         = tPulsarLua.type:lower();
-        local sName         = tPulsarLua.name;
-        local tName         = sName:totable('.'); --TODO THROW ERROR ON Non-table return
-        local nNameCount    = #tName;
-        local tEntry        = tRet;
-
-        for nIndex, sNamePart in ipairs(tName) do
-            --if this is the last item in the name table,
-            --store the data in its metatable for later retrieval
-            local sCallReturn = (nIndex == nNameCount) and buildText(sType, sName, tName, tBlockItems) or "";
-
-            --if the table entry doesn't exist, create it
-            if (tEntry[sNamePart] == nil) then
-                local tMeta = {
-                    __call = function(t)
-                        return sCallReturn;
-                    end,
-                    __neg = sType,
-                };
-
-                tEntry[sNamePart] = setmetatable({}, tMeta);
-            end
-
-            --update the current entry location
-            tEntry = tEntry[sNamePart];
-        end
-
-    end
-
-    return tRet;
-end
-
-
-
-return class("DoxBuilderPulsarLua",
-{--METAMETHODS
-
-},
-{--STATIC PUBLIC
-    --__INIT = function(stapub) end, --static initializer (runs before class object creation)
-    --DoxBuilderPulsarLua = function(this) end, --static constructor (runs after class object creation)
-},
-{--PRIVATE
-
-},
-{--PROTECTED
-
-},
-{--PUBLIC
-    DoxBuilderPulsarLua = function(this, cdat, super)
-        local tColumnWrappers = {
-
-        };
-
-        super("DoxBuilderPulsarLua", DoxBuilder.MIME.LUACOMPLETERC, "", "", "\n", tColumnWrappers);
+        return _tPackage.build(sName, _tJSON.encode(tManifest), _tJSON.encode(tData)), sName;
     end,
-    build = function(this, cdat, sTitle, sIntro, tFinalizedData)
-        local sRet = _sOutputWrapperPre;
-
-        for k, v in pairs(tFinalizedData) do
-
-            for kk, vv in pairs(v) do
-                --sRet = sRet..vv();
-            end
-
-        end
-
-        return sRet--TODO UNCOMMENT AND FIX..generateAutocompleteStructure(tFinalizedData).._sOutputWrapperPost;
-    end,
-    buildOLD = function(this, cdat, sTitle, sIntro, tFinalizedData)
-        --[[ Initialize the result string
-        local sRet = ""
-
-        -- Recursive function to traverse through tables and handle sorting
-        local function fTraverseTable(tData, sIndent)
-            local sResult = "";
-
-            -- Get and sort the keys of the table
-            local tSortedKeys = {};
-            for sKey in pairs(tData) do
-                table.insert(tSortedKeys, sKey);
-            end
-            table.sort(tSortedKeys);
-
-            -- Process each key in sorted order
-            for _, sKey in ipairs(tSortedKeys) do
-                local fSubtable = tData[sKey];
-                local sSubData = fSubtable();  -- Call the table to get its data (using __call metamethod)
-
-                -- Append the key and its data in a structured format
-                sResult = sResult .. sIndent .. sKey .. ": ";
-                if sSubData then
-
-                    local function fHasTagContent(sText, sCheck)
-                        return sText:find(sCheck, 1, true) ~= nil
-                    end
-
-                    if fHasTagContent(sSubData, "PulsarLua") then
-                        print(sKey, sSubData)
-                    end
-
-                else
-                    --print(type(sSubData))
-                end
-                sResult = sResult .. "\n";  -- Add newline after each key's data
-
-                -- Recursively process any subtables, appending them directly under the parent
-                if type(fSubtable) == "table" then
-                    sResult = sResult .. fTraverseTable(fSubtable, sIndent .. "  ");  -- Add indentation for clarity
-                end
-            end
-
-            return sResult;
-        end
-
-        -- Start the recursion with the provided table
-        sRet = fTraverseTable(tFinalizedData, "");
-
-        return sRet;]]
-        local sRet = [[
-{
-    "global": {
-        "type": "table",
-        "fields": {
-        ]];
-
-        for sTypeIndex, tItems in pairs(tFinalizedData) do
-
-            if (sTypeIndex == "function") then
-
-                for _, tData in ipairs(tItems) do
-
-                    local sFunctionText = [[
-
-                "${name}": {
-                    "type": "function",
-                    "description": "${desc}",
-                    ${args}
-                }]] % {
-                        args = tData.args,
-                        name = tData.name,
-                        desc = tData.description,
-                    };
-
-                    sRet = sRet..sFunctionText;
-
-                end
-
-            elseif (sTypeIndex == "table") then
-
-            else
-                --TODO THROW ERROR
-            end
 
 
-
-        end
-
-        return sRet..[[
-
-        }
-    }
-}]];
-    end,
+    --[[!
+    @fqxn Dox.Builders.PulsarLua.Methods.formatBlockContent
+    @pulsarlua function DoxBuilderPulsarLua.formatBlockContent
+    @desc Returns unwrapped text for compatibility with the shared builder interface.
+    !]]
     formatBlockContent = function(this, cdat, sID, sDisplay, sContent)
-        --local sIDSection = (not sID:isempty()) and "[!¬"..sID.."_¬_" or "[!¬";
-        return "__!¬"..sDisplay.."__¬_!_"..sContent.."!¬";
+        return sContent;
     end,
-    formatCombinedBlockContent = function(this, cdat, sDisplay, sCombinedContent)
-        --TODO note somewhere that combined items cannot have IDs (they are simply blank...all non examples are...but code should have IDs!!!! TODO that)
-        return "__!¬"..sDisplay.."__¬_!_"..sCombinedContent.."!¬";
+
+
+    --[[!
+    @fqxn Dox.Builders.PulsarLua.Methods.formatCombinedBlockContent
+    @pulsarlua function DoxBuilderPulsarLua.formatCombinedBlockContent
+    @desc Returns unwrapped combined content for compatibility with the shared builder interface.
+    !]]
+    formatCombinedBlockContent = function(this, cdat, sDisplay, sContent)
+        return sContent;
     end,
-    refresh = function(this, cdat, tAllBlocks, fProcessBlockItem)
-        --local tFinalized        = {};
-        local tFilteredBlocks   = filterBlocks(tAllBlocks);
-        local tPreppedBlocks    = prepBlocks(tFilteredBlocks, fProcessBlockItem);
-        local tOrganizedBlocks  = organizeBlocks(tPreppedBlocks);
-
-        --LEFT OFF HERE
-        for k, v in pairs(tOrganizedBlocks) do
-            print(k, serialize(v))
-            for kk, vv in pairs(v) do
-                print(kk, vv())
-            end
-        end
 
 
+    --[[!
+    @fqxn Dox.Builders.PulsarLua.Methods.refresh
+    @pulsarlua function DoxBuilderPulsarLua.refresh
+    @desc Includes all blocks in a nested Lua provider hierarchy, retaining argument order and documented enum fields. Explicit PulsarLua names take precedence.
+    @param table tBlocks Imported Dox blocks.
+    @param function fProcessBlockItem Shared formatter, unused because provider data consumes raw tags.
+    @return table tData Provider options.
+    !]]
+    refresh = function(this, cdat, tBlocks, fProcessBlockItem)
+        local tData = {global = {type = "table", fields = {}}, namedTypes = {}};
+        local tEntries = {};
 
-        return tOrganizedBlocks;
-    end,
-    --[[refresh = function(this, cdat, tBlocks, fProcessBlockItem)
-        local tFinalized = {};
-        local tBlocksToProcess = {};
-
-        --determine which blocks are eligible for processing
         for _, oBlock in ipairs(tBlocks) do
-
-            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-                local sDisplay = oBlockTag.getDisplay();
-
-                --add eligible blocks to the processing table
-                if (sDisplay == "PulsarLua") then
-                    tBlocksToProcess[#tBlocksToProcess + 1] = oBlock;
-                    break;
-                end
-
-            end
-
+            tEntries[#tEntries + 1] = prepareBlock(oBlock);
         end
 
-        local tPreppedBlocks = {};
-        local nIndex = 0;
+        table.sort(tEntries, function(a, b)
+            return a.name < b.name;
+        end);
 
-        --prep eligible blocks
-        for _, oBlock in ipairs(tBlocksToProcess) do
-            nIndex = nIndex + 1;
+        local tByName = {};
+        local tResolving = {};
+        local tResolved = {};
 
-            tPreppedBlocks[nIndex] = {
-                blockItems = {},
-                pulsarLua  = {
-                    name = "NOT SET",
-                    type = "NOT SET",
-                },
-            };
-
-            local tPrepped = tPreppedBlocks[nIndex];
-
-            for oBlockTag, sRawInnerContent in oBlock.eachItem() do
-
-                if (oBlockTag.isUtil()) then --TODO THROW ERROR on bad data
-                    --break the util blockline up, and get & store the info QUESTION what if there are ither util lines?>
-                    local tInfoRAW  = fProcessBlockItem(oBlockTag, sRawInnerContent);
-                    local tInfo     = tInfoRAW.content:totable(' ');
-                    tPrepped.pulsarLua.name = tInfo[2];
-                    tPrepped.pulsarLua.type = tInfo[1];
-
-                else
-                    sInnerContent = string.htmltomd(sRawInnerContent);
-                    tPrepped.blockItems[#tPrepped.blockItems + 1] = fProcessBlockItem(oBlockTag, sInnerContent);
-
-                end
-
-            end
-
+        for _, tEntry in ipairs(tEntries) do
+            tByName[tEntry.sourceName] = tEntry;
+            tByName[tEntry.name] = tEntry;
         end
 
-        tFinalized = {
-            ["function"]    = {},
-            --table           = {},
-        };
+        --[[!
+        @fqxn Dox.Builders.PulsarLua.Functions.resolveEntry
+        @desc Resolves inherited completion metadata before insertion; rejects missing targets and cycles without producing partial output.
+        @param table tEntry Prepared documentation entry.
+        @return table tDefinition Resolved completion metadata.
+        !]]
+        local function resolveEntry(tEntry)
+            if (tResolved[tEntry]) then
+                return tResolved[tEntry];
+            end
 
-        local tFunctions = tFinalized["function"];
+            if (tResolving[tEntry]) then
+                error("Circular Pulsar documentation inheritance: "..tEntry.sourceName, 2);
+            end
 
-        --process prepped blocks
-        for _, tData in ipairs(tPreppedBlocks) do
-            local sDescription          = "";
-            local sParamDescriptions    = "";
-            local sArgs                 = "";
-            local tArgNames             = {};
-            local sName                 = tData.pulsarLua.name;
-            local sType                 = tData.pulsarLua.type;
+            tResolving[tEntry] = true;
 
-            if (sType == "function") then
+            if (tEntry.inherited) then
+                local tParent = tByName[tEntry.inherited];
 
-                local tBlockItems = tData.blockItems;
+                if (not tParent) then
+                    error("Missing Pulsar documentation inheritance target: "..tEntry.inherited, 2);
+                end
 
-                for _, tItem in ipairs(tBlockItems) do
-                    --print(tItem.content:htmltomd())
-                    if (tItem.display == "Parameter(s)") then
+                tEntry.definition = resolveEntry(tParent);
+            end
 
-                        local function splitBySpaceLimit(input, limit)
-                          local result = {}
-                          local i = 1
-                          for word in input:gmatch("%S+") do
-                            if i < limit then
-                              table.insert(result, word)
-                            else
-                              -- Grab the rest of the string from the remaining position
-                              local pos = 0
-                              for _ = 1, i - 1 do
-                                pos = input:find("%S+%s*", pos + 1)
-                              end
-                              table.insert(result, input:sub(pos + 1):match("^%s*(.-)%s*$"))
-                              break
-                            end
-                            i = i + 1
-                          end
-                          return result
-                        end
+            tResolving[tEntry] = nil;
+            tResolved[tEntry] = tEntry.definition;
 
+            return tEntry.definition;
+        end
 
-                        local tArg = splitBySpaceLimit(tItem.content, 3);
-                        --print(#tArg)
+        for _, tEntry in ipairs(tEntries) do
+            resolveEntry(tEntry);
+        end
 
-                        tArgNames[#tArgNames + 1] = tArg[2];
-                        sParamDescriptions = sParamDescriptions.."\\n"..tItem.content;
-                        --print(_, tItem)
-                        --print(tItem.content:htmltomd())
-                    elseif (tItem.display == "Description") then
-                        sDescription = tItem.content:trim():htmltomd():gsub("\n", "\\n");
+        for _, tEntry in ipairs(tEntries) do
+            local tNode = insert(tData.global, tEntry.name, tEntry.definition);
+            tData.namedTypes[tEntry.name] = tNode;
+        end
+
+        -- The provider indexes only tables. Preserve callable metadata on the
+        -- owner and in its call metatable while keeping its public fields visible.
+        --[[!
+        @fqxn Dox.Builders.PulsarLua.Functions.normalizeCallable
+        @desc Represents definitions containing both a call signature and members as provider tables. Retains constructor arguments and return metadata; the provider can resolve their fields and call results.
+        @param table tNode Definition tree to normalize.
+        !]]
+        local function normalizeCallable(tNode)
+            for _, tChild in pairs(tNode.fields or {}) do
+                normalizeCallable(tChild);
+            end
+
+            if (tNode.type == "function" and next(tNode.fields or {})) then
+                local tCall = {};
+
+                for sKey, vValue in pairs(tNode) do
+                    if (sKey ~= "fields") then
+                        tCall[sKey] = vValue;
                     end
-
                 end
 
-                if (#tArgNames > 0) then
-                    local function formatArgs(paramNames)
-                        local parts = { '"args": [' }
-
-                        for i, name in ipairs(paramNames) do
-                            local comma = (i < #paramNames) and "," or ""
-                            table.insert(parts, string.format('  { "name": "%s" }%s', name, comma))
-                        end
-
-                        table.insert(parts, "],")
-
-                        return table.concat(parts, "\n")
-                    end
-
-                    sArgs = formatArgs(tArgNames);
-                end
-
-                tFunctions[#tFunctions + 1] = {
-                    description = (sDescription.."\\n"..sParamDescriptions:trim()):gsub("\n", "\\n"),
-                    name        = sName,
-                    args        = sArgs,
-                };
-            else
-                --TODO THROW ERROR for non-existent type
+                tNode.type = "table";
+                tNode.metatable = {type = "table", fields = {__call = tCall}};
+                tNode.description = (tNode.description or "").."\n\nConstructor: ("..(tNode.argsDisplay or "")..").";
             end
-
         end
 
-        return tFinalized;
-    end,]]
-},
-DoxBuilder,   --extending class
-false, --if the class is final
-nil    --interface(s) (either nil, or interface(s))
-);
+
+        normalizeCallable(tData.global);
+
+        -- Callable table return slots are read directly by this provider rather
+        -- than revived as function slots. Supply a finite instance shape there.
+        --[[!
+        @fqxn Dox.Builders.PulsarLua.Functions.resolveCallReturns
+        @desc Expands documented named table returns on callable owners into instance field shapes so the provider can infer members after a constructor call. Missing return documentation is never invented.
+        @param table tNode Definition tree containing callable tables.
+        !]]
+        local function resolveCallReturns(tNode)
+            for _, tChild in pairs(tNode.fields or {}) do
+                resolveCallReturns(tChild);
+            end
+
+            if (tNode.metatable and tNode.metatable.fields.__call) then
+                for nIndex, tReturn in ipairs(tNode.returnTypes or {}) do
+                    local tNamed = tReturn.type == "ref" and tData.namedTypes[tReturn.name];
+
+                    if (tNamed and tNamed.type == "table") then
+                        tNode.returnTypes[nIndex] = {type = "table", fields = tNamed.fields or {}};
+                    end
+                end
+            end
+        end
+
+
+        -- Unresolved custom types are explicitly unknown rather than broken references.
+        --[[!
+        @fqxn Dox.Builders.PulsarLua.Functions.resolveTypes
+        @desc Replaces references to undocumented types with explicit unknown definitions, preserving documented references for the provider to revive.
+        @param table tNode Completion definition to validate recursively.
+        !]]
+        local function resolveTypes(tNode)
+            if (tNode.type == "ref" and not tData.namedTypes[tNode.name]) then
+                tNode.type = "unknown";
+                tNode.name = nil;
+            end
+
+            for _, tChild in pairs(tNode.fields or {}) do
+                resolveTypes(tChild);
+            end
+
+            if (tNode.metatable) then
+                resolveTypes(tNode.metatable);
+            end
+
+            for _, tArg in ipairs(tNode.argTypes or {}) do
+                resolveTypes(tArg);
+            end
+
+            for _, tReturn in ipairs(tNode.returnTypes or {}) do
+                resolveTypes(tReturn);
+            end
+        end
+
+        resolveTypes(tData.global);
+        resolveCallReturns(tData.global);
+
+        return tData;
+    end,
+}, DoxBuilder, true);

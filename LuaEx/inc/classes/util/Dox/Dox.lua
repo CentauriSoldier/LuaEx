@@ -1,14 +1,27 @@
+local DoxBlock              = DoxBlock;
+local DoxBuilderHTML        = DoxBuilderHTML;
+local DoxBuilderPulsarLua   = DoxBuilderPulsarLua;
+local SortedDictionary      = SortedDictionary;
+local assert                = assert;
+local class                 = class;
+local clone                 = clone;
+local enum                  = enum;
+local error                 = error;
+local io                    = io;
+local ipairs                = ipairs;
+local pairs                 = pairs;
+local rawtype               = rawtype;
+local require               = require;
+local string                = string;
+local table                 = table;
+local type                  = type;
+
+
 local _nExampleInsertPoint  = 6; --where in the _tBuiltInBlockTags table to put the Example BlockTag
 local _pStaticsRequirePath  = "LuaEx.inc.classes.util.Dox.Statics";
 local _eSyntax              = require(_pStaticsRequirePath..".DoxSyntaxEnum");
 local _tBuiltInBlockTags    = require(_pStaticsRequirePath..".BuiltInBlockTags");
 
-local assert    = assert;
-local class     = class;
-local rawtype   = rawtype;
-local string    = string;
-local table     = table;
-local type      = type;
 
 local _eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 
@@ -39,13 +52,80 @@ local _eOutputType = enum("DoxOutput", {"HTML"});--, "MD"});
 !]]
 local function escapePattern(pattern)
     -- Escape special characters in the pattern
-    local escapedPattern = pattern:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+    local escapedPattern = pattern:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1");
 
-    -- Remove leading and trailing whitespace from the escaped pattern
-    escapedPattern = escapedPattern:gsub("^%s*(.-)%s*$", "%1")
+    -- Preserve delimiter whitespace and accept Windows endings for newline terminators.
+    escapedPattern = escapedPattern:gsub("\n", "\r?\n");
 
-    return escapedPattern
+    return escapedPattern;
 end
+
+--[[!
+@fqxn Dox.Functions.extractLuaComments
+@vis local
+@desc Collects actual Lua Dox comments, skipping quoted strings, long strings, ordinary comments, and incomplete blocks. Escaped example brackets remain unchanged for the existing MIME preprocessor.
+@param string sInput Lua source text.
+@ret string Complete Dox comments joined with newlines.
+!]]
+local function extractLuaComments(sInput)
+    local nIndex    = 1;
+    local nLength   = #sInput;
+    local tComments = {};
+
+    while (nIndex <= nLength) do
+        local sCharacter = sInput:sub(nIndex, nIndex);
+
+        if (sCharacter == '"' or sCharacter == "'") then
+            -- An escaped quote does not end a short string.
+            local sQuote = sCharacter;
+            nIndex = nIndex + 1;
+
+            while (nIndex <= nLength) do
+                sCharacter = sInput:sub(nIndex, nIndex);
+
+                if (sCharacter == "\\") then
+                    nIndex = nIndex + 2;
+                elseif (sCharacter == sQuote) then
+                    nIndex = nIndex + 1;
+                    break;
+                else
+                    nIndex = nIndex + 1;
+                end
+            end
+
+        elseif (sInput:sub(nIndex, nIndex + 1) == "--" or sCharacter == "[") then
+            local bComment = sCharacter == "-";
+            local nStart   = nIndex + (bComment and 2 or 0);
+            local nOpen, nContent, sEquals = sInput:find("%[(=*)%[", nStart);
+
+            if (nOpen == nStart) then
+                -- Lua long brackets close only at the matching equals level.
+                local nClose, nAfter = sInput:find("]"..sEquals.."]", nContent + 1, true);
+
+                if (not nClose) then
+                    break;
+                end
+
+                if (bComment and sEquals == "" and sInput:sub(nContent + 1, nContent + 1) == "!" and
+                    sInput:sub(nClose - 1, nClose - 1) == "!") then
+                    table.insert(tComments, sInput:sub(nIndex, nAfter));
+                end
+
+                nIndex = nAfter + 1;
+            elseif (bComment) then
+                -- Ordinary line comments may contain marker-like text.
+                nIndex = sInput:find("[\r\n]", nStart) or (nLength + 1);
+            else
+                nIndex = nIndex + 1;
+            end
+        else
+            nIndex = nIndex + 1;
+        end
+    end
+
+    return table.concat(tComments, "\n");
+end
+
 
 --[[
 ██████╗  ██████╗ ██╗  ██╗
@@ -220,21 +300,116 @@ Below is the layout and hierarchy of Dox and all its elements.
 !]]
 return class("Dox",
 {--metamethods
-    __tostring = function()
-        --TODO this should display the open/close stuff +
+    __tostring = function(this, cdat)
+        local pri = cdat.pri;
+
+        return pri.name.." ("..pri.blockOpen.." ... "..pri.blockClose..")";
     end,
 },
 {--static public
     --TODO move this out to the builder section and call it in
     BUILDER = enum("Dox.BUILDER", {"HTML", "PULSAR_LUA"}, {DoxBuilderHTML(), DoxBuilderPulsarLua()}, true),
     OUTPUT  = _eOutputType,
+    --[[!
+    @fqxn Dox.PRISM
+    @pulsarlua table Dox.PRISM
+    @desc Prism code themes. Values are the official stylesheet names used when building HTML; Okaidia is the default.
+    @field table COY Coy; value: prism-coy.
+    @field table DARK Dark; value: prism-dark.
+    @field table DEFAULT Default; value: prism.
+    @field table FUNKY Funky; value: prism-funky.
+    @field table OKAIDIA Okaidia; value: prism-okaidia.
+    @field table SOLARIZED_LIGHT Solarized Light; value: prism-solarizedlight.
+    @field table TOMORROW_NIGHT Tomorrow Night; value: prism-tomorrow.
+    @field table TWILIGHT Twilight; value: prism-twilight.
+    !]]
+    PRISM = enum("Dox.PRISM",
+    {
+        "COY", "DARK", "DEFAULT", "FUNKY", "OKAIDIA", "SOLARIZED_LIGHT", "TOMORROW_NIGHT", "TWILIGHT",
+    },
+    {
+        "prism-coy", "prism-dark", "prism", "prism-funky", "prism-okaidia", "prism-solarizedlight", "prism-tomorrow", "prism-twilight",
+    }, true),
     SYNTAX  = _eSyntax,
+    --[[!
+    @fqxn Dox.THEME
+    @pulsarlua table Dox.THEME
+    @desc Documentation page themes. Values identify palettes in the HTML Themes module; Midnight Blue is the default. Prism highlighting is selected separately.
+    @field table ALUCARD Alucard; value: alucard.
+    @field table CATPPUCCIN_FRAPPE Catppuccin Frappe; value: catppuccin_frappe.
+    @field table CATPPUCCIN_LATTE Catppuccin Latte; value: catppuccin_latte.
+    @field table CATPPUCCIN_MACCHIATO Catppuccin Macchiato; value: catppuccin_macchiato.
+    @field table CATPPUCCIN_MOCHA Catppuccin Mocha; value: catppuccin_mocha.
+    @field table DRACULA Dracula; value: dracula.
+    @field table GRUVBOX_DARK Gruvbox Dark; value: gruvbox_dark.
+    @field table GRUVBOX_LIGHT Gruvbox Light; value: gruvbox_light.
+    @field table MIDNIGHT_BLUE Midnight Blue; value: midnight_blue.
+    @field table NORD Nord; value: nord.
+    @field table ROSE_PINE Rose Pine; value: rose_pine.
+    @field table ROSE_PINE_DAWN Rose Pine Dawn; value: rose_pine_dawn.
+    @field table ROSE_PINE_MOON Rose Pine Moon; value: rose_pine_moon.
+    @field table SOLARIZED_DARK Solarized Dark; value: solarized_dark.
+    @field table SOLARIZED_LIGHT Solarized Light; value: solarized_light.
+    @field table SYNTHWAVE_PROTOCOL Synthwave Protocol; value: synthwave_protocol.
+    @field table TOKYO_NIGHT Tokyo Night; value: tokyo_night.
+    @field table TOKYO_NIGHT_MOON Tokyo Night Moon; value: tokyo_night_moon.
+    @field table TOKYO_NIGHT_STORM Tokyo Night Storm; value: tokyo_night_storm.
+    @field table ZENBURN Zenburn; value: zenburn.
+    !]]
+    THEME = enum("Dox.THEME",
+    {
+        "ALUCARD",
+        "CATPPUCCIN_FRAPPE",
+        "CATPPUCCIN_LATTE",
+        "CATPPUCCIN_MACCHIATO",
+        "CATPPUCCIN_MOCHA",
+        "DRACULA",
+        "GRUVBOX_DARK",
+        "GRUVBOX_LIGHT",
+        "MIDNIGHT_BLUE",
+        "NORD",
+        "ROSE_PINE",
+        "ROSE_PINE_DAWN",
+        "ROSE_PINE_MOON",
+        "SOLARIZED_DARK",
+        "SOLARIZED_LIGHT",
+        "SYNTHWAVE_PROTOCOL",
+        "TOKYO_NIGHT",
+        "TOKYO_NIGHT_MOON",
+        "TOKYO_NIGHT_STORM",
+        "ZENBURN",
+    },
+    {
+        "alucard",
+        "catppuccin_frappe",
+        "catppuccin_latte",
+        "catppuccin_macchiato",
+        "catppuccin_mocha",
+        "dracula",
+        "gruvbox_dark",
+        "gruvbox_light",
+        "midnight_blue",
+        "nord",
+        "rose_pine",
+        "rose_pine_dawn",
+        "rose_pine_moon",
+        "solarized_dark",
+        "solarized_light",
+        "synthwave_protocol",
+        "tokyo_night",
+        "tokyo_night_moon",
+        "tokyo_night_storm",
+        "zenburn",
+    }, true),
+
 },
 {--private
     --[[@qxn Classes.Dox.Fields]]
+    bannerURL           = "",
     blockOpen           = "",
     blockClose          = "",
     blockTags           = {},
+    defaultBlockTags    = {},
     blockStrings        = {},
     builder             = null,
     --[[!@fqxn Dox.Fields.Private @field finalized The finalized data once imported items have been refreshed.!]]
@@ -246,6 +421,7 @@ return class("Dox",
     output              = "",
     OutputPath__auto__  = "",
     prismCSS            = "",
+    prismTheme          = null,
     --prismScripts        = {},
     requiredBlockTags   = {},
     snippetClose        = "",
@@ -254,6 +430,7 @@ return class("Dox",
     --Start 	        = "##### START DOX [SUBCLASS NAME] SNIPPETS -->>> ID: ",
     --End 	            = "#####   <<<-- END DOX [SUBCLASS NAME] SNIPPETS ID: ",
     tagOpen             = "",
+    theme               = null,
     title               = "",
     --[[!
     @fqxn Dox.Methods.extractBlockStrings
@@ -270,6 +447,11 @@ return class("Dox",
         local sCloseSuffix  = oDoxSyntax.getCommentClose();
         local sBlockOpen    = pri.blockOpen;
         local sBlockClose   = pri.blockClose;
+
+        -- Lua strings and ordinary comments must not introduce documentation blocks.
+        if (pri.syntax == _eSyntax.LUA) then
+            sInput = extractLuaComments(sInput);
+        end
 
         local sPattern = escapePattern(sOpenPrefix..sBlockOpen).."(.-)"..escapePattern(sBlockClose..sCloseSuffix);
         for sMatch in sInput:gmatch(sPattern) do
@@ -313,7 +495,12 @@ return class("Dox",
         tContent[nColumnCount] = sCurrent;
 
         for x = 1, #tContent do
-            local tWrapper   = oBuilder.getColumnWrapper(oBlockTag.getDisplay(), x);
+            local tWrapper = oBuilder.getColumnWrapper(oBlockTag.getDisplay(), x);
+
+            -- The parser supplies the language per example; shared builders keep no parser state.
+            if (oBlockTag.getDisplay() == "Example" and type(oBuilder.getExampleWrapper) == "function") then
+                tWrapper = oBuilder.getExampleWrapper(cdat.pri.syntax);
+            end
             --local tWrapper   = oBlockTag.getColumnWrapper(x);
             local sWrapFront = tWrapper[1];
             local sWrapBack  = tWrapper[2];
@@ -340,6 +527,7 @@ return class("Dox",
     end,
     --[[!
     @fqxn Dox.Methods.refresh
+    @pulsarlua function Dox.refresh
     @desc Refreshes the finalized data
     !]]
     refresh = function(this, cdat)
@@ -379,6 +567,8 @@ return class("Dox",
 
         local pri               = cdat.pri;
         pri.syntax              = eSyntax;
+        pri.prismTheme          = Dox.PRISM.OKAIDIA;
+        pri.theme               = Dox.THEME.MIDNIGHT_BLUE;
         pri.builder             = Dox.BUILDER.HTML; --default builder, can be changed later
                                   --pri.builder.value.setSyntax(cdat.pri.syntax);
         pri.blockOpen           = sBlockOpen;
@@ -444,18 +634,35 @@ return class("Dox",
         end
 
 
-        --TODO FIX check for duplicate aliases in all block tags...only one specific alias may exist in any block tag
+        -- Retain the instance's original order for resets without changing shared defaults.
+        pri.defaultBlockTags = clone(pri.blockTags);
 
-    end,
-    eachBlockTag__FNL = function(this, cdat)--TODO index not incrementing?
-        local nIndex    = 0;
-        local nMax      = #cdat.pri.blockTags;
+        -- Reject aliases shared by different tags before parsing any documentation.
+        local tAliases = {};
 
-        while nIndex < nMax do
-            local oBlockTag = cdat.pri.blockTags[nIndex];
-            return oBlockTag.getDisplay(), oBlockTag;
+        for _, oBlockTag in ipairs(pri.blockTags) do
+            for sAlias in oBlockTag.eachAlias() do
+                if (tAliases[sAlias]) then
+                    error("Duplicate Dox BlockTag alias: "..sAlias, 2);
+                end
+
+                tAliases[sAlias] = true;
+            end
         end
 
+    end,
+    eachBlockTag__FNL = function(this, cdat)
+        local nIndex = 0;
+        local tBlockTags = cdat.pri.blockTags;
+
+        return function()
+            nIndex = nIndex + 1;
+            local oBlockTag = tBlockTags[nIndex];
+
+            if (oBlockTag) then
+                return oBlockTag.getDisplay(), oBlockTag;
+            end
+        end;
     end,
     getBlockTagByDisplay__FNL = function(this, cdat, sDisplay)
         type.assert.string(sDisplay, "%S+");
@@ -476,10 +683,11 @@ return class("Dox",
 {--public
     addMimeType__FNL = function(this, cdat, oDoxMime)
         type.assert.custom(oDoxMime, "DoxMime");
-        pri.mimeTypes.add(oDoxMime.getName(), oDoxMime);
+        cdat.pri.mimeTypes.add(oDoxMime.getName(), oDoxMime);
     end,
     --[[!
     @fqxn Dox.Methods.eachBlockTag
+    @pulsarlua function Dox.eachBlockTag
     @desc Returns an iterator that returns each <a href="#Dox.Components.DoxBlockTag">DoxBlockTag</a> available to the instance.
     @return function fIterator The iterator.
     !]]
@@ -491,40 +699,59 @@ return class("Dox",
         return function()
             nIndex = nIndex + 1;
 
-            if (nIndex < nMax) then
+            if (nIndex <= nMax) then
                 return clone(tBlockTags[nIndex]);
             end
 
         end
 
     end,
-    export__FNL = function(this, cdat, sFilename, bPulsar)
-        local pri           = cdat.pri;
-        local eBuilder      = pri.builder;
-        local cBuilder      = pri.builder.value;
-        local eBuilderMime  = cBuilder.getMime();
-        --print(serialize(pri.finalized))
-        --get or create the filename (or use the builder's default)
-        sFilename = (rawtype(sFilename) == "string" and sFilename:isfilesafe())         and
-                    sFilename                                                           or
-                    (pri.title:isfilesafe() and pri.title or cBuilder.getDefaultFilename());
+    --[[!
+    @fqxn Dox.Methods.export
+    @pulsarlua function Dox.export
+    @desc Builds and writes the selected documentation format. Pulsar Lua produces a project-named package inside a ZIP; other builders retain their normal output format.
+    @param string|nil sFilename Optional output filename without its extension.
+    @return string pOut The written file path.
+    @note Pulsar packages require Lua 5.3 or newer. Unpack into Pulsar's packages folder and enable a Lua autocomplete provider.
+    !]]
+    export__FNL = function(this, cdat, sFilename)
+        local pri          = cdat.pri;
+        local cBuilder     = pri.builder.value;
+        local bPackage     = pri.builder == Dox.BUILDER.PULSAR_LUA;
+        local sExtension   = bPackage and "zip" or cBuilder.getMime().value;
+        local sMode        = bPackage and "wb" or "w";
 
-        --TODO use proper directory separator
-        local pOut = pri.OutputPath.."\\"..sFilename.."."..eBuilderMime.value;
-        pri.output = cBuilder.build(pri.title, pri.Intro, pri.finalized);--TODO clone table?
-
-        local function writeFile(pFile, sContent)
-            local hFile = io.open(pFile, "w");
-            if not hFile then
-                error("Error outputting Dox: Can't write to file, '"..pFile.."'.", 3)--TODO nice error message
-            end
-
-            hFile:write(sContent);
-            hFile:close();
+        -- Rebuild completion metadata for the selected builder, even when selection
+        -- changed after an HTML refresh. Package identity comes from the title.
+        if (bPackage) then
+            this.refresh();
         end
 
-        writeFile(pOut, pri.output);
+        sFilename = (rawtype(sFilename) == "string" and sFilename:isfilesafe()) and sFilename or
+                    (pri.title:isfilesafe() and pri.title or cBuilder.getDefaultFilename());
+
+        local pOut = pri.OutputPath.."/"..sFilename.."."..sExtension;
+
+        pri.output = cBuilder.build(pri.title, pri.Intro, pri.finalized, pri.prismTheme, pri.bannerURL, pri.theme);
+
+        local hFile, sOpenError = io.open(pOut, sMode);
+
+        if (not hFile) then
+            error("Error outputting Dox: "..tostring(sOpenError), 2);
+        end
+
+        -- Close the handle even after a failed write, and report either failure.
+        local bWritten, sWriteError = hFile:write(pri.output);
+        local bClosed, sCloseError  = hFile:close();
+
+        if (not bWritten or not bClosed) then
+            error("Error outputting Dox: "..tostring(sWriteError or sCloseError), 2);
+        end
+
+        return pOut;
     end,
+
+
     getOutput__FNL = function(this, cdat)
         return cdat.pri.output;
     end,
@@ -580,7 +807,7 @@ return class("Dox",
         local sExt = tParts.extension:lower();
         local oActiveDoxMime;
 
-        for sExt, oDoxMime in cdat.pri.mimeTypes() do
+        for _, oDoxMime in cdat.pri.mimeTypes() do
 
             if (sExt == oDoxMime.getName()) then
                 oActiveDoxMime = oDoxMime;
@@ -622,7 +849,7 @@ return class("Dox",
             local sExt = tParts.extension:lower();
             local oActiveDoxMime;
 
-            for sExt, oDoxMime in cdat.pri.mimeTypes() do
+            for _, oDoxMime in cdat.pri.mimeTypes() do
 
                 if (sExt == oDoxMime.getName()) then
                     oActiveDoxMime = oDoxMime;
@@ -655,7 +882,7 @@ return class("Dox",
 
     end,
     importString__FNL = function(this, cdat, sInput, oDoxMime)--, bSkipRefresh)
-        --TODO assert mime object
+        type.assert.custom(oDoxMime, "DoxMime");
         type.assert.string(sInput);
         local sWorking = sInput;
 
@@ -669,10 +896,116 @@ return class("Dox",
     refresh__FNL = function(this, cdat)
         cdat.pri.refresh();
     end,
+    --[[!
+    @fqxn Dox.Methods.setBanner
+    @pulsarlua function Dox.setBanner
+    @desc Sets an optional documentation banner image URL. An empty string restores the normal header. Missing or unreadable images show a notice without hiding the documentation.
+    @param string sURL Image URL, relative output path, or an empty string.
+    !]]
+    setBanner__FNL = function(this, cdat, sURL)
+        type.assert.string(sURL);
+        cdat.pri.bannerURL = sURL;
+    end,
+
+
+    --[[!
+    @fqxn Dox.Methods.setBlockTagOrder
+    @pulsarlua function Dox.setBlockTagOrder
+    @desc Sets this instance's documentation section order using tag aliases. Unlisted tags retain their existing relative order after listed tags. Repeated items within a section retain source order. Call refresh before exporting the new order.
+    @param table|nil tAliases A contiguous alias list; nil or an empty list restores the original order. Aliases are case-insensitive. Unknown aliases and aliases identifying the same tag more than once are rejected before the order changes.
+    !]]
+    setBlockTagOrder__FNL = function(this, cdat, tAliases)
+        local pri = cdat.pri;
+
+        if (tAliases == nil) then
+            pri.blockTags = clone(pri.defaultBlockTags);
+            return;
+        end
+
+        if (rawtype(tAliases) ~= "table") then
+            error("Dox tag order must be an alias list or nil.", 2);
+        end
+
+        local nCount = 0;
+
+        for nIndex in pairs(tAliases) do
+            if (rawtype(nIndex) ~= "number" or nIndex % 1 ~= 0 or nIndex < 1) then
+                error("Dox tag order must be a contiguous alias list.", 2);
+            end
+
+            nCount = nCount + 1;
+        end
+
+        if (nCount == 0) then
+            pri.blockTags = clone(pri.defaultBlockTags);
+            return;
+        end
+
+        local tOrdered = {};
+        local tSelected = {};
+
+        for nIndex = 1, nCount do
+            local sAlias = tAliases[nIndex];
+
+            if (rawtype(sAlias) ~= "string" or not sAlias:match("^[^%s]+$")) then
+                error("Dox tag order requires non-blank aliases in a contiguous list.", 2);
+            end
+
+            local oSelected;
+
+            for _, oBlockTag in ipairs(pri.blockTags) do
+                if (oBlockTag.hasAlias(sAlias)) then
+                    oSelected = oBlockTag;
+                    break;
+                end
+            end
+
+            if (not oSelected or tSelected[oSelected]) then
+                error("Dox tag order contains an unknown or repeated tag: "..sAlias, 2);
+            end
+
+            tSelected[oSelected] = true;
+            tOrdered[#tOrdered + 1] = oSelected;
+        end
+
+        for _, oBlockTag in ipairs(pri.blockTags) do
+            if (not tSelected[oBlockTag]) then
+                tOrdered[#tOrdered + 1] = oBlockTag;
+            end
+        end
+
+        pri.blockTags = tOrdered;
+    end,
+
+
     setBuilder__FNL = function(this, cdat, eBuilder)
         type.assert.custom(eBuilder, "Dox.BUILDER");
         cdat.pri.builder = eBuilder;
         --eBuilder.value.setSyntax(cdat.pri.syntax);
+    end,
+
+
+    --[[!
+    @fqxn Dox.Methods.setPrismTheme
+    @pulsarlua function Dox.setPrismTheme
+    @desc Selects the Prism code theme for subsequent HTML builds on this document. Other documents and their shared builder remain unchanged.
+    @param Dox.PRISM eTheme The theme enum member; its value names the Prism stylesheet.
+    !]]
+    setPrismTheme__FNL = function(this, cdat, eTheme)
+        type.assert.custom(eTheme, "Dox.PRISM");
+        cdat.pri.prismTheme = eTheme;
+    end,
+
+
+    --[[!
+    @fqxn Dox.Methods.setTheme
+    @pulsarlua function Dox.setTheme
+    @desc Selects a documentation page palette for subsequent builds on this object. Defaults to Midnight Blue; Prism themes and other Dox objects are unaffected.
+    @param Dox.THEME eTheme Page theme enum member whose value identifies an HTML palette.
+    !]]
+    setTheme__FNL = function(this, cdat, eTheme)
+        type.assert.custom(eTheme, "Dox.THEME");
+        cdat.pri.theme = eTheme;
     end,
 },
 nil,    --extending class

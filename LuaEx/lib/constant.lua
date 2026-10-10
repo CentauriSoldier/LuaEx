@@ -1,5 +1,6 @@
 --[[!
     @fqxn LuaEx.Libraries.constant
+    @pulsarlua function constant
     @desc Creates a constant in the LuaEx library. This function validates the constant name and value
           to ensure that the name is a valid Lua variable and that the value is not nil. It checks for
           existing variables to prevent overwriting and enforces compliance with naming rules.

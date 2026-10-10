@@ -1,5 +1,6 @@
 --[[!
     @fqxn CoG.Config
+    @pulsarlua table luaex.cog.config
     @desc <p>These settings (assembled by <strong><em>LuaEx/inc/cog/config.lua</em></strong>) are for the user to edit in the adjacent config folder (pre-runtime).
     <br>It is available at runtime by accessing the global variable: <strong><em>luaex.cog.config</strong></em>
     <br><br>It (and any subtables it contains) are read-only at runtime, preventing potential issues of unexpected data changes.

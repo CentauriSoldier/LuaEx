@@ -1,5 +1,6 @@
 --[[!
     @fqxn LuaEx.Libraries.enum
+    @pulsarlua table enum
     @desc Immutable named collections with one-based ordinal lookup, ordered
     iteration, optional values, and nested enums. Missing values use their ordinal.
     Public enums register in LuaEx; private enums do not register globally.
@@ -130,6 +131,7 @@ local function itemMethods(oItem, tState, tActual)
 
     --[[!
         @fqxn LuaEx.Libraries.enum.item.isa
+        @pulsarlua function enumitem.isa
         @desc Tests exact membership in the given parent enum.
         @param enum oEnum The proposed parent.
         @ret boolean Whether this item's parent is oEnum.
@@ -141,6 +143,7 @@ local function itemMethods(oItem, tState, tActual)
 
     --[[!
         @fqxn LuaEx.Libraries.enum.item.isSibling
+        @pulsarlua function enumitem.isSibling
         @desc Tests that another entry is distinct and has the same parent enum.
         @param enumitem other The proposed sibling.
         @ret boolean Whether the entries are distinct siblings.
@@ -165,6 +168,7 @@ local function itemMethods(oItem, tState, tActual)
 
     --[[!
         @fqxn LuaEx.Libraries.enum.item.next
+        @pulsarlua function enumitem.next
         @desc Gets the next sibling; nil past the end unless wrapping is requested.
         @param boolean bWrap Optional; defaults to false.
         @ret enumitem|nil The next sibling.
@@ -174,6 +178,7 @@ local function itemMethods(oItem, tState, tActual)
 
     --[[!
         @fqxn LuaEx.Libraries.enum.item.previous
+        @pulsarlua function enumitem.previous
         @desc Gets the previous sibling; nil before the start unless wrapping is requested.
         @param boolean bWrap Optional; defaults to false.
         @ret enumitem|nil The previous sibling.
@@ -183,6 +188,7 @@ local function itemMethods(oItem, tState, tActual)
 
     --[[!
         @fqxn LuaEx.Libraries.enum.item.serialize
+        @pulsarlua function enumitem.serialize
         @desc Returns the complete symbolic path, including nested parent keys.
         This is a reference only when the root is globally accessible. Use global
         serialize to persist private enum items as well.
@@ -336,6 +342,7 @@ buildEnum = function(sName, tNames, tValues, bPrivate, oParent, nID, sItemName, 
 
     --[[!
         @fqxn LuaEx.Libraries.enum.random
+        @pulsarlua function enum.random
         @desc Selects a uniformly random member using the shared math.random stream.
         @ret enumitem A member of this enum.
         @ex local oTier = TIER.random();
@@ -344,6 +351,7 @@ buildEnum = function(sName, tNames, tValues, bPrivate, oParent, nID, sItemName, 
 
     --[[!
         @fqxn LuaEx.Libraries.enum.totable
+        @pulsarlua function enum.totable
         @desc Returns a new table keyed by member objects. Values are each member's
         payload unless an override is supplied; false is a valid override.
         @param any vOverride Optional value for every member key.
@@ -399,6 +407,7 @@ end;
 
 --[[!
     @fqxn LuaEx.Libraries.enum.snapshot
+    @pulsarlua function enum.snapshot
     @desc Returns a fresh definition table for an enum, including private/nested
     enums. Payload objects are retained; member names and value lists are copied.
     @param enum oEnum The enum to describe.
@@ -420,6 +429,7 @@ end;
 
 --[[!
     @fqxn LuaEx.Libraries.enum.deserialize
+    @pulsarlua function enum.deserialize
     @desc Restores a definition table as a private enum without overwriting global
     bindings. A symbolic path string resolves an existing enum or member without
     executing Lua code; unknown paths and malformed definitions raise errors.
@@ -451,6 +461,7 @@ end
 
 --[[!
     @fqxn LuaEx.Libraries.enum.prep
+    @pulsarlua function enum.prep
     @desc Builds a definition in assignment order. Assign named values, including
     false or ENUM_DEFAULT_VALUE, then call the builder to create the enum. Reassigning
     a name updates its value while retaining its position; nil assignments reject.
@@ -513,6 +524,7 @@ end
 
 --[[!
     @fqxn LuaEx.Libraries.enum.isenum
+    @pulsarlua function enum.isenum
     @desc Tests an actual enum collection, including one embedded as a parent member.
     @param any vValue The value to inspect.
     @ret boolean Whether it is a collection made by this factory.
@@ -522,6 +534,7 @@ local function isenum(vValue) return _tEnums[vValue] ~= nil; end
 
 --[[!
     @fqxn LuaEx.Libraries.enum.isitem
+    @pulsarlua function enum.isitem
     @desc Tests an actual enum member, including an embedded collection with a parent.
     @param any vValue The value to inspect.
     @ret boolean Whether it is a member made by this factory.
@@ -531,6 +544,7 @@ local function isitem(vValue) return _tItems[vValue] ~= nil; end
 
 --[[!
     @fqxn LuaEx.Libraries.enum.restore
+    @pulsarlua function enum.restore
     @desc Codec restoration step. Adopts freshly decoded private child collections
     to preserve references to nested members. Children must be unparented and
     privately owned by the same decoding token. Member state {parent, name}
@@ -582,6 +596,7 @@ local EnumFactoryActual = {
 local EnumFactoryDecoy = {};
 --[[!
     @fqxn LuaEx.Libraries.enum.__call
+    @pulsarlua function enum
     @desc Creates enum(name, names, values, private). Names are a nonempty dense
     list of unique identifiers. Optional values use matching ordinal indices;
     missing values or ENUM_DEFAULT_VALUE use the ordinal. False remains false.

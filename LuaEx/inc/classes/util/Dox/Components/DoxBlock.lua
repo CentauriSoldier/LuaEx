@@ -1,3 +1,14 @@
+local class     = class;
+local clone     = clone;
+local error     = error;
+local ipairs    = ipairs;
+local math      = math;
+local pairs     = pairs;
+local rawtype   = rawtype;
+local table     = table;
+local type      = type;
+
+
 return class("DoxBlock",
 {--METAMETHODS
 
@@ -28,13 +39,10 @@ return class("DoxBlock",
         local tRet  = {};
         local sEscapeChar           = eLanguage.value.getEscapeCharater();
         local sTempAtSymbol         = "DOXAtSymbole7fa52f71cfe48298a9ad784026556fb";
-        local sTempNewLineSysmbol   = "DOXNewLineSymbolf47ac10b58cc4372a5670e02b2c3d479"
         local sEscapedTagOpen       = sEscapeChar..sTagOpen;
-        local sEscapedNewLine       = sEscapeChar.."n";
 
-        --TODO account for new lines (delete unescaped ones)
         --replace the escaped @ symbols temporarily
-        local sBlock = sRawBlock:gsub(sEscapedTagOpen, sTempAtSymbol);--:gsub(sEscapedNewLine, sTempNewLineSysmbol);
+        local sBlock = sRawBlock:gsub(sEscapedTagOpen, sTempAtSymbol);
 
         --break the block up into items
         local tBlockItems = sBlock:gsub("^%s+", ""):totable(sTagOpen);
@@ -47,12 +55,11 @@ return class("DoxBlock",
         for nItemIndex, sRawItem in ipairs(tBlockItems) do
             --replace the @ symbols and trim trailing space
             local sItemInProcess = sRawItem:gsub(sTempAtSymbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), sTagOpen):gsub("%s+$", "");--gsub("\n$", "");
-            --sItemInProcess = sItemInProcess:gsub(sTempNewLineSysmbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), "\n"):gsub("%s+$", "");
             local sItem = sItemInProcess:match("%S.*%S");
 
             --validate the item is still good
             if not (sItem) then
-                error("Error creating DoxBlock object: malformed block item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
+                error("Error creating DoxBlock object: malformed block item:\n'"..sItemInProcess.."'\n\nIn block string:\n'"..sBlock.."'", 3);
             end
 
             --get the alias
@@ -68,12 +75,11 @@ return class("DoxBlock",
 
             --make sure a BlockTag object was recovered
             if not (oBlockTag) then
-                print(serialize(tBlockItems))
                 error("Error creating DoxBlock object: invalid block item alias, '"..sAlias.."', in item:\n'"..sItem.."'\n\nIn block string:\n'"..sBlock.."'", 3);
             end
 
             tRet[#tRet + 1] = {
-                item      = sItem,--:gsub(sTempAtSymbol:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"), sTagOpen):gsub("%s+$", ""),--gsub("\n$", "");,
+                item      = sItem,
                 blockTag  = oBlockTag,
             };
         end
@@ -111,8 +117,8 @@ return class("DoxBlock",
                 if (oItemBlockTag == oRequiredBlockTag) then
                     --set as found
                     tRequiredBlockTagsFound[oRequiredBlockTag] = true;
+                    break;
                 end
-                break;
 
             end
 
@@ -177,33 +183,6 @@ return class("DoxBlock",
             end
             return mapping
         end
---[[
-        -- Custom sorting function
-        local function customSort(a, b, mapping)
-            local displayA = a.blockTag:getDisplay()
-            local displayB = b.blockTag:getDisplay()
-
-            local indexA = mapping[displayA] or math.huge
-            local indexB = mapping[displayB] or math.huge
-
-            if indexA == indexB then
-                -- If the indices are the same, use the default sorting
-                return displayA < displayB
-            else
-                -- Otherwise, sort based on the indices
-                return indexA < indexB
-            end
-        end
-
-        -- Function to sort pri.items based on tSortOrder
-        local function sortItems()
-            local mapping = createSortMapping(tSortOrder)--TODO FINISH BUG FIX This sorting is arbitrarily causing parameters to show in the wrong order. Try to create a sorting method that accounts for combined items and doesn't sort them or at least sorts them while keeping them in the same order relative to themelves.
-            table.sort(pri.items, function(a, b)
-                return customSort(a, b, mapping)
-            end)
-        end
-
-        sortItems();]]
         -- Add index to each item to maintain original order
         local function addIndexToItems(items)
             for i, item in ipairs(items) do
@@ -221,7 +200,7 @@ return class("DoxBlock",
 
             if indexA == indexB then
                 -- If indices are the same, maintain original order
-                return a.originalIndex < b.originalIndex
+                return a.originalIndex < b.originalIndex;
             else
                 -- Otherwise, sort based on indices
                 return indexA < indexB;
@@ -273,7 +252,14 @@ return class("DoxBlock",
     end,
     item = function(this, cdat, nIndex)
         local tItems = cdat.pri.items;
-        local tItem = tItems[nIndex];--TODO error check
+
+        -- Only existing, positive integer indexes identify documentation items.
+        if (rawtype(nIndex) ~= "number" or nIndex % 1 ~= 0 or nIndex < 1 or nIndex > #tItems) then
+            error("Error reading DoxBlock item: index must identify an existing item.", 2);
+        end
+
+        local tItem = tItems[nIndex];
+
         return clone(tItem.blockTag), tItem.content;
     end,
 },

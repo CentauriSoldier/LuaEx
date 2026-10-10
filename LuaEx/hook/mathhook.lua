@@ -45,16 +45,19 @@ end
 -- Native floating-point values retain Lua's arithmetic and comparison rules.
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Constants.e
+    @pulsarlua number math.e
     @desc Euler's number, calculated as exp(1).
 !]]
 math.e = math.exp(1);
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Constants.inf
+    @pulsarlua number math.inf
     @desc Native positive infinity, an alias of math.huge. Negate it for negative infinity.
 !]]
 math.inf = math.huge;
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Constants.nan
+    @pulsarlua number math.nan
     @desc A native floating-point NaN. NaN is unequal to itself; use math.isnan to detect it.
 !]]
 math.nan = math.huge / math.huge;
@@ -65,6 +68,7 @@ math.geometry = require("LuaEx.hook.math.geometry");
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.clamp
+    @pulsarlua function math.clamp
     @desc Clamps a native number to inclusive ordered bounds. Infinity is supported; NaN and reversed bounds are rejected.
     @param number nValue The value.
     @param number nMinValue Minimum bound.
@@ -84,6 +88,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.convertbase
+    @pulsarlua function math.convertbase
     @desc Converts a signed integer string between bases 2 through 36, using uppercase output digits. Numeric input is accepted only for base 10. Values must lie in the exact integer range -9007199254740991 through 9007199254740991; invalid digits and overflow are rejected.
     @param string|number vInput The input integer.
     @param number nFromBase Input base.
@@ -144,6 +149,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.counting
+    @pulsarlua function math.counting
     @desc Converts a finite number's magnitude to a counting number (at least one). Floors by default, or rounds upward when requested.
     @param number nValue The input.
     @param boolean|nil bRaise Round upward; defaults to false.
@@ -161,6 +167,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.drift
+    @pulsarlua function math.drift
     @desc Adds a uniformly selected integer offset in the inclusive range [-nDrift, nDrift] to a finite value.
     @param number nValue The base value.
     @param number nDrift Nonnegative exact integer offset limit.
@@ -180,6 +187,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.driftf
+    @pulsarlua function math.driftf
     @desc Applies a random proportional drift using randomf's four-decimal grid. A drift of 0.1 permits offsets up to ten percent of the value in either direction.
     @param number nValue The finite base value.
     @param number nDrift Nonnegative finite proportional limit.
@@ -200,6 +208,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.factorial
+    @pulsarlua function math.factorial
     @desc Calculates the factorial of a nonnegative integer, including 0! = 1. Returns a floating-point number; larger results may be rounded. Values above 170 are rejected to prevent infinity.
     @param number nValue Integer from 0 through 170.
     @ret number nRet The factorial.
@@ -220,6 +229,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.gcf
+    @pulsarlua function math.gcf
     @desc Gets the nonnegative greatest common factor of two exact integers. Signs are ignored; gcf(0, n) is abs(n), and gcf(0, 0) is zero.
     @param number nLeft First integer.
     @param number nRight Second integer.
@@ -243,6 +253,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.inttorgb
+    @pulsarlua function math.inttorgb
     @desc Unpacks a 24-bit color matching rgbtoint: red is the low byte, green the middle byte, and blue the high byte.
     @param number nColor Integer from 0 through 16777215.
     @ret number nR The red channel.
@@ -264,6 +275,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.isabstract
+    @pulsarlua function math.isabstract
     @desc Checks whether a value is a native nonfinite number: NaN, positive infinity, or negative infinity. Returns false for finite numbers and non-numbers. Retained for compatibility; prefer math.isnan or math.isinf when checking a specific condition.
     @param any vInput The value to check.
     @ret boolean bIsAbstract Whether the value is a native nonfinite number.
@@ -276,6 +288,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.iseven
+    @pulsarlua function math.iseven
     @desc Checks whether a value is a finite integer divisible by two. Returns false for fractions and non-numbers.
     @param any vInput The value to check.
     @ret boolean bIsEven Whether the value is even.
@@ -288,6 +301,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.isfinite
+    @pulsarlua function math.isfinite
     @desc Checks whether a value is a native finite number, excluding NaN and either infinity. Returns false for non-numbers, including objects presenting a custom number type.
     @param any vInput The value to check.
     @ret boolean bIsFinite Whether the value is finite.
@@ -301,6 +315,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.isinf
+    @pulsarlua function math.isinf
     @desc Checks whether a value is native positive or negative infinity. Returns false for non-numbers.
     @param any vInput The value to check.
     @ret boolean bIsInfinity Whether the value is infinite.
@@ -314,6 +329,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.isinteger
+    @pulsarlua function math.isinteger
     @desc Checks whether a value is a native finite number with no fractional part. Returns false for non-numbers, NaN, and infinity.
     @param any vInput The value to check.
     @ret boolean bIsInteger Whether the value is an integer.
@@ -326,6 +342,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.isnan
+    @pulsarlua function math.isnan
     @desc Checks whether a value is native NaN. NaN is unequal to itself; equality with math.nan cannot identify it. Returns false for non-numbers.
     @param any vInput The value to check.
     @ret boolean bIsNaN Whether the value is NaN.
@@ -338,6 +355,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.isodd
+    @pulsarlua function math.isodd
     @desc Checks whether a value is a finite integer not divisible by two. Returns false for fractions and non-numbers.
     @param any vInput The value to check.
     @ret boolean bIsOdd Whether the value is odd.
@@ -350,6 +368,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.randomf
+    @pulsarlua function math.randomf
     @desc Generates a uniform random float on a four-decimal grid within inclusive finite bounds. Reversed bounds are accepted. Rejects intervals containing no grid value and scaled bounds outside the exact integer range. Uses the shared math.random stream.
     @param number nMinRaw One interval endpoint.
     @param number nMaxRaw The other endpoint.
@@ -371,6 +390,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.ratio
+    @pulsarlua function math.ratio
     @desc Reduces an integer ratio by its greatest common factor, preserving each input sign. A single zero is supported; the ratio 0:0 is undefined and rejected.
     @param number nLeft Left integer.
     @param number nRight Right integer.
@@ -387,6 +407,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.rgbtohex
+    @pulsarlua function math.rgbtohex
     @desc Converts RGB channels to an uppercase 0xRRGGBB string. Finite integer channels are clamped to the range 0 through 255.
     @param number nR Red channel.
     @param number nG Green channel.
@@ -408,6 +429,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.rgbtoint
+    @pulsarlua function math.rgbtoint
     @desc Packs RGB integer channels in the range 0 through 255 into a 24-bit value. Retains the existing byte order: R + G * 256 + B * 65536. This byte order differs from the displayed 0xRRGGBB string.
     @param number nR Red channel.
     @param number nG Green channel.
@@ -426,6 +448,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.sum
+    @pulsarlua function math.sum
     @desc Adds all supplied finite numbers in argument order. No arguments returns zero; nil holes, non-numbers, and nonfinite results are rejected.
     @param number ... Values to add.
     @ret number nRet The sum.
@@ -447,6 +470,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.Functions.whole
+    @pulsarlua function math.whole
     @desc Converts a finite number's magnitude to a whole number, including zero. Floors by default, or rounds upward when requested.
     @param number nValue The input.
     @param boolean|nil bRaise Round upward; defaults to false.

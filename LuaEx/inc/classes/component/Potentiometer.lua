@@ -188,6 +188,7 @@ return class("Potentiometer",
 {--PUBLIC
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.Potentiometer
+    @pulsarlua function Potentiometer
     @desc Creates a bounded position. Nonnumeric or omitted arguments retain the original defaults. Invalid numeric bounds raise MAX to MIN + 1; rate is a nonnegative magnitude capped to the span. Nonfinite values are rejected.
     @param number|nil nMin Minimum; defaults to 0.
     @param number|nil nMax Maximum; defaults to 99.
@@ -224,6 +225,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.adjust
+    @pulsarlua function Potentiometer.adjust
     @desc Adds an absolute signed amount to position, independently of the alternating direction, then normalizes bounds.
     @param number|nil nValue Amount; defaults to the rate.
     @ret Potentiometer oPot This object.
@@ -242,6 +244,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.decrease
+    @pulsarlua function Potentiometer.decrease
     @desc Moves backward by rate times the multiplier relative to the current logical direction.
     @param number|nil nTimes Rate multiplier; defaults to 1.
     @ret Potentiometer oPot This object.
@@ -260,6 +263,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.getMax
+    @pulsarlua function Potentiometer.getMax
     @desc Gets the current max.
     @ret number nValue The max.
     @ex
@@ -271,6 +275,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.getMin
+    @pulsarlua function Potentiometer.getMin
     @desc Gets the current min.
     @ret number nValue The min.
     @ex
@@ -282,6 +287,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.getPos
+    @pulsarlua function Potentiometer.getPos
     @desc Gets the current pos.
     @ret number nValue The pos.
     @ex
@@ -293,6 +299,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.getRate
+    @pulsarlua function Potentiometer.getRate
     @desc Gets the current rate.
     @ret number nValue The rate.
     @ex
@@ -304,6 +311,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.getContinuity
+    @pulsarlua function Potentiometer.getContinuity
     @desc Gets the current continuity.
     @ret number nValue The continuity.
     @ex
@@ -316,6 +324,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.increase
+    @pulsarlua function Potentiometer.increase
     @desc Moves forward by rate times the multiplier in the current logical direction. Alternating mode reflects overshoot and reverses direction once per boundary crossed.
     @param number|nil nTimes Rate multiplier; defaults to 1.
     @ret Potentiometer oPot This object.
@@ -334,6 +343,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.isAlternating
+    @pulsarlua function Potentiometer.isAlternating
     @desc Checks whether alternating reflection is enabled.
     @ret boolean bResult The result.
     @ex
@@ -345,6 +355,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.isAscending
+    @pulsarlua function Potentiometer.isAscending
     @desc Checks whether a continuous mode currently advances toward maximum. Returns false in clamped mode.
     @ret boolean bResult The result.
     @ex
@@ -357,6 +368,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.isAtStart
+    @pulsarlua function Potentiometer.isAtStart
     @desc Checks whether position equals minimum. This refers to the absolute endpoint, independently of direction.
     @ret boolean bResult The result.
     @ex
@@ -369,6 +381,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.isAtEnd
+    @pulsarlua function Potentiometer.isAtEnd
     @desc Checks whether position equals maximum. This refers to the absolute endpoint, independently of direction.
     @ret boolean bResult The result.
     @ex
@@ -381,6 +394,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.isDescending
+    @pulsarlua function Potentiometer.isDescending
     @desc Checks whether alternating mode currently advances toward minimum.
     @ret boolean bResult The result.
     @ex
@@ -393,6 +407,7 @@ return class("Potentiometer",
     end,
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.isRevolving
+    @pulsarlua function Potentiometer.isRevolving
     @desc Checks whether inclusive revolution is enabled.
     @ret boolean bResult The result.
     @ex
@@ -405,6 +420,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.setMax
+    @pulsarlua function Potentiometer.setMax
     @desc Sets maximum and normalizes position and rate. Values at or below minimum become minimum + 1. Nonnumeric input leaves state unchanged.
     @param number nValue The requested maximum.
     @ret Potentiometer oPot This object.
@@ -429,6 +445,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.setMin
+    @pulsarlua function Potentiometer.setMin
     @desc Sets minimum and normalizes position and rate. Values at or above maximum become maximum - 1. Nonnumeric input leaves state unchanged.
     @param number nValue The requested minimum.
     @ret Potentiometer oPot This object.
@@ -453,6 +470,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.setPos
+    @pulsarlua function Potentiometer.setPos
     @desc Sets absolute position and applies the selected boundary behavior. Exact alternating endpoints retain direction until a boundary is crossed. Nonnumeric input leaves state unchanged.
     @param number nValue The requested position.
     @ret Potentiometer oPot This object.
@@ -471,6 +489,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.setRate
+    @pulsarlua function Potentiometer.setRate
     @desc Sets a nonnegative rate magnitude, capped to maximum minus minimum. Nonnumeric input leaves state unchanged.
     @param number nValue The requested rate.
     @ret Potentiometer oPot This object.
@@ -491,6 +510,7 @@ return class("Potentiometer",
 
     --[[!
     @fqxn LuaEx.Classes.Potentiometer.setContinuity
+    @pulsarlua function Potentiometer.setContinuity
     @desc Sets a supported boundary mode. Unsupported values are ignored. Leaving alternating mode resets direction to ascending; no debugging output is emitted.
     @param number nContinuity A POT_CONTINUITY constant.
     @ret Potentiometer oPot This object.

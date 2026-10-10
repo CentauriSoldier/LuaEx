@@ -1,5 +1,6 @@
 --[[!
 @fqxn CoG.Enums.TIER
+@pulsarlua table TIER
 @desc Roman numeral based enum items whose values are the default numeric ordinals.
 <hr>
 <ul>

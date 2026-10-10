@@ -28,6 +28,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.geometry.Functions.fitrect
+    @pulsarlua function math.geometry.fitrect
     @desc Fits an inner rectangle's aspect ratio to the largest size inside an outer rectangle, allowing enlargement. Returns a new rectangle at the outer origin or centered when requested; inputs remain unchanged. Inner width/height must be positive or the result is nil; a zero-size outer dimension produces a zero-size result. Coordinates and dimensions must be finite, and dimensions nonnegative.
     @param table tOuter Outer rectangle with x, y, width, and height.
     @param table tInner Inner rectangle with width and height.
@@ -78,6 +79,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.geometry.Functions.rectcontains
+    @pulsarlua function math.geometry.rectcontains
     @desc Checks whether two rectangles overlap with positive area. Edge/corner contact and zero-area rectangles return false. This legacy name means overlap, not full containment; use rectcontainsfully for containment.
     @param table tMe First rectangle with x, y, width, and height.
     @param table tOther Second rectangle with x, y, width, and height.
@@ -95,6 +97,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.math.geometry.Functions.rectcontainsfully
+    @pulsarlua function math.geometry.rectcontainsfully
     @desc Checks whether the first rectangle contains the entire second rectangle, including its boundary. Equal rectangles and contained zero-area rectangles qualify.
     @param table tMe Containing rectangle with x, y, width, and height.
     @param table tOther Candidate rectangle with x, y, width, and height.

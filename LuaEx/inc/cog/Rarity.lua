@@ -191,6 +191,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getColor
+    @pulsarlua function Rarity.getColor
     @desc The color associated with the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -203,6 +204,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getChance
+    @pulsarlua function Rarity.getChance
     @desc The frequency of occurrence associated with the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -215,6 +217,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getMinAffixTier
+    @pulsarlua function Rarity.getMinAffixTier
     @desc The minimum permitted <href="#CoG.Affix">Affix</a> <a href="#CoG.Rarity.Enums.TIER">TIER</a> associated with the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -227,6 +230,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getMaxAffixTier
+    @pulsarlua function Rarity.getMaxAffixTier
     @desc The maximum permitted <href="#CoG.Affix">Affix</a> <a href="#CoG.Rarity.Enums.TIER">TIER</a> associated with the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -239,6 +243,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getMinPrefixCount
+    @pulsarlua function Rarity.getMinPrefixCount
     @desc The minimum number of <a href="#CoG.Affix.Enums.TYPE">Prefixes</a> <href="#CoG.Affix">Affix</a> permitted for the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -251,6 +256,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getMaxPrefixCount
+    @pulsarlua function Rarity.getMaxPrefixCount
     @desc The maximum number of <a href="#CoG.Affix.Enums.TYPE">Prefixes</a> <href="#CoG.Affix">Affix</a> permitted for the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -263,6 +269,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getMinSuffixCount
+    @pulsarlua function Rarity.getMinSuffixCount
     @desc The minimum number of <a href="#CoG.Affix.Enums.TYPE">Suffixes</a> <href="#CoG.Affix">Affix</a> permitted for the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -275,6 +282,7 @@ return class("Rarity",
 
     --[[!
     @fqxn CoG.Rarity.Methods.getMaxSuffixCount
+    @pulsarlua function Rarity.getMaxSuffixCount
     @desc The maximum number of <a href="#CoG.Affix.Enums.TYPE">Suffixes</a> <href="#CoG.Affix">Affix</a> permitted for the input Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a> as defined in CoG's <a href="#CoG.Config">config</a> file.
     @vis Public Static
     @param Rarity.LEVEL eLevel The Rarity <a href="#CoG.Rarity.Enums.LEVEL">LEVEL</a>.
@@ -287,6 +295,7 @@ return class("Rarity",
 
     --[[!
         @fqxn CoG.Rarity.Methods.getRandom
+        @pulsarlua function Rarity.getRandom
         @desc This method selects a Rarity LEVEL based on cumulative percentage thresholds. It rolls an integer percentage, adds the adjustment to the roll, and checks rarity levels from highest to lowest. The first threshold at least as large as the adjusted roll wins; the lowest rarity is the fallback. A negative adjustment increases the likelihood of obtaining a higher rarity, while a positive adjustment decreases it.
         @vis Public Static
         @param number|nil nAdjustment An optional numeric adjustment to the chance roll. Negative values enhance the chance for higher rarities, while positive values diminish it.

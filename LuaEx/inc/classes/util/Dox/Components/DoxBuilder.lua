@@ -1,3 +1,15 @@
+local assert    = assert;
+local class     = class;
+local clone     = clone;
+local enum      = enum;
+local error     = error;
+local ipairs    = ipairs;
+local math      = math;
+local pairs     = pairs;
+local rawtype   = rawtype;
+local type      = type;
+
+
 local sImportError = "Cannot import column wrapper into DoxBuilder.";
 --[[!
 @fqxn Dox.Builders.DoxBuilder
@@ -13,9 +25,6 @@ return class("DoxBuilder",
 {--PRIVATE
     mime                = null,
     Name__autoAF        = "",
-    --Syntax__auto__      = null,
-    --ActiveDox__auto__   = null,
-    --prismLanguage       = "lua",
 },
 {--PROTECTED
     blockWrapper = {
@@ -25,19 +34,16 @@ return class("DoxBuilder",
     columnWrappers = {},
     copyToClipboardButton = "",
     defaultFilename = "",
-    --exampleWrapper = {
-    --    open = "",
-    --    close = "",
-    --},
     newLine = "",
---@param ... varargs Zero to nMaxColumnCount column wrappers. Each column wrapper should be a numerically-indexed table (of two) whose values are strings containing the start and end (respectively) column wrapper item.
     DoxBuilder = function(this, cdat, sName, eMime, sCopyToClipBoardButton, sDefaultFilename, sNewLine, tColumnWrappers)
         type.assert.custom(eMime, "DoxBuilder.MIME");
         type.assert.string(sName, "%S+");
         type.assert.string(sDefaultFilename);
         assert(sDefaultFilename:isfilesafe(), "Error creating DoxBuilder. Default filename must be a file-safe string.");
 
-        --TODO assert copy to clipboard input
+        if (sCopyToClipBoardButton ~= nil and rawtype(sCopyToClipBoardButton) ~= "string") then
+            error("DoxBuilder copy button must be a string or nil.", 2);
+        end
         local pri = cdat.pri;
         local pro = cdat.pro;
 
@@ -53,9 +59,7 @@ return class("DoxBuilder",
             for sDisplay, tWrapperSet in pairs(tColumnWrappers) do --indexed by DoxBlockTag Display name, contains tables of wrapper sets
                 type.assert.string(sDisplay, "%S+", sImportError.." Tag display name cannot be empty.");
 
-                --if (sDisplay ~= "Example") then
                     type.assert.table(tWrapperSet, "number", "table", 1, nil, sImportError.." Expected numerically-indexed column wrapper table for display, '"..sDisplay.."'.");
-                --end
 
                 if (pro.columnWrappers[sDisplay] == nil) then
                     pro.columnWrappers[sDisplay] = {};
@@ -63,9 +67,7 @@ return class("DoxBuilder",
 
                 for nColumn, tWrapper in ipairs(tWrapperSet) do
 
-                    --if (sDisplay ~= "Example") then
                         type.assert.table(tWrapper, "number", "string", 2, 2, sImportError.." Expected numerically-indexed wrapper table with string values for display, '"..sDisplay.."'.");
-                    --end
 
                     pro.columnWrappers[sDisplay][nColumn] = {};
 
@@ -84,6 +86,7 @@ return class("DoxBuilder",
 {--PUBLIC
     --[[!
     @fqxn Dox.Builders.DoxBuilder.Methods.build
+    @pulsarlua function DoxBuilder.build
     @desc This is the build method that does the heavy lifting in building the output file.
     <br><br>After the basic <em>this</em> and <em>cdat</em> parameters, this method must accept the following parameters in the following order:
     <ol>
@@ -96,25 +99,60 @@ return class("DoxBuilder",
     build = function(this, cdat)
         error("Error in DoxBuilder. The 'build' method has not been defined in the child class.", 4);
     end,
-    --TODO FINISH allow optional sDisplay input to clear only that wrapper
+
+
     --[[!
-    @fqxn Dox.Components.DoxBlockTag.Methods.clearColumnWrappers
-    @desc Removes all column wrappers.
+    @fqxn Dox.Builders.DoxBuilder.Methods.clearColumnWrappers
+    @pulsarlua function DoxBuilder.clearColumnWrappers
+    @desc Removes all column wrappers, or only the named display group.
+    @param string|nil sDisplay The display group to clear; nil clears all groups.
     !]]
-    clearColumnWrappers = function(this, cdat)
-        pri.columnWrappers = {};
+    clearColumnWrappers = function(this, cdat, sDisplay)
+        if (sDisplay == nil) then
+            cdat.pro.columnWrappers = {};
+        else
+            type.assert.string(sDisplay, "%S+");
+            cdat.pro.columnWrappers[sDisplay] = nil;
+        end
     end,
-    --TODO FINISH
-    --eachColumnWrapper = function() --TODO make this work using nIndex
-    --    return next, clone(cdat.pri.columnWrappers[nColumn]), nil;
-    --end,
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilder.Methods.eachColumnWrapper
+    @pulsarlua function DoxBuilder.eachColumnWrapper
+    @desc Iterates over copies of one display group's column wrappers.
+    @param string sDisplay The display group.
+    @return function fIterator Returns a column index and a copied wrapper pair; missing groups are empty.
+    !]]
+    eachColumnWrapper = function(this, cdat, sDisplay)
+        type.assert.string(sDisplay, "%S+");
+        local nIndex = 0;
+        local tWrappers = this.getColumnWrappers(sDisplay);
+
+        return function()
+            nIndex = nIndex + 1;
+
+            if (tWrappers[nIndex]) then
+                return nIndex, clone(tWrappers[nIndex]);
+            end
+        end;
+    end,
     formatBlockContent = function(this, cdat, sID, sDisplay, sContent)
-        error("Error in DoxBuilder. The 'formatNonCombinedBlockContent' method has not been defined in the child class.", 4);
+        error("Error in DoxBuilder. The 'formatBlockContent' method has not been defined in the child class.", 4);
     end,
     formatCombinedBlockContent = function(this, cdat, sDisplay, sCombinedContent)
         error("Error in DoxBuilder. The 'formatCombinedBlockContent' method has not been defined in the child class.", 4);
     end,
-    --TODO FINISH DOCS
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilder.Methods.getColumnWrapper
+    @pulsarlua function DoxBuilder.getColumnWrapper
+    @desc Returns a copy of one wrapper pair; missing wrappers return two empty strings.
+    @param string sDisplay The display group.
+    @param number nColumn The column index.
+    @return table tWrapper Opening and closing strings.
+    !]]
     getColumnWrapper = function(this, cdat, sDisplay, nColumn)
         local tColumnWrappers = cdat.pro.columnWrappers;
         local tRet = {
@@ -133,7 +171,15 @@ return class("DoxBuilder",
 
         return tRet;
     end,
-    --TODO FINISH DOCS
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilder.Methods.getColumnWrappers
+    @pulsarlua function DoxBuilder.getColumnWrappers
+    @desc Returns a copy of a display group; missing groups return an empty table.
+    @param string sDisplay The display group.
+    @return table tWrappers The wrapper pairs.
+    !]]
     getColumnWrappers = function(this, cdat, sDisplay)
         local tColumnWrappers = cdat.pro.columnWrappers;
         local tRet = {};
@@ -144,8 +190,11 @@ return class("DoxBuilder",
 
         return tRet;
     end,
+
+
     --[[!
     @fqxn Dox.Builders.DoxBuilder.Methods.getColumnWrapperCount
+    @pulsarlua function DoxBuilder.getColumnWrapperCount
     @desc Gets the total number of column wrappers in this <strong>DoxBuilder</strong>.
     @return number nColumnWrappers The number of the column wrappers in this <strong>DoxBuilder</strong>.
     !]]
@@ -166,8 +215,11 @@ return class("DoxBuilder",
     getCopyToClipboardButton = function(this, cdat)
         return cdat.pro.copyToClipboardButton;
     end,
+
+
     --[[!
     @fqxn Dox.Builders.DoxBuilder.Methods.getDefaultFilename
+    @pulsarlua function DoxBuilder.getDefaultFilename
     @desc Returns the default filename of the final ouput document that is used if one is not provided by the user.
     @ret string sFilename The default filename.
     !]]
@@ -183,32 +235,38 @@ return class("DoxBuilder",
     getNewLine = function(this, cdat)
         return cdat.pro.newLine;
     end,
-    --[[getExampleWrapper = function(this, cdat, eSyntax)
-        type.assert.custom(eSyntax, "Dox.SYNTAX");
-        return clone(cdat.pro.exampleWrapper);
-    end,]]
-    --TODO FINISH DOCS
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilder.Methods.setColumnWrapper
+    @pulsarlua function DoxBuilder.setColumnWrapper
+    @desc Replaces a wrapper or appends the next column, creating a group when necessary. Empty strings leave content unwrapped.
+    @param string sDisplay The display group.
+    @param number nColumn Positive integer column index; gaps are rejected.
+    @param string sOpen Opening wrapper.
+    @param string sClose Closing wrapper.
+    !]]
     setColumnWrapper = function(this, cdat, sDisplay, nColumn, sOpen, sClose)
         local pro = cdat.pro;
         local tColumnWrappers = pro.columnWrappers;
         type.assert.string(sDisplay, "%S+");
         type.assert.number(nColumn, true, true, false, true, false);
-        type.assert.string(sOpen, "%S+");
-        type.assert.string(sClose, "%S+");
+        type.assert.string(sOpen);
+        type.assert.string(sClose);
 
-        if (tColumnWrappers[sDisplay] ~= nil) then
-            local nWrapperCount = this.getColumnWrapperCount(sDisplay);
+        local tWrappers = tColumnWrappers[sDisplay] or {};
 
-            if (math.abs(nWrapperCount - nColumn) > 1) then
-                error("Error setting column wrapper for item, '"..sDisplay.."'. Column index "..nColumn.." is out of bounds.");
-            end
-
-            tColumnWrappers[sDisplay][nColumn] = {
-                [1] = sOpen,
-                [2] = sClose,
-            };
+        -- Permit replacement and sequential append, without introducing gaps.
+        if (nColumn > #tWrappers + 1) then
+            error("Error setting column wrapper for item, '"..sDisplay.."'. Column index "..nColumn.." is out of bounds.", 2);
         end
 
+        tWrappers[nColumn] = {
+            [1] = sOpen,
+            [2] = sClose,
+        };
+
+        tColumnWrappers[sDisplay] = tWrappers;
     end,
 },
 nil,   --extending class

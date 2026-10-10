@@ -219,6 +219,7 @@ return class("Factorium",
     --getBlueprintIDsBySuffix
     --[[!
     @fqxn CoG.ModSystem.Factorium.Methods.registerFactory
+    @pulsarlua function Factorium.registerFactory
     @desc Registers a class with Factorium for the purposes of being able to build class instances from blueprints.
     <br><b><i>Note</i></b>: this <b>must</b> be called from within the class's static contructor (not static initializer).
     @param class cClass The class to be registered.

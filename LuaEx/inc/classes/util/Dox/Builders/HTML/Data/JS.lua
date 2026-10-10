@@ -130,180 +130,73 @@ const doxData = {
 //—©_END_DOX_DEFAULT_INTRO_©—
 
 class Dox {
-
-
     constructor() {
-        if (!Dox.instance) {
-            Dox.instance = this;
-            this.data = doxData;
-            this.activeFQXN = "Modules";
-            this.previousFQXN = "";
-            // Initialize link click event listener (for handling anchor links)
-            /*document.body.addEventListener('click', (event) => {
-                const target = event.target;
-
-                if (target && target.tagName === 'A') {
-                    // Check if the target has an href property and starts with the specified protocols
-                    if (target.href && (
-                        target.href.startsWith('file:///') ||
-                        target.href.startsWith('http://')  ||
-                        target.href.startsWith('https://') ||
-                        target.href.startsWith('www')
-                    )) {
-                        event.preventDefault(); // Prevent default link behavior
-                        const anchorIndex = target.href.indexOf('#');
-                        const strippedString = target.href.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
-
-                        if (strippedString !== '') {
-                            const sFQXN = "Modules." + strippedString;
-
-                            if (this.setActiveFQXN(sFQXN)) {
-                                this.updatePage();
-                            }
-                        }
-                    }
-                }
-            });*/
-            /*document.body.addEventListener('click', (event) => {
-                const target = event.target;
-
-                if (target && target.tagName === 'A') {
-                    const anchorIndex = target.href.indexOf('#');
-
-                    if (anchorIndex !== -1) { // It's an internal link
-                        event.preventDefault(); // Prevent default link behavior
-                        const strippedString = target.href.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
-
-                        if (strippedString !== '') {
-                            const sFQXN = "Modules." + strippedString;
-
-                            if (this.setActiveFQXN(sFQXN)) {
-                                this.updatePage();
-                            }
-                        }
-                    }
-                }
-            });*/
-            document.body.addEventListener('click', (event) => {
-                const target = event.target;
-
-                if (target && target.tagName === 'A') {
-                    // Replace spaces with %20 in the href attribute
-                    //const updatedHref = target.href.replace(/ /g, '%20');
-                    const updatedHref = target.href.replace(' ', '%20');
-                    const anchorIndex = updatedHref.indexOf('#');
-
-                    if (anchorIndex !== -1) { // It's an internal link
-                        event.preventDefault(); // Prevent default link behavior
-                        const strippedString = updatedHref.substring(anchorIndex + 1).trim(); // Trim any leading/trailing whitespace
-
-                        if (strippedString !== '') {
-                            const sFQXN = "Modules." + strippedString;
-
-                            if (this.setActiveFQXN(sFQXN)) {
-                                this.updatePage();
-                            }
-                        }
-                    }
-                }
-            });
-
-            /* Test for navigating to link in address bar
-            window.addEventListener('load', function() {
-              if (window.location.hash) {
-                // Strip off the '#' and possibly prefix the key if needed
-                const strippedString = window.location.hash.substring(1).trim();
-                // Assuming your internal keys are prefixed by "Modules."
-                const sFQXN = "Modules." + strippedString;
-                if (doxInstance.setActiveFQXN(sFQXN)) {
-                  doxInstance.updatePage();
-                }
-              }
-            });*/
-
-            // Listen for the popstate event
-            window.addEventListener('popstate', () => {
-                // When the user navigates back or forward, retrieve the stored FQXN from the history state
-                const fqxn = history.state && history.state.activeFQXN;
-                if (fqxn && this.setActiveFQXN(fqxn)) {
-                    // Update your application with the retrieved FQXN
-                    this.updatePage();
-                }
-            });
+        if (Dox.instance) {
+            return Dox.instance;
         }
-        return Dox.instance;
-    }
 
+        Dox.instance = this;
+        this.data = doxData;
+        this.activeFQXN = "Modules";
+        this.restoreLocation();
 
-    byID(sID) {
-        return document.getElementById(sID);
-    }
-
-    getPropertyByPath(obj, path, property) {
-        const parts = path.split('.');
-        let current = obj;
-
-        for (let part of parts) {
-            if (current[part]) {
-                //current = current[part].subtable !== null ? current[part].subtable : current[part];
-                current = current[part][property] !== null ? current[part][property] : current[part];
-            } else {
-                return undefined;
+        // Only local fragment links belong to the documentation navigator.
+        document.body.addEventListener('click', (event) => {
+            const anchor = event.target.closest('a[href]');
+            if (!anchor || !anchor.getAttribute('href').startsWith('#')) {
+                return;
             }
-        }
-        return current;
+
+            const fragment = anchor.getAttribute('href').slice(1);
+            if (!fragment) {
+                event.preventDefault();
+                return;
+            }
+
+            const path = this.pathFromFragment(fragment);
+            if (this.fqxnIsValid(path)) {
+                event.preventDefault();
+                this.setActiveFQXN(path);
+                this.updatePage();
+            }
+        });
+
+        // History traversal renders the stored location without adding another entry.
+        window.addEventListener('popstate', () => {
+            this.restoreLocation();
+            this.updatePage(false);
+        });
+        window.addEventListener('hashchange', () => {
+            this.restoreLocation();
+            this.updatePage(false);
+        });
     }
 
 
-    fqxnIsValid(sFQXN) {
-        let tRet = false;
-        let tCurrent = this.data;
-
-        if (sFQXN) {
-            const tParts = sFQXN.split('.');
-
-            for (const sPart of tParts) {
-
-                if (tCurrent[sPart]) {
-                    tRet = true;
-                    tCurrent = tCurrent[sPart];
-
-                    if (tCurrent.subtable) {
-                        tCurrent = tCurrent.subtable;
-                    }
-                } else {
-                    return false;
-                }
-            }
-        }
-
-        return tRet;
+    byID(id) {
+        return document.getElementById(id);
     }
 
 
-    getDataByFQDN(fqxn) {
-        let tRet = null;
-        let tCurrent = this.data;
-
-        if (fqxn) {
-            const tParts = fqxn.split('.');
-
-            for (const sPart of tParts) {
-
-                if (tCurrent[sPart]) {
-                    tRet = tCurrent[sPart];
-                    tCurrent = tCurrent[sPart];
-
-                    if (tCurrent.subtable) {
-                        tCurrent = tCurrent.subtable;
-                    }
-                } else {
-                    return null;
-                }
-            }
+    static copyToClipboard(button) {
+        const code = button.closest('.custom-section').querySelector('pre code, pre');
+        if (!code) {
+            return;
         }
 
-        return tRet;
+        const textarea = document.createElement('textarea');
+        textarea.value = code.textContent;
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand('copy');
+        textarea.remove();
+        button.textContent = copied ? 'Copied' : 'Copy failed';
+        window.setTimeout(() => { button.textContent = 'Copy'; }, 1500);
+    }
+
+
+    fqxnIsValid(path) {
+        return this.getDataByFQDN(path) !== null;
     }
 
 
@@ -312,169 +205,142 @@ class Dox {
     }
 
 
-    setActiveFQXN(sFQXN) {
-        let bRet = this.fqxnIsValid(sFQXN);
+    getDataByFQDN(path) {
+        let current = this.data;
+        let node = null;
 
-        if (bRet) {
-            this.activeFQXN = sFQXN;
-        }
-
-        return bRet;
-    }
-
-
-    updateContent() {
-        const sActiveFQXN   = this.getActiveFQXN();
-        const tData         = this.getDataByFQDN(sActiveFQXN);
-
-        if (tData) {
-            const value     = tData["value"];
-            const content   = this.byID('DOX_content'); //TODO rename these to avoid user id collision
-            content.innerHTML  = '';
-
-            if (value) {
-                content.innerHTML = value;
-            } else {
-                content.innerHTML = '';
+        for (const part of path.split('.')) {
+            if (!current || !Object.prototype.hasOwnProperty.call(current, part)) {
+                return null;
             }
 
+            node = current[part];
+            current = node.subtable;
         }
 
+        return node;
     }
+
+
+    makeLink(path, label) {
+        const anchor = document.createElement('a');
+        anchor.href = '#' + path.replace(/^Modules\.?/, '');
+        anchor.textContent = label.split('%20').join(' ');
+        anchor.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.setActiveFQXN(path);
+            this.updatePage();
+        });
+
+        return anchor;
+    }
+
+
+    pathFromFragment(fragment) {
+        let decoded;
+        try {
+            decoded = decodeURIComponent(fragment);
+        } catch (_) {
+            return '';
+        }
+
+        return 'Modules.' + decoded.replace(/^Modules\.?/, '').split(' ').join('%20');
+    }
+
+
+    restoreLocation() {
+        const path = window.location.hash ? this.pathFromFragment(window.location.hash.slice(1)) : 'Modules';
+        this.activeFQXN = this.fqxnIsValid(path) ? path : 'Modules';
+    }
+
+
+    setActiveFQXN(path) {
+        if (!this.fqxnIsValid(path)) {
+            return false;
+        }
+
+        this.activeFQXN = path;
+        return true;
+    }
+
 
     updateBreadcrumb() {
         const breadcrumb = this.byID('DOX_breadcrumb');
-        breadcrumb.innerHTML = ''; // Clear previous breadcrumb items
+        breadcrumb.replaceChildren();
+        const parts = this.activeFQXN.split('.');
 
-        const tParts = this.getActiveFQXN().split('.'); // Split the activeFQXN into parts
-
-        tParts.forEach((part, nIndex) => {
-            const li = document.createElement('li');
-            li.className = 'breadcrumb-item';
-
-            if (nIndex === tParts.length - 1) {
-                li.textContent = part.replace("%20", " ");
-                li.className += ' active';
-                li.setAttribute('aria-current', 'page');
+        parts.forEach((part, index) => {
+            const item = document.createElement('li');
+            item.className = 'breadcrumb-item';
+            const label = index === 0 ? 'Overview' : part;
+            if (index === parts.length - 1) {
+                item.textContent = label.split('%20').join(' ');
+                item.classList.add('active');
+                item.setAttribute('aria-current', 'page');
             } else {
-                const a = document.createElement('a');
-                a.href = '#';
-                a.textContent = part.replace("%20", " ");
-                a.onclick = () => {
-                    const newPath = tParts.slice(0, nIndex + 1).join('.');
-                    if (this.fqxnIsValid(newPath)) {
-                        this.setActiveFQXN(newPath);
-                        this.updatePage();
-                    }
-                };
-                li.appendChild(a);
+                item.appendChild(this.makeLink(parts.slice(0, index + 1).join('.'), label));
             }
-
-            breadcrumb.appendChild(li);
+            breadcrumb.appendChild(item);
         });
     }
 
 
-    updateNavMenu() {
-        const sActiveFQXN = this.getActiveFQXN();
-        const tData = this.getDataByFQDN(sActiveFQXN);
-
-        if (tData) {
-            const menu = this.byID('DOX_navmenu');
-            menu.innerHTML = ''; // Clear the current HTML from the menu
-
-            if (tData.subtable) {
-                const subtable = tData.subtable;
-
-                // Create the list items for subtable items
-                Object.keys(subtable).forEach(key => {
-                    const li = document.createElement('li');
-                    li.className = 'nav-item';
-
-                    const a = document.createElement('a');
-                    a.href = '#';
-                    a.className = 'nav-link';
-                    a.textContent = key.replace("%20", " ");
-
-                    const sTestFQXN = `${this.getActiveFQXN()}.${key}`;
-
-                    if (this.fqxnIsValid(sTestFQXN)) {
-                        a.onclick = () => {
-                            let newData = this.getDataByFQDN(sTestFQXN);
-                            if (!newData) {
-                                a.removeAttribute('href');
-                                a.classList.add('disabledlink');
-                            } else {
-                                this.setActiveFQXN(sTestFQXN);
-                                this.updatePage();
-                            }
-                        };
-                    }
-
-                    li.appendChild(a);
-                    menu.appendChild(li);
-                });
-            } else {
-                // Load menu with elements from the table above it
-                const parentData = this.getDataByFQDN(sActiveFQXN.split('.').slice(0, -1).join('.'));
-                if (parentData && parentData.subtable) {
-                    Object.keys(parentData.subtable).forEach(key => {
-                        const li = document.createElement('li');
-                        li.className = 'nav-item';
-
-                        const a = document.createElement('a');
-                        a.href = '#';
-                        a.className = 'nav-link';
-                        a.textContent = key.replace("%20", " ");
-
-                        const sTestFQXN = `${sActiveFQXN.split('.').slice(0, -1).join('.')}.${key}`;
-
-                        if (this.fqxnIsValid(sTestFQXN)) {
-                            a.onclick = () => {
-                                this.setActiveFQXN(sTestFQXN);
-                                this.updatePage();
-                            };
-                        }
-
-                        li.appendChild(a);
-                        menu.appendChild(li);
-                    });
-                }
-            }
-        }
+    updateContent() {
+        const node = this.getDataByFQDN(this.activeFQXN);
+        const content = this.byID('DOX_content');
+        content.innerHTML = node.value || '<div class="dox-empty">Choose a topic from the navigation to explore its documentation.</div>';
+        this.byID('DOX_topic').textContent = this.activeFQXN === 'Modules' ? 'Documentation overview' : this.activeFQXN.split('.').slice(-1)[0].split('%20').join(' ');
+        this.byID('DOX_location').textContent = this.activeFQXN.replace(/^Modules\.?/, '').split('%20').join(' ') || 'Explore the project reference';
     }
 
 
-    updatePage() {
+    updateNavMenu() {
+        const menu = this.byID('DOX_navmenu');
+        menu.replaceChildren();
+        const active = this.getDataByFQDN(this.activeFQXN);
+        const parentPath = this.activeFQXN.split('.').slice(0, -1).join('.');
+        const groupPath = active.subtable ? this.activeFQXN : parentPath;
+        const group = this.getDataByFQDN(groupPath);
+        const upPath = groupPath.split('.').slice(0, -1).join('.');
+
+        this.byID('DOX_navheading').textContent = groupPath === 'Modules' ? 'Project reference' : groupPath.split('.').slice(-1)[0].split('%20').join(' ');
+        if (upPath) {
+            const item = document.createElement('li');
+            const anchor = this.makeLink(upPath, '← Back to parent');
+            anchor.className = 'nav-link dox-up';
+            item.appendChild(anchor);
+            menu.appendChild(item);
+        }
+
+        Object.keys(group.subtable || {}).sort().forEach((key) => {
+            const path = groupPath + '.' + key;
+            const item = document.createElement('li');
+            item.className = 'nav-item';
+            const anchor = this.makeLink(path, key);
+            anchor.className = 'nav-link';
+            if (path === this.activeFQXN) {
+                anchor.classList.add('active');
+                anchor.setAttribute('aria-current', 'page');
+            }
+            item.appendChild(anchor);
+            menu.appendChild(item);
+        });
+    }
+
+
+    updatePage(recordHistory = true) {
         this.updateNavMenu();
         this.updateBreadcrumb();
         this.updateContent();
         Prism.highlightAll();
-        history.pushState({ activeFQXN: this.getActiveFQXN() }, '');
+
+        if (recordHistory) {
+            const hash = this.activeFQXN === 'Modules' ? '' : '#' + this.activeFQXN.slice(8);
+            if (window.location.hash !== hash) {
+                history.pushState({ activeFQXN: this.activeFQXN }, '', window.location.pathname + window.location.search + hash);
+            }
+        }
     }
-
-
-    static copyToClipboard(button) {
-        // Get the parent element's id
-        var parentId = button.parentElement.id;
-
-        // Select the section content div that is a sibling of the section-title div
-        var sectionContent = button.parentElement.nextElementSibling;
-
-        // Find the code block inside the section-content div
-        var codeBlock = sectionContent.querySelector('pre code').innerText;
-
-        // Create a temporary textarea element to copy the text
-        var textarea = document.createElement('textarea');
-        textarea.value = codeBlock;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-
-        // Optionally, show an alert or some feedback
-        // alert('Code copied to clipboard!');
-    }
-
 }
 ]];

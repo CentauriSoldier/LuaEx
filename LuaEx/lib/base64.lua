@@ -1,5 +1,6 @@
 --[[!
     @fqxn LuaEx.Libraries.base64
+    @pulsarlua table base64
     @author Centauri Soldier
     @license <a href="https://unlicense.org/" target="_blank">The Unlicense</a>
     @github <a href="https://github.com/CentauriSoldier/LuaEx" target="_blank">LuaEx</a>
@@ -15,6 +16,7 @@ local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
 --[[!
     @fqxn LuaEx.Libraries.base64.enc
+    @pulsarlua function base64.enc
     @desc Encodes a string to Base64.
     @param string sInput The sting to encode.
     @ret string sEncoded The encoded Base64 string.
@@ -39,6 +41,7 @@ end
 
 --[[!
     @fqxn LuaEx.Libraries.base64.dec
+    @pulsarlua function base64.dec
     @desc Encodes a string to Base64.
     @param string sInput The sting to encode.
     @ret string sEncoded The encoded Base64 string.

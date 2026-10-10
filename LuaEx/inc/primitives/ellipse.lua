@@ -60,6 +60,7 @@ end
 
 --[[!
 @fqxn LuaEx.Primitives.ellipse
+@pulsarlua function ellipse
 @desc An axis-aligned ellipse centered at X and Y. majorAxis and minorAxis are FULL lengths; formulas use half those lengths internally. The major axis lies along X and must be at least the minor axis. Area and circumference are read-only. Zero minor axis represents a degenerate segment, whose perimeter limit is twice the major-axis length; both axes zero represent a point. Invalid assignments preserve state. Rawset and debug tools bypass normal Lua protections.
 @param number nCenterX Finite center X coordinate.
 @param number nCenterY Finite center Y coordinate.
@@ -85,11 +86,13 @@ return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
     local tCenterActual = {
         --[[!
         @fqxn LuaEx.Primitives.ellipse.Properties.center.x
+        @pulsarlua number ellipse.center.x
         @desc Writable finite center X coordinate. Translation preserves area and circumference.
         !]]
         x = nCenterX,
         --[[!
         @fqxn LuaEx.Primitives.ellipse.Properties.center.y
+        @pulsarlua number ellipse.center.y
         @desc Writable finite center Y coordinate. Translation preserves area and circumference.
         !]]
         y = nCenterY,
@@ -97,26 +100,31 @@ return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
     local tActual = {
         --[[!
         @fqxn LuaEx.Primitives.ellipse.Properties.autoUpdate
+        @pulsarlua boolean ellipse.autoUpdate
         @desc Writable boolean, initially true. When false, calculated candidate results are published on the next read or update call. Candidates are calculated once before mutation to reject overflow atomically; clean reads never recalculate.
         !]]
         autoUpdate = true,
         --[[!
         @fqxn LuaEx.Primitives.ellipse.Properties.majorAxis
+        @pulsarlua number ellipse.majorAxis
         @desc Writable full major-axis length, at least minorAxis. Changing it refreshes derived values.
         !]]
         majorAxis = nMajorAxis,
         --[[!
         @fqxn LuaEx.Primitives.ellipse.Properties.minorAxis
+        @pulsarlua number ellipse.minorAxis
         @desc Writable full minor-axis length, non-negative and no greater than majorAxis.
         !]]
         minorAxis = nMinorAxis,
         --[[!
         @fqxn LuaEx.Primitives.ellipse.Properties.area
+        @pulsarlua number ellipse.area
         @desc Read-only area: pi times half-major-axis times half-minor-axis.
         !]]
         area = 0,
         --[[!
         @fqxn LuaEx.Primitives.ellipse.Properties.circumference
+        @pulsarlua number ellipse.circumference
         @desc Read-only perimeter. Uses Ramanujan's second approximation for noncircular, nondegenerate ellipses, not an exact perimeter formula.
         !]]
         circumference = 0,
@@ -124,6 +132,7 @@ return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
 
     --[[!
     @fqxn LuaEx.Primitives.ellipse.Methods.update
+    @pulsarlua function ellipse.update
     @desc Publishes a dirty validated state once. Repeated clean calls do not repeat calculation. Call with dot syntax and no arguments.
     !]]
     local function update()
@@ -138,6 +147,7 @@ return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
 
     --[[!
     @fqxn LuaEx.Primitives.ellipse.Properties.center
+    @pulsarlua table ellipse.center
     @desc Protected center proxy. Write center.x or center.y; replacing the center is disallowed.
     !]]
     tActual.center = rawsetmetatable({}, {

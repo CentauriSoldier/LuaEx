@@ -119,6 +119,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.getHookCount
+        @pulsarlua function eventrix.getHookCount
         @desc
         Determines the number of hooks that are currently registered to the specified event. Hooks are functions or callbacks associated with an event that are triggered when the event is fired. The count allows you to know how many hooks are waiting to execute when the event with the given ID is fired.
         @param enumitem eEventID The unique identifier for the event. This ID is used to retrieve the count of hooks tied to the event in question.
@@ -138,6 +139,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.getHookOrdinal
+        @pulsarlua function eventrix.getHookOrdinal
         @desc
         Determines the ordinal number of the given hook, that is, in what fire position the hook exists. This is used primarily for determining to which function a returned error message belongs in the <a href="#LuaEx.Libraries.eventrix.fire">fire</a> method's return table. This is designed for security to prevent the <b>fire</b> method from needing to expose the hooks. The clinet with access to the hook can get its oridinal and use it for accessing the error message.
         @param enumitem eEventID The unique identifier for the event. This ID is used to retrieve the count of hooks tied to the event in question.
@@ -168,6 +170,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.eventExists
+        @pulsarlua function eventrix.eventExists
         @desc
         Checks whether an event with the specified ID is currently registered in the event system. This function is useful for determining if an event has been created before attempting to fire or manipulate it.
         @param enumitem eEventID The unique identifier for the event being checked. This ID must match an existing event in the system for the function to return true.
@@ -186,6 +189,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.fire
+        @pulsarlua function eventrix.fire
         @desc
         Triggers the execution of all registered hooks associated with the specified event ID. This method invokes each hook in the order they were registered, passing along any provided arguments. It handles the execution context and manages error handling for each hook, ensuring that an error in one hook does not prevent subsequent hooks from executing.
         @param enumitem eEventID The unique identifier for the event whose hooks are to be triggered. This ID must correspond to an existing event in the system.
@@ -241,6 +245,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.isEventActive
+        @pulsarlua function eventrix.isEventActive
         @desc
         Checks whether the specified event is currently active in the event system. An active event is one that has registered hooks and can be fired. This method allows for validation of event activity before attempting to trigger hooks associated with the event, helping to prevent unnecessary operations.
         @param enumitem eEventID The unique identifier for the event whose activity status is being checked. This ID must correspond to an existing event in the system.
@@ -259,6 +264,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.isHookActive
+        @pulsarlua function eventrix.isHookActive
         @desc
         Checks whether a specific hook associated with an event is currently active in the event system. An active hook is one that has been registered to an event and can be triggered when the event is fired. This method allows for validation of a hook's status before attempting to invoke it, ensuring that only active hooks are executed.
         @param enumitem eEventID The unique identifier for the event to which the hook belongs. This ID must correspond to an existing event in the system.
@@ -288,6 +294,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.removeEvent
+        @pulsarlua function eventrix.removeEvent
         @desc Removes an event from the eventrix with the given event ID.
         @param enumitem eEventID The unique identifier for the event. This ID must correspond to an existing event in the system.
         @return eventrix kEventrix The eventrix object.
@@ -308,6 +315,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.removeHook
+        @pulsarlua function eventrix.removeHook
         @desc Removes a hook from an event.
         @param enumitem eEventID The unique identifier for the event to which the hook belongs. This ID must correspond to an existing event in the system.
         @param function fHook The hook to be removed.
@@ -357,6 +365,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.setEventActive
+        @pulsarlua function eventrix.setEventActive
         @desc Sets an event active/inactive.
         @param enumitem eEventID The unique identifier for the event. This ID must correspond to an existing event in the system.
         @param boolean|nil bActive A boolean (or nil) indicating whether to set the event active. If nil, the event will be deactivated.
@@ -378,6 +387,7 @@ local function eventrix(sEnv)
 
         --[[!
         @fqxn LuaEx.Libraries.eventrix.setHookActive
+        @pulsarlua function eventrix.setHookActive
         @desc Sets an event's hook activate/inactive.
         @param enumitem eEventID The unique identifier for the event to which the hook belongs. This ID must correspond to an existing event in the system.
         @param function fHook The hook function activate/deactivate.
@@ -428,6 +438,7 @@ local tEventrixFactoryDecoy   = {};
 local tEventrixFactoryMeta    = {
     --[[!
     @fqxn LuaEx.Libraries.eventrix.eventrix
+    @pulsarlua function eventrix
     @desc
     <h3>Function: eventrix(sEnv)</h3>
     This is the main constructor for the eventrix system. It initializes and configures the event management system based on the provided environment as an entrix can function in different environments.

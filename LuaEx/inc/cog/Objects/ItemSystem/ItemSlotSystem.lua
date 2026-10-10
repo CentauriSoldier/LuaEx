@@ -56,6 +56,7 @@ return class("ItemSlotSystem",
 {--PUBLIC
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.ItemSlotSystem
+    @pulsarlua function ItemSlotSystem
     @desc The constructor for the <b>ItemSlotSystem</b>.
     @ex TODO
     !]]
@@ -76,6 +77,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.addItemSlot
+    @pulsarlua function ItemSlotSystem.addItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -86,6 +88,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItem
+    @pulsarlua function ItemSlotSystem.containsItem
     @desc TODO
     @ex TODO
     !]]
@@ -108,6 +111,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItemAt
+    @pulsarlua function ItemSlotSystem.containsItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -127,6 +131,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItemSlot
+    @pulsarlua function ItemSlotSystem.containsItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -149,6 +154,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItemSlotAt
+    @pulsarlua function ItemSlotSystem.containsItemSlotAt
     @desc TODO
     @ex TODO
     !]]
@@ -160,6 +166,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.eachItemSlot
+    @pulsarlua function ItemSlotSystem.eachItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -181,6 +188,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemAt
+    @pulsarlua function ItemSlotSystem.getItemAt
     @desc TODO
     @ex TODO
     !]]
@@ -197,6 +205,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemCount
+    @pulsarlua function ItemSlotSystem.getItemCount
     @desc TODO
     @ex TODO
     !]]
@@ -215,6 +224,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemSlotAt
+    @pulsarlua function ItemSlotSystem.getItemSlotAt
     @desc TODO
     @ex TODO
     !]]
@@ -223,6 +233,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemSlotCount
+    @pulsarlua function ItemSlotSystem.getItemSlotCount
     @desc Gets the total number of <a href="#CoG.ItemSystem.ItemSlot">ItemSlots</a>.
     @ret number nItemSlots The total number of <b>ItemSlots</b>.
     @ex local nItemSlots = oItemSlotManager.getItemSlotCount();
@@ -232,6 +243,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getOwner
+    @pulsarlua function ItemSlotSystem.getOwner
     @desc TODO
     @ex TODO
     !]]
@@ -240,6 +252,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.eachSlot
+    @pulsarlua function ItemSlotSystem.eachSlot
     @desc TODO
     @ex TODO
     !]]
@@ -249,6 +262,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.removeItemSlot
+    @pulsarlua function ItemSlotSystem.removeItemSlot
     @desc TODO
     @ex TODO
     !]]
@@ -260,6 +274,7 @@ return class("ItemSlotSystem",
     end,
     --[[!
     @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.swapItems
+    @pulsarlua function ItemSlotSystem.swapItems
     @desc TODO
     @ex TODO
     !]]

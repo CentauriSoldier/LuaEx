@@ -150,6 +150,7 @@ AStarAspect = class("AStarAspect",
 {--PRIVATE
     --[[!
     @fqxn CoG.AStar.AStarAspect.getImpactor
+    @pulsarlua function AStarAspect.getImpactor
     @desc Gets the aspect's impactor. Its final value is bounded from 0 to 1; the returned Protean can be modified.
     @ret Protean oImpactor The aspect's impactor.
     @ex
@@ -164,6 +165,7 @@ AStarAspect = class("AStarAspect",
     Impactor__autoRF    = null,--a percentage referencing the extremity of the aspect (0%-100%)
     --[[!
     @fqxn CoG.AStar.AStarAspect.getName
+    @pulsarlua function AStarAspect.getName
     @desc Gets the aspect's name.
     @ret string sName The name supplied to the constructor.
     @ex
@@ -176,6 +178,7 @@ AStarAspect = class("AStarAspect",
     Name__autoRF        = null,
     --[[!
     @fqxn CoG.AStar.AStarAspect.getOwner
+    @pulsarlua function AStarAspect.getOwner
     @desc Gets the node that owns this aspect.
     @ret AStarNode oOwner The owning node.
     @ex
@@ -242,6 +245,7 @@ AStarLayer = class("AStarLayer",
 {--PRIVATE
     --[[!
     @fqxn CoG.AStar.AStarLayer.getID
+    @pulsarlua function AStarLayer.getID
     @desc Gets this layer's ordered map-local ID.
     @ret number nID The layer ID.
     @ex
@@ -254,6 +258,7 @@ AStarLayer = class("AStarLayer",
     --config    = oConfig,
     --[[!
     @fqxn CoG.AStar.AStarLayer.getOwner
+    @pulsarlua function AStarLayer.getOwner
     @desc Gets the map that owns this layer.
     @ret AStarMap oMap The owning map.
     @ex
@@ -265,6 +270,7 @@ AStarLayer = class("AStarLayer",
     Owner__autoRF = null,
     --[[!
     @fqxn CoG.AStar.AStarLayer.getName
+    @pulsarlua function AStarLayer.getName
     @desc Gets the uppercase layer name.
     @ret string sName The layer name.
     @ex
@@ -335,6 +341,7 @@ AStarLayer = class("AStarLayer",
     end,
     --[[!
     @fqxn CoG.AStar.AStarLayer.containsRoverAt
+    @pulsarlua function AStarLayer.containsRoverAt
     @desc Checks whether a rover occupies the specified node. Returns false outside the grid.
     @param AStarRover oRover The rover to check.
     @param number nX The integer x coordinate.
@@ -363,6 +370,7 @@ AStarLayer = class("AStarLayer",
     end,
     --[[!
     @fqxn CoG.AStar.AStarLayer.createRoverAt
+    @pulsarlua function AStarLayer.createRoverAt
     @desc Creates a rover at the specified node. Returns nil outside the grid.
     @param number nX The integer x coordinate.
     @param number nY The integer y coordinate.
@@ -398,6 +406,7 @@ AStarLayer = class("AStarLayer",
 
     --[[!
     @fqxn CoG.AStar.AStarLayer.getNode
+    @pulsarlua function AStarLayer.getNode
     @desc Gets the node at the supplied coordinates.
     @param number nX The integer x coordinate.
     @param number nY The integer y coordinate.
@@ -424,6 +433,7 @@ AStarLayer = class("AStarLayer",
 
     --[[!
     @fqxn CoG.AStar.AStarLayer.getNodes
+    @pulsarlua function AStarLayer.getNodes
     @desc Gets a read-only view of the node grid. Both the outer grid and its columns reject assignments. Nodes remain accessible through their methods.
     @ret table tNodes The grid indexed by x, then y.
     @ex
@@ -440,6 +450,7 @@ AStarLayer = class("AStarLayer",
 
     --[[!
     @fqxn CoG.AStar.AStarLayer.hasNode
+    @pulsarlua function AStarLayer.hasNode
     @desc Checks whether a node belongs to this layer.
     @param AStarNode oNode The node to check.
     @ret boolean bHasNode Whether this layer owns the node.
@@ -456,6 +467,7 @@ AStarLayer = class("AStarLayer",
 
     --[[!
     @fqxn CoG.AStar.AStarLayer.hasNodeAt
+    @pulsarlua function AStarLayer.hasNodeAt
     @desc Checks whether a node exists at the supplied coordinates.
     @param number nX The integer x coordinate.
     @param number nY The integer y coordinate.
@@ -502,6 +514,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
     aspectsDecoy    = {},
     --[[!
     @fqxn CoG.AStar.AStarLayerConfig.getName
+    @pulsarlua function AStarLayerConfig.getName
     @desc Gets the uppercase layer name.
     @ret string sName The layer name.
     @ex
@@ -516,6 +529,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
 {--PUBLIC
     --[[!
     @fqxn CoG.AStar.AStarLayerConfig.AStarLayerConfig
+    @pulsarlua function AStar.LayerConfig
     @desc Creates a layer configuration. Aspect order is preserved, and duplicate names are rejected without regard to case. Zero aspects are allowed.
     @param string sName A layer name containing a non-whitespace character.
     @param string ... Aspect names, each containing a non-whitespace character.
@@ -553,6 +567,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
     end,
     --[[!
     @fqxn CoG.AStar.AStarLayerConfig.getAspect
+    @pulsarlua function AStarLayerConfig.getAspect
     @desc Gets a configured aspect name using a case-insensitive lookup.
     @param string sAspect The aspect name.
     @ret string|nil sName The uppercase name, or nil when absent.
@@ -566,6 +581,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
     end,
     --[[!
     @fqxn CoG.AStar.AStarLayerConfig.getAspects
+    @pulsarlua function AStarLayerConfig.getAspects
     @desc Gets a read-only view of the ordered aspect names.
     @ret table tAspects The ordered uppercase names.
     @ex
@@ -577,6 +593,7 @@ local AStarLayerConfig = class("AStarLayerConfig",
     end,
     --[[!
     @fqxn CoG.AStar.AStarLayerConfig.hasAspect
+    @pulsarlua function AStarLayerConfig.hasAspect
     @desc Checks whether an aspect is configured using a case-insensitive lookup.
     @param string sAspect The aspect name.
     @ret boolean bHasAspect Whether the aspect is configured.
@@ -638,6 +655,7 @@ AStarMap = class("AStarMap",
 {--PRIVATE
     --[[!
     @fqxn CoG.AStar.AStarMap.getLayers
+    @pulsarlua function AStarMap.getLayers
     @desc Gets a read-only view of the layers in configuration order.
     @ret table tLayers The ordered layers.
     @ex
@@ -650,6 +668,7 @@ AStarMap = class("AStarMap",
     layersByName    = {},
     --[[!
     @fqxn CoG.AStar.AStarMap.getName
+    @pulsarlua function AStarMap.getName
     @desc Gets the map name supplied at construction.
     @ret string sName The map name.
     @ex
@@ -660,6 +679,7 @@ AStarMap = class("AStarMap",
     Name__autoRF    = null,
     --[[!
     @fqxn CoG.AStar.AStarMap.getOwner
+    @pulsarlua function AStarMap.getOwner
     @desc Gets the AStar object that owns this map.
     @ret AStar oAStar The owning system.
     @ex
@@ -670,6 +690,7 @@ AStarMap = class("AStarMap",
     Owner__autoRF   = null,
     --[[!
     @fqxn CoG.AStar.AStarMap.getType
+    @pulsarlua function AStarMap.getType
     @desc Gets the declared map geometry type.
     @ret number nType The map type constant.
     @ex
@@ -680,6 +701,7 @@ AStarMap = class("AStarMap",
     Type__autoRF    = null,
     --[[!
     @fqxn CoG.AStar.AStarMap.getWidth
+    @pulsarlua function AStarMap.getWidth
     @desc Gets the grid width shared by the layers.
     @ret number nWidth The width.
     @ex
@@ -690,6 +712,7 @@ AStarMap = class("AStarMap",
     Width__autoRF   = null,
     --[[!
     @fqxn CoG.AStar.AStarMap.getHeight
+    @pulsarlua function AStarMap.getHeight
     @desc Gets the grid height shared by the layers.
     @ret number nHeight The height.
     @ex
@@ -810,6 +833,7 @@ AStarMap = class("AStarMap",
 
     --[[!
     @fqxn CoG.AStar.AStarMap.getLayer
+    @pulsarlua function AStarMap.getLayer
     @desc Gets a layer using a case-insensitive name lookup.
     @param string sLayer A nonblank layer name.
     @ret AStarLayer|nil oLayer The layer, or nil when absent.
@@ -824,6 +848,7 @@ AStarMap = class("AStarMap",
     end,
     --[[!
     @fqxn CoG.AStar.AStarMap.getNode
+    @pulsarlua function AStarMap.getNode
     @desc Gets a node by layer name and coordinates. Layer lookup is case-insensitive.
     @param string sLayer A nonblank layer name.
     @param number nX The integer x coordinate.
@@ -850,6 +875,7 @@ AStarMap = class("AStarMap",
     end,
     --[[!
     @fqxn CoG.AStar.AStarMap.getOrigin
+    @pulsarlua function AStarMap.getOrigin
     @desc Gets the native coordinates of the first grid cell. Existing maps default to x = 1, y = 1. Imported maps can preserve zero or negative origins.
     @ret table tOrigin A new table with x and y fields.
     @ex
@@ -864,6 +890,7 @@ AStarMap = class("AStarMap",
 
     --[[!
     @fqxn CoG.AStar.AStarMap.getStagger
+    @pulsarlua function AStarMap.getStagger
     @desc Gets the explicitly supplied stagger axis and index. No staggering convention is inferred when none was supplied. Parity refers to native map coordinates.
     @ret table tStagger A new table with axis and index fields, or an empty table when unspecified.
     @ex
@@ -881,6 +908,7 @@ AStarMap = class("AStarMap",
 
     --[[!
     @fqxn CoG.AStar.AStarMap.getSize
+    @pulsarlua function AStarMap.getSize
     @desc Gets a new table containing the grid dimensions.
     @ret table tSize A table with width and height fields.
     @ex
@@ -959,6 +987,7 @@ AStarNode = class("AStarNode",
     type            = null,--set from the owning map during construction
     --[[!
     @fqxn CoG.AStar.AStarNode.getX
+    @pulsarlua function AStarNode.getX
     @desc Gets the node's native x coordinate.
     @ret number nX The integer coordinate.
     @ex
@@ -970,6 +999,7 @@ AStarNode = class("AStarNode",
     X__autoAF       = 0,
     --[[!
     @fqxn CoG.AStar.AStarNode.getY
+    @pulsarlua function AStarNode.getY
     @desc Gets the node's native y coordinate.
     @ret number nY The integer coordinate.
     @ex
@@ -1036,6 +1066,7 @@ AStarNode = class("AStarNode",
     end,
     --[[!
     @fqxn CoG.AStar.AStarNode.addPort
+    @pulsarlua function AStarNode.addPort
     @desc Adds an outgoing port connection. By default, also updates the reverse connection. A one-way operation leaves any existing reverse connection unchanged.
     @param AStarNode oNode The connected node.
     @param boolean|nil bTwoWay Whether to update both directions; defaults to true. False updates only this node's outgoing connection.
@@ -1080,6 +1111,7 @@ AStarNode = class("AStarNode",
 
     --[[!
     @fqxn CoG.AStar.AStarNode.containsRover
+    @pulsarlua function AStarNode.containsRover
     @desc Checks whether the supplied rover occupies this node.
     @param AStarRover oRover The rover to check.
     @ret boolean bContains Whether the rover is registered on this node.
@@ -1097,6 +1129,7 @@ AStarNode = class("AStarNode",
 
     --[[!
     @fqxn CoG.AStar.AStarNode.createRover
+    @pulsarlua function AStarNode.createRover
     @desc Creates a rover on this node and registers it as an occupant.
     @param boolean|nil bRetainsPointsOverCycle Whether unused points carry into the next cycle; defaults to true.
     @ret AStarRover oRover The new rover.
@@ -1117,6 +1150,7 @@ AStarNode = class("AStarNode",
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getAspect
+    @pulsarlua function AStarNode.getAspect
     @desc Gets an aspect using a case-insensitive name lookup.
     @param string sAspect A nonblank aspect name.
     @ret AStarAspect|nil oAspect The aspect, or nil when absent.
@@ -1134,6 +1168,7 @@ AStarNode = class("AStarNode",
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getAspects
+    @pulsarlua function AStarNode.getAspects
     @desc Gets a read-only view of the node's ordered aspects. The aspect objects and their Protean impactors remain modifiable through their methods.
     @ret table tAspects The ordered aspect objects.
     @ex
@@ -1148,6 +1183,7 @@ AStarNode = class("AStarNode",
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getAspectImpact
+    @pulsarlua function AStarNode.getAspectImpact
     @desc Gets an aspect's calculated intensity using a case-insensitive name lookup.
     @param string sAspect A nonblank aspect name.
     @ret number|nil nImpact The final intensity from 0 to 1, or nil when the aspect is absent.
@@ -1174,6 +1210,7 @@ AStarNode = class("AStarNode",
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getEntryCost
+    @pulsarlua function AStarNode.getEntryCost
     @desc Calculates the entry cost for one rover. Each active aspect contributes base cost times its own intensity times the difference between rover aversion and affinity. Contributions are added to the base cost and the result is clamped to the configured cost bounds. Aspects do not compound on each other. This calculation does not check passability or spend movement points.
     @param AStarRover oRover The rover whose affinities and aversions determine the cost.
     @ret number nCost The bounded entry cost for this rover.
@@ -1222,6 +1259,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getEntryCosts
+    @pulsarlua function AStarNode.getEntryCosts
     @desc Calculates a separate entry cost for each supplied rover. Costs are indexed by rover and are not summed together. Does not check passability or spend movement points. No rovers produces an empty table.
     @param AStarRover|table ... Individual rovers, or one ordered table of rovers.
     @ret table tCosts The entry costs indexed by rover object.
@@ -1247,6 +1285,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getNeighbors
+    @pulsarlua function AStarNode.getNeighbors
     @desc Gathers edge-sharing neighbors and destinations of outgoing ports without duplicates or this node itself. Does not filter by passability or movement points. Hex maps require explicit staggerAxis and staggerIndex settings. Square maps use four edge-sharing neighbors. Triangular maps use three edge-sharing neighbors: even native x+y points up for flat triangles or left for pointed triangles; odd parity reverses the direction.
     @param boolean|nil bPhysicalOnly True excludes outgoing ports; defaults to false.
     @ret table tNeighbors A new ordered list of neighboring nodes. Physical neighbors precede ports; port order is unspecified.
@@ -1338,6 +1377,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getOwner
+    @pulsarlua function AStarNode.getOwner
     @desc Gets the layer that owns this node.
     @ret AStarLayer oLayer The owning layer.
     @ex
@@ -1352,6 +1392,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getPassable
+    @pulsarlua function AStarNode.getPassable
     @desc Gets the node's general passability flag without checking any rover's restrictions.
     @ret boolean bPassable The general passability flag.
     @ex
@@ -1367,6 +1408,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getPorts
+    @pulsarlua function AStarNode.getPorts
     @desc Gets a read-only view of this node's outgoing port connections. Keys are destination nodes and values are true. A connection appears here whether it is one-way or two-way.
     @ret table tPorts The outgoing connections, indexed by destination node.
     @ex
@@ -1383,6 +1425,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getPos
+    @pulsarlua function AStarNode.getPos
     @desc Gets a new table containing the node's coordinates.
     @ret table tPosition A table with x and y fields.
     @ex
@@ -1399,6 +1442,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getRovers
+    @pulsarlua function AStarNode.getRovers
     @desc Gets a read-only view of the rovers occupying this node. Keys are rover objects and values are true.
     @ret table tRovers The resident rovers, indexed by rover object.
     @ex
@@ -1414,6 +1458,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.getPortPassageRule
+    @pulsarlua function AStarNode.getPortPassageRule
     @desc Gets the rule for this node's outgoing port. Node occupancy is independent of port passage.
     @param AStarNode oNode The port destination.
     @ret function|nil fRule The predicate, or nil for an unrestricted or absent port.
@@ -1433,6 +1478,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.setPortPassageRule
+    @pulsarlua function AStarNode.setPortPassageRule
     @desc Sets or clears an existing outgoing port's rule. Does not change node passability. Each predicate receives (rover, sourceNode, destinationNode) and must return boolean. Keep it side-effect-free: planning may evaluate it repeatedly. A two-way update requires both directions to exist and uses the same function in each direction.
     @param AStarNode oNode The destination.
     @param function|nil fRule The predicate; nil clears the restriction.
@@ -1478,6 +1524,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.canUsePort
+    @pulsarlua function AStarNode.canUsePort
     @desc Checks outgoing port existence and passage permission for every supplied rover, independently of node passability, occupancy, movement points and the rovers' current positions. A missing port returns false; a port without a rule allows passage.
     @param AStarNode oNode The destination.
     @param AStarRover|table ... One or more rovers, individually or in an ordered table.
@@ -1515,6 +1562,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.canTraverseTo
+    @pulsarlua function AStarNode.canTraverseTo
     @desc Checks whether a physical edge or an allowed outgoing port connects this node to the destination for every supplied rover. A physical edge permits traversal independently of any parallel port restriction. Destination passability and movement budgets are checked separately by planning and movement.
     @param AStarNode oNode The destination.
     @param AStarRover|table ... One or more rovers, individually or in an ordered table.
@@ -1548,6 +1596,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.hasAspect
+    @pulsarlua function AStarNode.hasAspect
     @desc Checks whether this node has an aspect using a case-insensitive name lookup.
     @param string sAspect A nonblank aspect name.
     @ret boolean bHasAspect Whether the aspect exists.
@@ -1566,6 +1615,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.hasPort
+    @pulsarlua function AStarNode.hasPort
     @desc Checks whether this node has an outgoing port to the supplied node. Does not require a reverse connection.
     @param AStarNode oNode The destination node to check.
     @ret boolean bHasPort Whether the outgoing connection exists.
@@ -1584,6 +1634,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.hasTwoWayPort
+    @pulsarlua function AStarNode.hasTwoWayPort
     @desc Checks whether both nodes have an outgoing port to each other. Returns false immediately when either node has no outgoing ports.
     @param AStarNode oNode The node to check.
     @ret boolean bTwoWay Whether the connection exists in both directions.
@@ -1613,6 +1664,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.hasPorts
+    @pulsarlua function AStarNode.hasPorts
     @desc Checks whether this node has any outgoing port connections. Incoming-only connections do not count.
     @ret boolean bHasPorts Whether at least one outgoing connection exists.
     @ex
@@ -1629,6 +1681,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.isPassable
+    @pulsarlua function AStarNode.isPassable
     @desc Checks whether the node can be entered by every supplied rover. A false general passability flag blocks entry. Otherwise, entry is denied if any rover is forbidden from the layer, abhors an active aspect or a resident rover refuses entry to it. With no rovers supplied, returns the general passability flag. Movement points are not checked here.
     @param AStarRover|table ... Individual rovers, or one table containing the rovers to check.
     @ret boolean bPassable Whether all supplied rovers may enter.
@@ -1681,6 +1734,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.removePort
+    @pulsarlua function AStarNode.removePort
     @desc Removes an outgoing port connection. By default, also updates the reverse connection. A one-way operation leaves any existing reverse connection unchanged.
     @param AStarNode oNode The connected node.
     @param boolean|nil bTwoWay Whether to update both directions; defaults to true. False updates only this node's outgoing connection.
@@ -1714,6 +1768,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.setPassable
+    @pulsarlua function AStarNode.setPassable
     @desc Sets the node's general passability flag. Non-boolean inputs leave the flag unchanged. Rover-specific restrictions are still checked by isPassable when the flag is true.
     @param boolean bPassable Whether the node is generally passable.
     @ret nil vReturn No return value.
@@ -1734,6 +1789,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
 
     --[[!
     @fqxn CoG.AStar.AStarNode.togglePassable
+    @pulsarlua function AStarNode.togglePassable
     @desc Inverts the node's general passability flag. Does not alter rover-specific restrictions.
     @ret nil vReturn No return value.
     @ex
@@ -2072,6 +2128,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.hasPath
+    @pulsarlua function AStarPath.hasPath
     @desc Checks whether a passable route was found, independently of movement points.
     @ret boolean bFound Whether the route exists.
     @ex
@@ -2091,6 +2148,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getCost
+    @pulsarlua function AStarPath.getCost
     @desc Gets the total entry cost captured during route construction for a member rover, excluding the start. Later cost changes and payments do not alter this planned total.
     @param AStarRover oRover A member of this path.
     @ret number nCost The rover's cumulative cost; zero when no route exists.
@@ -2113,6 +2171,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getCostTotal
+    @pulsarlua function AStarPath.getCostTotal
     @desc Gets the largest individual cumulative cost captured during route construction, used to compare routes. This is not a sum of group members' costs or a group payment.
     @ret number nCost The route comparison cost; zero when no route exists.
     @ex
@@ -2136,6 +2195,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getNextNode
+    @pulsarlua function AStarPath.getNextNode
     @desc Gets the next node after the current path position without advancing or moving.
     @ret AStarNode|nil oNode The next node, or nil at the end or when no route exists.
     @ex
@@ -2155,6 +2215,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getNodes
+    @pulsarlua function AStarPath.getNodes
     @desc Gets the ordered route including the starting node.
     @ret table tNodes A read-only node view; empty when no route exists.
     @ex
@@ -2174,6 +2235,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getNodeCount
+    @pulsarlua function AStarPath.getNodeCount
     @desc Gets the number of route nodes, including the start.
     @ret number nCount The node count.
     @ex
@@ -2193,6 +2255,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getRovers
+    @pulsarlua function AStarPath.getRovers
     @desc Gets the path's distinct ordered rover members.
     @ret table tRovers A read-only rover view.
     @ex
@@ -2212,6 +2275,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getCycleForNode
+    @pulsarlua function AStarPath.getCycleForNode
     @desc Gets the preview cycle for a route node. Zero means reachable this turn. Nil means the index is before the current path position, outside the route, or that a rover cannot afford this or a preceding remaining node under the current capacity and regeneration settings.
     @param number nIndex The positive integer route-node index.
     @ret number|nil nCycle The number of future cycles required, or nil.
@@ -2233,6 +2297,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getReachableNodeCount
+    @pulsarlua function AStarPath.getReachableNodeCount
     @desc Gets the last node index reachable this turn, including nodes already traversed. At construction this is the number of reachable prefix nodes, including the start.
     @ret number nCount The reachable node count; zero when no route exists.
     @ex
@@ -2252,6 +2317,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.getCycleCount
+    @pulsarlua function AStarPath.getCycleCount
     @desc Gets future cycles needed to reach the destination under the preview settings.
     @ret number|nil nCycles Zero when reachable now, or nil when no route exists or progress cannot finish with the current settings.
     @ex
@@ -2272,6 +2338,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.setOnStepCallback
+    @pulsarlua function AStarPath.setOnStepCallback
     @desc Sets the step callback, or clears it for non-function input. Runs once after a successful committed group step and after rover exit, entry and move callbacks. Receives (path, rovers, currentNodeIndex, totalSteps, currentNode, previousNode); totalSteps excludes the start. Installing a callback does not execute the path.
     @param function|nil fFunc The callback.
     @ret AStarPath oPath This path.
@@ -2295,6 +2362,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.refreshPreview
+    @pulsarlua function AStarPath.refreshPreview
     @desc Recalculates cycle boundaries from the current path position and live budgets without moving, paying or replanning the route. Useful after cycling rovers or changing movement settings.
     @ret AStarPath oPath This path.
     @ex
@@ -2318,6 +2386,7 @@ AStarPath = class("AStarPath",
 
     --[[!
     @fqxn CoG.AStar.AStarPath.step
+    @pulsarlua function AStarPath.step
     @desc Advances every member one node along the planned route. Rechecks current positions, traversal permission, destination passability and each budget before changing state. A failed check or completed route returns false with no movement, payment or callbacks. Success moves and charges the entire group, advances the path and refreshes preview before callbacks. Reentrant movement is blocked until notifications finish. Callback errors do not undo success: remaining notifications are attempted and the first error is rethrown.
     @ret boolean bMoved Whether the group advanced one node.
     @ex
@@ -2505,6 +2574,7 @@ AStarRover = class("AStarRover",
     !]]
     --[[!
     @fqxn CoG.AStar.AStarRover.getRetainsPointsOverCycle
+    @pulsarlua function AStarRover.getRetainsPointsOverCycle
     @desc Gets whether unused movement points carry into the next cycle. Defaults to true.
     @ret boolean bRetains Whether leftover points are retained.
     @ex
@@ -2516,6 +2586,7 @@ AStarRover = class("AStarRover",
     !]]
     --[[!
     @fqxn CoG.AStar.AStarRover.setRetainsPointsOverCycle
+    @pulsarlua function AStarRover.setRetainsPointsOverCycle
     @desc Sets whether unused movement points carry into the next cycle. False clears current points before regeneration on the next rover.cycle call. Does not immediately change movement points.
     @param boolean bRetains The retention setting.
     @ret AStarRover oRover This rover.
@@ -2594,6 +2665,7 @@ AStarRover = class("AStarRover",
     end,
     --[[!
     @fqxn CoG.AStar.AStarRover.abhors
+    @pulsarlua function AStarRover.abhors
     @desc Checks whether this rover abhors the named aspect. Names are matched in uppercase; an unknown aspect returns false.
     @param string sAspect A nonblank aspect name.
     @ret boolean bAbhors Whether this rover abhors the aspect.
@@ -2613,6 +2685,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.addDeniedType
+    @pulsarlua function AStarRover.addDeniedType
     @desc Adds a type denied entry to nodes occupied by this rover. An asterisk denies all unlike types. A type already owned by this rover cannot be denied. Names are stored in uppercase.
     @param string sType A nonblank type name.
     @ret AStarRover oRover This rover, for chaining.
@@ -2642,6 +2715,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.addType
+    @pulsarlua function AStarRover.addType
     @desc Adds an uppercase rover type unless it is already present or explicitly denied.
     @param string sType A nonblank type name.
     @ret AStarRover oRover This rover, for chaining.
@@ -2674,6 +2748,7 @@ AStarRover = class("AStarRover",
     ]]
     --[[!
     @fqxn CoG.AStar.AStarRover.allowsEntryTo
+    @pulsarlua function AStarRover.allowsEntryTo
     @desc Checks whether another rover may enter a node occupied by this rover. A shared type always allows entry; otherwise the wildcard or a matching denied type blocks entry.
     @param AStarRover other The other rover.
     @ret boolean bAllowed Whether the other rover may enter.
@@ -2733,6 +2808,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getAbhorations
+    @pulsarlua function AStarRover.getAbhorations
     @desc Gets a read-only view of the aspect abhoration flags, indexed by aspect name.
     @ret table tValues The read-only collection view.
     @ex
@@ -2749,6 +2825,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getAffinity
+    @pulsarlua function AStarRover.getAffinity
     @desc Gets the affinity Protean for an aspect by case-insensitive name, or nil when absent.
     @param string sAspect A nonblank aspect name.
     @ret Protean|nil oResponse The aspect response, or nil.
@@ -2769,6 +2846,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getAffinites
+    @pulsarlua function AStarRover.getAffinites
     @desc Gets a read-only ordered view of the affinity Proteans. Retains the original method spelling.
     @ret table tValues The read-only collection view.
     @ex
@@ -2784,6 +2862,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getAversion
+    @pulsarlua function AStarRover.getAversion
     @desc Gets the aversion Protean for an aspect by case-insensitive name, or nil when absent.
     @param string sAspect A nonblank aspect name.
     @ret Protean|nil oResponse The aspect response, or nil.
@@ -2804,6 +2883,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getAversions
+    @pulsarlua function AStarRover.getAversions
     @desc Gets a read-only ordered view of the aversion Proteans.
     @ret table tValues The read-only collection view.
     @ex
@@ -2819,6 +2899,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getAffinities
+    @pulsarlua function AStarRover.getAffinities
     @desc Gets the affinity Proteans using the correctly spelled alias for getAffinites.
     @ret table tValues The read-only collection view.
     @ex
@@ -2834,6 +2915,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getDeniedTypes
+    @pulsarlua function AStarRover.getDeniedTypes
     @desc Gets a read-only ordered view of the uppercase denied type names.
     @ret table tValues The read-only collection view.
     @ex
@@ -2850,6 +2932,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getTypes
+    @pulsarlua function AStarRover.getTypes
     @desc Gets a read-only ordered view of this rover's uppercase type names.
     @ret table tValues The read-only collection view.
     @ex
@@ -2866,6 +2949,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getOnEnterNodeCallback
+    @pulsarlua function AStarRover.getOnEnterNodeCallback
     @desc Gets the entry callback, or nil when absent.
     @ret function|nil fCallback The installed callback, or nil.
     @ex
@@ -2883,6 +2967,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getOnExitNodeCallback
+    @pulsarlua function AStarRover.getOnExitNodeCallback
     @desc Gets the exit callback, or nil when absent.
     @ret function|nil fCallback The installed callback, or nil.
     @ex
@@ -2900,6 +2985,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.setOnMoveCallback
+    @pulsarlua function AStarRover.setOnMoveCallback
     @desc Sets the movement callback or clears it for non-function input. Called after a successful committed move, following exit and entry callbacks, with (rover, sourceNode, destinationNode).
     @param function|nil vFunc The callback; non-functions clear it.
     @ret AStarRover oRover This rover, for chaining.
@@ -2919,6 +3005,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getOnMoveCallback
+    @pulsarlua function AStarRover.getOnMoveCallback
     @desc Gets the movement callback, or nil when absent.
     @ret function|nil fCallback The installed callback, or nil.
     @ex
@@ -2936,6 +3023,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getOwner
+    @pulsarlua function AStarRover.getOwner
     @desc Gets the node currently occupied by this rover.
     @ret AStarNode oNode The owning node.
     @ex
@@ -2951,6 +3039,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.hasDeniedType
+    @pulsarlua function AStarRover.hasDeniedType
     @desc Checks whether an uppercase type name is explicitly in the denied list.
     @param string sType A nonblank type name.
     @ret boolean bDenied Whether the type is explicitly denied.
@@ -2973,6 +3062,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.setLayerAllowed
+    @pulsarlua function AStarRover.setLayerAllowed
     @desc Sets an explicit layer permission. All layers are allowed by default. Layer object overrides take precedence over name overrides; names are matched in uppercase.
     @param AStarLayer|string vLayer A layer instance or nonblank name.
     @param boolean bAllowed Whether entry is allowed.
@@ -3001,6 +3091,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.isAllowedOnLayer
+    @pulsarlua function AStarRover.isAllowedOnLayer
     @desc Checks layer permission. All layers are allowed by default; an object override takes precedence over its uppercase name override.
     @param AStarLayer|string vLayer A layer object or nonblank name.
     @ret boolean bAllowed Whether entry onto the layer is allowed.
@@ -3033,6 +3124,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.isOnLayer
+    @pulsarlua function AStarRover.isOnLayer
     @desc Checks the current layer by uppercase name or exact layer identity.
     @param AStarLayer|string vLayer A layer object or nonblank name.
     @ret boolean bOnLayer Whether this rover currently occupies the layer.
@@ -3060,6 +3152,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.isType
+    @pulsarlua function AStarRover.isType
     @desc Checks whether this rover has the named type, ignoring case.
     @param string sType A nonblank type name.
     @ret boolean bHasType Whether this rover has the type.
@@ -3080,6 +3173,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getMovePoints
+    @pulsarlua function AStarRover.getMovePoints
     @desc Gets the current available movement points as a number. Use getMovePointPool to configure capacity, regeneration, reservations or modifiers.
     @ret number nPoints The current movement points.
     @ex
@@ -3099,6 +3193,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.getMovePointPool
+    @pulsarlua function AStarRover.getMovePointPool
     @desc Gets the caller-configurable movement-point Pool, initially zero with capacity 1 and zero regeneration. Configure MAX for capacity and CYCLE_FLAT or CYCLE_PERCENT for regeneration. Movement deducts entry cost from CURRENT without changing capacity or regeneration.
     @ret Pool oPoints The movement-point budget.
     @ex
@@ -3118,6 +3213,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.cycle
+    @pulsarlua function AStarRover.cycle
     @desc Cycles this rover's movement-point Pool using its configured regeneration and available capacity. When RetainsPointsOverCycle is false, clears unused points before regeneration. Does not move the rover. The caller determines when turns or cycles occur.
     @param number|nil nMultiplier The regeneration multiplier; defaults to 1, as for Pool.cycle.
     @ret AStarRover oRover This rover.
@@ -3150,6 +3246,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.move
+    @pulsarlua function AStarRover.move
     @desc Moves to one destination node in the same AStar system. Ordinary movement requires edge adjacency or an outgoing port permitted by its passage rule; teleportation skips connection and port-rule checks. All moves enforce destination passability and layer permission. Successful moves update occupancy, owner and payment before callbacks. Failed checks change no state and fire no callbacks. No intermediate nodes are visited.
     @param AStarNode oNode The destination.
     @param boolean|nil bDeferCost True skips payment; defaults to false.
@@ -3248,6 +3345,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.moveToLayer
+    @pulsarlua function AStarRover.moveToLayer
     @desc Moves to a destination belonging to the specified layer by delegating to move. A mismatched destination returns false. Deferred cost and teleport flags retain the same meaning as move.
     @param AStarLayer oLayer The destination layer.
     @param AStarNode oNode The destination node.
@@ -3277,6 +3375,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.moveToMap
+    @pulsarlua function AStarRover.moveToMap
     @desc Moves to a destination in the specified map and layer by delegating to move. Mismatched ownership returns false. The destination must belong to the same AStar system.
     @param AStarMap oMap The destination map.
     @param AStarLayer oLayer The destination layer.
@@ -3311,6 +3410,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.removeDeniedType
+    @pulsarlua function AStarRover.removeDeniedType
     @desc Removes a denied type using a case-insensitive lookup. An absent type leaves the list unchanged.
     @param string sType A nonblank type name.
     @ret AStarRover oRover This rover, for chaining.
@@ -3340,6 +3440,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.removeType
+    @pulsarlua function AStarRover.removeType
     @desc Removes a rover type using a case-insensitive lookup. An absent type leaves the list unchanged.
     @param string sType A nonblank type name.
     @ret AStarRover oRover This rover, for chaining.
@@ -3369,6 +3470,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.setAbhors
+    @pulsarlua function AStarRover.setAbhors
     @desc Sets the abhoration flag for a known aspect when the supplied flag is boolean. Unknown aspects leave state unchanged.
     @param string sAspect A nonblank aspect name.
     @param boolean bAbhors The requested abhoration flag.
@@ -3397,6 +3499,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.setOnEnterNodeCallback
+    @pulsarlua function AStarRover.setOnEnterNodeCallback
     @desc Sets the entry callback or clears it for non-function input. Called only after a successful committed move, with (rover, sourceNode, destinationNode). Intermediate nodes are not visited by a teleport.
     @param function|nil vFunc The callback; non-functions clear it.
     @ret AStarRover oRover This rover, for chaining.
@@ -3424,6 +3527,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.setOnExitNodeCallback
+    @pulsarlua function AStarRover.setOnExitNodeCallback
     @desc Sets the exit callback or clears it for non-function input. Called only after a successful committed move, with (rover, sourceNode, destinationNode).
     @param function|nil vFunc The callback; non-functions clear it.
     @ret AStarRover oRover This rover, for chaining.
@@ -3451,6 +3555,7 @@ AStarRover = class("AStarRover",
 
     --[[!
     @fqxn CoG.AStar.AStarRover.toggleAbhors
+    @pulsarlua function AStarRover.toggleAbhors
     @desc Inverts the abhoration flag of a known aspect. Unknown aspects leave state unchanged.
     @param string sAspect A nonblank aspect name.
     @ret AStarRover oRover This rover, for chaining.
@@ -3547,6 +3652,7 @@ return class("AStar",
 {--PUBLIC
     --[[!
     @fqxn CoG.AStar.AStar.aspectNames
+    @pulsarlua table AStar.aspectNames
     @desc A read-only, case-insensitive lookup of this system's uppercase aspect names. Length gives the aspect count; pairs visits the names in alphabetically sorted numeric order. No aspects may be added after construction.
     @ret table tNames The aspect-name view.
     @ex
@@ -3561,6 +3667,7 @@ return class("AStar",
     aspectNames__RO     = null,
     --[[!
     @fqxn CoG.AStar.AStar.AStar
+    @pulsarlua function AStar
     @desc Creates a system with zero or more unique aspect names. Names must be Lua identifiers and are stored in uppercase and sorted alphabetically. Duplicates are rejected without regard to case.
     @param string ... The available aspect names.
     @ret AStar oSystem The new system.
@@ -3618,6 +3725,7 @@ return class("AStar",
 
     --[[!
     @fqxn CoG.AStar.AStar.getMap
+    @pulsarlua function AStar.getMap
     @desc Gets a map by its exact, case-sensitive name.
     @param string sName A nonblank map name.
     @ret AStarMap|nil oMap The map, or nil when absent.
@@ -3633,6 +3741,7 @@ return class("AStar",
 
     --[[!
     @fqxn CoG.AStar.AStar.getMaps
+    @pulsarlua function AStar.getMaps
     @desc Gets a read-only view of maps indexed by their exact names.
     @ret table tMaps The map view.
     @ex
@@ -3646,6 +3755,7 @@ return class("AStar",
 
     --[[!
     @fqxn CoG.AStar.AStar.getNode
+    @pulsarlua function AStar.getNode
     @desc Gets a node by exact map name, case-insensitive layer name and native coordinates.
     @param string sMap A nonblank map name.
     @param string sLayer A nonblank layer name.
@@ -3674,6 +3784,7 @@ return class("AStar",
 
     --[[!
     @fqxn CoG.AStar.AStar.newMap
+    @pulsarlua function AStar.newMap
     @desc Creates and registers a named map. Existing exact names return nil without replacing the map. Layer configurations must be nonempty, ordered, uniquely named and use this system's aspects. Native origins default to 1. Hex maps require explicit staggerAxis and staggerIndex settings for neighbor generation, corresponding to Tiled's staggeraxis and staggerindex values. This method does not parse Tiled files.
     @param string sName A nonblank, case-sensitive map name.
     @param number nType A supported map geometry constant.

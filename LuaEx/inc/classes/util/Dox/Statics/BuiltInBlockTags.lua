@@ -1,8 +1,11 @@
+local DoxBlockTag   = DoxBlockTag;
+
+
 --[[!
     @fqxn Dox.Statics.BlockTags
-    @todo WORK IN PROGRESS - CHECK DATA IS CORRECT
-    @desc This is a list of all built-in <a href="#Classes.Utility.Dox.BlockTag">BlockTags</a>.
+    @desc This is a list of all built-in <a href="#Dox.Components.DoxBlockTag">BlockTags</a>.
     <br>While subclasses (parsers) <i>may</i> provide their own additional BlockTags, the ones listed below are always guaranteed to be available.<br><br>
+    Wrapper availability depends on the selected builder and is not a property of the tag.<br>
     <table class="table table-striped table-bordered table-responsive">
         <thead class="thead-dark">
             <tr>
@@ -12,7 +15,6 @@
                 <th scope="col">Multiple Allowed</th>
                 <th scope="col">Combined</th>
                 <th scope="col"># Columns</th>
-                <th scope="col">Has Column Wrapper(s)</th>
             </tr>
         </thead>
         <tbody>
@@ -23,7 +25,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Description</td>
@@ -32,7 +33,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Bug(s)</td>
@@ -41,16 +41,14 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
-                <td>Todo</td>
+                <td>TODO</td>
                 <td>todo</td>
                 <td>no</td>
                 <td>yes</td>
                 <td>yes</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Scope</td>
@@ -59,7 +57,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Visibility</td>
@@ -68,7 +65,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Note</td>
@@ -77,7 +73,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Summary</td>
@@ -86,7 +81,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Parameter(s)</td>
@@ -95,7 +89,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Field(s)</td>
@@ -104,7 +97,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Field(s) - Private</td>
@@ -113,7 +105,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Field(s) - Protected</td>
@@ -122,7 +113,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Field(s) - Public</td>
@@ -131,7 +121,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Field(s) - Static Private</td>
@@ -140,7 +129,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Field(s) - Static Public</td>
@@ -149,7 +137,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Property</td>
@@ -158,7 +145,6 @@
                 <td>yes</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Throws</td>
@@ -167,7 +153,6 @@
                 <td>yes</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Return(s)</td>
@@ -176,7 +161,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>3</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Example</td>
@@ -185,7 +169,6 @@
                 <td>yes</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Code</td>
@@ -194,7 +177,6 @@
                 <td>yes</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Requires</td>
@@ -203,7 +185,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Uses</td>
@@ -212,7 +193,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Features</td>
@@ -221,7 +201,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Parent</td>
@@ -230,7 +209,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Inheritdoc</td>
@@ -239,7 +217,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Interface</td>
@@ -248,7 +225,6 @@
                 <td>yes</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Security</td>
@@ -257,7 +233,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Performance</td>
@@ -266,16 +241,14 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Planned Features</td>
                 <td>planned</td>
                 <td>no</td>
                 <td>no</td>
-                <td>yes</td>
-                <td>1</td>
                 <td>no</td>
+                <td>1</td>
             </tr>
             <tr>
                 <td>Issue(s)</td>
@@ -284,7 +257,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Since</td>
@@ -293,16 +265,14 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
-                <td>Depracated</td>
+                <td>Deprecated</td>
                 <td>deprecated</td>
                 <td>no</td>
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Changelog</td>
@@ -311,7 +281,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Version</td>
@@ -320,7 +289,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>See</td>
@@ -329,7 +297,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Author(s)</td>
@@ -338,7 +305,6 @@
                 <td>yes</td>
                 <td>yes</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Email</td>
@@ -347,7 +313,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>License</td>
@@ -356,7 +321,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Website</td>
@@ -365,7 +329,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>GitHub</td>
@@ -374,7 +337,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Facebook</td>
@@ -383,7 +345,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>X (Twitter)</td>
@@ -392,7 +353,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
             <tr>
                 <td>Copyright</td>
@@ -401,7 +361,6 @@
                 <td>no</td>
                 <td>no</td>
                 <td>1</td>
-                <td>no</td>
             </tr>
         </tbody>
     </table>
@@ -412,7 +371,7 @@ local _bCombined            = true;
 local _bIsUtil              = true;
 
 return {
-    --TODO allow modification and ordering
+    -- Instances can customize section ordering with Dox.setBlockTagOrder.
 
     DoxBlockTag(    {"fqxn"},                                                   "FQXN",
                     _bRequired,     -_bMultipleAllowed),
@@ -457,7 +416,6 @@ return {
                     -_bRequired,    _bMultipleAllowed),
     DoxBlockTag(    {"return", "ret"},                                          "Return(s)",
                     -_bRequired,    _bMultipleAllowed,     _bCombined,      -_bIsUtil,  2),
-    --NOTE: RESERVED FOR Example Block Tag (inserted during class contruction) TODO REMOVE THIS COMMENT ONCE INTEGRATION IS COMPLETED
     DoxBlockTag(    {"ex", "example"},                                          "Example",
                     -_bRequired,    _bMultipleAllowed,      -_bCombined,    -_bIsUtil,  0),
     DoxBlockTag(    {"code"},                                                   "Code",
@@ -484,7 +442,7 @@ return {
                     -_bRequired,   _bMultipleAllowed,      _bCombined),
     DoxBlockTag(    {"since"},                                                  "Since",
                     -_bRequired,   -_bMultipleAllowed),
-    DoxBlockTag(    {"deprecated"},                                             "Depracated",
+    DoxBlockTag(    {"deprecated"},                                             "Deprecated",
                     -_bRequired,    -_bMultipleAllowed),
     DoxBlockTag(    {"changelog", "versionhistory"},                            "Changelog",
                     -_bRequired,    -_bMultipleAllowed),

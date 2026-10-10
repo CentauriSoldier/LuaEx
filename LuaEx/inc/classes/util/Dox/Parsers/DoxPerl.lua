@@ -1,3 +1,9 @@
+local Dox       = Dox;
+local DoxMime   = DoxMime;
+local class     = class;
+local type      = type;
+
+
 return class("DoxPerl",
 {--metamethods
 

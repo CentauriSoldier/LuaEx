@@ -1,5 +1,6 @@
 --[[!
 @fqxn LuaEx.Libraries.envrepo
+@pulsarlua table envrepo
 @desc The Environment Repository is a module providing a mechanism for managing and retrieving Lua environments.
       It allows for the registration of multiple environments indexed by string keys,
       with a default environment set to the global environment. Users can retrieve
@@ -43,6 +44,7 @@ tRepo = {
 
     --[[!
     @fqxn LuaEx.Libraries.envrepo.Methods.getDefault
+    @pulsarlua function envrepo.getDefault
     @desc Returns the default environment from the environment repository.
           This method provides access to the global environment, which is
           used when no specific environment is specified in functions or
@@ -64,6 +66,7 @@ tRepo = {
 
     --[[!
     @fqxn LuaEx.Libraries.envrepo.Methods.getDefaultName
+    @pulsarlua function envrepo.getDefaultName
     @desc Returns the name of the default environment in the environment repository.
           This method provides a way to retrieve the identifier for the default
           environment, which can be useful for reference or logging purposes.
@@ -75,6 +78,7 @@ tRepo = {
 
     --[[!
     @fqxn LuaEx.Libraries.envrepo.Methods.setDefault
+    @pulsarlua function envrepo.setDefault
     @desc Sets the default environment for the repository.
           If the specified environment name corresponds to an existing registered
           environment, it becomes the new default environment.

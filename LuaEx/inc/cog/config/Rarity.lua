@@ -4,6 +4,7 @@ return {
     },
     --[[!
     @fqxn CoG.Rarity.Enums.LEVEL
+    @pulsarlua table Rarity.LEVEL
     @desc
     <div class="text-center" style="margin: 20px;">
         <div class="alert" style="background-color: #CCDC90; color: #333333; border-radius: 15px; padding: 10px; display: inline-block;">

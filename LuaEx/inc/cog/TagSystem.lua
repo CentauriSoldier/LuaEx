@@ -30,6 +30,7 @@ end
 
 --[[!
 @fqxn CoG.TagSystem.Methods.TagSystem
+@pulsarlua function TagSystem
 @desc Creates an empty TagSystem with independent private storage.
 @return TagSystem oTags The new object.
 !]]
@@ -42,6 +43,7 @@ local function build()
     TagSystem = {
         --[[!
         @fqxn CoG.TagSystem.Methods.add
+        @pulsarlua function TagSystem.add
         @desc Adds a tag to the system if it does not exist.
         @param string sTag The tag to add.
         @param boolean|nil bDisabled A flag indicating if the tag should be disabled. If nil, it will be enabled by default.
@@ -69,6 +71,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.addMultiple
+        @pulsarlua function TagSystem.addMultiple
         @desc Adds multiple tags to the system at once.
         @param table tInputTags A numerically-indexed table of tags to add.
         @param boolean|nil bDisabled A flag indicating if the tags should be disabled. If nil, they will be enabled by default.
@@ -104,6 +107,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.contains
+        @pulsarlua function TagSystem.contains
         @desc Checks if the system contains the specified tag. Blank or non-string inputs return false.
         @param string sTag The tag to check.
         @return boolean bExists True if the tag exists, false otherwise.
@@ -115,6 +119,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.isEnabled
+        @pulsarlua function TagSystem.isEnabled
         @desc Checks if the specified tag is enabled. Blank or non-string inputs return false.
         @param string sTag The tag to check.
         @return boolean bEnabled True if the tag is enabled, false otherwise.
@@ -133,6 +138,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.hasSameTags
+        @pulsarlua function TagSystem.hasSameTags
         @desc Checks exact tag membership without considering enabled status. Tag order does not affect the result.
         @param TagSystem oOther The tag system to compare.
         @return boolean bSame True if both systems contain exactly the same tags.
@@ -158,6 +164,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.eachTag
+        @pulsarlua function TagSystem.eachTag
         @desc Iterates over each tag in the system. This is the same as the __pairs metamethod and exists for Lua 5.1 compatibility.
         @return function fIterator An iterator function for tag pairs (tag, enabled status).
         !]]
@@ -180,6 +187,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.remove
+        @pulsarlua function TagSystem.remove
         @desc Removes a tag from the system if it exists.
         @param string sTag The tag to remove.
         @return boolean bRemoved True if the tag was removed, false otherwise.
@@ -211,6 +219,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.removeMultiple
+        @pulsarlua function TagSystem.removeMultiple
         @desc Removes multiple tags from the system at once.
         @param table tInputTags The table of tags to remove.
         @return number nRemoved The number of tags successfully removed.
@@ -251,6 +260,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.setEnabled
+        @pulsarlua function TagSystem.setEnabled
         @desc Sets the enabled/disabled status of a specific tag.
         @param string sTag The tag to update.
         @param boolean|nil bFlag The flag indicating the desired enabled status. If nil, the tag will be disabled.
@@ -274,6 +284,7 @@ local function build()
 
         --[[!
         @fqxn CoG.TagSystem.Methods.setMultipleEnabled
+        @pulsarlua function TagSystem.setMultipleEnabled
         @desc Sets the enabled/disabled status of multiple tags.
         @param table tInputTags A numerically-indexed table of tags to update.
         @param boolean bFlag The flag indicating the desired enabled status.
@@ -371,6 +382,7 @@ end
 local TagSystemFactory = {
     --[[!
     @fqxn CoG.TagSystem.Methods.deserialize
+    @pulsarlua function TagSystem.deserialize
     @desc Restores an independent TagSystem from a state table produced by __serialize.
     @param table tState State containing a tags table mapping normalized names to enabled flags.
     @return TagSystem oTags The restored object.

@@ -6,6 +6,7 @@ local type				= type;
 --CLASS-LEVEL ENUMS                                       Note: AVAILABLE, CYCLE and RESERVED are calculated values and cannot be set directly
 --[[!
     @fqxn CoG.Pool.Enums.ASPECT
+    @pulsarlua table Pool.ASPECT
     @desc Used in class methods for setting/getting values.
     <ul>
         <li><b class="text-primary">AVAILABLE</b>
@@ -55,6 +56,7 @@ local _eAspect      = enum("Pool.ASPECT",   {"AVAILABLE", "CURRENT", "CYCLE", "R
                                             {"available", "current", "cycle", "reserved", "max", "cycle_flat", "cycle_percent", "reserved_flat", "reserved_percent"}, true);
 --[[!
     @fqxn CoG.Pool.Enums.MODIFIER
+    @pulsarlua table Pool.MODIFIER
     @desc Used in class methods for getting/setting modifier values of <a href="#CoG.Pool.Enums.ASPECT" target="_blank">ASPECTS</a>.
     <ul>
         <li><b class="text-primary">BASE</b>
@@ -97,6 +99,7 @@ local _eModifier    = enum("Pool.MODIFIER", {   "BASE",     "FINAL",    "MAX",
                                                 {1, 2, 3, 4, 5, 6, 7, 8, 9}, true);
 --[[!
     @fqxn CoG.Pool.Enums.EVENT
+    @pulsarlua table Pool.EVENT
     @desc <p>Used in class methods for setting/getting events.
     <br><b>Note</b>: events fire only if an event callback function has been set and only if the event is active.
     <br><b>Note</b>: events that trigger because of a change in the <b>Current</b> value, proccess before the <b>ON_CYCLE</b> event (if active).</p>
@@ -881,6 +884,7 @@ return class("Pool",
 {--STATIC PUBLIC
     --[[!
     @fqxn CoG.Pool.Static Methods.withDeferredEvents
+    @pulsarlua function Pool.withDeferredEvents
     @desc Runs a synchronous action, deferring Pool callbacks until it finishes. Values and status update immediately; callbacks then run in order and all queued callbacks are attempted. Nested calls share the outer queue. This is not a rollback transaction: action or callback errors leave committed values intact and the first error is rethrown after notifications. The action must not yield.
     @param function fAction The action to run.
     @ret any ... The action's return values.
@@ -1074,6 +1078,7 @@ ASPECT__RO      = _eAspect,
 
     --[[!
     @fqxn CoG.Pool.Methods.Pool
+    @pulsarlua function Pool
     @desc The constructor for the <b>Pool</b> class.
     @param number|nil nMax The maximum value of the Pool (minimum 1).
     @param number|nil nCurrent The current value of the Pool (minimum 0, maximum nMax).
@@ -1108,6 +1113,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.adjust
+    @pulsarlua function Pool.adjust
     @desc Adjusts the selected value by an amount. Defaults to CURRENT; modifier-bearing aspects default to their BASE value. Uses the same bounds and events as set.
     @param number nAmount The amount to add or subtract.
     @param Pool.ASPECT|nil eAspect The aspect to adjust.
@@ -1130,6 +1136,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.cycle
+    @pulsarlua function Pool.cycle
     @desc Causes the Pool to cycle based on the cycle value (after all modifiers have been applied).
     <br>This is used for things like regeneration of mana, regen and/or poisoning of life, consumption of fuel, etc.
     @param number|nil nMultiplier If a number is provided, it will cycle the number of times input, otherwise, once.
@@ -1175,6 +1182,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.isEmpty
+    @pulsarlua function Pool.isEmpty
     @desc Determines whether the Pool is empty.
     <br>This is true when the current value is less than or equal to 0.
     @ret boolean bEmpty True if the Pool is empty, false otherwise.
@@ -1189,6 +1197,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.isFull
+    @pulsarlua function Pool.isFull
     @desc Determines whether the Pool is full.
     <br>This is true when current fills available capacity (maximum minus reserved), independently of low/high status.
     @ret boolean bFull True if the Pool is full, false otherwise.
@@ -1204,6 +1213,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.isHigh
+    @pulsarlua function Pool.isHigh
     @desc Determines whether current reaches the configurable high marker times total maximum. Reservations do not count toward this threshold.
     @ret boolean bHigh Whether the Pool is high.
     @ex
@@ -1217,6 +1227,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.isLow
+    @pulsarlua function Pool.isLow
     @desc Determines whether the Pool is low.
     <br>This is true when a nonempty Pool has a status value at or below maximum times the low marker.
     @ret boolean bLow True if the Pool is low, false otherwise.
@@ -1231,6 +1242,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.get
+    @pulsarlua function Pool.get
     @desc Gets a Pool aspect or one of its modifiers.
     @param Pool.ASPECT|nil eAspect If provided, this refers to the aspect of the pool to get such as MAX or CYCLE.
     <br>If not provided it will default to CURRENT.
@@ -1286,6 +1298,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.set
+    @pulsarlua function Pool.set
     @desc Sets a writable aspect or modifier. CURRENT is clamped to available capacity; invalid capacity or reservation changes are rejected without changing the prior settings.
     @param number nValue The value to which the item should be set.
     @param Pool.ASPECT|nil eAspect If provided, this refers to the aspect of the pool to set such as MAX or CYCLE.
@@ -1308,6 +1321,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.setEmpty
+    @pulsarlua function Pool.setEmpty
     @desc Set the Pool to empty (if not already empty).
     @ret Pool oPool The Pool object.
     @ex
@@ -1328,6 +1342,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.setEventActive
+    @pulsarlua function Pool.setEventActive
     @desc Enables\disables an event from triggering.
     <br>Note: this does not affect any current callback function for this event, it simply makes<br>
     the event dormant until manually reactivated.
@@ -1362,6 +1377,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.setEventCallback
+    @pulsarlua function Pool.setEventCallback
     @desc Sets a callback function for the specified event. The function will fire whenever the event is triggered.
     @param Pool.EVENT eEvent The event for which the function should be called.
     @param function|nil fCallback The callback function.
@@ -1403,6 +1419,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.setFull
+    @pulsarlua function Pool.setFull
     @desc Sets Pool's current value to the maximum available (if not already that high).
     <br>Note: this is not the same as the maximum value.
     <br>For instance, if 20% of a Pool (whose max is 100) is reserved, the value would be set to 80.
@@ -1429,6 +1446,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.setHighMarker
+    @pulsarlua function Pool.setHighMarker
     @desc Sets the high threshold as a fraction of total maximum. Must be greater than the low marker and no greater than 1. Recalculates status immediately.
     @param number nValue The high marker.
     @ret Pool oPool This pool.
@@ -1447,6 +1465,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.setLowMarker
+    @pulsarlua function Pool.setLowMarker
     @desc Sets the low threshold as a fraction of total maximum. Must be greater than 0 and less than the high marker. Recalculates status immediately.
     @param number nValue The low marker.
     @ret Pool oPool This pool.
@@ -1465,6 +1484,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.getHighMarker
+    @pulsarlua function Pool.getHighMarker
     @desc Gets the high-status fraction of total maximum.
     @ret number nMarker The configured value.
     @ex
@@ -1478,6 +1498,7 @@ end,
 
     --[[!
     @fqxn CoG.Pool.Methods.getLowMarker
+    @pulsarlua function Pool.getLowMarker
     @desc Gets the low-status fraction of total maximum.
     @ret number nMarker The configured value.
     @ex

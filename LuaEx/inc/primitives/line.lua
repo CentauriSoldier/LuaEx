@@ -85,6 +85,7 @@ end
 
 --[[!
 @fqxn LuaEx.Primitives.line
+@pulsarlua function line
 @desc A line segment defined by independently copied numeric endpoints. Only endpoints and autoUpdate are writable; derived values are read-only. Zero-length segments have no slope, angle, equation or unique intercepts. Invalid inputs and unrepresentable calculations leave the previous state intact. Rawset and debug tools bypass ordinary Lua protections.
 @param number nStartX Start X coordinate.
 @param number nStartY Start Y coordinate.
@@ -105,82 +106,98 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
     --[[!
     @fqxn LuaEx.Primitives.line.Properties.autoUpdate
+    @pulsarlua boolean line.autoUpdate
     @desc Writable boolean, initially true. False defers publication of a validated calculated state until a read or update call. Calculations run once per changed write, never repeatedly on reads.
     !]]
     local tActual = {autoUpdate = true};
     local tDerivedKeys = {
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.a
+        @pulsarlua number line.a
         @desc Read-only scaled A coefficient in A*x + B*y + C = 0. Nil for coincident endpoints.
         !]]
         "a",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.b
+        @pulsarlua number line.b
         @desc Read-only scaled B coefficient in A*x + B*y + C = 0. Nil for coincident endpoints.
         !]]
         "b",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.c
+        @pulsarlua number line.c
         @desc Read-only scaled C coefficient in A*x + B*y + C = 0. Nil for coincident endpoints.
         !]]
         "c",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.deltaX
+        @pulsarlua number line.deltaX
         @desc Read-only stop X minus start X.
         !]]
         "deltaX",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.deltaY
+        @pulsarlua number line.deltaY
         @desc Read-only stop Y minus start Y.
         !]]
         "deltaY",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.length
+        @pulsarlua number line.length
         @desc Read-only Euclidean segment length, including zero.
         !]]
         "length",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.slope
+        @pulsarlua number line.slope
         @desc Read-only deltaY/deltaX; nil when deltaX is zero.
         !]]
         "slope",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.slopeIsUndefined
+        @pulsarlua boolean line.slopeIsUndefined
         @desc Read-only boolean indicating a zero deltaX, including coincident endpoints.
         !]]
         "slopeIsUndefined",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.isHorizontal
+        @pulsarlua boolean line.isHorizontal
         @desc Read-only boolean: distinct endpoints with equal Y coordinates.
         !]]
         "isHorizontal",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.isVertical
+        @pulsarlua boolean line.isVertical
         @desc Read-only boolean: distinct endpoints with equal X coordinates.
         !]]
         "isVertical",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.theta
+        @pulsarlua number line.theta
         @desc Read-only directed angle in radians from the positive X axis; nil for coincident endpoints.
         !]]
         "theta",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.yIntercept
+        @pulsarlua number line.yIntercept
         @desc Read-only supporting-line Y-axis crossing; nil if no unique crossing exists.
         !]]
         "yIntercept",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.yInterceptIsUndefined
+        @pulsarlua boolean line.yInterceptIsUndefined
         @desc Read-only boolean indicating no unique Y-axis crossing.
         !]]
         "yInterceptIsUndefined",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.xIntercept
+        @pulsarlua number line.xIntercept
         @desc Read-only supporting-line X-axis crossing; nil if no unique crossing exists.
         !]]
         "xIntercept",
         --[[!
         @fqxn LuaEx.Primitives.line.Properties.xInterceptIsUndefined
+        @pulsarlua boolean line.xInterceptIsUndefined
         @desc Read-only boolean indicating no unique X-axis crossing.
         !]]
         "xInterceptIsUndefined",
@@ -188,6 +205,7 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
     --[[!
     @fqxn LuaEx.Primitives.line.Methods.update
+    @pulsarlua function line.update
     @desc Publishes a dirty validated state once. Candidate calculations occur once per write to guarantee atomic validation; reads never repeat them. Call with dot syntax and no arguments.
     !]]
     local function update()
@@ -231,6 +249,7 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
     --[[!
     @fqxn LuaEx.Primitives.line.Methods.setStart
+    @pulsarlua function line.setStart
     @desc Sets start X/Y from two numbers and calculates the candidate once before mutation. Stop remains fixed.
     @param number nX Start X coordinate.
     @param number nY Start Y coordinate.
@@ -243,6 +262,7 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
     --[[!
     @fqxn LuaEx.Primitives.line.Methods.setStop
+    @pulsarlua function line.setStop
     @desc Sets stop X/Y from two numbers and calculates the candidate once before mutation. Start remains fixed.
     @param number nX Stop X coordinate.
     @param number nY Stop Y coordinate.
@@ -289,16 +309,19 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
     --[[!
     @fqxn LuaEx.Primitives.line.Properties.start
+    @pulsarlua table line.start
     @desc Protected endpoint proxy: write start.x or start.y, or call setStart(x, y). Replacing start is disallowed.
     !]]
     tActual.start = makeEndpoint(tStart, true);
     --[[!
     @fqxn LuaEx.Primitives.line.Properties.stop
+    @pulsarlua table line.stop
     @desc Protected endpoint proxy: write stop.x or stop.y, or call setStop(x, y). Replacing stop is disallowed.
     !]]
     tActual.stop = makeEndpoint(tStop, false);
     --[[!
     @fqxn LuaEx.Primitives.line.Properties.midpoint
+    @pulsarlua table line.midpoint
     @desc Read-only midpoint proxy. Its x and y values refresh with the line and cannot be assigned.
     !]]
     tActual.midpoint = rawsetmetatable({}, {

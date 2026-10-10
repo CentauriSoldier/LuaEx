@@ -8,12 +8,88 @@
 ### Added
 - **class.haspublicmember**
 
+- **Dox.setBlockTagOrder** for per-document section ordering, with stable repeated items and default-order restoration.
+- **Dox.THEME** and **setTheme** with 20 page palettes, including Midnight Blue (default), Synthwave Protocol, and Zenburn.
+- **Dox.PRISM** and **setPrismTheme** with eight independent code-highlighting palettes; Okaidia remains the default.
+- **Dox.setBanner** for optional image banners, with an unavailable-image notice and usable default header on load failure.
+- Project-named Pulsar package ZIP export through **Dox.BUILDER.PULSAR_LUA** and the normal **export** method.
+- Pulsar completion metadata for documented functions, parameters, returns, fields, enums, callable classes, and object members.
+- **DoxBuilder.eachColumnWrapper** and selective wrapper-group clearing.
+- Correctly spelled **DoxSyntax.getEscapeCharacter**, retaining the existing getter for compatibility.
+
+- QR-code generation support and a QR example.
+- **table.readonly** for independent recursive snapshots preserving shared references and cycles.
+- **cloner.registerCopy**, **cloneIndependent**, and **registerFactory** for typed-object cloning and independent default-copy traversals.
+- Graph-based serialization/restoration of shared tables, cyclic table graphs, Lua closures, and captured upvalue cells, plus registered typed-object restoration.
+- Expanded AStar map origins/stagger configuration, port connections, rover movement-point pools, and layer/map movement APIs.
+- **Pool.withDeferredEvents**, value adjustment, and configurable high/low thresholds.
+- Protean callback replacement/toggle locks, link-state queries, and a compatible correctly spelled final-value calculation method.
+- Per-module COG configuration files, including application, AStar, Pool, Rarity, StatusSystem, and object/mod/vehicle settings.
+
+- **Tree** class with parent/child access, insertion/removal, traversal, and printable hierarchy output.
+- String helpers **collapse**, **makefilesafe**, and **tosid**; expanded **string.totable** delimiter handling.
+- **table.shadowreadonly** for read-only views of underlying tables, distinct from independent **table.readonly** snapshots.
+- ISO timestamp-to-minute conversion utility.
+
 ### Changed
--- Updated *Prism* in **Dox** to *1.30.0*.
+- Updated *Prism* in **Dox** to *1.30.0*.
+
+- Redesigned Dox HTML output with responsive navigation, selected-item markers, breadcrumbs, and readable content sections.
+- Example tags use the active parser's Prism language; explicitly authored code-language markup remains supported.
+- Expanded verified Pulsar code-name tags across LuaEx hooks, libraries, classes, primitives, and game-system APIs.
+- Localized Dox module dependencies, completed API comments, corrected built-in tag documentation, and removed obsolete scaffolding.
+- Updated the documentation example to demonstrate page themes, Prism themes, and Pulsar package generation; regenerated documentation output.
+
+- Reworked **AStar** map/layer/node/rover behavior, aspect lookup, passability, ownership, movement costs, and committed-move callbacks.
+- Reworked **Pool** capacity, reservations, modifiers, regeneration, threshold status, event ordering, arithmetic, and independent cloning.
+- Updated **RNG** to use the shared random stream with caller-controlled seeding, explicit argument validation, and nil-only defaults.
+- Moved rarity settings into dedicated configuration and validated rarity/affix limits.
+- Reworked **TagSystem** around unique normalized tags, alphabetical iteration, enabled-state preservation, and independent restoration.
+- Reworked **Targetor** category/group management, wildcard matching, immunity/interdictor precedence, validated batch updates, and independent clone/serialization state.
+- Reworked **XPSystem** cumulative level thresholds, progression curves, remaining-XP queries, explicit refresh, and modifier-aware level assignment.
+- Reworked **Protean** linking, modifiers, bounds, recalculation, callback state, and independent snapshots.
+- Reworked **Potentiometer** clamping, revolving and alternating reflection, direction tracking, bounds/rates, and cloning.
+- Reworked **enum** definitions, nested collections, immutable metadata, private/public registration, snapshots, restoration, and factory behavior.
+- Reworked **struct** fixed-field/type validation, per-instance default copying, enum-keyed fields, read-only bindings, cloning, and serialization.
+- Updated **array** bounds/type rules, empty containers, null slots, clearing, cloning, and saved-state restoration.
+- Updated **null** indexing, empty iteration/calls, immutable normal writes, operators, and serialization behavior.
+- Reworked geometry primitives: point, line, circle, arc, ellipse, and polygon validation, derived geometry, and transformations.
+- Updated math helper validation and edge-case behavior; expanded geometry helpers and finite/nonfinite-number checks.
+- Updated class default-copy isolation and validated class snapshot restoration; adjusted core initialization and type registration for the revised modules.
+
+- Expanded **Ini** construction from text, tables, or files; ordered section/value access, deletion, typed reads, and inheritance-aware reads/writes.
+- Reworked **Grid** delimiter/column handling, named/indexed row access, iteration, and file import validation.
+- Updated **io** path and filesystem helpers, COG date/version helpers, and environment-repository default update reporting.
+- **BaseLog** constructor now includes an on-log callback slot before the auto-write option; updated timestamp/level formatting and independent per-instance entry storage.
 
 ### Fixed
 - Private **IsinScope** function used by **class** helper functions not properly checking scope.
 - ***DoxBuilderHTML*** **LoadDoxAsset** function not working in all cases.
+- Dox file-extension selection and MIME iteration/registration using incorrect or undeclared variables.
+- Public block-tag iteration skipping the last tag and the protected iterator failing to advance.
+- Required-tag detection with multiple required tags, invalid block-item indexes, and malformed-item error reporting.
+- Empty, sparse, or duplicate tag-alias lists; block-tag equality now includes column count.
+- MIME preprocessor replacement, extension normalization/validation, and invalid preprocessor handling.
+- Wrapper clearing crashes, rejected replacement indexes, silently ignored new groups, and inconsistent empty-wrapper validation.
+- Fortran documentation extraction with both LF and Windows CRLF line endings.
+- Lua extraction treating documentation markers inside quoted strings, long strings, or ordinary comments as real Dox blocks.
+- HTML Back/Forward history loops, internal/external fragment routing, and encoded documentation names.
+- Inherited documentation chain resolution, missing-target diagnostics, and circular-reference detection in HTML and Pulsar output.
+- HTML template-marker errors, documentation serialization handling, and combined-section identifiers.
+- Export failures now report file-open, write, and close errors; package ZIP output uses binary mode.
+- Pulsar code-name overrides, callable-class member visibility, and documented object-member resolution while preserving existing provider completions.
+
+- Windows path splitting losing drive prefixes and directory-existence checks using the wrong suffix.
+- Class snapshot restoration accepting unknown fields, replacing methods, mismatched field types, or changed immutable scalar declarations.
+- Shared-reference/cycle handling in clone and serialization traversals; independent copied defaults for separate class and struct instances.
+- COG numeric validation and state handling across Pool, RNG, XPSystem, Protean, and Potentiometer.
+- AStar case-insensitive aspect/type lookup and movement state/callback consistency.
+- TagSystem normalization and saved enabled-state handling; Targetor validation before category mutations.
+- Geometry input validation and polygon boundary/derived-geometry handling.
+
+- **BaseLog** per-level entry indexing incorrectly using the outer entries-table length.
+- **Ini** duplicate-value diagnostics and file-construction read/open error handling.
+
 ---
 
 ## [**v0.60**]

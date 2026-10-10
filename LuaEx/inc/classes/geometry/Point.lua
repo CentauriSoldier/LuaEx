@@ -168,6 +168,7 @@ return class("Point",
 {--public
     --[[!
     @fqxn LuaEx.Classes.Geometry.Point.Methods.Point
+    @pulsarlua function Point
     @desc This is the constructor for the Point class.
     @param nX number The x value. If nil, it defaults to 0.
     @param nY number The y value. If nil, it defaults to 0.

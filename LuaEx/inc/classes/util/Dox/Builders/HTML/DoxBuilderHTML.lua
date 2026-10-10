@@ -1,10 +1,30 @@
+local DoxBuilder    = DoxBuilder;
+local class         = class;
+local debug         = debug;
+local dofile        = dofile;
+local error         = error;
+local io            = io;
+local ipairs        = ipairs;
+local next          = next;
+local package       = package;
+local pairs         = pairs;
+local rawtype       = rawtype;
+local require       = require;
+local setmetatable  = setmetatable;
+local string        = string;
+local table         = table;
+local tostring      = tostring;
+local type          = type;
+
+
 --load in the builder's required files
 local _pRequirePath        = "LuaEx.inc.classes.util.Dox.Builders.HTML.Data";
---local _sBanner          = require(_pRequirePath..".Banner");
---local _sCSS             = require(_pRequirePath..".CSS");
---local _sHTML            = require(_pRequirePath..".HTML")
---local _sJS              = require(_pRequirePath..".JS");
 
+--[[!
+@fqxn Dox.Builders.DoxBuilderHTML.Functions.LoadDoxAsset
+@vis local
+@desc Loads a required builder asset using the module path, then paths relative to this file; reports all attempted paths on failure.
+!]]
 local function LoadDoxAsset(sModule)
     local pFile, sErr = package.searchpath(sModule, package.path);
 
@@ -12,6 +32,11 @@ local function LoadDoxAsset(sModule)
         return dofile(pFile);
     end
 
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Functions.IsAbsolutePath
+    @vis local
+    @desc Tests whether a path is absolute before attempting a source-folder fallback.
+    !]]
     local function IsAbsolutePath(pPath)
         return type(pPath) == "string"
             and (
@@ -20,6 +45,11 @@ local function LoadDoxAsset(sModule)
             );
     end
 
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Functions.TryOpenAndLoad
+    @vis local
+    @desc Loads an existing asset file; returns nil when the file cannot be opened.
+    !]]
     local function TryOpenAndLoad(pPath)
         local hFile = io.open(pPath, "rb");
 
@@ -41,7 +71,8 @@ local function LoadDoxAsset(sModule)
 
     if (type(pThisFile) == "string" and not pThisFile:isempty()) then
         local pDir = pThisFile:match("^(.*)[/\\]") or ".";
-        local pAsset = pDir.."\\Data\\"..sLeaf..".lua";
+        local sFolder = sLeaf == "Themes" and "\\" or "\\Data\\";
+        local pAsset = pDir..sFolder..sLeaf..".lua";
         tTried[#tTried + 1] = pAsset;
 
         local vRet = TryOpenAndLoad(pAsset);
@@ -72,22 +103,10 @@ local _sCSS  = LoadDoxAsset(_pRequirePath .. ".CSS");
 local _sHTML = LoadDoxAsset(_pRequirePath .. ".HTML");
 local _sJS   = LoadDoxAsset(_pRequirePath .. ".JS");
 
+local _tThemes          = LoadDoxAsset("LuaEx.inc.classes.util.Dox.Builders.HTML.Themes");
 local _tPrismLanguages  = require(_pRequirePath..".PrismLanguages");
-local _sPrismStable     = "1.30.0"; --TODO allow theme change
-local _sPrismCSS        = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/prism-okaidia.min.css" rel="stylesheet" />' % {stable = _sPrismStable};
-local _sPrismScript     = '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable};--why is this not being used? If not, delete it.
+local _sPrismStable     = "1.30.0";
 local _sDefaultFilename = "index";
-
-local function reload_module(sModule)
-    local path = package.searchpath(sModule, package.path)
-    if not path then
-        error("DoxBuilderHTML: cannot locate module on package.path: "..sModule, 2)
-    end
-    package.loaded[sModule] = nil
-    return dofile(path) -- executes fresh every time, no require cache
-end
-
-
 
 return class("DoxBuilderHTML",
 {--METAMETHODS
@@ -97,10 +116,14 @@ return class("DoxBuilderHTML",
 
 },
 {--PRIVATE
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.buildJS
+    @vis private
+    @desc Combines serialized documentation data, optional introduction and browser navigation code.
+    !]]
     buildJS = function(this, cdat, sIntro, tFinalizedData)
         local sRet          = "";
         local pri           = cdat.pri;
-        local nLine         = 0; --TODO QUESTION is this used?
         local bFound        = false;
         local bIntro        = (rawtype(sIntro) == "string" and sIntro:find("%S+") ~= nil);
         local sIntro        = bIntro and sIntro or "";
@@ -136,7 +159,6 @@ return class("DoxBuilderHTML",
 
         -- Read the input text line by line (split by newline character)
         for sLine in _sJS:gmatch("[^\r\n]+") do
-            nLine = nLine + 1;
 
             -- Check if the search string is in the current line
             if bFound then
@@ -147,52 +169,80 @@ return class("DoxBuilderHTML",
         end
 
         if not bFound then
-            return nil, "String not found in the input." --TODO better error message
+            error("DoxBuilderHTML: JavaScript template is missing required marker "..sStartRead..".", 2);
         end
 
         local sUserData = "const userData = "..pri.buildJSONTable(tFinalizedData);
         return sUserData.."\n\n"..sIntro.."\n\n"..sRet;
     end,
-    buildJSONTable = function(this, cdat, tFinalizedData) --TODO clean up
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.buildJSONTable
+    @vis private
+    @desc Serializes the hierarchical documentation model into JavaScript data, escaping keys and content.
+    !]]
+    buildJSONTable = function(this, cdat, tFinalizedData)
         local pri        = cdat.pri;
 
-        local function luaTableToJson(tbl, startIndent)
-            startIndent = startIndent or 0
-            local indentSpace = string.rep(" ", startIndent)
 
+        --[[!
+        @fqxn Dox.Builders.DoxBuilderHTML.Functions.luaTableToJson
+        @vis local
+        @desc Serializes the root documentation hierarchy using sorted keys and readable indentation.
+        !]]
+        local function luaTableToJson(tbl, startIndent)
+            startIndent = startIndent or 0;
+            local indentSpace = string.rep(" ", startIndent);
+
+            --[[!
+            @fqxn Dox.Builders.DoxBuilderHTML.Functions.processTable
+            @vis local
+            @desc Recursively serializes each callable documentation node and its children.
+            !]]
             local function processTable(t, indent)
-                local result = {}
-                local sortedKeys = {}
+                local result = {};
+                local sortedKeys = {};
 
                 for key in pairs(t) do
-                    table.insert(sortedKeys, key)
+                    table.insert(sortedKeys, key);
                 end
-                table.sort(sortedKeys)
+
+                table.sort(sortedKeys);
 
                 for _, key in ipairs(sortedKeys) do
-                    local subtable = t[key]
-                    local value = subtable();
+                    local subtable       = t[key];
+                    local value          = subtable();
+
                     --prep the value
                     value = pri.prepJSONString(value):gsub('`', "\\`"):gsub("${", "\\${");
-                    local subtableResult = processTable(subtable, indent .. "    ")
-                    local newstring = indent .. '"' .. key:gsub(" ", "%%20") .. '": {\n' ..
+                    local subtableResult = processTable(subtable, indent .. "    ");
+                    local newstring = indent .. '"' .. pri.prepJSONString(key):gsub(" ", "%%20") .. '": {\n' ..
                                       indent .. '    "value": `' .. value .. '`,\n' ..
                                       indent .. '    "subtable": ' .. (next(subtableResult) and "{\n" .. table.concat(subtableResult, ",\n") .. "\n" .. indent .. "    }" or "null") .. '\n' ..
-                                      indent .. '}'
-                    table.insert(result, newstring)
+                                      indent .. '}';
+
+                    table.insert(result, newstring);
                 end
 
-                return result
+                return result;
             end
 
             local jsonResult = processTable(tbl, indentSpace);
-            return "{\n" .. table.concat(jsonResult, ",\n") .. "\n" .. indentSpace .. "}"
+            return "{\n" .. table.concat(jsonResult, ",\n") .. "\n" .. indentSpace .. "}";
         end
 
         -- Convert the Lua table to JSON format
-        local nIndentSpaces = 4
-        return luaTableToJson(tFinalizedData, nIndentSpaces)
+        local nIndentSpaces = 4;
+        return luaTableToJson(tFinalizedData, nIndentSpaces);
     end,
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.generatePrismScripts
+    @vis private
+    @desc Collects code language classes and emits the required Prism script dependencies.
+    !]]
     generatePrismScripts = function(this, cdat, sHTML)
         -- Define the mapping between language tags and script URLs
         local prismBaseURL = "https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/components/prism-" % {stable = _sPrismStable};
@@ -219,7 +269,7 @@ return class("DoxBuilderHTML",
         table.insert(scripts, '<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/prism.min.js"></script>' % {stable = _sPrismStable});
 
         --insert the js toolbar script
-        table.insert(scripts, '<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/plugins/toolbar/prism-toolbar.js"></script>' % {stable = _sPrismStable});--TODO use stable insertion for static value at '1.20.0'
+        table.insert(scripts, '<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/plugins/toolbar/prism-toolbar.js"></script>' % {stable = _sPrismStable});
 
         --insert the various languages
         for lang, _ in pairs(tFoundLanguages) do
@@ -228,6 +278,13 @@ return class("DoxBuilderHTML",
 
         return table.concat(scripts, "\n")
     end,
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.prepJSONString
+    @vis private
+    @desc Escapes documentation strings for embedding in the generated script.
+    !]]
     prepJSONString = function(this, cdat, s)
         if type(s) ~= "string" then
             return ""
@@ -239,21 +296,23 @@ return class("DoxBuilderHTML",
         s = s:gsub("\n", "\\n")
         s = s:gsub("\r", "\\r")
         s = s:gsub("\t", "\\t")
-        return s
+        return s:gsub("</", "<\\/");
     end,
 },
 {--PROTECTED
 },
 {--PUBLIC
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Constructor
+    @pulsarlua function DoxBuilderHTML
+    @desc Initializes HTML content wrappers, the copy control and output defaults.
+    !]]
     DoxBuilderHTML = function(this, cdat, super)
         local sCopyToClipBoardButton = '<button class="copy-to-clipboard-button" onclick="Dox.copyToClipboard(this)">Copy</button>';
         local pro = cdat.pro;
 
         pro.blockWrapper.open       = '<div class="container-fluid">';
         pro.blockWrapper.close      = '</div>';
-        --pro.exampleWrapper.open     = '<pre><code class=\"language-';
-        --pro.exampleWrapper.close    = '</code></pre>';
-        --pro.exampleWrapper.close    = pro.exampleWrapper.close..'';--QUESTION WHAT IS THIS LINE HERE FOR?
 
         local tColumnWrappers = {
             ["Parameter(s)"] = {
@@ -291,43 +350,74 @@ return class("DoxBuilderHTML",
             ["Code"] = {
                 [1] = {"<pre>", "</pre>"},
             },
-            ["Example"] = { --TODO FINISH make this dynamic for the default prism language type NOTE: I can probably use metatables if i can get them to stop being infinitely recusive
+            ["Example"] = { -- Parser-specific wrappers are supplied by getExampleWrapper.
                 [1] = {"<pre><code class=\"language-lua\">", "</code></pre>"},
             },
-            --[""] = {},
         };
 
         super("DoxBuilderHTML", DoxBuilder.MIME.HTML, sCopyToClipBoardButton, _sDefaultFilename, "<br>", tColumnWrappers);
 
-        --[[set the DoxBlockTag column wrappers
-        for sDisplay, oBlockTag in pro.eachBlockTag() do
-
-            if (tColumnWrappers[sDisplay] ~= nil) then
-
-                for _, tWrapper in ipairs(tColumnWrappers[sDisplay]) do
-                    --TODO here's where the magic happens
-                end
-
-            end
-
-        end]]
-
     end,
-    build = function(this, cdat, sTitle, sIntro, tFinalizedData)
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.build
+    @pulsarlua function DoxBuilderHTML.build
+    @desc Builds the HTML page with its stylesheet, documentation data, navigation and required Prism scripts.
+    @param Dox.PRISM ePrismTheme Optional code theme; defaults to Okaidia and is used only for this build.
+    @param string sBannerURL Optional image URL. Failed images show a notice while preserving the normal header.
+    @param Dox.THEME ePageTheme Optional page palette; defaults to Midnight Blue and does not affect Prism.
+    !]]
+    build = function(this, cdat, sTitle, sIntro, tFinalizedData, ePrismTheme, sBannerURL, ePageTheme)
         type.assert.string(sTitle);
         local pri        = cdat.pri;
+        local eTheme     = ePrismTheme;
+
+        -- Direct builder calls retain the same default as Dox objects.
+        if (eTheme == nil) then
+            eTheme = Dox.PRISM.OKAIDIA;
+        end
+
+        type.assert.custom(eTheme, "Dox.PRISM");
+
+        local sPrismCSS = '<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/${stable}/themes/${theme}.min.css" rel="stylesheet" />' % {
+            stable = _sPrismStable,
+            theme  = eTheme.value,
+        };
 
         _sCSS  = LoadDoxAsset(_pRequirePath .. ".CSS");
         _sHTML = LoadDoxAsset(_pRequirePath .. ".HTML");
         _sJS   = LoadDoxAsset(_pRequirePath .. ".JS");
 
+        -- Resolve the page palette for this build, without mutating shared assets.
+        local eThemePage = ePageTheme or Dox.THEME.MIDNIGHT_BLUE;
+
+        type.assert.custom(eThemePage, "Dox.THEME");
+
+        local tTheme = _tThemes[eThemePage.value];
+
+        if (not tTheme) then
+            error("DoxBuilderHTML: no page palette exists for "..eThemePage.value..".", 2);
+        end
+
+        local sPageCSS = _sCSS.."\n"..tTheme.css;
+
         --update and write the html
-        local sHTML = _sHTML % {__DOX__CSS__ = _sCSS};
+        local sHTML = _sHTML % {__DOX__CSS__ = sPageCSS};
         sHTML = sHTML % {
-            --__DOX_BANNER__URL__     = _sBanner:gsub("\n", ''), --TODO allow custom banner
             __DOX__TITLE__          = sTitle,
-            __DOX__PRISM_CSS__      = _sPrismCSS,
+            __DOX__PRISM_CSS__      = sPrismCSS,
         };
+
+        -- Escape the URL as an attribute; a failed image leaves the normal header visible.
+        if (rawtype(sBannerURL) == "string" and sBannerURL ~= "") then
+            local sURL = sBannerURL:gsub("&", "&amp;"):gsub('"', "&quot;"):gsub("<", "&lt;"):gsub(">", "&gt;");
+            local sBanner = '<div class="dox-banner"><img src="'..sURL..'" alt="Documentation banner" style="display:block;max-width:100%;max-height:220px;margin:0 auto 16px;object-fit:contain" onerror="this.nextElementSibling.hidden=false;this.remove()"><p hidden role="status">Banner image unavailable</p></div>';
+
+            sHTML = sHTML:gsub('(<header id="titlebg">)', function(sHeader)
+                return sHeader..sBanner;
+            end, 1);
+        end
 
         --inject the javascript
         sHTML = sHTML % {__DOX__INTERNAL_JS__ = pri.buildJS(sIntro, tFinalizedData)};
@@ -339,19 +429,58 @@ return class("DoxBuilderHTML",
 
         return sHTML;
     end,
-    formatBlockContent = function(this, cdat, sID, sDisplay, sContent) --TODO FINISH move these into the refresh method now that it's done
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.formatBlockContent
+    @pulsarlua function DoxBuilderHTML.formatBlockContent
+    @desc Formats one documentation item as a content card.
+    !]]
+    formatBlockContent = function(this, cdat, sID, sDisplay, sContent)
         return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = sID, display = sDisplay, content = sContent};
     end,
-    formatCombinedBlockContent = function(this, cdat, sDisplay, sCombinedContent)
-        --TODO note somewhere that combined items cannot have IDs (they are simply blank...all non examples are...but code should have IDs!!!! TODO that)
-        return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = "", display = sDisplay, content = sCombinedContent};
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.formatCombinedBlockContent
+    @pulsarlua function DoxBuilderHTML.formatCombinedBlockContent
+    @desc Formats repeated documentation items as one content card, with one section ID.
+    @param string sID Optional complete HTML ID attribute; a unique ID is generated when omitted.
+    !]]
+    formatCombinedBlockContent = function(this, cdat, sDisplay, sCombinedContent, sID)
+        -- One ID belongs to the combined section rather than each repeated item.
+        local sSectionID = sID or ' id="'..string.uuid()..'"';
+        return [[<div class="custom-section"><div${id} class="section-title">${display}</div><div class="section-content">${content}</div></div>]] % {id = sSectionID, display = sDisplay, content = sCombinedContent};
     end,
-    --[[getExampleWrapper = function(this, cdat, eSyntax)
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.getExampleWrapper
+    @pulsarlua function DoxBuilderHTML.getExampleWrapper
+    @desc Returns an example wrapper using the active source parser's Prism language. The language is supplied for each item, avoiding mutable state in shared builders.
+    @param Dox.SYNTAX eSyntax The active parser's syntax definition.
+    @return table tWrapper Opening and closing HTML strings for the example.
+    !]]
+    getExampleWrapper = function(this, cdat, eSyntax)
         type.assert.custom(eSyntax, "Dox.SYNTAX");
-        local tRet = clone(cdat.pro.exampleWrapper);
-        tRet.open = tRet.open..eSyntax.value.getPrismName()..'">';
-        return tRet;
-    end,]]
+        local sLanguage = eSyntax.value.getPrismName();
+
+        if (not sLanguage:match("^[%w_%-]+$")) then
+            error("Dox example language must be a Prism language identifier.", 2);
+        end
+
+        return {
+            [1] = '<pre><code class="language-'..sLanguage..'">',
+            [2] = '</code></pre>',
+        };
+    end,
+
+
+    --[[!
+    @fqxn Dox.Builders.DoxBuilderHTML.Methods.refresh
+    @pulsarlua function DoxBuilderHTML.refresh
+    @desc Builds the hierarchical documentation data and applies inherited documentation.
+    !]]
     refresh = function(this, cdat, tBlocks, fProcessBlockItem)
         local pro = cdat.pro;
         local pub = cdat.pub;
@@ -430,7 +559,7 @@ return class("DoxBuilderHTML",
 
                                 local nMaxItems = #tToCombine[sDisplay];
                                 for nIndex, tBlockItemData in ipairs(tToCombine[sDisplay]) do
-                                    local sNewLine = nIndex < nMaxItems and sNewLine or sBuilderNewLine;
+                                    local sNewLine = nIndex < nMaxItems and "" or sBuilderNewLine;
                                     sCombinedContent = sCombinedContent..tBlockItemData.content..sNewLine;
                                 end
 
@@ -462,34 +591,64 @@ return class("DoxBuilderHTML",
 
         end
 
-        --check for and apply inherited docs
-        for tTargetIndex, sLinkRaw in pairs(tInheritDocs) do
+        -- Resolve dependencies before copying content, regardless of table traversal order.
+        local tResolved = {};
+        local tResolving = {};
+        local resolveInheritance;
 
-            --create the potential link
-            local tLink  = string.totable(sLinkRaw, '.');
-            --build the index to validate
-            local tIndex = tFinalized;
-
-            --check the link's validity as it's built
-            for __, sFQXN in pairs(tLink) do
-
-                if (tIndex[sFQXN] == nil) then
-                    error("Error creating inherited dox block. FQXN, '${fqxn}', is nil.\nThis is likey caused by the docs to be inherited, not existing.\nPlease check that the doc link exists." % {fqxn = sFQXN}); --TODO FINISH ERROR
-                end
-
-                tIndex = tIndex[sFQXN];
+        --[[!
+        @fqxn Dox.Builders.DoxBuilderHTML.Functions.resolveInheritance
+        @vis local
+        @desc Resolves an inherited documentation chain, rejects missing targets and cycles, and caches each completed node's content.
+        @param table tTarget The finalized documentation node to resolve.
+        @return string sContent The resolved documentation HTML.
+        !]]
+        resolveInheritance = function(tTarget)
+            if (tResolved[tTarget] ~= nil) then
+                return tResolved[tTarget];
             end
 
-            --get the replacement content
-            local sFinalizedContent = tIndex();
+            local sLink = tInheritDocs[tTarget];
 
-            --if no error was thrown, the index is valid. Set the new content
-            setmetatable(tTargetIndex, {
-                __call = function(t)
-                    return sFinalizedContent;
+            if (sLink == nil) then
+                return tTarget();
+            end
+
+            if (tResolving[tTarget]) then
+                error("Circular documentation inheritance detected at target: "..sLink, 2);
+            end
+
+            tResolving[tTarget] = true;
+            local tSource = tFinalized;
+
+            for _, sPart in ipairs(string.totable(sLink, '.')) do
+                if (tSource[sPart] == nil) then
+                    error("Inherited documentation target does not exist: "..sLink.." (missing "..sPart..")", 2);
+                end
+
+                tSource = tSource[sPart];
+            end
+
+            local sContent = resolveInheritance(tSource);
+            tResolving[tTarget] = nil;
+            tResolved[tTarget] = sContent;
+
+            return sContent;
+        end;
+
+        -- Validate the complete graph before replacing any inherited content.
+        for tTarget in pairs(tInheritDocs) do
+            resolveInheritance(tTarget);
+        end
+
+        for tTarget in pairs(tInheritDocs) do
+            local sContent = tResolved[tTarget];
+
+            setmetatable(tTarget, {
+                __call = function()
+                    return sContent;
                 end,
             });
-
         end
 
         return tFinalized;

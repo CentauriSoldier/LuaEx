@@ -68,6 +68,7 @@ return class("Stack",
 {--public
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.Stack
+    @pulsarlua function Stack
     @scope public
     @desc Constructs a new Stack object.
     @param table|nil A numerically-indexed table of items to push onto the Stack (optional).
@@ -93,6 +94,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.clear
+    @pulsarlua function Stack.clear
     @scope public
     @desc Removes all elements from the Stack.
     @ret Stack The Stack object after clearing all items.
@@ -120,6 +122,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.deserialize
+    @pulsarlua function Stack.deserialize
     @scope public
     @desc Deserializes the Stack object from a string.
     !]]
@@ -131,6 +134,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.peek
+    @pulsarlua function Stack.peek
     @scope public
     @param table cdat The class data table.
     @desc Retrieves the next-in-line element from the Stack without removing it.
@@ -143,6 +147,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.pop
+    @pulsarlua function Stack.pop
     @scope public
     @desc Removes and returns the top element of the Stack.
     @ret any The removed element from the Stack.
@@ -160,6 +165,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.push
+    @pulsarlua function Stack.push
     @scope public
     @desc Adds a new element to the top of the Stack.
     @param any vValue The value to be added to the Stack.
@@ -178,6 +184,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.reverse
+    @pulsarlua function Stack.reverse
     @scope public
     @desc Reverses the order of elements in the Stack.
     @ret Stack The Stack object after reversing the elements.
@@ -196,6 +203,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.serialize
+    @pulsarlua function Stack.serialize
     @scope public
     @desc Serializes the Stack object to a string.
     @ret string A string representing the Stack object which can be stored and later deserialized.
@@ -207,6 +215,7 @@ return class("Stack",
 
     --[[!
     @fqxn LuaEx.Classes.Stack.Methods.size
+    @pulsarlua function Stack.size
     @scope public
     @desc Returns the number of elements in the Stack.
     @ret number The number of elements in the Stack.

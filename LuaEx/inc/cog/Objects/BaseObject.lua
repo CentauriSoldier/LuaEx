@@ -67,6 +67,7 @@ return class("BaseObject",
 {--PUBLIC
     --[[!
     @fqxn CoG.BaseObject.Methods.ApplyAffix
+    @pulsarlua function BaseObject.applyAffix
     @des stuff
     !]]
     applyAffix__FNL = function(this, cdat, oAffix, ...)--, eEventID, wEnv, ...)

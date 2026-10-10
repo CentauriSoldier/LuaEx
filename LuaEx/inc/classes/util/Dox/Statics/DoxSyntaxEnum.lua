@@ -1,3 +1,7 @@
+local DoxSyntax = DoxSyntax;
+local enum      = enum;
+
+
 return enum("Dox.SYNTAX",
 {
 "ADA",
@@ -41,7 +45,7 @@ DoxSyntax("CSS",                  "/*",       "*/",       "\\",     "css"),
 DoxSyntax("Dart",                 "/*",       "*/",       "\\",     "dart"),
 DoxSyntax("Elm",                  "{-",       "-}",       "\\",     "elm"),
 DoxSyntax("F#",                   "(*",       "*)",       "\\",     "fsharp"),
-DoxSyntax("Fortran",              "!",        "\\n",      "\\",     "fortran"),
+DoxSyntax("Fortran",              "!",        "\n",      "\\",     "fortran"),
 DoxSyntax("Go",                   "/*",       "*/",       "\\",     "go"),
 DoxSyntax("Groovy",               "/*",       "*/",       "\\",     "groovy"),
 DoxSyntax("Haskell",              "{-",       "-}",       "\\",     "haskell"),

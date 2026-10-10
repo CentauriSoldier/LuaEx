@@ -116,6 +116,7 @@ end
 
 --[[!
 @fqxn CoG.Targetor.Methods.Targetor
+@pulsarlua function Targetor
 @desc Creates an empty Targetor. Populate its categories with add or set.
 @return Targetor oTargetor The new object.
 !]]
@@ -263,6 +264,7 @@ local function build(tState)
 
     --[[!
     @fqxn CoG.Targetor.Methods.isImmuneTo
+    @pulsarlua function Targetor.isImmuneTo
     @desc Checks whether this object's Immunities match the source's Types.
     @param Targetor oSource The source object.
     @return boolean bImmune Whether this object is immune to the source.
@@ -274,6 +276,7 @@ local function build(tState)
 
     --[[!
     @fqxn CoG.Targetor.Methods.isInterdictedBy
+    @pulsarlua function Targetor.isInterdictedBy
     @desc Checks whether this object's Interdictors match the candidate's Types.
     @param Targetor oCandidate The potential target.
     @return boolean bBlocked Whether this object's interdictors block the candidate.
@@ -285,6 +288,7 @@ local function build(tState)
 
     --[[!
     @fqxn CoG.Targetor.Methods.canTarget
+    @pulsarlua function Targetor.canTarget
     @desc Requires a typed candidate matching Targetable, no candidate immunity to
     this source, and no source interdictor against the candidate. Restrictions win.
     @param Targetor oCandidate The potential target.
@@ -370,6 +374,7 @@ end
 local TargetorFactory = {
     --[[!
     @fqxn CoG.Targetor.Methods.deserialize
+    @pulsarlua function Targetor.deserialize
     @desc Restores independent storage from the state produced by __serialize.
     @param table tState The serialized category state.
     @return Targetor oTargetor The restored object.

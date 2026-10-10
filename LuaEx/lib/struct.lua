@@ -238,6 +238,7 @@ end
 
 --[[!
     @fqxn LuaEx.Libraries.struct.deserialize
+    @pulsarlua function struct.deserialize
     @desc Restores a record snapshot. Accepts current factory references and legacy
     factory names. Chosen null-field types and read-only policy are validated before allocation.
     @param table tData The snapshot returned by the instance serialization hook.
@@ -307,6 +308,7 @@ end
 
 --[[!
     @fqxn LuaEx.Libraries.structfactory.__call
+    @pulsarlua function structfactory
     @desc Defines a named fixed-field factory. Keys may be strings or enum members;
     metadata names are reserved. Defaults are captured independently. A read-only
     factory cannot have null defaults. Calling the returned factory accepts optional field overrides.
@@ -401,6 +403,7 @@ end
 
 --[[!
     @fqxn LuaEx.Libraries.structfactory.deserialize
+    @pulsarlua function structfactory.deserialize
     @desc Restores a factory definition. An existing name is reused only when its
     field names/types and read-only policy agree. Existing defaults remain authoritative.
     @param table tData Factory snapshot with name, constraints and readOnly.
@@ -465,6 +468,7 @@ local StructFactoryDecoy = {};
 
 --[[!
     @fqxn LuaEx.Libraries.struct.__call
+    @pulsarlua function struct
     @desc Defines a factory and returns its default instance. Use structfactory
     when multiple instances of the same named record are needed.
     @param string sName Unique non-blank factory name.

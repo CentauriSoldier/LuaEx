@@ -1,3 +1,11 @@
+local Dox           = Dox;
+local DoxBlockTag   = DoxBlockTag;
+local DoxMime       = DoxMime;
+local class         = class;
+local pairs         = pairs;
+local type          = type;
+
+
 return class("DoxLua",
 {--metamethods
 

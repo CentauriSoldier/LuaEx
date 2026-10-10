@@ -67,6 +67,7 @@ return class("Queue",
 {--public
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.Queue
+    @pulsarlua function Queue
     @scope public
     @desc Constructs a new Queue object.
     @param table|nil A numerically-indexed table of items to add to enQueue (optional).
@@ -92,6 +93,7 @@ return class("Queue",
 
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.clear
+    @pulsarlua function Queue.clear
     @scope public
     @desc Removes all items from the Queue.
     @ret Queue The Queue object after clearing all items.
@@ -106,6 +108,7 @@ return class("Queue",
 
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.enqueue
+    @pulsarlua function Queue.enqueue
     @scope public
     @desc Adds an element to the end of the Queue.
     @param any vValue The value to enQueue.
@@ -124,6 +127,7 @@ return class("Queue",
 
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.dequeue
+    @pulsarlua function Queue.dequeue
     @scope public
     @desc Adds an element to the end of the Queue.
     @param any vValue The value to deQueue.
@@ -143,6 +147,7 @@ return class("Queue",
 
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.deserialize
+    @pulsarlua function Queue.deserialize
     @scope public
     @desc Deserializes the Queue object from a string.
     !]]
@@ -153,6 +158,7 @@ return class("Queue",
 
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.peek
+    @pulsarlua function Queue.peek
     @scope public
     @param table cdat The class data table.
     @desc Retrieves the next-in-line element from the Queue without removing it.
@@ -165,6 +171,7 @@ return class("Queue",
 
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.reverse
+    @pulsarlua function Queue.reverse
     @scope public
     @desc Reverses the order of elements in the Queue.
     @ret Queue The Queue object after reversing the elements.
@@ -183,6 +190,7 @@ return class("Queue",
 
     --[[!
     @fqxn LuaEx.Classes.Queue.Methods.size
+    @pulsarlua function Queue.size
     @scope public
     @desc Returns the number of elements currently in the Queue.
     @ret number The number of elements in the Queue.

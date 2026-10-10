@@ -37,6 +37,7 @@ end
 -- Custom circle primitive. Size properties share one authoritative radius.
 --[[!
 @fqxn LuaEx.Primitives.circle
+@pulsarlua function circle
 @desc A table-like circle with writable center.x, center.y and radius. Diameter, circumference and area are calculated and read-only. Invalid writes raise errors without changing state. Ordinary metatable access cannot expose backing data; rawset and debug operations bypass normal Lua protections.
 @param number nInpCenterX Finite center X coordinate.
 @param number nInpCenterY Finite center Y coordinate.
@@ -56,11 +57,13 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
     local tCenterActual = {
         --[[!
         @fqxn LuaEx.Primitives.circle.Properties.center.x
+        @pulsarlua number circle.center.x
         @desc Writable finite X coordinate of the center.
         !]]
         x = nInpCenterX,
         --[[!
         @fqxn LuaEx.Primitives.circle.Properties.center.y
+        @pulsarlua number circle.center.y
         @desc Writable finite Y coordinate of the center.
         !]]
         y = nInpCenterY,
@@ -68,26 +71,31 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
     local tActual = {
         --[[!
         @fqxn LuaEx.Primitives.circle.Properties.autoUpdate
+        @pulsarlua boolean circle.autoUpdate
         @desc Writable boolean, initially true. When false, radius writes defer calculation until a read or update call. Dirty values calculate once; clean reads do not recalculate. Enabling autoUpdate refreshes pending values.
         !]]
         autoUpdate = true,
         --[[!
         @fqxn LuaEx.Primitives.circle.Properties.radius
+        @pulsarlua number circle.radius
         @desc Writable non-negative finite radius. Changes invalidate derived size values; autoUpdate determines eager or deferred calculation.
         !]]
         radius = nInpRadius,
         --[[!
         @fqxn LuaEx.Primitives.circle.Properties.diameter
+        @pulsarlua number circle.diameter
         @desc Read-only diameter, equal to twice the radius. Assigning it raises an error.
         !]]
         diameter = 0,
         --[[!
         @fqxn LuaEx.Primitives.circle.Properties.circumference
+        @pulsarlua number circle.circumference
         @desc Read-only circumference, equal to twice pi times radius. Assigning it raises an error.
         !]]
         circumference = 0,
         --[[!
         @fqxn LuaEx.Primitives.circle.Properties.area
+        @pulsarlua number circle.area
         @desc Read-only area, equal to pi times radius squared. Assigning it raises an error.
         !]]
         area = 0,
@@ -96,6 +104,7 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
     -- A clean circle does not repeat its calculations on subsequent reads.
     --[[!
     @fqxn LuaEx.Primitives.circle.Methods.update
+    @pulsarlua function circle.update
     @desc Calculates derived values only when dirty. Call with dot syntax and no arguments. This method cannot be replaced.
     !]]
     local function update()
@@ -131,6 +140,7 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
     });
     --[[!
     @fqxn LuaEx.Primitives.circle.Properties.center
+    @pulsarlua table circle.center
     @desc The center coordinate proxy. Its reference is read-only; assign center.x or center.y to move the circle without changing size.
     !]]
     tActual.center = tCenterDecoy;

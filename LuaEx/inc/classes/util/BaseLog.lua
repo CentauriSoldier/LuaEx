@@ -16,6 +16,7 @@ end
 
 --[[!
 @fqxn LuaEx.Classes.BaseLog.Enums.LEVEL
+@pulsarlua table BaseLog.LEVEL
 @desc The error level enum used to define an event's level.
 <ol>
     <li>CRITICAL</li>
@@ -64,6 +65,7 @@ return class("BaseLog",
 {--PUBLIC
     --[[!
     @fqxn LuaEx.Classes.BaseLog.BaseLog
+    @pulsarlua function BaseLog
     @desc The constructor for the log class.
     @param string pFile The path to the log file (or where it should be created).
     @param boolean|nil bDoNotAutoWrite If set to true, it prevents autowriting to file. This can be changed at anytime by setting the autowrite value.
@@ -101,6 +103,7 @@ return class("BaseLog",
 
     --[[!
     @fqxn LuaEx.Classes.BaseLog.getLogLevel
+    @pulsarlua function BaseLog.log
     @desc Returns the current <a href="#LuaEx.Classes.BaseLog.Enums.LEVEL">BaseLog.LEVEL</a> that's used by default.
     @ret Log.LEVEL eLevel The current <a href="#LuaEx.Classes.BaseLog.Enums.LEVEL">Log.LEVEL</a>.
     !]]
@@ -108,6 +111,7 @@ return class("BaseLog",
 
     --[[!
     @fqxn LuaEx.Classes.BaseLog.log
+    @pulsarlua function BaseLog.log
     @desc Creates a log entry and writes it to file (if autowrite is true).
     @param string sMessage The message of the log entry.
     @param Log.LEVEL|nil eLevel The <a href="#LuaEx.Classes.BaseLog.Enums.LEVEL">Log.LEVEL</a> enum item to use for the entry. If nil, it will use the current <a href="#LuaEx.Classes.BaseLog.Enums.LEVEL">Log.LEVEL</a>.
@@ -147,6 +151,7 @@ return class("BaseLog",
 
     --[[!
     @fqxn LuaEx.Classes.BaseLog.setLogLevel
+    @pulsarlua function BaseLog.writeToFile
     @desc Sets the current <a href="#LuaEx.Classes.BaseLog.Enums.LEVEL">Log.LEVEL</a> that's used by default.
     @param Log.LEVEL eLevel The <a href="#LuaEx.Classes.BaseLog.Enums.LEVEL">Log.LEVEL</a> to set as current.
     !]]

@@ -1,6 +1,7 @@
 --[[
 --[[!
     @fqxn LuaEx.Libraries (external).schema
+    @pulsarlua table schema
     @author Sebastian Schoener
     @copy Copyright (c) 2014 Sebastian Schoener
     @license <a href="https://mit-license.org/" target="_blank">The MIT License (MIT)</a>

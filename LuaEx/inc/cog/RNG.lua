@@ -161,6 +161,7 @@ return class("RNG",
 
     --[[!
     @fqxn CoG.RNG.Methods.choice
+    @pulsarlua function RNG.choice
     @vis Static Public
     @desc Chooses between two input values.
     @param Any vItem1 Any non-nil value;
@@ -209,6 +210,7 @@ return class("RNG",
 
     --[[!
     @fqxn CoG.RNG.Methods.multiChoice
+    @pulsarlua function RNG.multiChoice
     @vis Static Public
     @desc Accepts a variable number of arguments and randomly selects one of them. It is an unweighted selection, meaning each argument has an equal chance of being chosen.
     @param any ... At least one item to choose from; nil arguments are rejected. These can be of any non-nil type (numbers, strings, tables, etc.).
@@ -280,6 +282,7 @@ weightedRandom = function(nMin, nMax, vWeight)
 end]]
     --[[!
     @fqxn CoG.RNG.Methods.percent
+    @pulsarlua function RNG.percent
     @vis Static Public
     @desc Generates a percentage value.
     @param boolean|nil bFloat Must be boolean when supplied. Whether the result should be a float from 0.01-1 or an int from 1-100 (defaults to false).
@@ -301,6 +304,7 @@ end]]
 
     --[[!
         @fqxn CoG.RNG.Methods.pick
+        @pulsarlua function RNG.pick
         @vis Static Public
         @desc Selects and returns a single random element from a numerically indexed table. Supports sparse tables and both 0-based and 1-based numeric indexing.
         @param table tInput A table containing numeric indices to choose from.
@@ -360,6 +364,7 @@ end]]
 
     --[[!
         @fqxn CoG.RNG.Methods.randomx
+        @pulsarlua function RNG.randomx
         @desc Returns an integer in [1, N] with exponential bias.
         <br>N must be an integer in [1,10]. Each step upward has nWeight times the probability of the preceding step (half as likely at the default weight 0.5).
         <br><br>
@@ -439,6 +444,7 @@ end]]
 
     --[[!
     @fqxn CoG.RNG.Methods.rollCheck
+    @pulsarlua function RNG.rollCheck
     @vis Static Public
     @desc Determines whether a check is made based on the input. Often used for things like stat checks. The check will be successful if the number rolled by the function is equal to or higher than the <strong><em>nCheck</em></strong> parameter.
     @param number|nil nSides Positive integer die sides; defaults to 20.
@@ -460,6 +466,7 @@ end]]
 
     --[[!
     @fqxn CoG.RNG.Methods.rollDice
+    @pulsarlua function RNG.rollDice
     @vis Static Public
     @desc Rolls a number of dice, returning the sum total of the roll.
     <br>The number of sides on the dice is determined by the <strong><em>nSides</em></strong> parameter (defaults to 6).
@@ -502,6 +509,7 @@ end]]
 
     --[[!
     @fqxn CoG.RNG.Methods.rollPercentage
+    @pulsarlua function RNG.rollPercentage
     @vis Static Public
     @desc Rolls a percentage chance based on the input value.
     <br>The number of attempts is determined by the <strong><em>nAttempts</em></strong> parameter (defaults to 1).

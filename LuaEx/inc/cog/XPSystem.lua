@@ -208,6 +208,7 @@ return class("XPSystem",
 {--STATIC PUBLIC
     --[[!
         @fqxn CoG.XPSystem.Enums.TYPE
+        @pulsarlua table XPSystem.TYPE
         @desc Dictates the mathematical mechanisms used to calculate experience
         cost per level. Let B be level-one cost, P progression, L the destination
         level, and S step size. Each cost is rounded up before accumulation.
@@ -243,6 +244,7 @@ return class("XPSystem",
 {--PUBLIC
     --[[!
     @fqxn CoG.XPSystem.Methods.XPSystem
+    @pulsarlua function XPSystem
     @desc Creates a tracker. Level-one cost is at least 1; maximum level and step
     size are positive integers. Progression is nonnegative, or at least 1 for
     exponential curves. All numbers must be finite. Step size defaults to 2.
@@ -297,6 +299,7 @@ return class("XPSystem",
 
     --[[!
     @fqxn CoG.XPSystem.Methods.refresh
+    @pulsarlua function XPSystem.refresh
     @desc Recalculates the level from current final XP, notifying on changes.
     Use after deferred setting updates or manual Protean calculation.
     @return XPSystem oSystem This object.
@@ -309,6 +312,7 @@ return class("XPSystem",
 
     --[[!
     @fqxn CoG.XPSystem.Methods.getXPToLevel
+    @pulsarlua function XPSystem.getXPToLevel
     @desc Returns remaining XP for a level, clamped to zero if already reached.
     Returns -1 for a level above MaxLevel. Level zero is valid.
     @param number nLevel The nonnegative integer destination level.
@@ -328,6 +332,7 @@ return class("XPSystem",
 
     --[[!
     @fqxn CoG.XPSystem.Methods.getXPToNextLevel
+    @pulsarlua function XPSystem.getXPToNextLevel
     @desc Returns remaining XP for the next level, or -1 at MaxLevel.
     @return number nXP Remaining XP, or -1 when there is no next level.
     !]]
@@ -338,6 +343,7 @@ return class("XPSystem",
 
     --[[!
     @fqxn CoG.XPSystem.Methods.getXPRequired
+    @pulsarlua function XPSystem.getXPRequired
     @desc Returns the cumulative XP threshold for a nonnegative integer level.
     Returns -1 above MaxLevel; level zero requires zero XP.
     @param number nLevel The destination level.
@@ -394,6 +400,7 @@ return class("XPSystem",
 
     --[[!
     @fqxn CoG.XPSystem.Methods.setLevel
+    @pulsarlua function XPSystem.setLevel
     @desc Sets base XP so the final Protean value equals the requested level's
     threshold, accounting for modifiers. Rejects zero multipliers or active limits
     that prevent the requested value. Updates XP and level before notification.

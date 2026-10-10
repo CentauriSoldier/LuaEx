@@ -53,6 +53,7 @@ return class("Shuffler",
 {--PUBLIC
     --[[!
     @fqxn CoG.Shuffler.Methods.Shuffler
+    @pulsarlua function Shuffler
     @desc The class constructor.
     @param table|nil Optional argument that is a numerically-indexed table containing items to add to the pool.
     !]]
@@ -80,6 +81,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.add
+    @pulsarlua function Shuffler.add
     @desc Adds any non-nil item to the pool and resets the buffer.
     @param any vItem Any non-nil item.
     @param boolean|nil Optional argument that, if set to true, will skip resetting the buffer. This is useful for bulk additions.
@@ -104,6 +106,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.empty
+    @pulsarlua function Shuffler.empty
     @desc Empties the buffer so that no items are available for popping. The buffer will refill upon a reset.
     !]]
     empty = function(this, cdat)
@@ -111,6 +114,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.getRemaining
+    @pulsarlua function Shuffler.getRemaining
     @desc Returns the total number items available in the buffer to pop before it requires reset.
     @ret number bRemaining The total number of items available.
     !]]
@@ -131,6 +135,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.remove
+    @pulsarlua function Shuffler.remove
     @desc Removes an item from the pool and resets the buffer.
     <br>Note: if there is more than one instance of the item, only the first one (arbitrarily) encountered will be removed.
     @param any vItem Any non-nil item that exists in the pool.
@@ -165,6 +170,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.pop
+    @pulsarlua function Shuffler.pop
     @desc Removes a random item from the buffer and returns that item to the caller. If it's the last item in the buffer and auto-reset is enabled, the buffer is reset.
     @ret any vItem The item removed from the buffer.
     !]]
@@ -187,6 +193,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.purge
+    @pulsarlua function Shuffler.purge
     @desc Removes all the items from the pool and buffer.
     !]]
     purge = function(this, cdat)
@@ -195,6 +202,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.reset
+    @pulsarlua function Shuffler.reset
     @desc Resets the buffer to contain all pool items, shuffles it and makes available all items for popping.
     !]]
     reset = function(this, cdat)
@@ -211,6 +219,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.set
+    @pulsarlua function Shuffler.set
     @desc Returns the total number items in the pool (not the buffer).
     @ret number bRemaining The total number of items in the pool.
     !]]
@@ -233,6 +242,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.size
+    @pulsarlua function Shuffler.size
     @desc Returns the total number items in the pool (not the buffer).
     @ret number bRemaining The total number of items in the pool.
     !]]
@@ -241,6 +251,7 @@ return class("Shuffler",
     end,
     --[[!
     @fqxn CoG.Shuffler.Methods.shuffle
+    @pulsarlua function Shuffler.shuffle
     @desc Shuffles the items in the buffer. By default, this is done automatically when all items in the buffer have been popped (unless the AutoReset flag has been set to false).
     !]]
     shuffle = function(this, cdat)

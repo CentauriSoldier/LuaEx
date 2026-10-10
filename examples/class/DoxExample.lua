@@ -59,7 +59,6 @@ oDoxLua.importFile(io.normalizepath(sSourcePath.."\\..\\..\\LuaEx\\init.lua"), t
 
 local pHTML = os.getenv("USERPROFILE").."\\Sync\\Projects\\Github\\LuaEx\\docs";
 
-
 local function printfile(pFile)
     --print(pFile)
 end
@@ -88,10 +87,13 @@ local sContent = fIntro();
 --load LuaEx's intro message
 oDoxLua.setIntro(sContent);
 --refresh the dox content
+oDoxLua.setTheme(Dox.THEME.SYNTHWAVE_PROTOCOL);
+oDoxLua.setPrismTheme(Dox.PRISM.SOLARIZED_LIGHT);
 oDoxLua.refresh();
 oDoxLua.setOutputPath(pHTML);
 oDoxLua.export("index");
-
+oDoxLua.setBuilder(Dox.BUILDER.PULSAR_LUA);
+oDoxLua.export();
 
 --[[ Pulsar Test
 oDoxLua.setBuilder(Dox.BUILDER.PULSAR_LUA);

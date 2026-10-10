@@ -98,6 +98,7 @@ table.setreadonly = copyTable;
 
 --[[!
     @fqxn LuaEx.Lua Hooks.table.Functions.readonly
+    @pulsarlua function table.readonly
     @desc Creates an independent, recursively read-only snapshot of an ordinary table. The source remains unchanged and subsequent source edits do not affect the snapshot. Shared subtables and cycles retain their identity within the snapshot. Dot/bracket reads, pairs, ipairs, and length access remain available; ordinary assignments, deletions, and metatable replacement raise errors. LuaEx objects such as enum members are retained by reference rather than rebuilt; their own mutation rules still apply. Source metatables are not copied. Table keys are retained by reference. Raw access and debug facilities can bypass the decoy; use pairs rather than next to enumerate it. Length and iteration metamethods require a supporting Lua runtime (verified with Lua 5.4).
     @param table tInput The ordinary table to snapshot.
     @ret table tReadonly The recursive read-only snapshot.

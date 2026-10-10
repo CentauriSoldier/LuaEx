@@ -53,6 +53,7 @@ return class("Affix",
     end,
     --[[!
     @fqxn CoG.Affix.Enums.TYPE
+    @pulsarlua table Affix.TYPE
     @desc Used for setting an <a href="#CoG.Affix.Methods.Affix">Affix's</a> type.
     <hr>
     <ul>
@@ -82,12 +83,14 @@ return class("Affix",
     sortTags__RO = null,
     --[[!
     @fqxn CoG.Affix.Methods.getTier
+    @pulsarlua function Affix.getTier
     @desc Gets the <a href="#CoG.Enums.TIER">TIER</a> of the affix.
     @ret TIER eTier The <b>TIER</b> of the affix.
     !]]
     Tier__autoR_ = null,
     --[[!
     @fqxn CoG.Affix.Methods.getType
+    @pulsarlua function Affix.getType
     @desc Gets the <a href="#CoG.Affix.Enums.TYPE">TYPE</a> of affix this is.
     @ret Affix.TYPE eType The <b>TYPE</b> of the affix.
     !]]
@@ -96,6 +99,7 @@ return class("Affix",
 {--PROTECTED
     --[[!
     @fqxn CoG.Affix.Methods.getName
+    @pulsarlua function Affix.getName
     @desc Gets the name of the affix.
     @ret string sName The name of the affix.
     !]]
@@ -176,6 +180,7 @@ return class("Affix",
 {--PUBLIC
     --[[!
     @fqxn CoG.Affix.Methods.eachCompatibleClass
+    @pulsarlua function Affix.eachCompatibleClass
     @desc An iterator that iterates over each class with which this affix is compatible.
     @ret function fIterator The iterator function.
     !]]
@@ -184,6 +189,7 @@ return class("Affix",
     end,
     --[[!
     @fqxn CoG.Affix.Methods.isCompatibleWithClass
+    @pulsarlua function Affix.isCompatibleWithClass
     @desc Determines whether this affix can be used with a given class.
     @param class cType The class to check.
     @ret boolean bIsCompatible True if compatible, false otherwise.
@@ -208,6 +214,7 @@ return class("Affix",
     end,
     --[[!
     @fqxn CoG.Affix.Methods.isPrefix
+    @pulsarlua function Affix.isPrefix
     @desc Determines whether this affix is a prefix.
     @ret boolean bIsPrefix True if it's a prefix, false otherwise.
     !]]
@@ -216,6 +223,7 @@ return class("Affix",
     end,
     --[[!
     @fqxn CoG.Affix.Methods.isSuffix
+    @pulsarlua function Affix.isSuffix
     @desc Determines whether this affix is a suffix.
     @ret boolean bIsSuffix True if it's a suffix, false otherwise.
     !]]
@@ -224,6 +232,7 @@ return class("Affix",
     end,
     --[[!
     @fqxn CoG.Affix.Methods.onApply
+    @pulsarlua function Affix.onApply
     @desc Fires the activator function provided during construction. This is called by the object to which the affix is applied. This is basically a controlled wrapper for the activator function to prevent erroneous or multiple calls and to restrict the environment in which the function is called.
     @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
     @param varargs varargs Any arguments that should be passed to the activator function from the object's <a href="#CoG.BaseObject.Methods.ApplyAffix">ApplyAffix</a> method.
@@ -240,6 +249,7 @@ return class("Affix",
     end,
     --[[!
     @fqxn CoG.Affix.Methods.onRemove
+    @pulsarlua function Affix.onRemove
     @desc Fires the deactivator function provided during construction. This is called by the object from which the affix is removed. This is basically a controlled wrapper for the deactivator function to prevent erroneous or multiple calls and to restrict the environment in which the function is called.
     @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
     @param varargs varargs Any arguments that should be passed to the deactivator function.

@@ -30,6 +30,7 @@ local _pRoot            = ".";
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.splitpath
+    @pulsarlua function io.splitpath
     @desc Splits a filesystem path into its constituent components.
     <br>Supports Windows and Unix-style paths.
     <br>Extensions are returned without the dot.
@@ -169,6 +170,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.listfiles
+    @pulsarlua function io.listfiles
     @desc Lists all files in a given path (optionally recursively).
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -307,6 +309,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.listdirs
+    @pulsarlua function io.listdirs
     @desc Lists all directories in a given path (optionally recursively).
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -416,6 +419,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.chmod
+    @pulsarlua function io.chmod
     @desc Modifies filesystem permissions for a file or directory using the native OS command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -475,6 +479,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.copy
+    @pulsarlua function io.copy
     @desc Copies a file from a source path to a destination path using the native system command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -534,6 +539,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.delete
+    @pulsarlua function io.delete
     @desc Deletes a file using the native system command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -581,6 +587,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.exists
+    @pulsarlua function io.exists
     @desc Returns true if the given path exists (file or directory), otherwise false.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -623,6 +630,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.findfile
+    @pulsarlua function io.findfile
     @desc Searches the filesystem for a file by name and returns its location.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -693,6 +701,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.findstr
+    @pulsarlua function io.findstr
     @desc Executes the native <code>findstr</code> command with validated arguments.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -756,6 +765,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.getenddir
+    @pulsarlua function io.getenddir
     @desc Returns the final directory name in a filesystem path.
     <br>This works consistently across Windows and Unix-style paths.
     <br>If the path points to a file, the parent directory’s final segment is returned.
@@ -874,6 +884,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.getuserdir
+    @pulsarlua function io.getuserdir
     @desc Returns the current user’s home directory as defined by environment variables.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -906,6 +917,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.grep
+    @pulsarlua function io.grep
     @desc Executes the native <code>grep</code> command with the provided arguments.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -943,6 +955,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.isdir
+    @pulsarlua function io.isdir
     @desc Returns true if the given path exists and is a directory.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -989,6 +1002,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.isdirectchild
+    @pulsarlua function io.isdirectchild
     @desc Determines whether one path is a <em>direct child</em> of another path.
     <br>
     <br>This function performs a strict, structural comparison:
@@ -1047,6 +1061,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.isfile
+    @pulsarlua function io.isfile
     @desc Returns true if the given path exists and is a regular file.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -1091,6 +1106,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.list
+    @pulsarlua function io.list
     @desc Lists all files and directories in a given path (optionally recursively).
     @param string sPath The path which to search for files and directories.
     @param boolean|nil bRecursive Whether to recurse through subdirectories.
@@ -1127,6 +1143,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.mkdir
+    @pulsarlua function io.mkdir
     @desc Creates a directory at the specified path using the native system command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -1178,6 +1195,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.move
+    @pulsarlua function io.move
     @desc Moves or renames a file using the native system command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -1238,6 +1256,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.normalizepath
+    @pulsarlua function io.normalizepath
     @desc Normalizes a path string by removing "." segments, resolving ".." segments,
     <br>and rebuilding the path using the current OS separator.
     <br>
@@ -1331,6 +1350,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.rmdir
+    @pulsarlua function io.rmdir
     @desc Removes a directory and its contents using the native system command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -1382,6 +1402,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.zip
+    @pulsarlua function io.zip
     @desc Creates a ZIP archive containing the specified files using the native system command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>
@@ -1457,6 +1478,7 @@ end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.unzip
+    @pulsarlua function io.unzip
     @desc Extracts the contents of a ZIP archive to a destination directory using the native system command.
     <br>
     <br><strong>Behavior notes (as implemented):</strong>

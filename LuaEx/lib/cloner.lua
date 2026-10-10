@@ -1,5 +1,6 @@
 --[[!
     @fqxn LuaEx.cloner
+    @pulsarlua table cloner
     @desc Read-only copying service. Public operations are clone, cloneIndependent,
     registerCopy, and registerFactory. Hooks define domain-specific copies;
     ordinary table values are copied recursively using one traversal record.
@@ -16,6 +17,7 @@ end
 
 --[[!
     @fqxn LuaEx.cloner.registerCopy
+    @pulsarlua function cloner.registerCopy
     @desc Records a hook's newly allocated object before its contents are copied.
     Call from __clone to reconnect circular references through private object state.
     Nested clone calls share the current traversal. Existing hooks need no change
@@ -105,6 +107,7 @@ end;
 
 --[[!
     @fqxn LuaEx.cloner.clone
+    @pulsarlua function cloner.clone
     @desc Copies tables and cloneable objects while preserving repeated references
     and circular plain-table values. Explicit __clone hooks take precedence over
     table copying. Hooks own their object's contents and may use registerCopy for
@@ -157,6 +160,7 @@ end
 
 --[[!
     @fqxn LuaEx.cloner.cloneIndependent
+    @pulsarlua function cloner.cloneIndependent
     @desc Starts a separate copy traversal even inside an active clone hook.
     Class construction uses this for defaults: each new instance owns its own
     defaults rather than reusing copies made for another newly constructed instance.
@@ -181,6 +185,7 @@ end
 
 --[[!
     @fqxn LuaEx.cloner.registerFactory
+    @pulsarlua function cloner.registerFactory
     @desc Registers a callable typed factory whose identity is retained by clone.
     Re-registering the same factory is harmless; a different factory using that
     type name is rejected. Registration never changes instance clone behavior.

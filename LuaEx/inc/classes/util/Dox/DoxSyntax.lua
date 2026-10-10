@@ -1,4 +1,7 @@
---TODO localization
+local class = class;
+local type  = type;
+
+
 
 
 --[[

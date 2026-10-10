@@ -1,6 +1,7 @@
 local assert = assert; ---TODO localize all called functions
 --[[!
     @fqxn LuaEx.Lua Hooks.type
+    @pulsarlua function type
     @desc
     <h1>Type Overhaul</h1>
     <p>Lua types have been heavily overhauled to be more versatile, robust and to allow for custom types. Additionally, several of the base types have been given metatables in order to extend their functionality. The Lua <b>type</b> function has been recast as a table (although it's still called as a function). These changed are explained in detail below.</p>
@@ -197,6 +198,7 @@ local type = {
     assert = {
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.custom
+            @pulsarlua function type.assert.custom
             @desc Checks a value for type compliance.
             @param any vInput The value to check for compliance.
             @param string zType The type the input should be.
@@ -214,6 +216,7 @@ local type = {
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.function
+            @pulsarlua function type.assert.function
             @desc Checks a value for function compliance.
             @param vInput The value to check for compliance.
             @param string|nil sErrorMessage An optional message to append to any error that may occur.
@@ -230,6 +233,7 @@ local type = {
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.number
+            @pulsarlua function type.assert.number
             @desc Checks a value for numeric compliance.
             @param any vValue The value to check for compliance.
             @param boolean|nil bErrorOnNegative Whether to throw an error if the number is negative.
@@ -302,6 +306,7 @@ local type = {
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.string
+            @pulsarlua function type.assert.string
             @desc Checks a value for string compliance.
             @param any vInput The value to check for compliance.
             @param string|nil sPattern An optional string pattern to use to compare to the input.
@@ -338,6 +343,7 @@ local type = {
         end,
         --[[!
             @fqxn LuaEx.Lua Hooks.type.Functions.table
+            @pulsarlua function type.assert.table
             @desc Checks a value for table compliance.
             @param any vInput The value to check for compliance.
             @param string|nil zIndex Optional index type enforcement.
