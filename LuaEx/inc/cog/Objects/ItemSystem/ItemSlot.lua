@@ -1,143 +1,176 @@
---TODO LOCALIZATION
-local class             = class;
-local oItemPlaceholder;
+--LOCALIZATION
+local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
 
-
---[[!
-    @fqxn CoG.ItemSystem.ItemSlot.Functions.isAllowedItem
-    @scope Local
-    @desc Designed
-!]]
-local function isAllowedItem(this, cdat, vInput)
-    local bRet  = false;
-    local pro   = cdat.pro;
-
-    if (class.isinstance(vInput)) then
-
-        for _, cType in pairs(pro.allowedTypes) do
-            local cInput = class.of(vInput);
-
-            if (cInput == cType or class.ischild(cInput, cType)) then
-                bRet = true;
-                break;
-            end
-
-        end
-
-    end
-
-    return bRet;
-end
-
---[[!
-    @fqxn CoG.ItemSystem.ItemSlot
-    @desc Designed to hold and manage <a href="#GoG.ItemSystem.BaseItem">BaseItems</a>.
-!]]
 return class("ItemSlot",
 {--METAMETHODS
+    __len = function(this)
+        return this.getItemCount();
+    end,
+
+    __clone = function()
+        error("Clone concrete items explicitly, then insert them into a new ItemSlot.");
+    end,
 
 },
 {--STATIC PUBLIC
-    ItemSlot = function(stapub)
-        --oItemPlaceholder = Item();
-    end,
 },
 {--PRIVATE
-    placeholderItem     = null;
+    -- Containment graphs need an application-defined persistence policy.
+    prepareSnapshot = function()
+        error("Automatic item-container snapshots are unsupported; reconstruct through the public constructors and insertion methods.");
+    end,
+
+    validateSnapshot = function()
+        error("Automatic item-container snapshots are unsupported; reconstruct through the public constructors and insertion methods.");
+    end,
 },
 {--PROTECTED
-    allowedTypes        = {},
-    Enabled__auto_Fis   = true,
-    item                = null,--oItemPlaceholder,
-    Locked__auto_Fis    = false,
-    Name__autoAF        = "",
-    Occupied__autoAAis  = false,
-    Owner__auto_F       = null,--TODO set
+    Name__autoA_ = "",
 },
 {--PUBLIC
-    ItemSlot = function(this, cdat, tAllowedTypes)
-        local pro = cdat.pro;
-        ---cdat.pri.placeholderItem = Item();
-        --type.assert.string(sName, "%S+", "ItemSlot name cannot be blank.");
+    ItemSlot = function(this, cdat, vAllowedItems, nCapacity, oOwner, sName)
+        nCapacity = nCapacity == nil and 1 or nCapacity;
+        Rules.integer(nCapacity, 1);
+        assert(sName == nil or rawtype(sName) == "string", "Name must be a string.");
+        local oRegistry;
 
-        --pro.Name = sName;
-
-        if (rawtype(tAllowedTypes) == "table") then
-
-            for _, cItemClass in pairs(tAllowedTypes) do
-                local sTypeError = "";
-                local bError = false;
-
-                --check only class input
-                if (class.is(cItemClass)) then
-
-                    --process only the BaseItem class or its subclasses
-                    if (cItemClass == BaseItem or class.ischild(cItemClass, BaseItem)) then
-                        pro.allowedTypes[#pro.allowedTypes + 1] = cItemClass;
-
-                    else--throw error if there's a type mismatch
-                        bError      = true;
-                        sTypeError  = class.getname(cItemClass);
-                    end
-
-                else --throw error if there's a type mismatch
-                    bError      = true;
-                    sTypeError  = type(cItemClass);
-                end
-
-                if (bError) then
-                    error("Error creating ItemSlot.\nAllowed types must be of type BaseItem (or BaseItem subclass). Got type: "..sTypeError, 3);
-                end
-
-            end
-
+        if (vAllowedItems == nil) then
+            oRegistry = ObjectRegistry({BaseItem});
+        elseif (class.isinstance(vAllowedItems)) then
+            assert(class.ischildorself(class.of(vAllowedItems), ObjectRegistry), "Expected an ObjectRegistry.");
+            oRegistry = vAllowedItems;
+        else
+            oRegistry = ObjectRegistry(Rules.array(vAllowedItems));
         end
 
-        --default to BaseItem if no allowed types were provided
-        if (#pro.allowedTypes < 1) then
-            pro.allowedTypes[1] = BaseItem;--ItemSlot;
-        end
-
+        Rules.create(this, "slot", nCapacity, oOwner, oRegistry);
+        cdat.pro.Name = sName or "";
     end,
 
-
-    get__FNL = function(this, cdat)
-        local pro = cdat.pro;
-        return pro.Occupied and pro.item or nil;
+    getAllowed_Items = function(this)
+        return Rules.state(this).registry;
     end,
 
-    remove__FNL = function(this, cdat)
-        local pro   = cdat.pro;
-        local bRet  = not pro.Locked and pro.Occupied;
-
-        if (bRet) then
-            pro.item     = oItemPlaceholder;
-            pro.Occupied = false;
-        end
-
-        return this, bRet;
+    getCapacity = function(this)
+        return Rules.state(this).capacity;
     end,
 
-
-
-    set__FNL = function(this, cdat, vItem, bForceRemoval)
-        local pro = cdat.pro;
-
-        if not (isAllowedItem(this, cdat, vItem)) then
-            error("Error adding item to ItemSlot. Not a BaseItem, or, type not allowed.");
-        end
-
-        local bRet = not pro.Locked and (not pro.Occupied or bForceRemoval);
-
-        if (bRet) then
-            pro.item     = vItem;
-            pro.Occupied = true;
-        end
-
-        return this, bRet;
+    getOwner = function(this)
+        return Rules.owner(this);
     end,
+
+    getSystem = function(this)
+        return Rules.state(this).parent or null;
+    end,
+
+    isEnabled = function(this)
+        return Rules.state(this).enabled;
+    end,
+
+    isLocked = function(this)
+        return Rules.state(this).locked;
+    end,
+
+    setEnabled = function(this, cdat, bValue)
+        Rules.setFlag(this, "enabled", bValue);
+        return this;
+    end,
+
+    setLocked = function(this, cdat, bValue)
+        Rules.setFlag(this, "locked", bValue);
+        return this;
+    end,
+
+    isOccupied = function(this)
+        return #Rules.state(this).items > 0;
+    end,
+
+    getItemCount = function(this)
+        return #Rules.state(this).items;
+    end,
+
+    setCapacity = function(this, cdat, nCapacity)
+        Rules.integer(nCapacity, 1);
+        local bOK, sReason = Rules.transaction({this}, function()
+            Rules.state(this).capacity = nCapacity;
+        end);
+        return this, bOK, sReason;
+    end,
+
+    get = function(this, cdat, nIndex)
+        nIndex = nIndex == nil and 1 or Rules.integer(nIndex, 1);
+        return Rules.state(this).items[nIndex];
+    end,
+
+    getItem = function(this, cdat, nIndex)
+        return this.get(nIndex);
+    end,
+
+    eachItem = function(this)
+        return ipairs(Rules.items(this));
+    end,
+
+    containsItem = function(this, cdat, oItem)
+        Rules.item(oItem);
+        local nIndex = Rules.indexOf(this, oItem);
+        return nIndex ~= nil, nIndex or -1;
+    end,
+
+    canAccept = function(this, cdat, oItem, bReplace)
+        Rules.item(oItem);
+        -- Preview on projected membership, without changing real location.
+        return Rules.preview(this, oItem, bReplace);
+    end,
+
+    set = function(this, cdat, oItem, bReplace)
+        local bOK, vResult = Rules.add(this, oItem, bReplace);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    setItem = function(this, cdat, oItem, bReplace)
+        return this.set(oItem, bReplace);
+    end,
+
+    remove = function(this, cdat, vItem, oActor)
+        local bOK, vResult = Rules.remove(this, vItem, oActor);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    clear = function(this)
+        local bOK, vResult = Rules.clear(this);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    transferItemTo = function(this, cdat, oDestination, oItem, bReplace)
+        local bOK, vResult = Rules.transfer(this, oDestination, oItem, bReplace);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    consumeItem = function(this, cdat, oItem, oActor)
+        assert(oActor ~= nil, "Consumption requires an actor.");
+        local bOK, vResult = Rules.remove(this, oItem, oActor, "canConsumeBy");
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    tradeItemTo = function(this, cdat, oDestination, oItem, oTrader, oRecipient)
+        local bOK, vResult = Rules.transfer(this, oDestination, oItem, false, function()
+            return oItem.canTradeBy(oTrader) and oItem.canTradeTo(oRecipient);
+        end);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    swapWith = function(this, cdat, oOther)
+        assert(class.isinstance(oOther) and class.of(oOther) == ItemSlot, "Expected an ItemSlot.");
+        local bOK, sReason = Rules.swap(this, oOther);
+        return this, bOK, sReason;
+    end,
+
+    validate = function(this)
+        return Rules.check(this);
+    end,
+
 },
-nil,   --extending class
-true, --if the class is final
-nil    --interface(s) (either nil, or interface(s))
+nil,
+true,
+nil
 );

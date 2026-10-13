@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LuaEx · Examples</title>
+  <link rel="stylesheet" href="examples/api/workbench/styles.css">
+  <link rel="stylesheet" href="examples/api/workbench/outputs.css">
+  <link rel="stylesheet" href="examples/api/workbench/inputs.css">
+  <link rel="stylesheet" href="examples/api/workbench/fantasy.css">
+  <link rel="stylesheet" href="examples/api/workbench/pool.css">
+  <link rel="stylesheet" href="examples/api/workbench/pot.css">
+  <link rel="stylesheet" href="examples/api/workbench/protean.css">
+  <link rel="stylesheet" href="examples/api/workbench/stack.css">
+  <link rel="stylesheet" href="examples/api/workbench/enum.css">
+  <link rel="stylesheet" href="examples/api/workbench/items.css">
+  <link rel="stylesheet" href="examples/api/workbench/cards.css">
+  <script defer src="examples/api/workbench/bundle.js"></script>
+  <script defer src="examples/api/workbench/fantasy-icons.js"></script>
+  <script defer src="examples/api/workbench/pool-view.js"></script>
+  <script defer src="examples/api/workbench/pot-view.js"></script>
+  <script defer src="examples/api/workbench/protean-view.js"></script>
+  <script defer src="examples/api/workbench/stack-view.js"></script>
+  <script defer src="examples/api/workbench/enum-view.js"></script>
+  <script defer src="examples/api/workbench/items-view.js"></script>
+  <script defer src="examples/api/workbench/cards-view.js"></script>
+  <script defer src="examples/api/workbench/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="Examples.html"><span class="brand-mark">Lx</span>LuaEx<span class="brand-divider">/</span><span class="brand-section">Examples</span></a>
+    <div class="top-actions"><span id="runtime-status" class="status"><i></i>Loading LuaEx…</span></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-heading">EXAMPLE LIBRARY<span id="example-count">—</span></div>
+      <label class="search"><span aria-hidden="true">⌕</span><input id="search" placeholder="Find an example…" aria-label="Filter examples"></label>
+      <nav id="example-list" aria-label="Examples"><p class="sidebar-empty">Loading examples…</p></nav>
+      <div class="sidebar-footer"><span class="mini-mark">{ }</span><div><strong>Real Lua. In your browser.</strong><small>Lua 5.4 · WebAssembly</small></div></div>
+    </aside>
+    <main>
+      <section id="welcome" class="welcome">
+        <span class="eyebrow">THE LUAEX WORKBENCH</span>
+        <h1>A place to try things.</h1>
+        <p>Explore the examples, change the code, and see what happens. LuaEx runs locally in your browser.</p>
+        <p class="welcome-note" id="welcome-note">Loading the included LuaEx examples…</p>
+      </section>
+      <section id="workbench" hidden>
+        <div class="example-heading"><div><span class="eyebrow" id="example-group">VISUAL EXAMPLES</span><h1 id="example-title">AStar laboratory</h1><p id="example-description"></p></div><span id="example-kind" class="kind-label">INTERACTIVE</span></div>
+        <div id="example-note" class="notice" hidden></div>
+        <form id="example-inputs" class="example-inputs" hidden>
+          <div class="input-heading"><strong>Try your own values</strong><span>Change parameters, then Run example.</span><button id="reset-inputs" type="button" class="text-button">Reset values</button></div>
+          <div id="input-fields" class="input-fields"></div>
+        </form>
+        <div class="workspace-toolbar"><div class="tabs" role="tablist" aria-label="Example workspace"><button id="visual-tab" role="tab" aria-selected="true">Visual</button><button id="code-tab" role="tab" aria-selected="false">Code</button></div><div class="run-actions"><span id="run-status" aria-live="polite">Ready to run</span><button id="stop" class="button subtle" disabled>Stop</button><button id="run" class="button primary">▶ Run code</button></div></div>
+        <section id="visual-empty" class="notice" hidden>This module has no visual demonstration yet. Its Code tab contains an editable, runnable tutorial.</section>
+        <section id="visual-panel" class="visual-panel" aria-label="AStar visualizer">
+          <div class="visual-intro"><div><h2>The borderlands</h2><p>Build a party. Explore biomes. Find the best route for its creatures.</p></div><div class="map-actions"><button data-action="reset" class="button subtle">Reset</button><button data-action="random" class="button subtle">Random map</button></div></div>
+          <div class="live-options"><label><input id="cursor-goal" type="checkbox"> Goal follows cursor</label><label><input id="auto-path" type="checkbox" checked> Auto-update path</label><button id="replan" class="button subtle">Update path</button><small>Hover to preview. Click to pin the goal and resume painting.</small></div>
+<div class="terrain-tools" role="group" aria-label="Paint tool"><button data-tool="GROUND">Grassland</button><button data-tool="WALL">Wall</button><button data-tool="MARSH">Marsh</button><button data-tool="ROCK">Mountain</button><button data-tool="SAND">Sand</button><button data-tool="FOREST">Forest</button><button data-tool="CAVE">Cave</button><span class="tool-separator"></span><button data-tool="START">Place party</button><button data-tool="GOAL">Goal</button></div>
+          <div class="map-layout"><div class="map-container"><canvas id="grid" width="900" height="630" tabindex="0" aria-label="Fantasy AStar map. Hover with cursor goal enabled to preview routes. Drag to paint terrain; right drag erases."></canvas><div class="map-legend"><span><i class="reachable"></i>This turn</span><span><i class="future"></i>Future turns</span><span><i class="trail"></i>Traversed</span><span class="legend-help">Drag to paint · Right drag to erase</span></div></div><aside class="telemetry"><h3>ADVENTURING PARTIES</h3><div class="party-controls"><select id="party-select" aria-label="Active party"></select><button id="new-party" class="button subtle">New party</button><button id="delete-party" class="button subtle">Delete party</button></div><div id="creature-buttons" class="creature-buttons" aria-label="Add creatures"></div><button id="clear-party" class="text-button">Remove all creatures</button><div id="party-members"></div><div class="stat-grid"><div><span>TURN</span><strong id="turn">0</strong></div><div><span>MOVES</span><strong id="moves">0</strong></div><div><span>ROUTE NODES</span><strong id="nodes">—</strong></div><div><span>FUTURE TURNS</span><strong id="turns">—</strong></div></div><div class="party-rules"><strong>Terrain & passage rules</strong><p>Grassland: 10 points. Affinity lowers cost; aversion increases it. Every member must be able to enter a cell. Each creature pays its own cost.</p><p>Blue dashed cave links connect entrance pairs in reading order. Only goblin-only parties can use them. Cave cells themselves are walkable by everyone.</p><div id="cave-status" class="cave-status"></div></div></aside></div>
+          <div class="playback"><div><button id="play" class="button primary">▶ Play</button><button data-action="step" class="button subtle">Step</button><button data-action="turn" class="button subtle">Next turn</button></div><label class="speed-label">Speed <input id="speed" type="range" min="1" max="10" value="4"><span id="speed-value">4 / sec</span></label><div><button id="save-map" class="button subtle">Save map</button><button id="load-map" class="button subtle" disabled>Restore map</button></div></div>
+          <p class="map-message" id="map-message" aria-live="polite">Run the example to load the map.</p><p class="visual-footnote">Hover previews preserve positions and budgets. Painting preserves parties; Reset and Random map restart them. Place party requires grassland. Playback pauses when a new turn is needed.</p>
+        </section>
+        <section id="code-panel" class="code-panel" hidden>
+          <div class="editor-pane"><div class="pane-heading"><span>LUA SOURCE</span><div><button id="restore-source" class="text-button">Restore source</button></div></div><div class="file-path" id="source-path"></div><textarea id="editor" spellcheck="false" aria-label="Lua example source code"></textarea><div class="editor-footer">Edit and run directly in this page.<span>Ctrl + Enter to run</span></div></div>
+          <div class="output-pane"><div class="pane-heading"><span>OUTPUT</span><button id="clear-output" class="text-button">Clear</button></div><pre id="output" tabindex="0" aria-label="Lua output"></pre><div id="generated-files" class="generated-files" hidden aria-label="Generated files"></div><div class="output-footer" id="output-footer">Each run starts with a fresh Lua environment.</div></div>
+        </section>
+      </section>
+      <footer class="page-footer"><span>LuaEx · An extension of possibilities.</span><a href="examples/api/README.md">Local runtimes & licenses ↗</a></footer>
+    </main>
+  </div>
+  <noscript>This workbench needs JavaScript enabled to run Lua in WebAssembly.</noscript>
+</body>
+</html>

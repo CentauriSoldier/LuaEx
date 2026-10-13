@@ -9,19 +9,43 @@ local math = math;
 local ipairs = ipairs;
 local pairs = pairs;
 
+local function copyPool(tInput)
+    assert(rawtype(tInput) == "table" and not class.isinstance(tInput), "Shuffler pool must be a dense array.");
+    local tCopy = {};
+    local nCount = 0;
+
+    for nIndex in pairs(tInput) do
+        assert(rawtype(nIndex) == "number" and nIndex >= 1 and nIndex < math.huge and nIndex % 1 == 0,
+               "Shuffler pool must use positive integer indices.");
+        nCount = nCount + 1;
+    end
+
+    for nIndex = 1, nCount do
+        assert(tInput[nIndex] ~= nil, "Shuffler pool cannot contain holes.");
+        tCopy[nIndex] = tInput[nIndex];
+    end
+
+    return tCopy;
+end
+
+local function validateSkipReset(bSkipReset)
+    assert(bSkipReset == nil or rawtype(bSkipReset) == "boolean", "SkipReset must be a boolean or nil.");
+end
+
 return class("Shuffler",
 {--METAMETHODS
     __pairs = function(this, cdat)
         local tRemaining = cdat.pro.remaining;
         local nIndex = 0;
+        local nMax = #tRemaining;
 
         return function()
 
-            if (#tRemaining > 0) then
+            -- Stop at this cycle's boundary, even when pop refills the buffer.
+            -- Replacing the buffer also invalidates an existing iterator.
+            if (nIndex < nMax and rawequal(cdat.pro.remaining, tRemaining) and #tRemaining > 0) then
                 nIndex = nIndex + 1;
-                return nIndex, table.remove(tRemaining);
-            else
-                this.reset();
+                return nIndex, this.pop();
             end
 
         end
@@ -59,23 +83,8 @@ return class("Shuffler",
     !]]
     Shuffler = function(this, cdat, tThePool)
 
-        if (type(tThePool) == "table") then
-            local pro           = cdat.pro;
-            local tPool         = pro.pool;
-            local tRemaining    = pro.remaining;
-            local nIndex        = 0;
-
-            for _, vItem in ipairs(tThePool) do
-
-                if (vItem ~= nil) then
-                    nIndex             = nIndex + 1;
-                    tPool[nIndex]      = vItem;
-                    tRemaining[nIndex] = vItem;
-                end
-
-            end
-
-            pro.shuffle();
+        if (tThePool ~= nil) then
+            this.set(tThePool);
         end
 
     end,
@@ -88,6 +97,7 @@ return class("Shuffler",
     @ret boolean bAddded True if the item was added, false otherwise.
     !]]
     add = function(this, cdat, vItem, bSkipReset)
+        validateSkipReset(bSkipReset);
         local bRet = false;
 
         if (vItem ~= nil) then
@@ -143,25 +153,42 @@ return class("Shuffler",
     @ret number bRemoved True if the item was removed, false otherwise.
     !]]
     remove = function(this, cdat, vItem, bSkipReset)
+        validateSkipReset(bSkipReset);
         local bRet = false;
         local pro = cdat.pro;
+        local tPool = pro.pool;
         local tRemaining = pro.remaining;
 
         if (vItem ~= nil) then
             local zItem = type(vItem);
 
-            for nIndex, vMyItem in ipairs(tRemaining) do
+            for nIndex, vMyItem in ipairs(tPool) do
 
                 if (zItem == type(vMyItem) and vItem == vMyItem) then
-                    table.remove(tRemaining, nIndex);
+                    table.remove(tPool, nIndex);
                     bRet = true;
                     break;
                 end
 
             end
 
-            if (bRet and not bSkipReset) then
-                this.reset();
+            if (bRet) then
+
+                if (not bSkipReset) then
+                    this.reset();
+                else
+                    -- Remove one available occurrence without replenishing drawn items.
+                    for nIndex, vMyItem in ipairs(tRemaining) do
+
+                        if (zItem == type(vMyItem) and vItem == vMyItem) then
+                            table.remove(tRemaining, nIndex);
+                            break;
+                        end
+
+                    end
+
+                end
+
             end
 
         end
@@ -185,7 +212,7 @@ return class("Shuffler",
             table.remove(tRemaining, nRemaining);
         end
 
-        if (#pro.remaining < 1 and pro.AutoReset) then
+        if (#pro.remaining < 1 and cdat.pri.AutoReset) then
             this.reset();
         end
 
@@ -220,24 +247,13 @@ return class("Shuffler",
     --[[!
     @fqxn CoG.Shuffler.Methods.set
     @pulsarlua function Shuffler.set
-    @desc Returns the total number items in the pool (not the buffer).
-    @ret number bRemaining The total number of items in the pool.
+    @desc Replaces the pool with a validated dense array and resets the buffer.
+    @param table tSet Numerically indexed pool entries. Invalid input leaves the existing pool unchanged.
     !]]
     set = function(this, cdat, tSet)
-
-        if (type(tSet) == "table") then
-            local pro           = cdat.pro;
-            pro.pool            = {};
-            local tPool         = pro.pool;
-            local nIndex        = 0;
-
-            for _, vItem in ipairs(tSet) do
-                nIndex             = nIndex + 1;
-                tPool[nIndex]      = vItem;
-            end
-
-            this.reset();
-        end
+        local tPool = copyPool(tSet);
+        cdat.pro.pool = tPool;
+        this.reset();
 
     end,
     --[[!

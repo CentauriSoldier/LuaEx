@@ -30,6 +30,7 @@ return class("BaseObject",
     end,
 },
 {--PRIVATE
+    eventrix            = null,
     affixDisplayOrder   = {},
     affixHooks          = {},   --used to store hooks (for removal)
     affixes             = {},   --used for quick, existential, count and type checks
@@ -40,7 +41,7 @@ return class("BaseObject",
     eventrix__RO            = null,
     Description__autoA_     = "",
     Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
-    Rarity__auto__          = false,
+    Rarity__auto__          = null,
     TagSystem__autoAF       = null,
     --[[!
     @fqxn CoG.BaseObject.Methods.BaseObject
@@ -49,17 +50,19 @@ return class("BaseObject",
     @param string sDescription The description of the object.
     @param Rarity.LEVEL eRarityLevel The <a href="#CoG.Rarity" >Rarity</a> level of the object.
     !]]
-    BaseObject = function(this, cdat, sName, sDescription, eRarity, wEventrix)
+    BaseObject = function(this, cdat, super, sName, sDescription, eRarity, wEventrix)
         local pri = cdat.pri;
         local pro = cdat.pro;
         type.assert.string(sName, "%S+");
         type.assert.string(sDescription, "%S+");
 
-        pri.Eventrix    = eventrix(wEventrix); --TODO clone these?
+        super();
+        pri.eventrix   = eventrix(wEventrix); --TODO clone these?
+        pro.eventrix   = pri.eventrix;
 
         pro.Name        = sName;
         pro.Description = sDescription;
-        pro.Rarity      = type(eRarity) == "Rarity.LEVEL" and eRarity or _eRarity[1];
+        pro.Rarity      = Rarity.LEVEL.__hasa(eRarity) and eRarity or Rarity.LEVEL[1];
 
         pro.TagSystem   = TagSystem();
     end,
@@ -107,7 +110,7 @@ return class("BaseObject",
                 local tEvents = oAffix.onApply(this, ...);
 
                 if (type(tEvents) == "table") then
-                    local oEventrix   = pri.Eventrix;
+                    local oEventrix   = pri.eventrix;
                     local tAffixHooks = pri.affixHooks;
 
                     --create the affix hook record table if it doesn't exist

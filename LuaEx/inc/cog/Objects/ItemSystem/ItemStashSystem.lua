@@ -1,103 +1,237 @@
+--LOCALIZATION
+local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
+
 return class("ItemStashSystem",
 {--METAMETHODS
-    __ipairs = function(this, cdat)
-        local tTabs     = cdat.pri.tabs;
-        local nIndex    = 0;
-        local nMax      = #tTabs;
-
-        return function()
-            nIndex = nIndex + 1;
-
-            if (nIndex <= nMax) then
-                return nIndex, tTabs[nIndex];
-            end
-
-        end
-
+    __len = function(this)
+        return this.getTabCount();
     end,
+
+    __pairs = function(this)
+        return this.eachTab();
+    end,
+
+    __clone = function()
+        error("Clone concrete items explicitly, then construct a new ItemStashSystem.");
+    end,
+
 },
 {--STATIC PUBLIC
-    --ItemStashSystem = function(stapub) end,
 },
 {--PRIVATE
-    maxItemsPerTab  = -1,
-    Owner__autoRF   = null,
-    tabs            = {},
+    -- Containment graphs need an application-defined persistence policy.
+    prepareSnapshot = function()
+        error("Automatic item-container snapshots are unsupported; reconstruct through the public constructors and insertion methods.");
+    end,
+
+    validateSnapshot = function()
+        error("Automatic item-container snapshots are unsupported; reconstruct through the public constructors and insertion methods.");
+    end,
+    maxItemsPerTab = math.huge,
 },
 {--PROTECTED
 },
 {--PUBLIC
     ItemStashSystem = function(this, cdat, oOwner, nTabs, nMaxItemsPerTab)
-        local pri = cdat.pri;
+        nTabs = nTabs == nil and 1 or nTabs;
+        nMaxItemsPerTab = nMaxItemsPerTab == nil and math.huge or nMaxItemsPerTab;
+        Rules.integer(nTabs, 1);
+        Rules.integer(nMaxItemsPerTab, 0, true);
+        Rules.create(this, "stash", math.huge, oOwner);
+        cdat.pri.maxItemsPerTab = nMaxItemsPerTab;
 
-        nTabs = rawtype(nTabs) == "number" and math.floor(nTabs) or 1;
-        nTabs = nTabs > 0 and nTabs or 1;
-        nMaxItemsPerTab = rawtype(nMaxItemsPerTab) == "number" and math.floor(nMaxItemsPerTab) or math.huge;
-        nMaxItemsPerTab = nMaxItemsPerTab > 0 and nMaxItemsPerTab or math.huge;
-
-        local tTabs = pri.tabs;
-
-        for x = 1, nTabs do
-            tTabs[x] = ItemSystem(nMaxItemsPerTab);
+        for nIndex = 1, nTabs do
+            this.addTab();
         end
 
-        pri.maxItemsPerTab = nMaxItemsPerTab;
-
-        --TODO assert oOwner
-        pri.Owner = oOwner;
     end,
-    addTab = function(this, cdat)
-        local pri           = cdat.pri;
-        local tTabs         = pri.tabs;
 
-        tTabs[#tTabs + 1] = ItemSystem(pri.maxItemsPerTab);
-        return this;
+    getOwner = function(this)
+        return Rules.owner(this);
     end,
+
+    getTabCount = function(this)
+        return #Rules.state(this).children;
+    end,
+
+    getItemCount = function(this)
+        return #Rules.items(this);
+    end,
+
     getTab = function(this, cdat, nTab)
-        local tTabs = cdat.pri.tabs;
-        local oRet;
+        Rules.integer(nTab, 1);
+        return Rules.state(this).children[nTab];
+    end,
 
-        if (tTabs[nTab] ~= nil) then
-            oRet = tTabs[nTab];
+    tabExistsAt = function(this, cdat, nTab)
+        return this.getTab(nTab) ~= nil;
+    end,
+
+    eachTab = function(this)
+        local tOutput = {};
+
+        for nIndex, oTab in ipairs(Rules.state(this).children) do
+            tOutput[nIndex] = oTab;
         end
 
-        return oRet;
+        return ipairs(tOutput);
     end,
-    getTabCount = function(this, cdat)
-        return #cdat.pri.tabs;
+
+    eachItem = function(this)
+        return ipairs(Rules.items(this));
     end,
-    eachTab = function(this, cdat)
-        local tTabs     = cdat.pri.tabs;
-        local nIndex    = 0;
-        local nMax      = #tTabs;
 
-        return function()
-            nIndex = nIndex + 1;
+    addTab = function(this, cdat, oTab)
 
-            if (nIndex <= nMax) then
-                return nIndex, tTabs[nIndex];
+        if (oTab == nil) then
+            oTab = ItemSystem(cdat.pri.maxItemsPerTab, nil, this.getOwner());
+        end
+
+        assert(class.isinstance(oTab) and class.ischildorself(class.of(oTab), ItemSystem), "Expected an ItemSystem tab.");
+        local bOK, sReason = Rules.adopt(this, oTab);
+        return this, bOK, bOK and oTab or nil, sReason;
+    end,
+
+    removeTab = function(this, cdat, nTab)
+        Rules.integer(nTab, 1);
+
+        if (this.getTabCount() <= 1) then
+            return nil, false, "A stash must retain at least one tab.";
+        end
+
+        local bOK, vResult = Rules.release(this, nTab);
+        return bOK and vResult or nil, bOK, not bOK and vResult or nil;
+    end,
+
+    containsItem = function(this, cdat, oItem)
+        Rules.item(oItem);
+
+        for nTab, oTab in this.eachTab() do
+            local bFound, nItem = oTab.containsItem(oItem);
+
+            if (bFound) then
+                return true, nTab, nItem;
             end
 
         end
 
+        return false, -1, -1;
     end,
-    removeTab = function(this, cdat, nTab)
-        local tTabs     = cdat.pri.tabs;
-        local oRet;
 
-        if (tTabs[nTab] ~= nil and #tTabs > 1) then
-            oRet = tTabs[nTab];
-            table.remove(tTabs, nTab);
+    addItem = function(this, cdat, oItem, nTab)
+        Rules.item(oItem);
+
+        if (nTab ~= nil) then
+            local oTab = this.getTab(nTab);
+
+            if (not oTab) then
+                return this, false, "Tab does not exist.";
+            end
+
+            local bOK, _, sReason = oTab.addItem(oItem);
+            return this, bOK, sReason;
         end
 
-        return oRet;
+        local sReason = "No tab has room.";
+
+        for _, oTab in this.eachTab() do
+            local bOK, _, sFailure = oTab.addItem(oItem);
+
+            if (bOK) then
+                return this, true;
+            end
+
+            sReason = sFailure;
+        end
+
+        return this, false, sReason;
     end,
-    --tabExists--TODO FINISH
-    tabExistsAt = function(this, cdat, nTab)
-        return cdat.pri.tabs[nTab] ~= nil;
+
+    removeItem = function(this, cdat, oItem, oActor)
+        local bFound, nTab = this.containsItem(oItem);
+
+        if (not bFound) then
+            return this, false, nil, "Item was not found.";
+        end
+
+        local _, bOK, oRemoved, sReason = this.getTab(nTab).removeItem(oItem, oActor);
+        return this, bOK, oRemoved, sReason;
     end,
+
+    transferItemTo = function(this, cdat, oDestination, oItem, nTab, bReplace)
+        local bFound, nSourceTab = this.containsItem(oItem);
+
+        if (not bFound) then
+            return this, false, nil, "Item was not found.";
+        end
+
+        local oTarget = oDestination;
+
+        if (class.isinstance(oDestination) and class.ischildorself(class.of(oDestination), ItemStashSystem)) then
+            oTarget = oDestination.getTab(nTab);
+        end
+
+        local _, bOK, oRemoved, sReason = this.getTab(nSourceTab).transferItemTo(oTarget, oItem, bReplace);
+        return this, bOK, oRemoved, sReason;
+    end,
+
+    clear = function(this)
+        local bOK, vResult = Rules.clear(this);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    consumeItem = function(this, cdat, oItem, oActor)
+        local bFound, nTab = this.containsItem(oItem);
+
+        if (not bFound) then
+            return this, false, nil, "Item was not found.";
+        end
+
+        local _, bOK, oRemoved, sReason = this.getTab(nTab).consumeItem(oItem, oActor);
+        return this, bOK, oRemoved, sReason;
+    end,
+
+    tradeItemTo = function(this, cdat, oDestination, oItem, oTrader, oRecipient, nTab)
+        local bFound, nSourceTab = this.containsItem(oItem);
+
+        if (not bFound) then
+            return this, false, nil, "Item was not found.";
+        end
+
+        local oTarget = oDestination;
+
+        if (class.isinstance(oDestination) and class.ischildorself(class.of(oDestination), ItemStashSystem)) then
+            oTarget = oDestination.getTab(nTab);
+        end
+
+        local _, bOK, oRemoved, sReason = this.getTab(nSourceTab).tradeItemTo(oTarget, oItem, oTrader, oRecipient);
+        return this, bOK, oRemoved, sReason;
+    end,
+
+    isEnabled = function(this)
+        return Rules.state(this).enabled;
+    end,
+
+    isLocked = function(this)
+        return Rules.state(this).locked;
+    end,
+
+    setEnabled = function(this, cdat, bValue)
+        Rules.setFlag(this, "enabled", bValue);
+        return this;
+    end,
+
+    setLocked = function(this, cdat, bValue)
+        Rules.setFlag(this, "locked", bValue);
+        return this;
+    end,
+
+    validate = function(this)
+        return Rules.check(this);
+    end,
+
 },
-nil,   --extending class
-false, --if the class is final
-nil    --interface(s) (either nil, or interface(s))
+nil,
+false,
+nil
 );

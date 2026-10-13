@@ -1,310 +1,340 @@
---TODO LOCALIZATION
+--LOCALIZATION
+local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
 
---[[!
-@fqxn CoG.ItemSystem.ItemSlotSystem.Functions
-@desc TODO
-@ex TODO
-!]]
-local function validateItemInput(vItem)
-    local cItem = class.of(vItem);
-
-    if not (cItem) then
-        error("Error in ItemSlotSystem.\nOwner must be an instance of a class. Got type "..type(vItem)..".", 2);
-    end
-
-    if not (class.ischildorself(cItem, BaseItem)) then
-        error("Error in ItemSlotSystem.\nItem must be an instance of a BaseItem class or subclass.", 2);
-    end
-
-end
-
-
-
-
-
-
-
---[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem
-    @desc STUFF HERE
-!]]
 return class("ItemSlotSystem",
 {--METAMETHODS
-    --TODO clone
-
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.removeItemSlot
-    @desc TODO
-    @ex TODO
-    !]]
-    __pairs = function(this, cdat)
-        local tItemSlots = cdat.pro.itemSlots;
-        return next, tItemSlots, nil;
+    __len = function(this)
+        return this.getItemSlotCount();
     end,
+
+    __pairs = function(this)
+        return this.eachItemSlot();
+    end,
+
+    __clone = function()
+        error("Clone concrete items explicitly, then construct a new ItemSlotSystem.");
+    end,
+
 },
 {--STATIC PUBLIC
-    --ItemSlotSystem = function(stapub)
-    --end,
 },
 {--PRIVATE
+    -- Containment graphs need an application-defined persistence policy.
+    prepareSnapshot = function()
+        error("Automatic item-container snapshots are unsupported; reconstruct through the public constructors and insertion methods.");
+    end,
 
+    validateSnapshot = function()
+        error("Automatic item-container snapshots are unsupported; reconstruct through the public constructors and insertion methods.");
+    end,
 },
 {--PROTECTED
-    itemSlots   = {},
-    owner       = null,
 },
 {--PUBLIC
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.ItemSlotSystem
-    @pulsarlua function ItemSlotSystem
-    @desc The constructor for the <b>ItemSlotSystem</b>.
-    @ex TODO
-    !]]
     ItemSlotSystem = function(this, cdat, tItemSlots, oOwner)
-        local pro = cdat.pro;
+        Rules.create(this, "slots", math.huge, oOwner);
 
-        if (rawtype(tItemSlots) == "table") then
-            type.assert.table(tItemSlots, "number", "ItemSlot", 1);
+        if (tItemSlots ~= nil) then
+            local tSlots = Rules.array(tItemSlots);
+            local tTouched = {this};
 
-            for nIndex, vItemSlot in ipairs(tItemSlots) do
-                tItemSlots[nIndex] = clone(vItemSlot);
+            for _, oSlot in ipairs(tSlots) do
+                assert(class.isinstance(oSlot) and class.of(oSlot) == ItemSlot, "Expected an ItemSlot.");
+                tTouched[#tTouched + 1] = oSlot;
             end
 
-        end
+            local bOK, sReason = Rules.transaction(tTouched, function()
 
-        --TODO FINISH check owner type
-        pro.owner = oOwner;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.addItemSlot
-    @pulsarlua function ItemSlotSystem.addItemSlot
-    @desc TODO
-    @ex TODO
-    !]]
-    addItemSlot__FNL = function(this, cdat, oSlot)
-        type.assert.custom(oSlot, "ItemSlot");
-        local tItemSlots = cdat.pro.itemSlots;
-        tItemSlots[#tItemSlots + 1] = oSlot;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItem
-    @pulsarlua function ItemSlotSystem.containsItem
-    @desc TODO
-    @ex TODO
-    !]]
-    containsItem__FNL = function(this, cdat, oItem)
-        local bRet = false;
-        local nRet = -1;
-        validateItemInput(oItem);
-
-        for nIndex, oItemSlot in pairs(cdat.pro.itemSlots) do
-
-            if (oItemSlot.isOccupied() and oItemSlot.get() == oItem) then
-                bRet = true;
-                nRet = nIndex;
-                break;
-            end
-
-        end
-
-        return bRet, nRet;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItemAt
-    @pulsarlua function ItemSlotSystem.containsItemAt
-    @desc TODO
-    @ex TODO
-    !]]
-    containsItemAt__FNL = function(this, cdat, oItem, nIndex)
-        type.assert.custom(oSlot, "ItemSlot");
-        type.assert.number(nIndex, true, true, false, true, false, 1);
-        local bRet       = false;
-        local tItemSlots = cdat.pro.itemSlots;
-        validateItemInput(oItem);
-
-        if (tItemSlots[nIndex]) then
-            local oExistingItem = tItemSlots[nIndex].getItem();
-            bRet = oExistingItem and oExistingItem == oItem or false;
-        end
-
-        return bRet;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItemSlot
-    @pulsarlua function ItemSlotSystem.containsItemSlot
-    @desc TODO
-    @ex TODO
-    !]]
-    containsItemSlot__FNL = function(this, cdat, oSlot)
-        type.assert.custom(oSlot, "ItemSlot");
-        local bRet = false;
-        local nRet = -1;
-
-        for nIndex, oItemSlot in pairs(cdat.pro.itemSlots) do
-
-            if (oItemSlot == oSlot) then
-                bRet = true;
-                nRet = nIndex;
-                break;
-            end
-
-        end
-
-        return bRet, nRet;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.containsItemSlotAt
-    @pulsarlua function ItemSlotSystem.containsItemSlotAt
-    @desc TODO
-    @ex TODO
-    !]]
-    containsItemSlotAt__FNL = function(this, cdat, oSlot, nIndex)
-        type.assert.custom(oSlot, "ItemSlot");
-        type.assert.number(nIndex, true, true, false, true, false, 1);
-        local tItemSlots    = cdat.pro.itemSlots;
-        return tItemSlots[nIndex] and tItemSlots[nIndex] == oSlot or false;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.eachItemSlot
-    @pulsarlua function ItemSlotSystem.eachItemSlot
-    @desc TODO
-    @ex TODO
-    !]]
-    eachItemSlot__FNL = function(this, cdat)
-        local pro           = cdat.pro;
-        local tItemsSlots   = pro.itemSlots;
-        local nIndex        = 0;
-        local nMax          = #tItemsSlots;
-
-        return function()
-            nIndex = nIndex + 1;
-
-            if (nIndex <= nMax) then
-                return nIndex, tItemsSlots[nIndex];
-            end
-
-        end
-
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemAt
-    @pulsarlua function ItemSlotSystem.getItemAt
-    @desc TODO
-    @ex TODO
-    !]]
-    getItemAt__FNL = function(this, cdat, nIndex)
-        type.assert.number(nIndex, true, true, false, true, false, 1);
-        local bRet;
-        local tItemSlots = cdat.pro.itemSlots;
-
-        if (tItemSlots[nIndex]) then
-            bRet = tItemSlots[nIndex].getItem();
-        end
-
-        return bRet
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemCount
-    @pulsarlua function ItemSlotSystem.getItemCount
-    @desc TODO
-    @ex TODO
-    !]]
-    getItemCount__FNL = function(this, cdat)
-        local nRet = 0;
-
-            for nIndex, oItemSlot in pairs(cdat.pro.ItemSlots) do
-
-                if (oItemSlot.isOccupied()) then
-                    nRet = nRet + 1;
+                for _, oSlot in ipairs(tSlots) do
+                    assert(not Rules.state(oSlot).parent, "Slot already belongs to a system.");
+                    Rules.state(oSlot).parent = this;
                 end
 
-            end
+                Rules.state(this).children = tSlots;
+            end);
+            assert(bOK, sReason);
+        end
 
-        return nRet;
     end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemSlotAt
-    @pulsarlua function ItemSlotSystem.getItemSlotAt
-    @desc TODO
-    @ex TODO
-    !]]
-    getItemSlotAt__FNL = function(this, cdat, nIndex)
-        return cdat.pro.itemSlots[nIndex] or nil;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getItemSlotCount
-    @pulsarlua function ItemSlotSystem.getItemSlotCount
-    @desc Gets the total number of <a href="#CoG.ItemSystem.ItemSlot">ItemSlots</a>.
-    @ret number nItemSlots The total number of <b>ItemSlots</b>.
-    @ex local nItemSlots = oItemSlotManager.getItemSlotCount();
-    !]]
-    getItemSlotCount__FNL = function(this, cdat)
-        return #cdat.pro.itemSlots;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.getOwner
-    @pulsarlua function ItemSlotSystem.getOwner
-    @desc TODO
-    @ex TODO
-    !]]
-    getOwner__FNL = function(this, cdat)
-        return cdat.pro.owner;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.eachSlot
-    @pulsarlua function ItemSlotSystem.eachSlot
-    @desc TODO
-    @ex TODO
-    !]]
-    eachSlot__FNL = function(this, cdat) --5.1 compat QUESTION Isn't this redundant? 
-        local tItemSlots = cdat.pro.itemSlots;
-        return next, tItemSlots, nil;
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.removeItemSlot
-    @pulsarlua function ItemSlotSystem.removeItemSlot
-    @desc TODO
-    @ex TODO
-    !]]
-    removeItemSlot__FNL = function(this, cdat, nIndex)
-        local tItemSlots   = cdat.pro.itemSlots;
-        local nItemSlots    = #tItemSlots;
-        type.assert.number(nIndex, true, true, false, true, false, 1, nItemSlots);
-        table.remove(tItemSlots, nIndex);
-    end,
-    --[[!
-    @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.swapItems
-    @pulsarlua function ItemSlotSystem.swapItems
-    @desc TODO
-    @ex TODO
-    !]]
-    swapItems__FNL = function(this, cdat, nSlot1, nSlot2)
-        local tItemSlots   = cdat.pro.itemSlots;
-        local nItemSlots    = #tItemSlots;
-        type.assert.number(nSlot1, true, true, false, true, false, 1, nItemSlots);
-        type.assert.number(nSlot2, true, true, false, true, false, 1, nItemSlots);
-        local bRet          = nSlot1 ~= nSlot2;
 
-        if (bRet) then
-            local oSlot1 = tItemSlots[nSlot1];
-            local oSlot2 = tItemSlots[nSlot2];
+    getOwner = function(this)
+        return Rules.owner(this);
+    end,
 
-            if (oSlot1.isOccupied() and oSlot2.isOccupied() and
-                not (oSlot1.isLocked() or oSlot2.isLocked())) then
+    getItemSlotCount = function(this)
+        return #Rules.state(this).children;
+    end,
 
-                local oItem1 = oSlot1.getItem();
-                local oItem2 = oSlot2.getItem();
-                oSlot1.setItem(oItem2, true);
-                oSlot2.setItem(oItem1, true);
-                bRet = true;
+    getItemCount = function(this)
+        return #Rules.items(this);
+    end,
+
+    getItemSlotAt = function(this, cdat, nIndex)
+        Rules.integer(nIndex, 1);
+        return Rules.state(this).children[nIndex];
+    end,
+
+    getItemAt = function(this, cdat, nSlot, nItem)
+        local oSlot = this.getItemSlotAt(nSlot);
+        return oSlot and oSlot.get(nItem) or nil;
+    end,
+
+    eachItemSlot = function(this)
+        local tOutput = {};
+
+        for nIndex, oSlot in ipairs(Rules.state(this).children) do
+            tOutput[nIndex] = oSlot;
+        end
+
+        return ipairs(tOutput);
+    end,
+
+    eachSlot = function(this)
+        return this.eachItemSlot();
+    end,
+
+    eachItem = function(this)
+        return ipairs(Rules.items(this));
+    end,
+
+    containsItemAt = function(this, cdat, oItem, nSlot)
+        Rules.item(oItem);
+        local oSlot = this.getItemSlotAt(nSlot);
+        return oSlot ~= nil and oSlot.containsItem(oItem);
+    end,
+
+    containsItem = function(this, cdat, oItem)
+        Rules.item(oItem);
+
+        for nIndex, oSlot in this.eachItemSlot() do
+
+            if (oSlot.containsItem(oItem)) then
+                return true, nIndex;
             end
 
         end
 
-        return this, bRet;
+        return false, -1;
     end,
+
+    containsItemSlot = function(this, cdat, oSlot)
+        assert(class.isinstance(oSlot) and class.of(oSlot) == ItemSlot, "Expected an ItemSlot.");
+
+        for nIndex, oExisting in this.eachItemSlot() do
+
+            if (rawequal(oExisting, oSlot)) then
+                return true, nIndex;
+            end
+
+        end
+
+        return false, -1;
+    end,
+
+    containsItemSlotAt = function(this, cdat, oSlot, nIndex)
+        assert(class.isinstance(oSlot) and class.of(oSlot) == ItemSlot, "Expected an ItemSlot.");
+        return rawequal(this.getItemSlotAt(nIndex), oSlot);
+    end,
+
+    addItemSlot = function(this, cdat, oSlot)
+        assert(class.isinstance(oSlot) and class.of(oSlot) == ItemSlot, "Expected an ItemSlot.");
+        local bOK, sReason = Rules.adopt(this, oSlot);
+        return this, bOK, sReason;
+    end,
+
+    removeItemSlot = function(this, cdat, nIndex)
+        local bOK, vResult = Rules.release(this, nIndex);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    addItem = function(this, cdat, oItem, nSlot, bReplace)
+        Rules.item(oItem);
+
+        if (nSlot ~= nil) then
+            local oSlot = this.getItemSlotAt(nSlot);
+
+            if (not oSlot) then
+                return this, false, nil, "Slot does not exist.";
+            end
+
+            local _, bOK, oRemoved, sReason = oSlot.set(oItem, bReplace);
+            return this, bOK, oRemoved, sReason;
+        end
+
+        local sReason = "No eligible slot has room.";
+
+        for _, oSlot in this.eachItemSlot() do
+            local _, bOK, oRemoved, sFailure = oSlot.set(oItem);
+
+            if (bOK) then
+                return this, true, oRemoved;
+            end
+
+            sReason = sFailure;
+        end
+
+        return this, false, nil, sReason;
+    end,
+
+    removeItem = function(this, cdat, oItem, oActor)
+        local bFound, nIndex = this.containsItem(oItem);
+
+        if (not bFound) then
+            return this, false, nil, "Item was not found.";
+        end
+
+        local _, bOK, oRemoved, sReason = this.getItemSlotAt(nIndex).remove(oItem, oActor);
+        return this, bOK, oRemoved, sReason;
+    end,
+
+    transferItemTo = function(this, cdat, oDestination, oItem, nDestinationSlot, bReplace)
+        local bFound, nIndex = this.containsItem(oItem);
+
+        if (not bFound) then
+            return this, false, nil, "Item was not found.";
+        end
+
+        local oTarget = oDestination;
+
+        if (class.isinstance(oDestination) and class.ischildorself(class.of(oDestination), ItemSlotSystem)) then
+            oTarget = oDestination.getItemSlotAt(nDestinationSlot);
+        end
+
+        local _, bOK, oRemoved, sReason = this.getItemSlotAt(nIndex).transferItemTo(oTarget, oItem, bReplace);
+        return this, bOK, oRemoved, sReason;
+    end,
+
+    swapItems = function(this, cdat, nFirst, nSecond)
+        local oFirst, oSecond = this.getItemSlotAt(nFirst), this.getItemSlotAt(nSecond);
+
+        if (not oFirst or not oSecond) then
+            return this, false, "Slot was not found.";
+        end
+
+        local _, bOK, sReason = oFirst.swapWith(oSecond);
+        return this, bOK, sReason;
+    end,
+
+    equipItem = function(this, cdat, oItem, oActor, nSlot)
+        Rules.item(oItem);
+        local oSlot = this.getItemSlotAt(nSlot);
+
+        if (not oSlot) then
+            return this, false, nil, "Slot was not found.";
+        end
+
+        local fPermission = function()
+            return oItem.canEquipBy(oActor);
+        end;
+        local bOK, vResult;
+
+        if (oItem.getLocation() == null) then
+            bOK, vResult = Rules.add(oSlot, oItem, false, false, fPermission);
+        else
+            bOK, vResult = Rules.transfer(oItem.getLocation(), oSlot, oItem, false, fPermission);
+        end
+
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    unequipItem = function(this, cdat, oItem, oActor, oDestination)
+        local bFound, nIndex = this.containsItem(oItem);
+
+        if (not bFound) then
+            return this, false, nil, "Item was not found.";
+        end
+
+        local bOK, vResult = Rules.transfer(this.getItemSlotAt(nIndex), oDestination, oItem, false, function()
+            return oItem.canUnequipBy(oActor);
+        end);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    clear = function(this)
+        local bOK, vResult = Rules.clear(this);
+        return this, bOK, bOK and vResult or nil, not bOK and vResult or nil;
+    end,
+
+    isEnabled = function(this)
+        return Rules.state(this).enabled;
+    end,
+
+    isLocked = function(this)
+        return Rules.state(this).locked;
+    end,
+
+    setEnabled = function(this, cdat, bValue)
+        Rules.setFlag(this, "enabled", bValue);
+        return this;
+    end,
+
+    setLocked = function(this, cdat, bValue)
+        Rules.setFlag(this, "locked", bValue);
+        return this;
+    end,
+
+    configureGrid = function(this, cdat, nWidth, nHeight)
+        Rules.integer(nWidth, 1);
+        Rules.integer(nHeight, 1);
+        local bOK, sReason = Rules.transaction({this}, function()
+            Rules.editable(this);
+            Rules.state(this).width, Rules.state(this).height = nWidth, nHeight;
+        end);
+        return this, bOK, sReason;
+    end,
+
+    getGridSize = function(this)
+        return Rules.state(this).width, Rules.state(this).height;
+    end,
+
+    disableGrid = function(this)
+        local bOK, sReason = Rules.transaction({this}, function()
+            Rules.editable(this);
+            local tState = Rules.state(this);
+
+            for _, oSlot in ipairs(tState.children) do
+                Rules.editable(oSlot);
+            end
+
+            tState.width, tState.height, tState.cells = nil, nil, nil;
+        end);
+        return this, bOK, sReason;
+    end,
+
+    placeItem = function(this, cdat, oItem, nX, nY)
+        Rules.integer(nX, 0);
+        Rules.integer(nY, 0);
+        local tState = Rules.state(this);
+        assert(tState.width, "Configure a grid first.");
+
+        if (nX >= tState.width or nY >= tState.height) then
+            return this, false, nil, "Coordinates are outside the grid.";
+        end
+
+        return this.addItem(oItem, nY * tState.width + nX + 1);
+    end,
+
+    getOccupantAt = function(this, cdat, nX, nY)
+        Rules.integer(nX, 0);
+        Rules.integer(nY, 0);
+        local tState = Rules.state(this);
+        assert(tState.width, "Configure a grid first.");
+
+        if (nX >= tState.width or nY >= tState.height) then
+            return nil;
+        end
+
+        local bOK, sReason = this.validate();
+        assert(bOK, sReason);
+        return Rules.occupant(this, nX, nY);
+    end,
+
+    validate = function(this)
+        return Rules.check(this);
+    end,
+
 },
-nil,    --extending class
-false,  --if the class is final
-nil     --interface(s) (either nil, or interface(s))
+nil,
+false,
+nil
 );

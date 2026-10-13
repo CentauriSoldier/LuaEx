@@ -1,0 +1,454 @@
+[
+  {
+    "id": "classes/BlueprintFactory.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 31,
+        "summary": "\n[SUMMARY] Blueprint factory: 6 sections, 9 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 31,
+        "summary": "\n[SUMMARY] Blueprint factory: 6 sections, 9 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "classes/Creature.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 36,
+        "summary": "\n[SUMMARY] Creature: 6 sections, 12 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 36,
+        "summary": "\n[SUMMARY] Creature: 6 sections, 12 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "classes/Human.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 37,
+        "summary": "\n[SUMMARY] Human: 6 sections, 13 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 37,
+        "summary": "\n[SUMMARY] Human: 6 sections, 13 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "classes/Soldier.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 39,
+        "summary": "\n[SUMMARY] Soldier: 6 sections, 15 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 39,
+        "summary": "\n[SUMMARY] Soldier: 6 sections, 15 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "collections/Queue.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 53,
+        "summary": "\n[SUMMARY] Queue: 6 sections, 19 verified checks, 1 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 53,
+        "summary": "\n[SUMMARY] Queue: 6 sections, 19 verified checks, 1 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "collections/Set.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 47,
+        "summary": "\n[SUMMARY] Set: 6 sections, 14 verified checks, 2 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 47,
+        "summary": "\n[SUMMARY] Set: 6 sections, 14 verified checks, 2 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "collections/SortedDictionary.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 52,
+        "summary": "\n[SUMMARY] SortedDictionary: 6 sections, 14 verified checks, 3 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 52,
+        "summary": "\n[SUMMARY] SortedDictionary: 6 sections, 14 verified checks, 3 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "collections/Stack.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 58,
+        "summary": "\n[SUMMARY] Stack: 6 sections, 20 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 58,
+        "summary": "\n[SUMMARY] Stack: 6 sections, 20 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "components/ItemSlotSystem.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 74,
+        "summary": "\n[SUMMARY] Complete item containers: 8 sections, 50 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 74,
+        "summary": "\n[SUMMARY] Complete item containers: 8 sections, 50 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "components/Pool.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 89,
+        "summary": "\n[SUMMARY] Pool: 9 sections, 32 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 89,
+        "summary": "\n[SUMMARY] Pool: 9 sections, 32 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "components/Potentiometer.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 85,
+        "summary": "\n[SUMMARY] Potentiometer: 6 sections, 37 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 85,
+        "summary": "\n[SUMMARY] Potentiometer: 6 sections, 37 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "components/Protean.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 35,
+        "summary": "\n[SUMMARY] Protean: 6 sections, 12 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 35,
+        "summary": "\n[SUMMARY] Protean: 6 sections, 12 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "fundamentals/array.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 51,
+        "summary": "\n[SUMMARY] Array: 6 sections, 19 verified checks, 7 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 51,
+        "summary": "\n[SUMMARY] Array: 6 sections, 19 verified checks, 7 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "fundamentals/enum.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 54,
+        "summary": "\n[SUMMARY] Enums from the beginning: 6 sections, 23 verified checks, 5 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 54,
+        "summary": "\n[SUMMARY] Enums from the beginning: 6 sections, 23 verified checks, 5 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "fundamentals/event.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 32,
+        "summary": "\n[SUMMARY] Eventrix: 6 sections, 12 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 32,
+        "summary": "\n[SUMMARY] Eventrix: 6 sections, 12 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "fundamentals/struct.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 55,
+        "summary": "\n[SUMMARY] Struct: 6 sections, 15 verified checks, 8 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 55,
+        "summary": "\n[SUMMARY] Struct: 6 sections, 15 verified checks, 8 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "geometry/Line.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 48,
+        "summary": "\n[SUMMARY] Line: 6 sections, 14 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 48,
+        "summary": "\n[SUMMARY] Line: 6 sections, 14 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "geometry/Point.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 51,
+        "summary": "\n[SUMMARY] Point: 6 sections, 23 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 51,
+        "summary": "\n[SUMMARY] Point: 6 sections, 23 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "pathfinding/AStar.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 191,
+        "summary": "\n[SUMMARY] AStar: 8 sections, 52 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 191,
+        "summary": "\n[SUMMARY] AStar: 8 sections, 52 verified checks, 0 expected rejections.",
+        "inputs": {
+          "playback_speed": 5
+        }
+      }
+    ]
+  },
+  {
+    "id": "pathfinding/HexMap.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 76,
+        "summary": "\n[SUMMARY] Hex maps: 10 sections, 25 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 76,
+        "summary": "\n[SUMMARY] Hex maps: 10 sections, 25 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "utilities/CSV.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 44,
+        "summary": "\n[SUMMARY] CSV: 6 sections, 12 verified checks, 2 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 44,
+        "summary": "\n[SUMMARY] CSV: 6 sections, 12 verified checks, 2 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "utilities/DoxExample.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 29,
+        "summary": "\n[SUMMARY] Documentation generation: 6 sections, 6 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 29,
+        "summary": "\n[SUMMARY] Documentation generation: 6 sections, 6 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "utilities/Ini.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 39,
+        "summary": "\n[SUMMARY] INI: 6 sections, 12 verified checks, 3 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 39,
+        "summary": "\n[SUMMARY] INI: 6 sections, 12 verified checks, 3 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "utilities/qr.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 49,
+        "summary": "\n[SUMMARY] QR codes: 6 sections, 14 verified checks, 4 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 49,
+        "summary": "\n[SUMMARY] QR codes: 6 sections, 14 verified checks, 4 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "utilities/TagSystem.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 38,
+        "summary": "\n[SUMMARY] TagSystem: 6 sections, 11 verified checks, 2 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 38,
+        "summary": "\n[SUMMARY] TagSystem: 6 sections, 11 verified checks, 2 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  }
+]

@@ -482,14 +482,22 @@ if (_tClassLoadValues[_nClassSystem]) then
 
                     --objects
                     local pCoGObjects   = pCoG..".Objects";
+                    Registry            = require(pCoG..".Registry");
+                    ObjectRegistry      = require(pCoGObjects..".ObjectRegistry");
                     BaseObject          = require(pCoGObjects..".BaseObject");
+                    BaseCreature        = require(pCoGObjects..".CreatureSystem.BaseCreature");
+                    BaseCard            = require(pCoG..".CardSystem.BaseCard");
+                    BaseDeck            = require(pCoG..".CardSystem.BaseDeck");
 
 
                     --item system
                     local pItemSystem   = pCoGObjects..".ItemSystem";
+                    SlotPattern         = require(pItemSystem..".SlotPattern");
                     BaseItem            = require(pItemSystem..".BaseItem");
                     ItemSlot            = require(pItemSystem..".ItemSlot");
                     ItemSlotSystem      = require(pItemSystem..".ItemSlotSystem");
+                    ItemSystem          = require(pItemSystem..".ItemSystem");
+                    ItemStashSystem     = require(pItemSystem..".ItemStashSystem");
 
                     XPSystem        = require(pCoG..".XPSystem");
                 end
