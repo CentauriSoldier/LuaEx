@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../..');
 const descriptions = {
+  'cog/Tiled.lua':'Load square and both hex orientations from TMX, import terrain and rover settings, and follow native AStar routes.',
   'fundamentals/array.lua':'Fixed arrays, type checks, iteration, and copying.',
   'fundamentals/enum.lua':'Named values, iteration, and enum serialization.',
   'fundamentals/struct.lua':'Structured records and their protected members.',
@@ -27,7 +28,7 @@ function walk(directory, accept) {
 }
 function generate() {
   const library = walk(path.join(root,'LuaEx'), file => file.endsWith('.lua'));
-  const allExamples = walk(path.join(root,'examples'), file => /\.(lua|csv|ini|png)$/.test(file));
+  const allExamples = walk(path.join(root,'examples'), file => /\.(lua|csv|ini|png|tmx|tsx)$/.test(file));
   const groups = {cog:'CoG',fundamentals:'Fundamentals',collections:'Collections',components:'Components',geometry:'Geometry',utilities:'Utilities',pathfinding:'Pathfinding',classes:'Classes & factories',legacy:'Legacy experiments'};
   const entries = [];
   for (const file of allExamples) {
@@ -42,6 +43,7 @@ function generate() {
   for(const entry of entries) {
     if(['components/Pool.lua','components/ItemSlotSystem.lua','pathfinding/AStar.lua','pathfinding/HexMap.lua','utilities/TagSystem.lua','classes/BlueprintFactory.lua','classes/Creature.lua','classes/Human.lua','classes/Soldier.lua'].includes(entry.id))entry.group='CoG';
     entry.codePath='examples/code/'+entry.id;
+    if(entry.id==='cog/Tiled.lua'){entry.visualPath='examples/visual/Tiled/browser.lua';entry.visualType='tiled';entry.description='Explore square and both hex maps, scout/goblin terrain costs, cave permissions, path movement and TMX editing.';}
     if(entry.id==='cog/Cards.lua'){entry.title='Cards & decks';entry.visualPath='examples/visual/Cards/browser.lua';entry.visualType='cards';entry.description='Draw, shuffle, flip and edit real BaseCard instances across a deck, hand and discard pile.';}
     if(entry.id==='components/ItemSlotSystem.lua'){entry.title='Item system';entry.visualPath='examples/visual/ItemSystem/browser.lua';entry.visualType='items';entry.description='A tabbed stash, character inventory, ground and shop: edit items, test permissions, ownership, footprints and transfers.';}
     if(entry.id==='pathfinding/AStar.lua'){entry.visualPath='examples/visual/AStar/browser.lua';entry.visualType='astar';}

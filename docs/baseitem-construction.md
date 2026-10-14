@@ -6,11 +6,11 @@ Arguments after the injected `this, cdat, super`, in order:
 
 1. `sName, sDescription, eRarity, wEventrix` — BaseObject metadata/environment.
 2. `oAttachableTo, oConsumableBy, oDamageableBy, oDetachableBy, oEquipableBy` — ObjectRegistries.
-3. `vExclusiveIn` — a Registry or a specific ItemSlotSystem, ItemSystem or ItemStashSystem. Omission creates `Registry({ItemSlotSystem, ItemSystem, ItemStashSystem})`; a specific system creates `Registry({thatSystem})`.
-4. `oExclusiveWith` — Registry identifying conflicting classes/instances.
+3. `vExclusiveIn` — a CoGRegistry or a specific ItemSlotSystem, ItemSystem or ItemStashSystem. Omission creates `CoGRegistry({ItemSlotSystem, ItemSystem, ItemStashSystem})`; a specific system creates `CoGRegistry({thatSystem})`.
+4. `oExclusiveWith` — CoGRegistry identifying conflicting classes/instances.
 5. `bInimitable` — optional boolean, default false; caller-enforced metadata.
 6. `oRemovableBy, oRepairableBy` — ObjectRegistries.
-7. `oStorableIn` — Registry.
+7. `oStorableIn` — CoGRegistry.
 8. `oTradableBy, oTradableTo, oUnequippableBy, oUpgradeableBy, oDowngradableBy` — ObjectRegistries.
 9. `oDurability, oSize, oValue, oWeight` — Pools.
 10. `oAttachedTo, oLocation, oSlotPattern` — optional single CoG attachment host, class-instance location and SlotPattern instance.

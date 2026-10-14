@@ -450,5 +450,23 @@
         "inputs": {}
       }
     ]
+  },
+  {
+    "id": "cog/Tiled.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 119,
+        "summary": "\n[SUMMARY] Tiled maps: 13 sections, 55 verified checks, 0 expected rejections.",
+        "inputs": {}
+      },
+      {
+        "result": "passed",
+        "lines": 119,
+        "summary": "\n[SUMMARY] Tiled maps: 13 sections, 55 verified checks, 0 expected rejections.",
+        "inputs": {}
+      }
+    ]
   }
 ]

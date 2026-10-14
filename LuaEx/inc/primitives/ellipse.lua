@@ -1,3 +1,4 @@
+local ellipseFactory;
 local rawsetmetatable = rawsetmetatable;
 local rawtype = rawtype;
 local error = error;
@@ -73,7 +74,7 @@ local oEllipse = ellipse(0, 0, 10, 6);
 oEllipse.majorAxis = 12;
 oEllipse.center.x = 1.7;
 !]]
-return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
+local function build(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
     validateNumber(nCenterX, "center.x");
     validateNumber(nCenterY, "center.y");
     local nPendingArea, nPendingCircumference = calculate(nMajorAxis, nMinorAxis);
@@ -168,6 +169,23 @@ return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
     });
     local tDecoy = {};
 
+    --[[!
+    @fqxn LuaEx.Primitives.ellipse.Functions.getState
+    @desc Copies defining geometry and update settings. Derived caches are not saved.
+    @ret table tState Independent restoration data.
+    @scope local
+    !]]
+    local function getState()
+
+        return {
+            centerX = tCenterActual.x,
+            centerY = tCenterActual.y,
+            majorAxis = tActual.majorAxis,
+            minorAxis = tActual.minorAxis,
+            autoUpdate = tActual.autoUpdate,
+        };
+    end
+
     rawsetmetatable(tDecoy, {
         __index = function(tInput, vKey)
             update();
@@ -207,6 +225,22 @@ return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
                 update();
             end
         end,
+        --[[!
+        @fqxn LuaEx.Primitives.ellipse.Metamethods.__clone
+        @desc Creates independent geometry from current defining inputs, retaining update settings.
+        @ret primitive oCopy Independent ellipse primitive.
+        !]]
+        __clone = function()
+
+            return ellipseFactory.deserialize(getState());
+        end,
+        --[[!
+        @fqxn LuaEx.Primitives.ellipse.Metamethods.__serialize
+        @desc Supplies fresh defining state for global serialize; derived values are recomputed.
+        @ret table tState Restoration data.
+        !]]
+        __serialize = getState,
+        __serialtype = "ellipse",
         __type = "primitive",
         __subtype = "ellipse",
         __metatable = {__type = "primitive", __subtype = "ellipse"},
@@ -217,3 +251,65 @@ return function(nCenterX, nCenterY, nMajorAxis, nMinorAxis, bSkipFirstUpdate)
 
     return tDecoy;
 end
+
+local ellipseFactoryActual = {
+    --[[!
+    @fqxn LuaEx.Primitives.ellipse.Functions.deserialize
+    @pulsarlua function ellipse.deserialize
+    @desc Validates saved defining state, rebuilds geometry and restores update settings.
+    Invalid state raises before a restored object is returned. Derived values are not trusted.
+    @param table tState State supplied by global serialize or the object's __serialize hook.
+    @ret primitive oCopy Restored independent ellipse primitive.
+    !]]
+    deserialize = function(tState)
+
+        type.assert.table(tState);
+        local tAllowed = { centerX = true, centerY = true, majorAxis = true, minorAxis = true, autoUpdate = true };
+
+        -- Step 1: reject unknown state fields before constructing an object.
+        for sField in pairs(tState) do
+            assert(tAllowed[sField], "Unknown ellipse restoration field.");
+        end
+
+        -- Step 2: require all defining coordinates/sizes as finite numbers.
+        for _, sField in ipairs({ "centerX", "centerY", "majorAxis", "minorAxis" }) do
+            local nValue = tState[sField];
+            assert(rawtype(nValue) == "number" and nValue == nValue and math.abs(nValue) < math.huge,
+                   "Invalid ellipse restoration number: "..sField);
+        end
+
+        assert(rawtype(tState.autoUpdate) == "boolean", "Restored autoUpdate must be boolean.");
+
+        -- Step 3: constructor validation enforces geometry-specific constraints.
+        local oCopy = build(tState.centerX, tState.centerY, tState.majorAxis, tState.minorAxis);
+        oCopy.autoUpdate = tState.autoUpdate;
+        return oCopy;
+    end,
+};
+local ellipseFactoryMeta = {
+    __call = function(this, ...)
+
+        return build(...);
+    end,
+    __index = function(t, k)
+
+        return ellipseFactoryActual[k] or nil;
+    end,
+    __newindex = function()
+
+        error("ellipse factory members cannot be assigned directly.", 2);
+    end,
+    __type = "ellipsePrimitiveFactory",
+};
+ellipseFactory = {};
+ellipseFactoryMeta.__clone = function() return ellipseFactory; end;
+ellipseFactoryMeta.__serialize = function() return "ellipse"; end;
+ellipseFactoryMeta.__metatable = table.readonly({
+    __type = ellipseFactoryMeta.__type,
+    __call = ellipseFactoryMeta.__call,
+    __clone = ellipseFactoryMeta.__clone,
+    __serialize = ellipseFactoryMeta.__serialize,
+});
+setmetatable(ellipseFactory, ellipseFactoryMeta);
+require("LuaEx.lib.serializer").registerFactory(ellipseFactory, {name = "ellipse", types = {"ellipse"}});
+return ellipseFactory;

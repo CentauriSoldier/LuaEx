@@ -1,3 +1,4 @@
+local circleFactory;
 local rawsetmetatable = rawsetmetatable;
 local rawtype = rawtype;
 local error = error;
@@ -45,7 +46,7 @@ end
 @param boolean|nil bSkipFirstUpdate Optional initial calculation deferral. The first read calculates dirty values.
 @ret primitive A circle primitive.
 !]]
-return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
+local function build(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
     validateNumber(nInpCenterX, "center.x", false);
     validateNumber(nInpCenterY, "center.y", false);
     validateRadius(nInpRadius);
@@ -147,6 +148,22 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
 
     local tDecoy = {};
 
+    --[[!
+    @fqxn LuaEx.Primitives.circle.Functions.getState
+    @desc Copies defining geometry and update settings. Derived caches are not saved.
+    @ret table tState Independent restoration data.
+    @scope local
+    !]]
+    local function getState()
+
+        return {
+            centerX = tCenterActual.x,
+            centerY = tCenterActual.y,
+            radius = tActual.radius,
+            autoUpdate = tActual.autoUpdate,
+        };
+    end
+
     rawsetmetatable(tDecoy, {
         __index = function(tInput, vKey)
             update();
@@ -183,6 +200,22 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
                 update();
             end
         end,
+        --[[!
+        @fqxn LuaEx.Primitives.circle.Metamethods.__clone
+        @desc Creates independent geometry from current defining inputs, retaining update settings.
+        @ret primitive oCopy Independent circle primitive.
+        !]]
+        __clone = function()
+
+            return circleFactory.deserialize(getState());
+        end,
+        --[[!
+        @fqxn LuaEx.Primitives.circle.Metamethods.__serialize
+        @desc Supplies fresh defining state for global serialize; derived values are recomputed.
+        @ret table tState Restoration data.
+        !]]
+        __serialize = getState,
+        __serialtype = "circle",
         __type = "primitive",
         __subtype = "circle",
         -- Expose type metadata only, never backing data or metamethods.
@@ -207,3 +240,65 @@ return function(nInpCenterX, nInpCenterY, nInpRadius, bSkipFirstUpdate)
 
     return tDecoy;
 end
+
+local circleFactoryActual = {
+    --[[!
+    @fqxn LuaEx.Primitives.circle.Functions.deserialize
+    @pulsarlua function circle.deserialize
+    @desc Validates saved defining state, rebuilds geometry and restores update settings.
+    Invalid state raises before a restored object is returned. Derived values are not trusted.
+    @param table tState State supplied by global serialize or the object's __serialize hook.
+    @ret primitive oCopy Restored independent circle primitive.
+    !]]
+    deserialize = function(tState)
+
+        type.assert.table(tState);
+        local tAllowed = { centerX = true, centerY = true, radius = true, autoUpdate = true };
+
+        -- Step 1: reject unknown state fields before constructing an object.
+        for sField in pairs(tState) do
+            assert(tAllowed[sField], "Unknown circle restoration field.");
+        end
+
+        -- Step 2: require all defining coordinates/sizes as finite numbers.
+        for _, sField in ipairs({ "centerX", "centerY", "radius" }) do
+            local nValue = tState[sField];
+            assert(rawtype(nValue) == "number" and nValue == nValue and math.abs(nValue) < math.huge,
+                   "Invalid circle restoration number: "..sField);
+        end
+
+        assert(rawtype(tState.autoUpdate) == "boolean", "Restored autoUpdate must be boolean.");
+
+        -- Step 3: constructor validation enforces geometry-specific constraints.
+        local oCopy = build(tState.centerX, tState.centerY, tState.radius);
+        oCopy.autoUpdate = tState.autoUpdate;
+        return oCopy;
+    end,
+};
+local circleFactoryMeta = {
+    __call = function(this, ...)
+
+        return build(...);
+    end,
+    __index = function(t, k)
+
+        return circleFactoryActual[k] or nil;
+    end,
+    __newindex = function()
+
+        error("circle factory members cannot be assigned directly.", 2);
+    end,
+    __type = "circlePrimitiveFactory",
+};
+circleFactory = {};
+circleFactoryMeta.__clone = function() return circleFactory; end;
+circleFactoryMeta.__serialize = function() return "circle"; end;
+circleFactoryMeta.__metatable = table.readonly({
+    __type = circleFactoryMeta.__type,
+    __call = circleFactoryMeta.__call,
+    __clone = circleFactoryMeta.__clone,
+    __serialize = circleFactoryMeta.__serialize,
+});
+setmetatable(circleFactory, circleFactoryMeta);
+require("LuaEx.lib.serializer").registerFactory(circleFactory, {name = "circle", types = {"circle"}});
+return circleFactory;

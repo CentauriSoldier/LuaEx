@@ -28,4 +28,12 @@
 <p>Shape primitives provide <code>autoUpdate</code> and <code>update()</code> controls. Reads refresh dirty results, and clean reads do not repeat calculations. Some shapes calculate candidates before mutation to validate them atomically. Point simply stores coordinates and needs no update control.</p>
 
 <p>Primitives are intended for lightweight geometry in games and other frameworks. Their constructors use lowercase names. Collision queries belong in separate geometry helpers. Ordinary writes and metatable access are protected; deliberate use of Lua's <code>rawset</code> or debug tools can bypass those protections.</p>
+
+<p>Each lowercase constructor is a callable factory with a <code>deserialize(state)</code>
+method. Existing calls such as <code>point(1, 2)</code> remain unchanged. Global
+<code>clone</code>, <code>serialize</code>, and <code>deserialize</code> preserve
+defining coordinates, sizes, angles, polygon anchors and autoUpdate settings.
+Copies have independent geometry. Derived measurements are recomputed during
+restoration rather than trusted from saved caches. Numeric validation and the
+normal constructor constraints also apply to restored state.</p>
 !]]

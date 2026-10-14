@@ -59,6 +59,7 @@ constant("ASTAR_MAP_TYPE_HEX_POINTED",      1);
 constant("ASTAR_MAP_TYPE_SQUARE",           2);
 constant("ASTAR_MAP_TYPE_TRIANGLE_FLAT",    3);
 constant("ASTAR_MAP_TYPE_TRIANGLE_POINTED", 4);
+constant("ASTAR_MAP_TYPE_STAGGERED",        5);
 constant("ASTAR_NODE_ENTRY_COST_BASE",      10); --the central cost upon which all other costs & cost mechanics are predicated
 constant("ASTAR_NODE_ENTRY_COST_MIN",       1);
 constant("ASTAR_NODE_ENTRY_COST_MAX_RATE",  12);
@@ -70,6 +71,7 @@ local ASTAR_MAP_TYPE_HEX_POINTED      = ASTAR_MAP_TYPE_HEX_POINTED;
 local ASTAR_MAP_TYPE_SQUARE           = ASTAR_MAP_TYPE_SQUARE;
 local ASTAR_MAP_TYPE_TRIANGLE_FLAT    = ASTAR_MAP_TYPE_TRIANGLE_FLAT;
 local ASTAR_MAP_TYPE_TRIANGLE_POINTED = ASTAR_MAP_TYPE_TRIANGLE_POINTED;
+local ASTAR_MAP_TYPE_STAGGERED        = ASTAR_MAP_TYPE_STAGGERED;
 local ASTAR_NODE_ENTRY_COST_BASE      = ASTAR_NODE_ENTRY_COST_BASE;
 local ASTAR_NODE_ENTRY_COST_MIN       = ASTAR_NODE_ENTRY_COST_MIN;
 local ASTAR_NODE_ENTRY_COST_MAX_RATE  = ASTAR_NODE_ENTRY_COST_MAX_RATE;
@@ -107,7 +109,8 @@ AStarUtil = {
                 nType == ASTAR_MAP_TYPE_HEX_POINTED     or
                 nType == ASTAR_MAP_TYPE_SQUARE          or
                 nType == ASTAR_MAP_TYPE_TRIANGLE_FLAT      or
-                nType == ASTAR_MAP_TYPE_TRIANGLE_POINTED
+                nType == ASTAR_MAP_TYPE_TRIANGLE_POINTED or
+                nType == ASTAR_MAP_TYPE_STAGGERED
             );
     end,
     setupActualDecoy = function(tActual, tDecoy, sError, nLength)
@@ -1286,7 +1289,7 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
     --[[!
     @fqxn CoG.AStar.AStarNode.getNeighbors
     @pulsarlua function AStarNode.getNeighbors
-    @desc Gathers edge-sharing neighbors and destinations of outgoing ports without duplicates or this node itself. Does not filter by passability or movement points. Hex maps require explicit staggerAxis and staggerIndex settings. Square maps use four edge-sharing neighbors. Triangular maps use three edge-sharing neighbors: even native x+y points up for flat triangles or left for pointed triangles; odd parity reverses the direction.
+    @desc Gathers edge-sharing neighbors and destinations of outgoing ports without duplicates or this node itself. Does not filter by passability or movement points. Hex and staggered diamond maps require explicit staggerAxis and staggerIndex settings. Hexagons have six neighbors; staggered diamonds have four slanted edge-sharing neighbors. Square maps use four edge-sharing neighbors. Triangular maps use three edge-sharing neighbors: even native x+y points up for flat triangles or left for pointed triangles; odd parity reverses the direction.
     @param boolean|nil bPhysicalOnly True excludes outgoing ports; defaults to false.
     @ret table tNeighbors A new ordered list of neighboring nodes. Physical neighbors precede ports; port order is unspecified.
     @ex
@@ -1322,23 +1325,29 @@ F = math.clamp(B + M, ASTAR_NODE_ENTRY_COST_MIN, ASTAR_NODE_ENTRY_COST_MAX);]]
             addNeighbor(oLayer.getNode(nX, nY));
         end
 
-        if (pri.type == ASTAR_MAP_TYPE_HEX_FLAT or pri.type == ASTAR_MAP_TYPE_HEX_POINTED) then
-            assert(tStagger.axis ~= nil and tStagger.index ~= nil, "Hex neighbor generation requires explicit staggerAxis and staggerIndex map settings.");
+        if (pri.type == ASTAR_MAP_TYPE_HEX_FLAT or pri.type == ASTAR_MAP_TYPE_HEX_POINTED or pri.type == ASTAR_MAP_TYPE_STAGGERED) then
+            assert(tStagger.axis ~= nil and tStagger.index ~= nil, "Staggered neighbor generation requires explicit staggerAxis and staggerIndex map settings.");
             local nCoordinate = tStagger.axis == "x" and pri.X or pri.Y;
             local nParity     = tStagger.index == "odd" and 1 or 0;
             local nShift      = nCoordinate % 2 == nParity and 1 or 0;
 
             --stagger parity uses native coordinates, including zero and negative origins
             if (tStagger.axis == "x") then
-                addAt(pri.X, pri.Y - 1);
-                addAt(pri.X, pri.Y + 1);
+                -- Diamonds have four slanted edges; hexagons also share the two
+                -- straight edges along the non-staggered axis.
+                if (pri.type ~= ASTAR_MAP_TYPE_STAGGERED) then
+                    addAt(pri.X, pri.Y - 1);
+                    addAt(pri.X, pri.Y + 1);
+                end
                 addAt(pri.X - 1, pri.Y + nShift - 1);
                 addAt(pri.X - 1, pri.Y + nShift);
                 addAt(pri.X + 1, pri.Y + nShift - 1);
                 addAt(pri.X + 1, pri.Y + nShift);
             else
-                addAt(pri.X - 1, pri.Y);
-                addAt(pri.X + 1, pri.Y);
+                if (pri.type ~= ASTAR_MAP_TYPE_STAGGERED) then
+                    addAt(pri.X - 1, pri.Y);
+                    addAt(pri.X + 1, pri.Y);
+                end
                 addAt(pri.X + nShift - 1, pri.Y - 1);
                 addAt(pri.X + nShift, pri.Y - 1);
                 addAt(pri.X + nShift - 1, pri.Y + 1);
@@ -3624,7 +3633,7 @@ return class("AStar",
     Path        = AStarPath,
     --[[!
     @fqxn CoG.AStar.AStar.Constants
-    @desc Read-only static geometry and entry-cost constants. MAP_TYPE_HEX_FLAT, MAP_TYPE_HEX_POINTED, MAP_TYPE_SQUARE, MAP_TYPE_TRIANGLE_FLAT and MAP_TYPE_TRIANGLE_POINTED select geometry. NODE_ENTRY_COST_BASE is 10, MIN is 1, MAX_RATE is 12 and MAX is 120. Existing ASTAR_ global names retain identical values. Costs may be fractional.
+    @desc Read-only static geometry and entry-cost constants. MAP_TYPE_HEX_FLAT, MAP_TYPE_HEX_POINTED, MAP_TYPE_SQUARE, MAP_TYPE_STAGGERED, MAP_TYPE_TRIANGLE_FLAT and MAP_TYPE_TRIANGLE_POINTED select geometry. NODE_ENTRY_COST_BASE is 10, MIN is 1, MAX_RATE is 12 and MAX is 120. Existing ASTAR_ global names retain identical values. Costs may be fractional.
     @ex
     assert(AStar.MAP_TYPE_SQUARE == ASTAR_MAP_TYPE_SQUARE);
     assert(AStar.NODE_ENTRY_COST_MAX == 120);
@@ -3632,6 +3641,7 @@ return class("AStar",
     MAP_TYPE_HEX_FLAT__RO = ASTAR_MAP_TYPE_HEX_FLAT,
     MAP_TYPE_HEX_POINTED__RO = ASTAR_MAP_TYPE_HEX_POINTED,
     MAP_TYPE_SQUARE__RO = ASTAR_MAP_TYPE_SQUARE,
+    MAP_TYPE_STAGGERED__RO = ASTAR_MAP_TYPE_STAGGERED,
     MAP_TYPE_TRIANGLE_FLAT__RO = ASTAR_MAP_TYPE_TRIANGLE_FLAT,
     MAP_TYPE_TRIANGLE_POINTED__RO = ASTAR_MAP_TYPE_TRIANGLE_POINTED,
     NODE_ENTRY_COST_BASE__RO = ASTAR_NODE_ENTRY_COST_BASE,
@@ -3785,7 +3795,7 @@ return class("AStar",
     --[[!
     @fqxn CoG.AStar.AStar.newMap
     @pulsarlua function AStar.newMap
-    @desc Creates and registers a named map. Existing exact names return nil without replacing the map. Layer configurations must be nonempty, ordered, uniquely named and use this system's aspects. Native origins default to 1. Hex maps require explicit staggerAxis and staggerIndex settings for neighbor generation, corresponding to Tiled's staggeraxis and staggerindex values. This method does not parse Tiled files.
+    @desc Creates and registers a named map. Existing exact names return nil without replacing the map. Layer configurations must be nonempty, ordered, uniquely named and use this system's aspects. Native origins default to 1. Hex and staggered diamond maps require explicit staggerAxis and staggerIndex settings for neighbor generation, corresponding to Tiled's staggeraxis and staggerindex values. Tiled.toAStar imports TMX into this native map system.
     @param string sName A nonblank, case-sensitive map name.
     @param number nType A supported map geometry constant.
     @param table tLayers An ordered list of AStar.LayerConfig objects.

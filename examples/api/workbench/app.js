@@ -35,6 +35,7 @@
     window.EnumView.dispose();
     window.ItemView.dispose();
     window.CardView.dispose();
+    window.TiledView.dispose();
     generation++; pause(); if (worker) worker.terminate(); worker = null;
     for (const request of pending.values()) { clearTimeout(request.timer); request.reject(Error(message)); }
     pending.clear(); for (const url of objectURLs) URL.revokeObjectURL(url); objectURLs = [];
@@ -111,6 +112,7 @@
     $('enum-panel').hidden=!showVisual||entry?.visualType!=='enum';
     $('items-panel').hidden=!showVisual||entry?.visualType!=='items';
     $('cards-panel').hidden=!showVisual||entry?.visualType!=='cards';
+    $('tiled-panel').hidden=!showVisual||entry?.visualType!=='tiled';
     $('visual-empty').hidden=!showVisual||Boolean(entry?.visualPath);
     $('example-inputs').hidden=!showVisual||!entry?.inputs?.length;
     $('run').textContent=visual?'▶ Run visual':'▶ Run code';$('run').disabled=visual&&!entry?.visualPath;
@@ -214,6 +216,7 @@
     if(state.visual==='enum'){window.EnumView.render(state,action);return;}
     if(state.visual==='items'){window.ItemView.render(state,action);return;}
     if(state.visual==='cards'){window.CardView.render(state,action);return;}
+    if(state.visual==='tiled'){window.TiledView.render(state,action);return;}
     for (const name of ['turn','moves','nodes','turns']) $(name).textContent = state[name] ?? '—';
     $('speed').value = state.speed; $('speed-value').textContent = state.speed + ' / sec';
     $('map-message').textContent = state.status;

@@ -33,6 +33,7 @@ async function session(manifest, emit) {
   require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'verify-stack.cjs')],{stdio:'inherit'});
   require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'verify-enum.cjs')],{stdio:'inherit'});
   require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'verify-code.cjs')],{stdio:'inherit'});
+  require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'verify-tiled-visual.cjs')],{stdio:'inherit'});
   require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'verify-baseitem.cjs')],{stdio:'inherit'});
   require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'verify-items.cjs')],{stdio:'inherit'});
   require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'verify-cards.cjs')],{stdio:'inherit'});

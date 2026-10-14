@@ -1,3 +1,4 @@
+local pointFactory;
 local rawsetmetatable = rawsetmetatable;
 local rawtype = rawtype;
 local error = error;
@@ -27,7 +28,7 @@ local oPoint = point(1.7, -2);
 oPoint.x = 4;
 local oLine = line(oPoint.x, oPoint.y, 6, 8);
 !]]
-return function(nX, nY)
+local function build(nX, nY)
     if (nX == nil) then
         nX = 0;
     end
@@ -54,6 +55,20 @@ return function(nX, nY)
         y = nY,
     };
 
+    --[[!
+    @fqxn LuaEx.Primitives.point.Functions.getState
+    @desc Copies defining geometry and update settings. Derived caches are not saved.
+    @ret table tState Independent restoration data.
+    @scope local
+    !]]
+    local function getState()
+
+        return {
+            x = tActual.x,
+            y = tActual.y,
+        };
+    end
+
     return rawsetmetatable({}, {
         __index = tActual,
         __newindex = function(tInput, vKey, vValue)
@@ -64,8 +79,83 @@ return function(nX, nY)
             validateNumber(vValue, vKey);
             tActual[vKey] = vValue;
         end,
+        --[[!
+        @fqxn LuaEx.Primitives.point.Metamethods.__clone
+        @desc Creates independent geometry from current defining inputs, retaining update settings.
+        @ret primitive oCopy Independent point primitive.
+        !]]
+        __clone = function()
+
+            return pointFactory.deserialize(getState());
+        end,
+        --[[!
+        @fqxn LuaEx.Primitives.point.Metamethods.__serialize
+        @desc Supplies fresh defining state for global serialize; derived values are recomputed.
+        @ret table tState Restoration data.
+        !]]
+        __serialize = getState,
+        __serialtype = "point",
         __type = "primitive",
         __subtype = "point",
         __metatable = {__type = "primitive", __subtype = "point"},
     });
 end
+
+local pointFactoryActual = {
+    --[[!
+    @fqxn LuaEx.Primitives.point.Functions.deserialize
+    @pulsarlua function point.deserialize
+    @desc Validates saved defining state, rebuilds geometry and restores update settings.
+    Invalid state raises before a restored object is returned. Derived values are not trusted.
+    @param table tState State supplied by global serialize or the object's __serialize hook.
+    @ret primitive oCopy Restored independent point primitive.
+    !]]
+    deserialize = function(tState)
+
+        type.assert.table(tState);
+        local tAllowed = { x = true, y = true };
+
+        -- Step 1: reject unknown state fields before constructing an object.
+        for sField in pairs(tState) do
+            assert(tAllowed[sField], "Unknown point restoration field.");
+        end
+
+        -- Step 2: require all defining coordinates/sizes as finite numbers.
+        for _, sField in ipairs({ "x", "y" }) do
+            local nValue = tState[sField];
+            assert(rawtype(nValue) == "number" and nValue == nValue and math.abs(nValue) < math.huge,
+                   "Invalid point restoration number: "..sField);
+        end
+
+        -- Step 3: constructor validation enforces geometry-specific constraints.
+        local oCopy = build(tState.x, tState.y);
+        return oCopy;
+    end,
+};
+local pointFactoryMeta = {
+    __call = function(this, ...)
+
+        return build(...);
+    end,
+    __index = function(t, k)
+
+        return pointFactoryActual[k] or nil;
+    end,
+    __newindex = function()
+
+        error("point factory members cannot be assigned directly.", 2);
+    end,
+    __type = "pointPrimitiveFactory",
+};
+pointFactory = {};
+pointFactoryMeta.__clone = function() return pointFactory; end;
+pointFactoryMeta.__serialize = function() return "point"; end;
+pointFactoryMeta.__metatable = table.readonly({
+    __type = pointFactoryMeta.__type,
+    __call = pointFactoryMeta.__call,
+    __clone = pointFactoryMeta.__clone,
+    __serialize = pointFactoryMeta.__serialize,
+});
+setmetatable(pointFactory, pointFactoryMeta);
+require("LuaEx.lib.serializer").registerFactory(pointFactory, {name = "point", types = {"point"}});
+return pointFactory;

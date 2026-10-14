@@ -415,6 +415,7 @@ if (_tClassLoadValues[_nClassSystem]) then
 
         --dependency class
         Queue               = require(pClasses..".Queue");
+        XML                 = require(pClasses..".XML");
         Stack               = require(pClasses..".Stack");
         Set                 = require(pClasses..".Set");
         SortedDictionary    = require(pClasses..".SortedDictionary");
@@ -459,6 +460,7 @@ if (_tClassLoadValues[_nClassSystem]) then
                     BaseMod         = require(pCoG..".ModSystem.BaseMod");
                     Factorium       = require(pCoG..".ModSystem.Factorium");
                     CoG             = require(pCoG..".CoG");
+                    Tiled           = require(pCoG..".Tiled");
 
                     --interfaces
                     IEquippable     = require(pCoG..".Interfaces.IEquippable");
@@ -477,12 +479,12 @@ if (_tClassLoadValues[_nClassSystem]) then
                     --Affixory            = require(pAffixSystem..".Affixory");
 
                     Pool            = require(pCoG..".Pool");
-                    StatusSystem    = require(pCoG..".StatusSystem");
+                    StatusTracker   = require(pCoG..".StatusTracker");
                     AStar           = require(pCoG..".AStar");
 
                     --objects
                     local pCoGObjects   = pCoG..".Objects";
-                    Registry            = require(pCoG..".Registry");
+                    CoGRegistry            = require(pCoG..".CoGRegistry");
                     ObjectRegistry      = require(pCoGObjects..".ObjectRegistry");
                     BaseObject          = require(pCoGObjects..".BaseObject");
                     BaseCreature        = require(pCoGObjects..".CreatureSystem.BaseCreature");

@@ -1,8 +1,8 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {generate,root}=require('./catalog.cjs'),{LuaSession}=require('./runtime.js'),wasmoon=require('../wasmoon/package/dist/index.js');
 (async()=>{
- const manifest=generate();assert.equal(manifest.entries.length,26);assert(!manifest.entries.some(e=>e.group==='Visual examples'||e.title==='PoolBasics'));
- assert.equal(manifest.entries.filter(e=>e.visualPath).length,8);
+ const manifest=generate();assert.equal(manifest.entries.length,27);assert(!manifest.entries.some(e=>e.group==='Visual examples'||e.title==='PoolBasics'));
+ assert.equal(manifest.entries.filter(e=>e.visualPath).length,9);
  for(const entry of manifest.entries){
   const engine=new LuaSession(wasmoon,new Uint8Array(fs.readFileSync(path.join(root,'examples/api/wasmoon/package/dist/glue.wasm'))),()=>{});
   try{

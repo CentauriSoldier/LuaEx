@@ -1,11 +1,14 @@
 if not LUAEX_INIT then require("LuaEx.init") end
-local a = BaseCard("Ace", "Ace of spades", nil, nil, "Spades", "Ace", 1, false, false);
-local b = BaseCard("King", "King of hearts", nil, nil, "Hearts", "King", 13);
-local c = BaseCard("Twin", "Another ace", nil, nil, "Spades", "Ace", 1);
-assert(a.getName() == "Ace" and a.getSuit() == "Spades" and a.getRank() == "Ace" and a.getValue() == 1);
+local a = BaseCard("Fireball", "A spell card", nil, nil, false, false);
+local b = BaseCard("Potion", "A resource card");
+local c = BaseCard("Quest", "An objective card");
+assert(a.getName() == "Fireball" and a.getDescription() == "A spell card");
+assert(not class.haspublicmember(BaseCard, "getSuit"));
+assert(not class.haspublicmember(BaseCard, "getRank"));
+assert(not class.haspublicmember(BaseCard, "getValue"));
 assert(not a.isEnabled() and not a.isFaceUp());
-a.flip().hide().reveal().setEnabled(true).setValue(2);
-assert(a.isFaceUp() and a.isEnabled() and a.getValue() == 2);
+a.flip().hide().reveal().setEnabled(true);
+assert(a.isFaceUp() and a.isEnabled());
 local input = {a,b,c};
 local deck = BaseDeck(input);
 input[1] = b;
@@ -25,8 +28,8 @@ deck.reverse();
 assert(rawequal(deck.peek(), c));
 local cloned = clone(deck);
 assert(#cloned == 3 and not rawequal(cloned.peek(), c));
-cloned.peek().setValue(999);
-assert(c.getValue() == 1);
+cloned.peek().setEnabled(false);
+assert(c.isEnabled());
 a.getTagSystem().add("TEST", true);
 local copy = clone(a);
 assert(not rawequal(copy.getTagSystem(), a.getTagSystem()));
@@ -40,7 +43,8 @@ assert(ok and #drawn == 3 and deck.isEmpty() and deck.draw() == nil);
 assert(not pcall(BaseDeck, {a,a}));
 assert(not pcall(BaseDeck, {[1] = a, [3] = b}));
 assert(not pcall(BaseDeck, {Point(0,0)}));
-assert(not pcall(a.setValue, math.huge));
+assert(not pcall(a.setFaceUp, 1));
+assert(not pcall(BaseCard, "Invalid", "Invalid flags", nil, nil, "not a boolean"));
 local Child = class("BaseCardRegressionChild", {}, {}, {}, {}, {
     BaseCardRegressionChild = function(this, cdat, super)
         super("Child", "Concrete card.");

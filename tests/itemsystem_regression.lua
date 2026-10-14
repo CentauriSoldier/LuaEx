@@ -4,13 +4,13 @@ local Item = class("HolisticItem", {}, {}, {}, {}, {
         local t = tInput or {};
         super("Item", "Integration test", nil, nil,
               t.attach,t.consume,t.damage,t.detach,t.equip,t.scope,t.conflicts,nil,t.remove,t.repair,
-              t.storage or Registry({ItemSystem, ItemStashSystem}),t.tradeBy,t.tradeTo,t.unequip,t.upgrade,t.downgrade,
+              t.storage or CoGRegistry({ItemSystem, ItemStashSystem}),t.tradeBy,t.tradeTo,t.unequip,t.upgrade,t.downgrade,
               nil,nil,nil,nil,nil,nil,t.pattern);
     end,
 }, BaseItem);
 local stash = ItemStashSystem(nil, 2, 3);
 local first, second = stash.getTab(1), stash.getTab(2);
-local kite = Item({scope = Registry({stash}), conflicts = Registry({Item})});
+local kite = Item({scope = CoGRegistry({stash}), conflicts = CoGRegistry({Item})});
 local other = Item();
 assert(first.addItem(kite));
 assert(not second.addItem(other), "Second tab must honor first tab's exclusivity");
@@ -31,7 +31,7 @@ assert(select(2, stash.removeTab(2)) and stash.getTabCount() == 1);
 local elsewhere = ItemStashSystem();
 assert(select(2, elsewhere.addItem(kite)), "Specific stash scope must not apply to another stash");
 assert(select(2, elsewhere.addItem(other)));
-local denied = Item({storage = Registry()});
+local denied = Item({storage = CoGRegistry()});
 assert(not first.addItem(denied) and denied.getLocation() == null);
 local full = ItemSystem(1);
 local resident, traveler = Item(), Item();
@@ -51,7 +51,7 @@ assert(not pcall(ItemSystem, 0, {failedInitial}) and failedInitial.getLocation()
 assert(not pcall(ItemSystem, 2, {failedInitial, failedInitial}) and failedInitial.getLocation() == null);
 local slotA, slotB = ItemSlot(nil, 2), ItemSlot(nil, 2);
 local equipment = ItemSlotSystem({slotA, slotB});
-local unique = Item({scope = Registry({equipment}), conflicts = Registry({Item})});
+local unique = Item({scope = CoGRegistry({equipment}), conflicts = CoGRegistry({Item})});
 assert(select(2, slotA.set(unique)));
 assert(not select(2, slotB.set(Item())), "Direct slot calls must enforce system-wide exclusivity");
 assert(not select(2, ItemSlotSystem().addItemSlot(slotA)), "Slots cannot belong to two systems");
@@ -143,7 +143,7 @@ end));
 assert(not select(2, bypassSlot.set(Item())) and rawequal(traveler.getLocation(), full));
 local tabWithConflict = ItemSystem();
 local stashWithRule = ItemStashSystem();
-local ownerOfRule = Item({scope = Registry({stashWithRule}), conflicts = Registry({Item})});
+local ownerOfRule = Item({scope = CoGRegistry({stashWithRule}), conflicts = CoGRegistry({Item})});
 assert(select(2, stashWithRule.addItem(ownerOfRule)));
 assert(tabWithConflict.addItem(Item()));
 assert(not select(2, stashWithRule.addTab(tabWithConflict)) and tabWithConflict.getStash() == null);

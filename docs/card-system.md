@@ -2,11 +2,11 @@
 
 Both are loaded by LuaEx.init. Use dot-style method calls.
 
-BaseCard extends BaseObject, inheriting name, description, rarity, tags and events. Constructor arguments are `(sName, sDescription, eRarity, wEventrix, sSuit, sRank, nValue, bFaceUp, bEnabled)`. Defaults are Card, A card., inherited default rarity, blank suit/rank, value zero, face down and enabled. Suit/rank are optional labels; no particular card game or standard 52-card deck is assumed.
+BaseCard extends BaseObject, inheriting name, description, rarity, tags and events. Constructor arguments are `(sName, sDescription, eRarity, wEventrix, bFaceUp, bEnabled)`. Defaults are Card, A card., inherited default rarity, face down and enabled. The base supports any card type and provides no suit, rank or numeric value fields. Developers define specialized fields and rules in their own subclasses; the library supplies no specialized card subclasses.
 
-Getters use the existing accessor directives. Validated setters cover suit, rank, value, face state and enabled state. flip, reveal and hide return the card for chaining. Value must be finite. Enabled is gameplay metadata; a deck does not automatically skip disabled cards.
+Getters use the existing accessor directives. Validated setters cover face state and enabled state. flip, reveal and hide return the card for chaining. Enabled is gameplay metadata; a deck does not automatically skip disabled cards.
 
-BaseDeck extends CoG. `BaseDeck(tCards)` accepts a dense array of BaseCard instances or subclasses, copied by reference into an independent ordered list. Omission creates an empty deck. The same instance cannot occur twice in one deck; distinct cards with identical labels/values are permitted. Decks are collections rather than an ownership system: hands, discard piles and exclusive ownership across collections belong to the caller.
+BaseDeck extends CoG. `BaseDeck(tCards)` accepts a dense array of BaseCard instances or subclasses, copied by reference into an independent ordered list. Omission creates an empty deck. The same instance cannot occur twice in one deck; distinct cards with identical metadata are permitted. Decks are collections rather than an ownership system: hands, discard piles and exclusive ownership across collections belong to the caller.
 
 Index one is the top. peek(index) inspects without removing; draw(index) returns/removes the actual card, or nil when no card exists. Both default to index one. drawMany(count) returns an array and success boolean; insufficient cards return an empty array and false without drawing anything. A zero count succeeds with an empty array.
 

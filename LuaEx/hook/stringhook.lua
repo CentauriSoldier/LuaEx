@@ -1,23 +1,38 @@
 local tLuaEX = rawget(_G, "luaex");
 
 local math      = math;
-local pairs		= pairs;
-local rawtype	= rawtype;
-local string 	= string;
+local pairs     = pairs;
+local ipairs    = ipairs;
+local rawtype   = rawtype;
+local string    = string;
 local table     = table;
 
-local tPatterns = {--TODO QUESTION move to its own module?
-    uuid = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$",
+-- Public patterns use a decoy table because this hook loads before table.readonly.
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.patterns
+    @desc Read-only lookup of nonblank and UUID-shape Lua patterns. Unknown names return nil.
+    Ordinary assignments are rejected; rawset has Lua's usual ability to bypass a metatable.
+!]]
+local tPatterns = {
     nonblank = "%S+",
+    uuid = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$",
 };
 
+local tPatternsDecoy = {};
 local tPatternsMeta = {
     __index = tPatterns,
-    __newindex = function() end,
-};
+    __newindex = function()
 
-setmetatable(tPatterns, tPatternsMeta);
-string.patterns = tPatterns;
+        error("String patterns cannot be assigned directly.", 2);
+    end,
+    __pairs = function()
+
+        return pairs(tPatterns);
+    end,
+    __metatable = false,
+};
+setmetatable(tPatternsDecoy, tPatternsMeta);
+string.patterns = tPatternsDecoy;
 
 --UUID values
 local _tCharsLower	 = {"7","f","1","e","3","c","6","b","5","9","a","4","8","d","0","2"};
@@ -28,216 +43,289 @@ local _sUUIDBlocks	 = #_tUUIDSequence;
 
 local _bOSIsWindows  = package.config:sub(1, 1) == "\\";
 
+
+-- Exact-tag replacement data used by the single-pass HTML formatting helper.
+local tHTMLReplacements = {
+    ["<b>"] = "**",
+    ["</b>"] = "**",
+    ["<strong>"] = "**",
+    ["</strong>"] = "**",
+    ["<h1>"] = "# ",
+    ["</h1>"] = "\n",
+    ["<h2>"] = "## ",
+    ["</h2>"] = "\n",
+    ["<h3>"] = "### ",
+    ["</h3>"] = "\n",
+    ["<h4>"] = "#### ",
+    ["</h4>"] = "\n",
+    ["<h5>"] = "##### ",
+    ["</h5>"] = "\n",
+    ["<h6>"] = "###### ",
+    ["</h6>"] = "\n",
+    ["<i>"] = "*",
+    ["</i>"] = "*",
+    ["<em>"] = "*",
+    ["</em>"] = "*",
+    ["<u>"] = "_",
+    ["</u>"] = "_",
+    ["<br>"] = "  \n",
+    ["<br/>"] = "  \n",
+    ["<p>"] = "\n\n",
+    ["</p>"] = "\n\n",
+    ["<blockquote>"] = "> ",
+    ["</blockquote>"] = "\n",
+    ["<code>"] = "`",
+    ["</code>"] = "`",
+    ["<pre>"] = "```\n",
+    ["</pre>"] = "\n```",
+    ["<ul>"] = "\n",
+    ["</ul>"] = "\n",
+    ["<ol>"] = "\n",
+    ["</ol>"] = "\n",
+    ["<li>"] = "- ",
+    ["</li>"] = "\n",
+    ["<hr>"] = "\n---\n",
+    ["<hr/>"] = "\n---\n",
+};
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.Helpers.isReservedFilename
+    @desc Checks Windows device basenames, ignoring extensions and recognizing superscript device
+    digits.
+    @param string sName Single filename component.
+    @ret boolean bReserved Whether the basename is reserved.
+    @scope local
+!]]
+local function isReservedFilename(sName)
+
+    -- Extensions do not make a reserved device basename available for files.
+    local sBase = sName:match("^([^%.]+)") or sName;
+    sBase = sBase:gsub(" +$", ""):upper();
+    local tReserved = { CON = true, PRN = true, AUX = true, NUL = true };
+
+    if (tReserved[sBase]) then
+        return true;
+    end
+
+    if (sBase:match("^COM[1-9]$") or sBase:match("^LPT[1-9]$")) then
+        return true;
+    end
+
+    -- Windows also recognizes ISO superscript digits in COM/LPT device names.
+    for _, sDigit in ipairs({ "¹", "²", "³" }) do
+        if (sBase == "COM"..sDigit or sBase == "LPT"..sDigit) then
+            return true;
+        end
+    end
+
+    return false;
+end
+
+
 --[[!
     @fqxn LuaEx.Lua Hooks.string.cap
     @pulsarlua function string.cap
-    @desc Capatalizes the first letter of the input. If the second argument is true, it also lowers all letters after the first (string).
-    @param string sInput The string to capatalize.
-    @param boolean|nil bLowerRemaining Whether to forcibly lower everything after the first letter (false by default, left as-is).
-    @ret string sModifiedInput Returns the modified input string.
-    @ex
-    local sTest1 = "washinGton";
-    local sTest2 = "waShingToN";
-    print("sTest1: "..sTest1:cap());     --> sTest1: WashinGton
-    print("sTest2: "..sTest2:cap(true)); --> sTest2: Washington
+    @desc Uppercases the first byte, optionally lowercasing the remainder. Empty input returns
+    empty. Uses Lua byte/locale casing, not Unicode title casing.
+    @param string sInput Text to capitalize.
+    @param boolean|nil bLowerRemaining Whether to lowercase remaining text.
+    @ret string sRet Capitalized text.
 !]]
 function string.cap(sInput, bLowerRemaining)
-    local sRet = "";
 
-    if sInput:len(sInput) > 1 then
-        local sFirstLetter = sInput:sub(1, 1);
-        local sRightSide = sInput:sub(2, sInput:len()); --DO i need the 2nd arg?
-        sRet = sFirstLetter:upper();
+    assert(rawtype(sInput) == "string", "Input must be a string.");
+    -- Step 1: uppercase the first byte; an empty string remains empty.
+    local sFirst = sInput:sub(1, 1):upper();
+    local sRemaining = sInput:sub(2);
 
-            if bLowerRemaining then
-                sRet = sRet..sRightSide:lower();
-            else
-                sRet = sRet..sRightSide;
-            end
-
-    else
-        sRet = sInput:upper();
+    -- Step 2: lower the remaining text only when requested.
+    if (bLowerRemaining) then
+        sRemaining = sRemaining:lower();
     end
 
-    return sRet
+    return sFirst..sRemaining;
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.capall
     @pulsarlua function string.capall
-    @desc Capatalizes the first letter of each word in a sentence.
-    @param string sInput The string to capatalize.
-    @param string|nil sDelimiter The delmiter between words (a blank space by default).
-    @ret string sModifiedInput Returns the modified input string.
-    @ret number nItems The total number of items capatalized (or attempted to be capatalized).
-    @ret table tItems A numerically-indexed table whose values are the items found.
-    @ex
-    local sTest = "the way and the word - a tale of a wizard's malice";
-    local sNewTest, nItems, tItems = sTest:capall();
-    print(sNewTest); --> The Way And The Word - A Tale Of A Wizard's Malice
-    print("Item count: "..nItems); --Item count: 12
+    @desc Capitalizes each nonempty literal-delimited item in order, rejoining with the same
+    delimiter. Whitespace-only input returns empty text, zero and an empty table. Empty fields are
+    omitted; the item list retains original text.
+    @param string sInput Input text.
+    @param string|nil sDelimiter Literal delimiter; defaults to a space.
+    @ret string sRet Capitalized text.
+    @ret number nItems Number of nonempty items.
+    @ret table tItems Original ordered item strings.
 !]]
 function string.capall(sInput, sDelimiter)
-    local sRet = "";
-    local tItems = nil;
-    local nItems = nil;
-    sDelimiter = rawtype(sDelimiter) == "string" and sDelimiter or " ";
 
-    if (sInput:gsub("%s", "") ~= "") then
+    assert(rawtype(sInput) == "string", "Input must be a string.");
+    sDelimiter = rawtype(sDelimiter) == "string" and sDelimiter ~= "" and sDelimiter or " ";
+    local tItems = {};
+    local tCapitalized = {};
+
+    -- Step 1: whitespace-only input has a consistent empty result contract.
+    if (sInput:find("%S")) then
         tItems = string.totable(sInput, sDelimiter);
-        nItems = #tItems;
 
-        for nIndex, sWord in pairs(tItems) do
-            local sSpace = (nIndex == nItems) and "" or ' ';
-            local sFirstLetter = (string.sub(sWord, 1, 1)):upper();
-            local sRightSide = string.sub(sWord, 2);
-            sRet = sRet..sFirstLetter..sRightSide..sSpace;
+        -- Step 2: preserve input order and keep original items in the returned list.
+        for nIndex, sWord in ipairs(tItems) do
+            tCapitalized[nIndex] = string.cap(sWord);
         end
-
     end
 
-    return sRet, nItems, tItems;
+    -- Step 3: join with the supplied literal delimiter, not a hardcoded space.
+    return table.concat(tCapitalized, sDelimiter), #tItems, tItems;
 end
 
 
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.collapse
+    @pulsarlua function string.collapse
+    @desc Removes all Lua whitespace runs from text.
+    @param string sInput Input text.
+    @ret string sRet Text with whitespace removed.
+    @ret number nRemoved Number of whitespace runs removed.
+!]]
 function string.collapse(sInput)
+
+    assert(rawtype(sInput) == "string", "Input must be a string.");
+    -- Remove whitespace runs; gsub also returns the number of replacements.
     return sInput:gsub("%s+", '');
 end
 
 
 --[[!
-    @fqxn LuaEx.Lua Hooks.string.isempty
-    @pulsarlua function string.isempty
-    @desc Determines whether a string is empty (blank or space-only characters).
-    @param string sInput The string to capatalize.
-    @ret boolean bIsEmpty Returns true if empty, false otherwise.
-    @ex
-    local sTest1 = "     ";
-    local sTest2 = " a    ";
-    print("sTest1 is empty: "..tostring(sTest1:isempty())); --> sTest1 is empty: true
-    print("sTest2 is empty: "..tostring(sTest2:isempty())); --> sTest2 is empty: false
+    @fqxn LuaEx.Lua Hooks.string.htmltomd
+    @pulsarlua function string.htmltomd
+    @desc Converts supported exact lowercase HTML tags to Markdown in a single pass. A preceding
+    backslash keeps a tag literal and removes that escape. Other tags/attributes and HTML entities
+    remain unchanged. This is a formatting helper, not a parser or sanitizer.
+    @param string sText Text containing supported tags.
+    @ret string sRet Converted text.
 !]]
-function string.isempty(sInput)
-    return sInput:find("[%S]+") == nil;
+function string.htmltomd(sText)
+
+    assert(rawtype(sText) == "string", "Input must be a string.");
+
+    -- Convert supported exact tags in one pass. Escaped tags are literal text.
+    -- Avoid temporary marker bytes that can collide with existing input data.
+    local sRet = sText:gsub("(\\?)(<[^>]->)", function(sEscape, sTag)
+
+        if (sEscape == "\\") then
+            return sTag;
+        end
+
+        -- Unknown tags/attributes/casing remain unchanged; this is not an HTML parser.
+        return tHTMLReplacements[sTag] or sTag;
+    end);
+
+    return sRet;
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isdatevalid
     @pulsarlua function string.isdatevalid
-    @desc Determines whether a date given is valid.
-    @param string sInput The string to check.<br><b>Note:</b>The default pattern is YYYY-MM-DD.
-    @ret boolean bValid Returns true if the date is valid, false otherwise.
-    @ex
-    TODO
+    @desc Checks an exact YYYY-MM-DD date using Gregorian leap-year rules. Returns a boolean for all
+    inputs. Four-digit year zero is accepted; no alternative format is implemented.
+    @param any sInput Candidate date.
+    @ret boolean bValid Valid calendar date.
 !]]
-string.isdatevalid = function(sInput, sInpPattern)
-    -- Date pattern matching YYYY-MM-DD format
-    local sPattern = "^%d%d%d%d%-%d%d%-%d%d$";
+function string.isdatevalid(sInput)
 
-    -- Check if the input matches the pattern
-    local bRet = sInput:match(sPattern);
-
-    if (bRet) then
-        local sYear, sMonth, sDay = nil;
-        local nYear, nMonth, nDay = nil;
-
-        -- Extract the year, month, and day from the input
-        sYear, sMonth, sDay = sInput:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
-        bRet = sYear and sMonth and sDay;
-
-        if (bRet) then
-            -- Convert to numbers for further validation
-            nYear, nMonth, nDay = tonumber(sYear), tonumber(sMonth), tonumber(sDay)
-            bRet = nYear and nMonth and nDay;
-        end
-
-        if (bRet) then
-            -- Check for valid month and day ranges
-            bRet = nMonth >= 1 and nMonth <= 12;
-        end
-
-        if (bRet) then
-            -- Days in each month (not accounting for leap years yet)
-            local tDaysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-            -- Adjust for leap year
-            if nMonth == 2 and (nYear % 4 == 0 and (nYear % 100 ~= 0 or nYear % 400 == 0)) then
-                tDaysInMonth[2] = 29;
-            end
-
-            -- Check if the day is valid for the given month
-            bRet = nDay > 0 and nDay <= tDaysInMonth[nMonth];
-        end
-
+    -- Step 1: require an exact YYYY-MM-DD representation.
+    if (rawtype(sInput) ~= "string") then
+        return false;
     end
 
-    return bRet;
+    local sYear, sMonth, sDay = sInput:match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$");
+
+    if (not sYear) then
+        return false;
+    end
+
+    -- Step 2: reject out-of-range month/day before indexing the calendar.
+    local nYear = tonumber(sYear);
+    local nMonth = tonumber(sMonth);
+    local nDay = tonumber(sDay);
+
+    if (nMonth < 1 or nMonth > 12 or nDay < 1) then
+        return false;
+    end
+
+    local tDays = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    -- Step 3: apply the Gregorian century and 400-year leap rules.
+    if (nYear % 4 == 0 and (nYear % 100 ~= 0 or nYear % 400 == 0)) then
+        tDays[2] = 29;
+    end
+
+    return nDay <= tDays[nMonth];
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.isempty
+    @pulsarlua function string.isempty
+    @desc Reports whether a string contains no non-whitespace characters. Non-string values return
+    false.
+    @param any sInput Candidate text.
+    @ret boolean bEmpty Whether the string is blank.
+!]]
+function string.isempty(sInput)
+    -- Predicates return false for non-string values.
+    return rawtype(sInput) == "string" and sInput:find("%S") == nil;
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isfilesafe
     @pulsarlua function string.isfilesafe
-    @desc Determines whether a string is safe for use as a file name.
-    @param string sInput The string to check.
-    @ret boolean bSafe Returns true if file-safe, false otherwise.
-    @ex
-    TODO
+    @desc Checks a single filename component for the current platform using a conservative 255-byte
+    limit. Rejects empty, dot/dot-dot and control-containing names. Windows also rejects device
+    basenames with extensions and trailing dots/spaces. Does not verify filesystem availability or
+    total path length.
+    @param any sName Candidate filename, not a path.
+    @ret boolean bSafe Whether the component meets these naming rules.
 !]]
 function string.isfilesafe(sName)
-    local bRet = true;
 
-    -- Define invalid characters for Windows and Linux
-    local tInvalidChars = _bOSIsWindows and '[<>:"/\\|?*%c]' or '[/%c]';
-
-    -- Check for invalid characters
-    if sName:match(tInvalidChars) then
-        bRet = false;
+    -- Step 1: check a single nonempty component, with a conservative byte limit.
+    if (rawtype(sName) ~= "string" or sName == "" or #sName > 255
+        or sName == "." or sName == "..") then
+        return false;
     end
 
-    -- Check for reserved filenames on Windows
-    if (_bOSIsWindows and bRet) then
-        local tReservedNames = {
-            "CON", "PRN", "AUX", "NUL",
-            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
-        };
+    local sInvalid = _bOSIsWindows and '[<>:"/\\|?*%c]' or '[/%c]';
 
-        local sNameUpper = sName:upper();
+    if (sName:find(sInvalid)) then
+        return false;
+    end
 
-        for _, sReserved in ipairs(tReservedNames) do
-
-            if (sNameUpper == sReserved) then
-                bRet = false;
-                break;
-            end
-
+    -- Step 2: apply Windows component rules in addition to forbidden characters.
+    if (_bOSIsWindows) then
+        if (sName:find("[%. ]$") or isReservedFilename(sName)) then
+            return false;
         end
-
     end
 
-    -- Check for names that are too long (limit is 255 characters) TODO move magic number
-    return bRet and (#sName <= 255);-- and (sName ~= "");
+    return true;
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.iskeyword
     @pulsarlua function string.iskeyword
-    @desc Determines whether a string is keyword.
-    @param string sInput The string to capatalize.
-    @ret boolean Returns true if empty, false otherwise.
-    @ex
-    local sTest1 = "end";
-    local sTest2 = "class";
-    local sTest3 = "classes";
-    print("sTest1 is keyword: "..tostring(sTest1:iskeyword())); --> sTest1 is keyword: true
-    print("sTest2 is keyword: "..tostring(sTest2:iskeyword())); --> sTest2 is keyword: true
-    print("sTest3 is keyword: "..tostring(sTest3:iskeyword())); --> sTest3 is keyword: false
+    @desc Checks exact case-sensitive membership in the initialized LuaEx keyword list.
+    @param any sInput Candidate keyword.
+    @ret boolean bKeyword Whether the value matches a keyword.
 !]]
 function string.iskeyword(sInput)
+    -- Membership is case-sensitive, matching LuaEx identifier rules.
     local bRet = false;
 
     for x = 1, tLuaEX.__keywords__count__ do
@@ -256,272 +344,256 @@ end
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isnumeric
     @pulsarlua function string.isnumeric
-    @desc Determines whether a string is a numeric string.
-    @param string sInput The string to check.
-    @ex
-    local sTest1 = "1a2sASd";
-    local sTest2 = "234.67";
-    print("sTest1 is numeric: "..tostring(sTest1:isnumeric())); --> sTest1 is numeric: false
-    print("sTest2 is numeric: "..tostring(sTest2:isnumeric())); --> sTest2 is numeric: true
+    @desc Uses tonumber to recognize Lua numeric syntax, including signed, exponent and hexadecimal
+    forms. Rejects blank input and repeated decimal points. This checks syntax, not finiteness of
+    the parsed number.
+    @param any sInput Candidate numeric string.
+    @ret boolean bNumeric Whether Lua can parse the string as a number.
 !]]
 function string.isnumeric(sInput)
-    return type(sInput) == "string" and sInput:gsub("[%d%.]", "") == "";
+    -- Use Lua's numeric parser rather than accepting arbitrary dots/digits.
+    return rawtype(sInput) == "string" and tonumber(sInput) ~= nil;
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isuuid
     @pulsarlua function string.isuuid
-    @desc Determin wether a string is a uuid (as created by <a href="#LuaEx.Lua Hooks.string.uuid">string.uuid</a>).</b>
-    @param string sInput The string to check.
-    @ret boolean bIsUUID True if it's a UUID, false otherwise.
-    @ex
-    print("Is UUID: "..tostring(string.isuuid("6430425f-dfe0-d7c8-cf55-dc0f133e07ef"))); --> true
-    print("Is UUID: "..tostring(string.isuuid("6430425f-Adfe0-d7c8-cf55-dc0f133e07ef"))); --> false
-    print("Is UUID: "..tostring(string.isuuid("z430425f-dfe0-d7c8-cf55-dc0f133e07ef"))); --> false
+    @desc Checks hexadecimal 8-4-4-4-12 UUID shape, in either case. Does not enforce version/variant
+    bits. Non-string input returns false.
+    @param any sInput Candidate identifier.
+    @ret boolean bUUID Whether the UUID shape matches.
 !]]
 function string.isuuid(sInput)
-    -- UUID pattern based on _tUUIDSequence
-    local sPattern = "^%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x$";
-    -- Check if the input matches the pattern
-    return sInput:match(sPattern) ~= nil;
+
+    -- Check hexadecimal block shape only; version/variant bits are not enforced.
+    return rawtype(sInput) == "string" and sInput:match(tPatterns.uuid) ~= nil;
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.isvariablecompliant
     @pulsarlua function string.isvariablecompliant
-    @desc Determines whether a string is a valid, variable-compliant string.
-    @param string sInput The string to check.
-    @param boolean|nil bSkipKeywordCheck Whether to skip LuaEx keyword checks.
-    @ret boolean bIsVariableCompliant True if the string is variable-compliant, false otherwise.
-    @ex
-    local sTest1 = "1MyVar";
-    local sTest2 = "_MyVar";
-    local sTest3 = "end";
-    local sTest4 = "enum";
-
-    print("sTest1 is variable compliant: "..tostring(sTest1:isvariablecompliant())); --> sTest1 is variable compliant: false
-    print("sTest2 is variable compliant: "..tostring(sTest2:isvariablecompliant())); --> sTest2 is variable compliant: true
-    print("sTest3 is variable compliant: "..tostring(sTest3:isvariablecompliant())); --> sTest3 is variable compliant: false
-    print("sTest4 is variable compliant: "..tostring(sTest4:isvariablecompliant())); --> sTest4 is variable compliant: false
-    print("sTest4 is variable compliant (skipping keywords): "..sTest4:isvariablecompliant(true)); --> sTest4 is variable compliant (skipping keywords): true
+    @desc Checks a Lua-style identifier and, by default, excludes LuaEx keywords. Character classes
+    use the Lua locale rather than Unicode identifier rules.
+    @param any sInput Candidate identifier.
+    @param boolean|nil bSkipKeywordCheck Whether to bypass keyword rejection.
+    @ret boolean bCompliant Whether the identifier satisfies the requested policy.
 !]]
 function string.isvariablecompliant(sInput, bSkipKeywordCheck)
-    local bRet = false;
-    local bIsKeyWord = false;
 
-    --make certain it's not a keyword
-    if (not bSkipKeywordCheck) then
-        for x = 1, tLuaEX.__keywords__count__ do
-
-            if sInput == tLuaEX.__keywords__[x] then
-                bIsKeyWord = true;
-                break;
-            end
-
-        end
-
+    -- Step 1: require an ASCII-style identifier, including a valid first character.
+    if (rawtype(sInput) ~= "string" or not sInput:match("^[%a_][%w_]*$")) then
+        return false;
     end
 
-    if (not bIsKeyWord) then
-        bRet =	(sInput ~= "")	 			and
-                (not sInput:match("^%d")) 	and
-                (not sInput:gsub("_", ""):match("[%W]"));
-    end
-
-    return bRet;
+    -- Step 2: reject LuaEx keywords unless the caller explicitly skips that policy.
+    return bSkipKeywordCheck and true or not string.iskeyword(sInput);
 end
 
 
--- Converts a string into a filesystem-safe filename
--- Lua 5.3 --TODO make less strict for MacOS and Linux
-function string.makefilesafe(s, bLower)
-    assert(type(s) == "string", "Expected string")
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.makefilesafe
+    @pulsarlua function string.makefilesafe
+    @desc Normalizes text into a portable filename component using underscores, a conservative
+    255-byte limit and Windows device-name protection. Empty results become underscore. May produce
+    collisions; does not create files or guarantee name availability. Valid UTF-8 is not cut
+    mid-character when truncating.
+    @param string sInput Text to normalize.
+    @param boolean|nil bLower Whether to lowercase the result.
+    @ret string sRet Normalized filename component.
+!]]
+function string.makefilesafe(sInput, bLower)
 
-    -- trim
-    s = s:match("^%s*(.-)%s*$");
+    assert(rawtype(sInput) == "string", "Input must be a string.");
 
-    -- replace invalid filename characters
-    -- Windows invalid: \ / : * ? " < > |
-    s = s:gsub('[\\/:*?"<>|]', "_");
+    -- Step 1: trim and replace portable forbidden filename characters.
+    local sRet = sInput:match("^%s*(.-)%s*$");
+    sRet = sRet:gsub('[\\/:*?"<>|]', "_");
+    sRet = sRet:gsub("%c", "");
 
-    -- replace control chars
-    s = s:gsub("[%c]", "");
+    -- Step 2: normalize separators while retaining the established underscore policy.
+    sRet = sRet:gsub("%s+", "_");
+    sRet = sRet:gsub("_+", "_");
+    sRet = sRet:gsub("^_+", ""):gsub("_+$", "");
 
-    -- normalize whitespace
-    s = s:gsub("%s+", "_");
-
-    -- collapse multiple underscores
-    s = s:gsub("_+", "_");
-
-    -- remove leading/trailing underscores
-    s = s:gsub("^_+", ""):gsub("_+$", "");
-
-    -- Windows: no trailing dot or space
-    s = s:gsub("[%. ]+$", "");
-
-    if bLower then
-        s = s:lower();
+    if (bLower) then
+        sRet = sRet:lower();
     end
 
-    return s;
+    -- Step 3: enforce a conservative component length and legal trailing characters.
+    local bUTF8 = utf8 and utf8.len(sRet) ~= nil;
+    sRet = sRet:sub(1, 255);
+
+    if (bUTF8) then
+        -- If truncation cut a multi-byte character, remove its partial bytes.
+        while (utf8.len(sRet) == nil) do
+            sRet = sRet:sub(1, -2);
+        end
+    end
+
+    sRet = sRet:gsub("[%. ]+$", "");
+
+    -- Step 4: provide usable output for empty input and reserved device basenames.
+    if (sRet == "") then
+        sRet = "_";
+    elseif (isReservedFilename(sRet)) then
+        sRet = ("_"..sRet):sub(1, 255);
+
+        if (bUTF8) then
+            while (utf8.len(sRet) == nil) do
+                sRet = sRet:sub(1, -2);
+            end
+        end
+    end
+
+    return sRet;
+end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.tosid
+    @pulsarlua function string.tosid
+    @desc Converts tostring(input) to lowercase, collapses/trims whitespace and encodes normalized
+    bytes as uppercase hex. Stable for the same normalized text; not a hash or a unique object
+    identity.
+    @param any sInput Value converted to text.
+    @ret string sID Normalized byte-encoded identifier.
+!]]
+function string.tosid(sInput)
+
+    -- Step 1: normalize text spelling and whitespace before generating a stable byte ID.
+    sInput = tostring(sInput)
+        :lower()
+        :gsub("%s+", " ")
+        :gsub("^%s+", "")
+        :gsub("%s+$", "")
+
+    -- Step 2: encode normalized bytes as uppercase hex; this is not a hash.
+    return (sInput:gsub(".", function(c)
+        return string.format("%02X", string.byte(c))
+    end))
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.totable
-    @desc Creates a table based on a demilited string.
-    @param string sInput The string from which to create a table.
-    @param string|nil sDelimiter The delimter.
-    @param bAllowBlank boolean|nil Whether blank items should be included (if true) or skipped (if false or nil)
-    @ret table The delimted, numerically-indexed table.
-    @ex
-    local sTest = "one,two,three,,four";
-
-    for k, v in pairs(sTest:totable(',', true)) do
-        print(k, v);
-    end
-
-    --\[\[
-    1	one
-    2	two
-    3	three
-    4
-    5	four
-    \]\]
+    @pulsarlua function string.totable
+    @desc Splits on a literal delimiter, supporting multiple bytes and pattern punctuation. Defaults
+    to comma. Optional callback transforms retained items; returning nil omits an item. Callback
+    exceptions propagate. Empty input yields one empty item only when bAllowBlank is truthy.
+    @param string sInput Text to split.
+    @param string|nil sDelimiter Nonempty literal delimiter, default comma.
+    @param boolean|nil bAllowBlank Whether to retain leading/repeated/trailing empty fields.
+    @param function|nil fCallback Optional item transformer.
+    @ret table tRet Dense ordered result list.
 !]]
-function stringtotableOLD(sInput, sDelimiter, bAllowBlank, fCallback) --allows only one char as delimiter
-    local tRet      = {};
-    local fCallback = rawtype(fCallback) == "function" and fCallback or false;
-
-    local pattern = "([^"..(sDelimiter or "]+").."]+)"
-    if bAllowBlank then
-        pattern = "([^"..(sDelimiter or "]+").."]*)"
-    end
-
-    for w in sInput:gmatch(pattern) do
-
-        if (fCallback) then
-            table.insert(tRet, fCallback(w));
-        else
-            table.insert(tRet, w);
-        end
-
-    end
-
-    return tRet;
-end
-
-
 function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
-    local tRet      = {};
-    local fCallback = rawtype(fCallback) == "function" and fCallback or false;
 
-    sDelimiter = (type(sDelimiter) == "string" and sDelimiter ~= "") and sDelimiter or ",";
+    assert(rawtype(sInput) == "string", "Input must be a string.");
+    local tRet = {};
+    sDelimiter = rawtype(sDelimiter) == "string" and sDelimiter ~= "" and sDelimiter or ",";
+    fCallback = rawtype(fCallback) == "function" and fCallback or false;
 
-    local function _push(w)
-        if (fCallback) then
-            table.insert(tRet, fCallback(w));
-        else
-            table.insert(tRet, w);
+    --[[!
+        @fqxn LuaEx.Lua Hooks.string.Helpers.pushSplitItem
+        @desc Applies the blank-item policy and optional callback, appending non-nil results.
+        @param string sItem Extracted field from the split input.
+        @scope local
+    !]]
+    local function push(sItem)
+
+        -- Skip empty items before invoking the callback, unless explicitly requested.
+        if (sItem ~= "" or bAllowBlank) then
+            local vItem = sItem;
+
+            if (fCallback) then
+                vItem = fCallback(sItem);
+            end
+
+            -- A callback returning nil omits that item without creating a list hole.
+            if (vItem ~= nil) then
+                tRet[#tRet + 1] = vItem;
+            end
         end
     end
 
-    local function escpat(s)
-        return (s:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
-    end
-
-    local sDelimPat = escpat(sDelimiter);
-    local sPat      = "(.-)" .. sDelimPat;
-
+    -- Use literal find: delimiters can contain Lua pattern characters or multiple bytes.
     local nStart = 1;
+
     while (true) do
-        local a, b, w = sInput:find(sPat, nStart);
-        if not a then
-            w = sInput:sub(nStart);
-            if (w ~= "" or bAllowBlank) then
-                _push(w);
-            end
+        local nFirst, nLast = sInput:find(sDelimiter, nStart, true);
+
+        if (not nFirst) then
+            push(sInput:sub(nStart));
             break;
         end
 
-        if (w ~= "" or bAllowBlank) then
-            _push(w);
-        end
-
-        nStart = b + 1;
+        push(sInput:sub(nStart, nFirst - 1));
+        nStart = nLast + 1;
     end
 
     return tRet;
 end
-
-
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.trim
     @pulsarlua function string.trim
-    @desc Trims blank space from the beginning and end of a string.
-    @param string sInput The string to trim.
-    @ret string The trimmed string.
-    @ex
-    local sTest = "     |Inner String|      ";
-    print(sTest:trim()); -->|Inner String|
-    @www Code by <a href="https://snippets.bentasker.co.uk" target="_blank">https://snippets.bentasker.co.uk</a>
+    @desc Removes leading and trailing Lua whitespace. Empty/whitespace-only input returns empty.
+    @param string sInput Text to trim.
+    @ret string sRet Trimmed text.
 !]]
 function string.trim(sInput)
-  return sInput:match'^()%s*$' and '' or sInput:match'^%s*(.*%S)';
+    assert(rawtype(sInput) == "string", "Input must be a string.");
+    -- Capture between leading/trailing whitespace; empty input returns an empty string.
+    return sInput:match("^%s*(.-)%s*$");
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.trimleft
     @pulsarlua function string.trimleft
-    @desc Trims blank space from the beginning of a string.
-    @param string sInput The string to trim.
-    @ret string The trimmed string.
-    @ex
-    local sTest = "     |Inner String|      ";
-    print(sTest:trimleft()); -->|Inner String|      <--string ends here
-    @www Code by <a href="https://snippets.bentasker.co.uk" target="_blank">https://snippets.bentasker.co.uk</a>
+    @desc Removes leading Lua whitespace, preserving trailing content.
+    @param string sInput Text to trim.
+    @ret string sRet Left-trimmed text.
 !]]
 function string.trimleft(sInput)
-  return sInput:match'^%s*(.*)';
+    assert(rawtype(sInput) == "string", "Input must be a string.");
+    -- Preserve trailing content exactly, including whitespace.
+    return sInput:match("^%s*(.*)$");
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.trimright
     @pulsarlua function string.trimright
-    @desc Trims blank space from the beginning of a string.
-    @param string sInput The string to trim.
-    @ret string The trimmed string.
-    @ex
-    local sTest = "     |Inner String|      ";
-    print(sTest:trimright()); -->     |Inner String|
-    @www Code by <a href="https://snippets.bentasker.co.uk" target="_blank">https://snippets.bentasker.co.uk</a>
+    @desc Removes trailing Lua whitespace, preserving leading content. All-whitespace input returns
+    empty rather than nil.
+    @param string sInput Text to trim.
+    @ret string sRet Right-trimmed text.
 !]]
 function string.trimright(sInput)
-  return sInput:match'^(.*%S)%s*$';
+    assert(rawtype(sInput) == "string", "Input must be a string.");
+    -- An optional non-whitespace capture is not needed; all-blank strings return empty.
+    return sInput:match("^(.-)%s*$");
 end
 
 
 --[[!
     @fqxn LuaEx.Lua Hooks.string.uuid
     @pulsarlua function string.uuid
-    @desc Creates a Universally Unique Identifier in the following format:
-    <br><b>6430425f-dfe0-d7c8-cf55-dc0f133e07ef</b>
-    @ret string sUUID A Universally Unique Identifier in the following format:
-    <br><b>6430425f-dfe0-d7c8-cf55-dc0f133e07ef</b>
-    @ex
-    print(string.uuid()) --> 6430425f-dfe0-d7c8-cf55-dc0f133e07ef (a string in this format)
+    @desc Generates a random hexadecimal 8-4-4-4-12 identifier using math.random. Does not enforce
+    UUID version/variant bits and is not a cryptographic generator. Host controls RNG seeding.
+    @param boolean|nil bUppercase Whether hexadecimal letters are uppercase.
+    @ret string sUUID Generated identifier.
 !]]
 function string.uuid(bUppercase)
     local sRet 			= "";
     local tChars = bUppercase and _tCharsUpper or _tCharsLower;
 
-    for nBlock, nBlockCharCount in pairs(_tUUIDSequence) do
+    -- Block order must be deterministic even though character selection is random.
+    for nBlock, nBlockCharCount in ipairs(_tUUIDSequence) do
         local sDash = nBlock < _sUUIDBlocks and "-" or "";
 
         for x = 1, nBlockCharCount do
@@ -534,63 +606,20 @@ function string.uuid(bUppercase)
     return sRet
 end
 
-function string.tosid(sInput)
-    sInput = tostring(sInput)
-        :lower()
-        :gsub("%s+", " ")
-        :gsub("^%s+", "")
-        :gsub("%s+$", "")
 
-    return (sInput:gsub(".", function(c)
-        return string.format("%02X", string.byte(c))
-    end))
-end
+--[[!
+    @fqxn LuaEx.Lua Hooks.string.Legacy.stringtotableOLD
+    @desc Legacy global alias for string.totable. Supports the corrected literal splitter.
+    @param string sInput Text to split.
+    @param string|nil sDelimiter Literal delimiter, default comma.
+    @param boolean|nil bAllowBlank Whether empty items are retained.
+    @param function|nil fCallback Optional item transformer.
+    @ret table tRet Ordered result list.
+!]]
+function stringtotableOLD(sInput, sDelimiter, bAllowBlank, fCallback)
 
-
-local tHTMLReplacements = {
-    ["<b>"] = "**", ["</b>"] = "**",
-    ["<strong>"] = "**", ["</strong>"] = "**",
-    ["<h1>"] = "# ", ["</h1>"] = "\n",
-    ["<h2>"] = "## ", ["</h2>"] = "\n",
-    ["<h3>"] = "### ", ["</h3>"] = "\n",
-    ["<h4>"] = "#### ", ["</h4>"] = "\n",
-    ["<h5>"] = "##### ", ["</h5>"] = "\n",
-    ["<h6>"] = "###### ", ["</h6>"] = "\n",
-    ["<i>"] = "*", ["</i>"] = "*",
-    ["<em>"] = "*", ["</em>"] = "*",
-    ["<u>"] = "_", ["</u>"] = "_",
-    ["<br>"] = "  \n", ["<br/>"] = "  \n",
-    ["<p>"] = "\n\n", ["</p>"] = "\n\n",
-    ["<blockquote>"] = "> ", ["</blockquote>"] = "\n",
-    ["<code>"] = "`", ["</code>"] = "`",
-    ["<pre>"] = "```\n", ["</pre>"] = "\n```",
-    ["<ul>"] = "\n", ["</ul>"] = "\n",
-    ["<ol>"] = "\n", ["</ol>"] = "\n",
-    ["<li>"] = "- ", ["</li>"] = "\n",
-    ["<hr>"] = "\n---\n", ["<hr/>"] = "\n---\n"
-}
-
-
-function string.htmltomd(sText)
-    -- First, temporarily replace escaped tags with a placeholder
-    local tEscaped = {};
-
-    sText = sText:gsub("\\(<[^>]->)", function(sEscaped)
-        table.insert(tEscaped, sEscaped);
-        return "\1" .. #tEscaped .. "\2";  -- Use a placeholder that won't conflict
-    end)
-
-    -- Replace non-escaped tags with Markdown
-    for sTag, sMD in pairs(tHTMLReplacements) do
-        sText = sText:gsub(sTag, sMD);
-    end
-
-    -- Restore escaped tags
-    sText = sText:gsub("\1(%d+)\2", function(i)
-        return tEscaped[tonumber(i)];
-    end)
-
-    return sText;
+    -- Retain the legacy global entry point while sharing the corrected literal splitter.
+    return string.totable(sInput, sDelimiter, bAllowBlank, fCallback);
 end
 
 

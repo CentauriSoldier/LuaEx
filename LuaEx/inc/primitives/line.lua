@@ -1,3 +1,4 @@
+local lineFactory;
 local rawsetmetatable = rawsetmetatable;
 local rawtype = rawtype;
 local error = error;
@@ -93,7 +94,7 @@ end
 @param number nStopY Stop Y coordinate.
 @param boolean|nil bSkipFirstUpdate Defers publishing the initial calculated state until a read.
 !]]
-return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
+local function build(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
     if (bSkipFirstUpdate ~= nil and rawtype(bSkipFirstUpdate) ~= "boolean") then
         error("Line: skip-first-update must be a boolean.", 2);
     end
@@ -338,6 +339,23 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
     local tDecoy = {};
 
+    --[[!
+    @fqxn LuaEx.Primitives.line.Functions.getState
+    @desc Copies defining geometry and update settings. Derived caches are not saved.
+    @ret table tState Independent restoration data.
+    @scope local
+    !]]
+    local function getState()
+
+        return {
+            startX = tStart.x,
+            startY = tStart.y,
+            stopX = tStop.x,
+            stopY = tStop.y,
+            autoUpdate = tActual.autoUpdate,
+        };
+    end
+
     rawsetmetatable(tDecoy, {
         __index = function(tInput, vKey)
             update();
@@ -375,6 +393,22 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
             return tDecoy;
         end,
+        --[[!
+        @fqxn LuaEx.Primitives.line.Metamethods.__clone
+        @desc Creates independent geometry from current defining inputs, retaining update settings.
+        @ret primitive oCopy Independent line primitive.
+        !]]
+        __clone = function()
+
+            return lineFactory.deserialize(getState());
+        end,
+        --[[!
+        @fqxn LuaEx.Primitives.line.Metamethods.__serialize
+        @desc Supplies fresh defining state for global serialize; derived values are recomputed.
+        @ret table tState Restoration data.
+        !]]
+        __serialize = getState,
+        __serialtype = "line",
         __type = "primitive",
         __subtype = "line",
         __metatable = {__type = "primitive", __subtype = "line"},
@@ -396,3 +430,65 @@ return function(nStartX, nStartY, nStopX, nStopY, bSkipFirstUpdate)
 
     return tDecoy;
 end
+
+local lineFactoryActual = {
+    --[[!
+    @fqxn LuaEx.Primitives.line.Functions.deserialize
+    @pulsarlua function line.deserialize
+    @desc Validates saved defining state, rebuilds geometry and restores update settings.
+    Invalid state raises before a restored object is returned. Derived values are not trusted.
+    @param table tState State supplied by global serialize or the object's __serialize hook.
+    @ret primitive oCopy Restored independent line primitive.
+    !]]
+    deserialize = function(tState)
+
+        type.assert.table(tState);
+        local tAllowed = { startX = true, startY = true, stopX = true, stopY = true, autoUpdate = true };
+
+        -- Step 1: reject unknown state fields before constructing an object.
+        for sField in pairs(tState) do
+            assert(tAllowed[sField], "Unknown line restoration field.");
+        end
+
+        -- Step 2: require all defining coordinates/sizes as finite numbers.
+        for _, sField in ipairs({ "startX", "startY", "stopX", "stopY" }) do
+            local nValue = tState[sField];
+            assert(rawtype(nValue) == "number" and nValue == nValue and math.abs(nValue) < math.huge,
+                   "Invalid line restoration number: "..sField);
+        end
+
+        assert(rawtype(tState.autoUpdate) == "boolean", "Restored autoUpdate must be boolean.");
+
+        -- Step 3: constructor validation enforces geometry-specific constraints.
+        local oCopy = build(tState.startX, tState.startY, tState.stopX, tState.stopY);
+        oCopy.autoUpdate = tState.autoUpdate;
+        return oCopy;
+    end,
+};
+local lineFactoryMeta = {
+    __call = function(this, ...)
+
+        return build(...);
+    end,
+    __index = function(t, k)
+
+        return lineFactoryActual[k] or nil;
+    end,
+    __newindex = function()
+
+        error("line factory members cannot be assigned directly.", 2);
+    end,
+    __type = "linePrimitiveFactory",
+};
+lineFactory = {};
+lineFactoryMeta.__clone = function() return lineFactory; end;
+lineFactoryMeta.__serialize = function() return "line"; end;
+lineFactoryMeta.__metatable = table.readonly({
+    __type = lineFactoryMeta.__type,
+    __call = lineFactoryMeta.__call,
+    __clone = lineFactoryMeta.__clone,
+    __serialize = lineFactoryMeta.__serialize,
+});
+setmetatable(lineFactory, lineFactoryMeta);
+require("LuaEx.lib.serializer").registerFactory(lineFactory, {name = "line", types = {"line"}});
+return lineFactory;

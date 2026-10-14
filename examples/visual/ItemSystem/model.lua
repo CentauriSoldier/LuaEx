@@ -96,18 +96,18 @@ local function fields(tInput)
     local oStorage;
 
     if (c.storage == "Anywhere") then
-        oStorage = Registry({ItemSystem, ItemSlotSystem, ItemStashSystem});
+        oStorage = CoGRegistry({ItemSystem, ItemSlotSystem, ItemStashSystem});
     elseif (c.storage == "Player storage") then
-        oStorage = Registry({World.inventory, World.stash});
+        oStorage = CoGRegistry({World.inventory, World.stash});
     elseif (c.storage == "Ground only") then
-        oStorage = Registry({World.ground});
+        oStorage = CoGRegistry({World.ground});
     elseif (c.storage == "Shop only") then
-        oStorage = Registry({World.shop});
+        oStorage = CoGRegistry({World.shop});
     else
-        oStorage = Registry();
+        oStorage = CoGRegistry();
     end
 
-    local oScope = Registry();
+    local oScope = CoGRegistry();
 
     if (c.exclusive == "Stash") then
         oScope.add(World.stash);
@@ -116,12 +116,12 @@ local function fields(tInput)
     elseif (c.exclusive == "Shop") then
         oScope.add(World.shop);
     elseif (c.exclusive == "Everywhere") then
-        oScope = Registry({ItemSystem, ItemSlotSystem, ItemStashSystem});
+        oScope = CoGRegistry({ItemSystem, ItemSlotSystem, ItemStashSystem});
     end
 
-    local oConflict = c.group ~= "" and Registry({Item}, function(oOther, oRuleOwner)
+    local oConflict = c.group ~= "" and CoGRegistry({Item}, function(oOther, oRuleOwner)
         return oOther.getTrait("group") == oRuleOwner.getTrait("group");
-    end) or Registry();
+    end) or CoGRegistry();
     local oAttach = c.kind == "Gem" and ObjectRegistry({Item}, function(oHost)
         return oHost.getTrait("kind") == "Weapon";
     end) or ObjectRegistry();

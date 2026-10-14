@@ -1,3 +1,4 @@
+local circlearcFactory;
 local rawsetmetatable = rawsetmetatable;
 local rawtype = rawtype;
 local error = error;
@@ -72,7 +73,7 @@ local oArc = circlearc(0, 0, 4, 0, math.pi / 2);
 oArc.radius = 6;
 oArc.center.x = 10;
 !]]
-return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstUpdate)
+local function build(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstUpdate)
     validateNumber(nCenterX, "center.x");
     validateNumber(nCenterY, "center.y");
     local nSweep = validateGeometry(nRadius, nStartAngle, nEndAngle);
@@ -174,6 +175,24 @@ return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstU
 
     local tDecoy = {};
 
+    --[[!
+    @fqxn LuaEx.Primitives.circlearc.Functions.getState
+    @desc Copies defining geometry and update settings. Derived caches are not saved.
+    @ret table tState Independent restoration data.
+    @scope local
+    !]]
+    local function getState()
+
+        return {
+            centerX = tCenterActual.x,
+            centerY = tCenterActual.y,
+            radius = tActual.radius,
+            startAngle = tActual.startAngle,
+            endAngle = tActual.endAngle,
+            autoUpdate = tActual.autoUpdate,
+        };
+    end
+
     rawsetmetatable(tDecoy, {
         __index = function(tInput, vKey)
             update();
@@ -214,6 +233,22 @@ return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstU
                 update();
             end
         end,
+        --[[!
+        @fqxn LuaEx.Primitives.circlearc.Metamethods.__clone
+        @desc Creates independent geometry from current defining inputs, retaining update settings.
+        @ret primitive oCopy Independent circlearc primitive.
+        !]]
+        __clone = function()
+
+            return circlearcFactory.deserialize(getState());
+        end,
+        --[[!
+        @fqxn LuaEx.Primitives.circlearc.Metamethods.__serialize
+        @desc Supplies fresh defining state for global serialize; derived values are recomputed.
+        @ret table tState Restoration data.
+        !]]
+        __serialize = getState,
+        __serialtype = "circlearc",
         __type = "primitive",
         __subtype = "circle_arc",
         __metatable = {__type = "primitive", __subtype = "circle_arc"},
@@ -224,3 +259,65 @@ return function(nCenterX, nCenterY, nRadius, nStartAngle, nEndAngle, bSkipFirstU
 
     return tDecoy;
 end
+
+local circlearcFactoryActual = {
+    --[[!
+    @fqxn LuaEx.Primitives.circlearc.Functions.deserialize
+    @pulsarlua function circlearc.deserialize
+    @desc Validates saved defining state, rebuilds geometry and restores update settings.
+    Invalid state raises before a restored object is returned. Derived values are not trusted.
+    @param table tState State supplied by global serialize or the object's __serialize hook.
+    @ret primitive oCopy Restored independent circlearc primitive.
+    !]]
+    deserialize = function(tState)
+
+        type.assert.table(tState);
+        local tAllowed = { centerX = true, centerY = true, radius = true, startAngle = true, endAngle = true, autoUpdate = true };
+
+        -- Step 1: reject unknown state fields before constructing an object.
+        for sField in pairs(tState) do
+            assert(tAllowed[sField], "Unknown circlearc restoration field.");
+        end
+
+        -- Step 2: require all defining coordinates/sizes as finite numbers.
+        for _, sField in ipairs({ "centerX", "centerY", "radius", "startAngle", "endAngle" }) do
+            local nValue = tState[sField];
+            assert(rawtype(nValue) == "number" and nValue == nValue and math.abs(nValue) < math.huge,
+                   "Invalid circlearc restoration number: "..sField);
+        end
+
+        assert(rawtype(tState.autoUpdate) == "boolean", "Restored autoUpdate must be boolean.");
+
+        -- Step 3: constructor validation enforces geometry-specific constraints.
+        local oCopy = build(tState.centerX, tState.centerY, tState.radius, tState.startAngle, tState.endAngle);
+        oCopy.autoUpdate = tState.autoUpdate;
+        return oCopy;
+    end,
+};
+local circlearcFactoryMeta = {
+    __call = function(this, ...)
+
+        return build(...);
+    end,
+    __index = function(t, k)
+
+        return circlearcFactoryActual[k] or nil;
+    end,
+    __newindex = function()
+
+        error("circlearc factory members cannot be assigned directly.", 2);
+    end,
+    __type = "circlearcPrimitiveFactory",
+};
+circlearcFactory = {};
+circlearcFactoryMeta.__clone = function() return circlearcFactory; end;
+circlearcFactoryMeta.__serialize = function() return "circlearc"; end;
+circlearcFactoryMeta.__metatable = table.readonly({
+    __type = circlearcFactoryMeta.__type,
+    __call = circlearcFactoryMeta.__call,
+    __clone = circlearcFactoryMeta.__clone,
+    __serialize = circlearcFactoryMeta.__serialize,
+});
+setmetatable(circlearcFactory, circlearcFactoryMeta);
+require("LuaEx.lib.serializer").registerFactory(circlearcFactory, {name = "circlearc", types = {"circlearc"}});
+return circlearcFactory;

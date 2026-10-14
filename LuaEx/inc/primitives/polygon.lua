@@ -1,3 +1,4 @@
+local polygonFactory;
 local rawsetmetatable = rawsetmetatable;
 local rawtype = rawtype;
 local error = error;
@@ -362,7 +363,7 @@ oPolygon.setVertex(1, -1, -1);
 oPolygon.anchorIndex = SHAPE_ANCHOR_TOP_LEFT;
 oPolygon.setPosition(10, 20);
 !]]
-return function(...)
+local function build(...)
     local tVertices = readVertices(...);
     local tPending = calculate(tVertices);
     local tData = tPending;
@@ -743,6 +744,29 @@ return function(...)
     };
     local tDecoy = {};
 
+    --[[!
+    @fqxn LuaEx.Primitives.polygon.Functions.getState
+    @desc Copies defining geometry and update settings. Derived caches are not saved.
+    @ret table tState Independent restoration data.
+    @scope local
+    !]]
+    local function getState()
+
+        local tCoordinates = {};
+
+        -- Save current defining vertices rather than cached edge/area measurements.
+        for nIndex, tVertex in ipairs(tVertices) do
+            tCoordinates[#tCoordinates + 1] = tVertex.x;
+            tCoordinates[#tCoordinates + 1] = tVertex.y;
+        end
+
+        return {
+            vertices    = tCoordinates,
+            anchorIndex = nAnchorIndex,
+            autoUpdate  = bAutoUpdate,
+        };
+    end
+
     rawsetmetatable(tDecoy, {
         __index = function(tInput, vKey)
             update();
@@ -791,6 +815,22 @@ return function(...)
 
             return tDecoy;
         end,
+        --[[!
+        @fqxn LuaEx.Primitives.polygon.Metamethods.__clone
+        @desc Creates independent geometry from current defining inputs, retaining update settings.
+        @ret primitive oCopy Independent polygon primitive.
+        !]]
+        __clone = function()
+
+            return polygonFactory.deserialize(getState());
+        end,
+        --[[!
+        @fqxn LuaEx.Primitives.polygon.Metamethods.__serialize
+        @desc Supplies fresh defining state for global serialize; derived values are recomputed.
+        @ret table tState Restoration data.
+        !]]
+        __serialize = getState,
+        __serialtype = "polygon",
         __type = "primitive",
         __subtype = "polygon",
         __metatable = {__type = "primitive", __subtype = "polygon"},
@@ -798,3 +838,73 @@ return function(...)
 
     return tDecoy;
 end
+
+local polygonFactoryActual = {
+    --[[!
+    @fqxn LuaEx.Primitives.polygon.Functions.deserialize
+    @pulsarlua function polygon.deserialize
+    @desc Validates saved defining state, rebuilds geometry and restores update settings.
+    Invalid state raises before a restored object is returned. Derived values are not trusted.
+    @param table tState State supplied by global serialize or the object's __serialize hook.
+    @ret primitive oCopy Restored independent polygon primitive.
+    !]]
+    deserialize = function(tState)
+
+        type.assert.table(tState);
+        local tAllowed = { autoUpdate = true, vertices = true, anchorIndex = true };
+
+        -- Step 1: reject unknown state fields before constructing an object.
+        for sField in pairs(tState) do
+            assert(tAllowed[sField], "Unknown polygon restoration field.");
+        end
+
+        type.assert.table(tState.vertices);
+        local nCount = 0;
+
+        for nIndex in pairs(tState.vertices) do
+            assert(rawtype(nIndex) == "number" and nIndex >= 1 and nIndex % 1 == 0,
+                   "Polygon restoration vertices must be a dense list.");
+            nCount = nCount + 1;
+        end
+
+        for nIndex = 1, nCount do
+            assert(rawtype(tState.vertices[nIndex]) == "number", "Missing polygon restoration coordinate.");
+        end
+
+        assert(rawtype(tState.anchorIndex) == "number", "Missing polygon restoration anchor.");
+        assert(rawtype(tState.autoUpdate) == "boolean", "Restored autoUpdate must be boolean.");
+
+        -- Step 3: constructor validation enforces geometry-specific constraints.
+        local oCopy = build(table.unpack(tState.vertices));
+        oCopy.autoUpdate = tState.autoUpdate;
+        oCopy.anchorIndex = tState.anchorIndex;
+        return oCopy;
+    end,
+};
+local polygonFactoryMeta = {
+    __call = function(this, ...)
+
+        return build(...);
+    end,
+    __index = function(t, k)
+
+        return polygonFactoryActual[k] or nil;
+    end,
+    __newindex = function()
+
+        error("polygon factory members cannot be assigned directly.", 2);
+    end,
+    __type = "polygonPrimitiveFactory",
+};
+polygonFactory = {};
+polygonFactoryMeta.__clone = function() return polygonFactory; end;
+polygonFactoryMeta.__serialize = function() return "polygon"; end;
+polygonFactoryMeta.__metatable = table.readonly({
+    __type = polygonFactoryMeta.__type,
+    __call = polygonFactoryMeta.__call,
+    __clone = polygonFactoryMeta.__clone,
+    __serialize = polygonFactoryMeta.__serialize,
+});
+setmetatable(polygonFactory, polygonFactoryMeta);
+require("LuaEx.lib.serializer").registerFactory(polygonFactory, {name = "polygon", types = {"polygon"}});
+return polygonFactory;

@@ -1,7 +1,6 @@
 local piles = {};
 local records, selected, nextID, message, events = {}, 0, 1, "", {};
-local suits = {"Spades", "Hearts", "Diamonds", "Clubs"};
-local ranks = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"};
+local categories = {"Spell", "Resource", "Character", "Quest"};
 local function log(text)
     message = text;
     events[#events + 1] = text;
@@ -15,16 +14,18 @@ local function add(card, pile)
     selected = id;
     return id;
 end
-local function reset(jokers)
+local function reset(bonus)
     piles = {deck = BaseDeck(), hand = BaseDeck(), discard = BaseDeck()};
     records, selected, nextID, events = {}, 0, 1, {};
-    for _, suit in ipairs(suits) do
-        for value, rank in ipairs(ranks) do
-            add(BaseCard(rank.." of "..suit, "A standard playing card.", nil, nil, suit, rank, value), "deck");
+    for _, category in ipairs(categories) do
+        for index = 1, 13 do
+            local card = BaseCard(category.." "..index, "A generic "..category:lower().." card.");
+            card.getTagSystem().add(category);
+            add(card, "deck");
         end
     end
-    if jokers then
-        for i = 1, 2 do add(BaseCard("Joker "..i, "A caller-defined wild card.", nil, nil, "None", "Joker", 0), "deck"); end
+    if bonus then
+        for i = 1, 2 do add(BaseCard("Bonus "..i, "An optional bonus card."), "deck"); end
     end
     selected = 1;
     log("Fresh deck: top is index one. Draw moves real instances to your hand; hands and discards are example policy.");
@@ -43,8 +44,7 @@ local function view()
         for index, card in piles[key].eachCard() do
             local id;
             for candidate, object in pairs(records) do if rawequal(card, object) then id = candidate; break; end end
-            local info = {id = id, index = index, name = card.getName(), suit = card.getSuit(), rank = card.getRank(),
-                value = card.getValue(), faceUp = card.isFaceUp(), enabled = card.isEnabled(), pile = key};
+            local info = {id = id, index = index, name = card.getName(), description = card.getDescription(), faceUp = card.isFaceUp(), enabled = card.isEnabled(), pile = key};
             cards[#cards + 1] = info;
             if id == selected then selection = info; end
         end
@@ -56,7 +56,7 @@ function workbench_action(action, data)
     data = data or {};
     local ok, why = pcall(function()
         if action == "view" then return; end
-        if action == "reset" then reset(data.jokers == true); return; end
+        if action == "reset" then reset(data.bonus == true); return; end
         if action == "shuffle" then piles.deck.shuffle(); log("Shuffled draw pile only. Hand and discard are unchanged."); return; end
         if action == "reverse" then piles.deck.reverse(); log("Reversed draw-pile order."); return; end
         if action == "peek" then
@@ -83,8 +83,9 @@ function workbench_action(action, data)
             assert(nextID <= 150, "Reset the lab after creating 150 card records.");
             assert(type(data.name) == "string" and data.name:find("%S") and #data.name <= 80, "Enter a card name.");
             assert(piles[data.pile], "Unknown destination pile.");
-            add(BaseCard(data.name, "A custom card.", nil, nil, data.suit or "", data.rank or "", tonumber(data.value), true), data.pile);
-            log("Created a distinct card instance. Matching suit/rank/value does not make it a duplicate instance.");
+            assert(type(data.description) == "string" and data.description:find("%S"), "Enter a card description.");
+            add(BaseCard(data.name, data.description, nil, nil, true), data.pile);
+            log("Created a distinct card instance. Matching names do not make it a duplicate instance.");
             return;
         end
         local card = records[tonumber(data.id or selected)];
@@ -94,11 +95,8 @@ function workbench_action(action, data)
         selected = tonumber(data.id or selected);
         if action == "select" then return;
         elseif action == "edit" then
-            local value = tonumber(data.value);
-            assert(value and value == value and math.abs(value) < math.huge, "Value must be finite.");
-            assert(type(data.suit) == "string" and type(data.rank) == "string", "Suit/rank must be text.");
             assert(type(data.faceUp) == "boolean" and type(data.enabled) == "boolean", "Flags must be booleans.");
-            card.setSuit(data.suit).setRank(data.rank).setValue(value).setFaceUp(data.faceUp).setEnabled(data.enabled);
+            card.setFaceUp(data.faceUp).setEnabled(data.enabled);
             log("Updated the same card instance. Enabled is metadata; the deck does not automatically skip disabled cards.");
         elseif action == "flip" then card.flip(); log("Flipped "..card.getName()..".");
         elseif action == "clone" then add(clone(card), source); log("Added an independent clone, preserving face state, traits and tags.");

@@ -26,20 +26,20 @@ All inputs are validated. Initial item arrays are accepted atomically: an invali
 
 ItemSlot defaults to allowing BaseItem and descendants. An explicit empty registry permits nothing. Inventory and stash insertion require Storable_In to permit at least one actual context in the destination hierarchy (a particular tab, the stash, or an applicable class). Storable_In defaults empty, so concrete item constructors must configure their storage permissions. ItemSlotSystem is neutral: ordinary insertion checks slot eligibility, while equipItem also checks the actor's Equipable_By permission.
 
-Registry callbacks receive useful context: slot eligibility `(item, slot)`; storage `(container, item)`; Exclusive_In `(container, ruleOwner)`; Exclusive_With `(otherItem, ruleOwner, container)`; BaseItem.can* helpers `(matchedObject, item, ...)`. Callbacks must be side-effect-free. Container, location and attachment mutations during callbacks are rejected. Exceptions become failed operations with a reason and unchanged membership.
+CoGRegistry callbacks receive useful context: slot eligibility `(item, slot)`; storage `(container, item)`; Exclusive_In `(container, ruleOwner)`; Exclusive_With `(otherItem, ruleOwner, container)`; BaseItem.can* helpers `(matchedObject, item, ...)`. Callbacks must be side-effect-free. Container, location and attachment mutations during callbacks are rejected. Exceptions become failed operations with a reason and unchanged membership.
 
 ## Exclusivity across a whole stash
 
 Configure the kite's constructor inputs with:
 
 ```lua
-local exclusiveIn = Registry({myStash});
-local exclusiveWith = Registry({Kite});
+local exclusiveIn = CoGRegistry({myStash});
+local exclusiveWith = CoGRegistry({Kite});
 ```
 
 At every context in the containing hierarchy, each pair is checked in both directions: the rule owner must match that context through Exclusive_In and the other item through Exclusive_With. One rule is enough to reject the pair; insertion order does not matter. Defaults include ItemSlotSystem, ItemSystem and ItemStashSystem as contexts, but Exclusive_With starts empty, so there is no default conflict.
 
-An Exclusive_In constructor argument may be a Registry or a specific supported system instance (wrapped in a Registry). Direct calls to a stash tab or a system-owned slot still validate the entire root context. Moving an existing kite between tabs validates the final arrangement, excluding its old position. Specific instance entries use raw identity.
+An Exclusive_In constructor argument may be a CoGRegistry or a specific supported system instance (wrapped in a CoGRegistry). Direct calls to a stash tab or a system-owned slot still validate the entire root context. Moving an existing kite between tabs validates the final arrangement, excluding its old position. Specific instance entries use raw identity.
 
 ## Mutations and return values
 

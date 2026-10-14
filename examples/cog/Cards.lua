@@ -12,39 +12,39 @@ package.path = sRepositoryPath .. "/?.lua;" .. package.path
 if not LUAEX_INIT then require("LuaEx.init") end
 
 local D = require("examples.support.tutorial").new("Cards and decks", "Card traits, actual instances, order, drawing, iteration and copying.");
-local suit, rank, value = "Spades", "Ace", 1; -- Edit these directly.
-D.section("A card", "Suit/rank are labels; value is numeric. Names, rarity and tags come from BaseObject.");
-local ace = BaseCard(rank.." of "..suit, "An example card.", nil, nil, suit, rank, value);
-D.equal("Suit", ace.getSuit(), suit);
-D.equal("Value", ace.getValue(), value);
-D.check("Initially face down", not ace.isFaceUp());
+local name, description = "Fireball", "A spell card."; -- Edit these directly.
+D.section("A card", "Any card can use names, descriptions, rarity and tags. Specialized fields belong to your game.");
+local spell = BaseCard(name, description);
+D.equal("Name", spell.getName(), name);
+D.equal("Description", spell.getDescription(), description);
+D.check("Initially face down", not spell.isFaceUp());
 D.section("Presentation state", "Flip, reveal and hide change the same instance. Enabled is caller-interpreted metadata.");
-ace.flip(); D.check("Flipped up", ace.isFaceUp());
-ace.hide().setEnabled(false); D.check("Disabled flag preserved", not ace.isEnabled());
+spell.flip(); D.check("Flipped up", spell.isFaceUp());
+spell.hide().setEnabled(false); D.check("Disabled flag preserved", not spell.isEnabled());
 D.section("Ordered deck", "Index one is the top. The constructor copies the input array, retaining card identity.");
-local king = BaseCard("King", "A second card.", nil, nil, "Hearts", "King", 13);
-local deck = BaseDeck({ace, king});
+local resource = BaseCard("Healing Potion", "A resource card.");
+local deck = BaseDeck({spell, resource});
 D.equal("Remaining cards", #deck, 2);
-D.check("Top identity", rawequal(deck.peek(), ace));
-D.check("Duplicate instance rejected", not select(2, deck.addCard(ace)));
+D.check("Top identity", rawequal(deck.peek(), spell));
+D.check("Duplicate instance rejected", not select(2, deck.addCard(spell)));
 D.section("Read without consuming", "Iteration and getCards return independent array snapshots, containing the actual cards.");
 for index, card in deck.eachCard() do D.show("Card "..index, card.getName()); end
-local snapshot = deck.getCards(); snapshot[1] = king;
-D.check("Snapshot edits do not reorder the deck", rawequal(deck.peek(), ace));
+local snapshot = deck.getCards(); snapshot[1] = resource;
+D.check("Snapshot edits do not reorder the deck", rawequal(deck.peek(), spell));
 D.section("Drawing and returning", "Draw removes the real instance. Insufficient batch draws do nothing.");
 local cards, success = deck.drawMany(3);
 D.check("Oversized draw rejected", not success and #cards == 0 and #deck == 2);
-D.check("Drawn identity", rawequal(deck.draw(), ace));
-D.check("Return to bottom", select(2, deck.addCard(ace)));
+D.check("Drawn identity", rawequal(deck.draw(), spell));
+D.check("Return to bottom", select(2, deck.addCard(spell)));
 D.section("Shuffle and reverse", "A bounded integer random callback makes deterministic examples possible. Invalid indices leave order unchanged.");
 deck.shuffle(function(minimum, maximum) return maximum; end);
-D.check("Deterministic order", rawequal(deck.peek(), king));
-deck.reverse(); D.check("Reversed top", rawequal(deck.peek(), ace));
+D.check("Deterministic order", rawequal(deck.peek(), resource));
+deck.reverse(); D.check("Reversed top", rawequal(deck.peek(), spell));
 D.section("Independent copies", "Base decks clone their cards. Subclasses define copying for additional state.");
 local copy = clone(deck);
-copy.peek().setValue(99);
-D.equal("Original value unaffected", ace.getValue(), value);
-D.check("Independent copied card", not rawequal(copy.peek(), ace));
+copy.peek().setEnabled(true);
+D.check("Original enabled flag unaffected", not spell.isEnabled());
+D.check("Independent copied card", not rawequal(copy.peek(), spell));
 D.section("Clear and empty draws", "Clear returns the removed instances. An empty draw returns nil.");
 local _, removed = deck.clear();
 D.equal("Removed card count", #removed, 2);

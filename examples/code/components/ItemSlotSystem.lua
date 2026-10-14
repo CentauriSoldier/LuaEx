@@ -23,7 +23,7 @@ local ExampleItem = class("ContainerExampleItem", {}, {}, {}, {}, {
         local t = tOptions or {};
         super(sName, "A separate item instance", nil, nil,
               nil,t.consume,nil,nil,t.equip,t.scope,t.conflicts,nil,nil,nil,
-              t.storage or Registry({ItemSystem, ItemStashSystem}),t.tradeBy,t.tradeTo,t.unequip,nil,nil,
+              t.storage or CoGRegistry({ItemSystem, ItemStashSystem}),t.tradeBy,t.tradeTo,t.unequip,nil,nil,
               nil,nil,nil,nil,nil,nil,t.pattern);
     end,
 }, BaseItem);
@@ -54,7 +54,7 @@ D.check("Enabled removal succeeds", select(2, specific.remove()));
 
 D.section("One kite across the entire stash", "Exclusive_In selects a context; Exclusive_With selects conflicting items. Direct tab insertion still checks every stash tab.");
 local stash = ItemStashSystem(nil, nStashTabs, nItemsPerTab);
-local kite = ExampleItem("Unique kite", {scope = Registry({stash}), conflicts = Registry({ExampleItem})});
+local kite = ExampleItem("Unique kite", {scope = CoGRegistry({stash}), conflicts = CoGRegistry({ExampleItem})});
 local secondKite = ExampleItem("Second kite");
 D.check("First kite stored", select(2, stash.addItem(kite, 1)));
 local targetTab = math.min(2, nStashTabs);

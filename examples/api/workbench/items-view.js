@@ -121,7 +121,7 @@
   $('items-selected-name').textContent=creating?'Create an item':item?item.name:'Select an item';
   $('items-selected-location').textContent=creating?'Set properties, choose a destination, then Create.':item?`#${item.id} · ${item.location} · Legal owner: ${item.ownerName}`:'Click an item in any inventory or create a new one.';
   $('items-selected-requirements').textContent=item&&!creating?`Requires level ${item.config.level}, strength ${item.config.strength}, race ${item.config.race}. Pattern: ${item.footprint} coordinates. ${item.config.group?'Exclusive group '+item.config.group+' in '+item.config.exclusive+'. ':''}${list(item.attachments).length?'Attachments: '+list(item.attachments).join(', ')+'. ':''}${item.config.description}`:'';
-  $('items-permission-actor').textContent=item&&!creating?'Registry eligibility for '+list(state.actors).find(a=>a.key===state.actor).name:'';
+  $('items-permission-actor').textContent=item&&!creating?'CoGRegistry eligibility for '+list(state.actors).find(a=>a.key===state.actor).name:'';
   $('items-editor').hidden=!creating&&!item;$('items-action-area').hidden=creating||!item;
   $('items-apply').textContent=creating?'Create item':'Apply item properties';$('items-draft').textContent=dirty?'Unsaved changes':'';
   const permissions=$('items-permissions');permissions.replaceChildren();

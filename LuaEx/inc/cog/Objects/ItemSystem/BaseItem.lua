@@ -24,7 +24,7 @@ local function defaultObjectRegistry()
 end
 
 local function defaultRegistry()
-    return Registry();
+    return CoGRegistry();
 end
 
 local function defaultDurability()
@@ -41,7 +41,7 @@ end
 
 --[[!
     @fqxn CoG.ItemSystem.BaseItem
-    @desc Base class for individual items. Registry fields express eligibility;
+    @desc Base class for individual items. CoGRegistry fields express eligibility;
     callers perform actions and enforce their gameplay consequences. Durability
     reaching zero does not imply destruction. Inimitable is metadata only.
     Every omitted registry/Pool/SlotPattern input creates a fresh object in the constructor;
@@ -94,14 +94,14 @@ return class("BaseItem",
     Slot_Pattern__autoA_    = null,
 
     --TODO Revisit blueprint identity and its relationship to item definitions.
-    -- Container/attachment operations coordinate optional references. Registry
+    -- Container/attachment operations coordinate optional references. CoGRegistry
     -- and Pool replacement setters are deliberately not generated.
 
     --[[!
         @fqxn CoG.ItemSystem.BaseItem.Methods.BaseItem
         @desc Protected constructor invoked by concrete item subclasses.
-        Registry/Pool arguments are optional objects, never booleans or numbers.
-        vExclusiveIn accepts a Registry or a particular supported system instance;
+        CoGRegistry/Pool arguments are optional objects, never booleans or numbers.
+        vExclusiveIn accepts a CoGRegistry or a particular supported system instance;
         omission includes slot systems, inventories and stashes. Other registries start empty.
         Location and Attached_To accept class instances or null/nil; omitted values
         remain null. Attached_To identifies one CoG host. Inimitable defaults false.
@@ -129,18 +129,18 @@ return class("BaseItem",
             tFields[tField[1]] = acceptObject(tField[2], ObjectRegistry, defaultObjectRegistry, tField[1]);
         end
 
-        tFields.Exclusive_With = acceptObject(oExclusiveWith, Registry, defaultRegistry, "Exclusive_With");
-        tFields.Storable_In = acceptObject(oStorableIn, Registry, defaultRegistry, "Storable_In");
+        tFields.Exclusive_With = acceptObject(oExclusiveWith, CoGRegistry, defaultRegistry, "Exclusive_With");
+        tFields.Storable_In = acceptObject(oStorableIn, CoGRegistry, defaultRegistry, "Storable_In");
 
         if (vExclusiveIn == nil) then
-            tFields.Exclusive_In = Registry({ItemSlotSystem, ItemSystem, ItemStashSystem});
+            tFields.Exclusive_In = CoGRegistry({ItemSlotSystem, ItemSystem, ItemStashSystem});
         elseif (class.isinstance(vExclusiveIn) and
                 (class.ischildorself(class.of(vExclusiveIn), ItemSlotSystem) or
                  class.ischildorself(class.of(vExclusiveIn), ItemSystem) or
                  class.ischildorself(class.of(vExclusiveIn), ItemStashSystem))) then
-            tFields.Exclusive_In = Registry({vExclusiveIn});
+            tFields.Exclusive_In = CoGRegistry({vExclusiveIn});
         else
-            tFields.Exclusive_In = acceptObject(vExclusiveIn, Registry, defaultRegistry, "Exclusive_In");
+            tFields.Exclusive_In = acceptObject(vExclusiveIn, CoGRegistry, defaultRegistry, "Exclusive_In");
         end
 
         tFields.Durability = acceptObject(oDurability, Pool, defaultDurability, "Durability");

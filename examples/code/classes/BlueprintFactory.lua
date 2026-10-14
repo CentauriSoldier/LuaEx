@@ -11,44 +11,94 @@ end
 package.path = sRepositoryPath .. "/?.lua;" .. package.path
 if not LUAEX_INIT then require("LuaEx.init") end
 
-local D=require("examples.support.tutorial").new("Blueprint factory","Register a typed blueprint schema, construct objects, and distinguish records from instances.")
+local D = require("examples.support.tutorial").new(
+    "Blueprint repository",
+    "Register a class, import definitions, and let the class construct objects."
+);
 
-D.section("Factory registration", "A CoG subclass registers its schema from its authorized static constructor.")
-local Item
-Item=class("ExampleBlueprintItem",{}, {
-    ExampleBlueprintItem=function(child,auth)
-        local record=schema.Record{id=Factorium.SCHEMA_ID,name=schema.String,weight=schema.Number}
-        local ok,message=Factorium.registerFactory(child,auth,record,function(id,data)
-            return child(data.name,data.weight)
-        end)
-        assert(ok,message)
+D.section("Class registration", "Each participating CoG class declares its defaults, validator and factory.")
+local Item;
+Item = class("ExampleBlueprintItem", {}, {
+    Blueprint = { name = "Unnamed item", weight = 1 },
+
+    validateBlueprint = function(bp)
+        if (rawtype(bp.name) ~= "string" or not bp.name:find("%S")) then
+            return false, "name must be a nonblank string";
+        end
+
+        if (rawtype(bp.weight) ~= "number" or bp.weight < 0) then
+            return false, "weight must be nonnegative";
+        end
+
+        return true;
     end,
-}, {name="",weight=0}, {}, {
-    ExampleBlueprintItem=function(this,cdat,super,name,weight)
-        super();cdat.pri.name=name;cdat.pri.weight=weight
+
+    fromBlueprint = function(bp)
+        return Item(bp.name, bp.weight);
     end,
-    getName=function(this,cdat) return cdat.pri.name end,
-    getWeight=function(this,cdat) return cdat.pri.weight end,
-},CoG)
 
-D.section("Your blueprint", "The schema requires a string identifier, string name and numeric weight.")
-local name=("Trail boots" --[[ Edit name here ]]);local weight=(2 --[[ Edit weight here ]])
-local record={id="DEM-ITM-0001",name=name,weight=weight}
-D.show("Blueprint record",record)
-local ok,message=Factorium.addBlueprint(Item,record);D.check("Blueprint accepted",ok)
-D.section("Build an instance", "The factory translates the record into private class state.")
-local boots,why=Factorium.fromBlueprint(record.id);D.check("Instance created",boots~=nil)
-D.equal("Name",boots.getName(),name);D.equal("Weight",boots.getWeight(),weight)
-D.section("Multiple instances", "The same blueprint can create distinct instances with identical initial data.")
-local second=Factorium.fromBlueprint(record.id)
-D.check("Different object identities",boots~=second)
-D.equal("Same initial weight",second.getWeight(),weight)
-D.section("Another record", "Registry identifiers select different records within the same class schema.")
-local accepted,reason=Factorium.addBlueprint(Item,{id="DEM-ITM-0002",name="Light pack",weight=0.5})
-D.check("Second blueprint accepted",accepted)
-D.equal("Second record name",Factorium.fromBlueprint("DEM-ITM-0002").getName(),"Light pack")
-D.section("Unknown identifier", "Lookup returns nil and an explanation when no matching blueprint exists.")
-local missing,errorText=Factorium.fromBlueprint("DEM-ITM-FFFF")
-D.equal("Missing result",missing,nil);D.show("Missing reason",errorText)
+    ExampleBlueprintItem = function(cClass)
+        local bRegistered, sReason = Factorium.registerClass(cClass);
+        assert(bRegistered, sReason);
+    end,
+}, {
+    name = "",
+    weight = 0,
+}, {}, {
+    ExampleBlueprintItem = function(this, cdat, super, sName, nWeight)
+        super();
+        cdat.pri.name = sName;
+        cdat.pri.weight = nWeight;
+    end,
 
-D.finish()
+    getName = function(this, cdat)
+        return cdat.pri.name;
+    end,
+
+    getWeight = function(this, cdat)
+        return cdat.pri.weight;
+    end,
+}, CoG);
+
+D.section("Your blueprint", "The mod supplies only the fields it wants to override.")
+local name = ("Trail boots" --[[ Edit name here ]]);
+local weight = (2 --[[ Edit weight here ]]);
+local record = { id = "trail_boots", class = "ExampleBlueprintItem", name = name, weight = weight };
+D.show("Blueprint record", record);
+
+local bImported, tReport = Factorium.importMod({
+    id = BaseMod.DEFAULT_MOD_ID,
+    name = "Blueprint tutorial",
+    authors = { "LuaEx" },
+    description = "Two content definitions backed by one class.",
+    released = "2026-10-13",
+    updated = "2026-10-13",
+    version = 1,
+    blueprints = {
+        record,
+        { id = "light_pack", class = "ExampleBlueprintItem", name = "Light pack", weight = 0.5 },
+    },
+});
+D.check("Mod imported", bImported);
+D.equal("Blueprints accepted", tReport.loaded, 2);
+Factorium.finalizeImports();
+
+D.section("Build an instance", "Factorium supplies a copy; the class's factory creates the object.")
+local boots = Item.fromBlueprint(Factorium.getBlueprint(Item, record.id));
+D.check("Instance created", boots ~= nil);
+D.equal("Name", boots.getName(), name);
+D.equal("Weight", boots.getWeight(), weight);
+
+D.section("Multiple instances", "One stored definition can initialize independent objects.")
+local second = Item.fromBlueprint(Factorium.getBlueprint(Item, record.id));
+D.check("Different object identities", boots ~= second);
+D.equal("Same initial weight", second.getWeight(), weight);
+
+D.section("Another record", "Queries return definitions for the exact class supplied by the caller.")
+local pack = Item.fromBlueprint(Factorium.getBlueprint(Item, "light_pack"));
+D.equal("Second record name", pack.getName(), "Light pack");
+D.check("Class catalog contains boots", Factorium.getBlueprints(Item).trail_boots ~= nil);
+
+D.section("Unknown identifier", "Missing definitions return nil without constructing anything.")
+D.equal("Missing result", Factorium.getBlueprint(Item, "missing"), nil);
+D.finish();

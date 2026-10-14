@@ -21,7 +21,7 @@ local tConfig = {--TODO basic things like units of measurement
     BaseVehicle   = require(_sConfigModule..".BaseVehicle"),
     BaseMod       = require(_sConfigModule..".BaseMod"),
     Rarity        = require(_sConfigModule..".Rarity"),
-    StatusSystem  = require(_sConfigModule..".StatusSystem"),
+    StatusTracker = require(_sConfigModule..".StatusTracker"),
 };
 
 -- Lock the assembled settings once, including every nested table.

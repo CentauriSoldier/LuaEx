@@ -32,7 +32,7 @@ local scoped = Item({exclusiveIn = slots});
 assert(scoped.getExclusive_In().allows(slots) and not scoped.getExclusive_In().allows(otherSlots));
 local damage = ObjectRegistry({CoG});
 local size = Pool(10, 3);
-local specific = Registry({slots});
+local specific = CoGRegistry({slots});
 local pattern = SlotPattern({{x = 0, y = 0}, {x = 1, y = 0}});
 local supplied = Item({damage = damage, size = size, exclusiveIn = specific,
                        host = first, location = slots, inimitable = true, pattern = pattern});
@@ -45,7 +45,7 @@ damage.clear();
 assert(supplied.getDamageable_By().getCount() == 0);
 first.getDurability().setEmpty();
 assert(second.getDurability().get() == 1);
-for _,input in ipairs({{damage = Registry()}, {value = 0}, {exclusiveIn = Point(0,0)},
+for _,input in ipairs({{damage = CoGRegistry()}, {value = 0}, {exclusiveIn = Point(0,0)},
                        {inimitable = "false"}, {host = Point(0,0)}, {location = {}}, {pattern = -1}, {pattern = {}}, {pattern = SlotPattern}, {pattern = Pool(1, 0)}}) do
     assert(not pcall(Item, input), "Expected invalid constructor input to fail");
 end
