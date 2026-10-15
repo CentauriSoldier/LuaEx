@@ -1,5 +1,0 @@
-nodes should have/be:
-
-non/passable
-weighted
-user-based

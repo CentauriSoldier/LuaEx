@@ -260,8 +260,8 @@ local function init(...)
         --[[
              ██████╗ ██████╗ ██████╗ ███████╗
             ██╔════╝██╔═══██╗██╔══██╗██╔════╝
-            ██║     ██║   ██║██████╔╝█████╗  
-            ██║     ██║   ██║██╔══██╗██╔══╝  
+            ██║     ██║   ██║██████╔╝█████╗
+            ██║     ██║   ██║██╔══██╗██╔══╝
             ╚██████╗╚██████╔╝██║  ██║███████╗
              ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
         ]]
@@ -425,31 +425,31 @@ local function init(...)
                     --[[
                          ██████╗ ███████╗ ██████╗ ███╗   ███╗███████╗████████╗██████╗ ██╗   ██╗
                         ██╔════╝ ██╔════╝██╔═══██╗████╗ ████║██╔════╝╚══██╔══╝██╔══██╗╚██╗ ██╔╝
-                        ██║  ███╗█████╗  ██║   ██║██╔████╔██║█████╗     ██║   ██████╔╝ ╚████╔╝ 
-                        ██║   ██║██╔══╝  ██║   ██║██║╚██╔╝██║██╔══╝     ██║   ██╔══██╗  ╚██╔╝  
-                        ╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║███████╗   ██║   ██║  ██║   ██║   
-                         ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   
+                        ██║  ███╗█████╗  ██║   ██║██╔████╔██║█████╗     ██║   ██████╔╝ ╚████╔╝
+                        ██║   ██║██╔══╝  ██║   ██║██║╚██╔╝██║██╔══╝     ██║   ██╔══██╗  ╚██╔╝
+                        ╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║███████╗   ██║   ██║  ██║   ██║
+                         ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝
                     ]]
                     -- GEOMETRY
 
                     if (_tClassLoadValues[_nGeometryClasses]) then
                         --geometry classes
-                        Point   = require(pClasses..".geometry.Point");
-                        Line    = require(pClasses..".geometry.Line");
+                        --Point   = require(pClasses..".geometry.Point");
+                        --Line    = require(pClasses..".geometry.Line");
                         --shapes
-                        Shape   = require(pClasses..".geometry.shapes.Shape");
-                        Circle  = require(pClasses..".geometry.shapes.Circle");
-                        Polygon = require(pClasses..".geometry.shapes.Polygon");
+                        --Shape   = require(pClasses..".geometry.shapes.Shape");
+                        --Circle  = require(pClasses..".geometry.shapes.Circle");
+                        --Polygon = require(pClasses..".geometry.shapes.Polygon");
                         --solids
-                        Solid   = require(pClasses..".geometry.solids.Solid");
-
+                        --Solid   = require(pClasses..".geometry.solids.Solid");
+                        --TODO REMOVE SECTION  
                         --[[
-                             ██████╗ ██████╗  ██████╗ 
-                            ██╔════╝██╔═══██╗██╔════╝ 
+                             ██████╗ ██████╗  ██████╗
+                            ██╔════╝██╔═══██╗██╔════╝
                             ██║     ██║   ██║██║  ███╗
                             ██║     ██║   ██║██║   ██║
                             ╚██████╗╚██████╔╝╚██████╔╝
-                             ╚═════╝ ╚═════╝  ╚═════╝ 
+                             ╚═════╝ ╚═════╝  ╚═════╝
                         ]]
                         -- CODE OF GAMING
 
