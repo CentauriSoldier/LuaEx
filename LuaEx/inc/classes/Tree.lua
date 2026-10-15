@@ -1,7 +1,6 @@
 -- Tree.lua
 -- Ordered tree node (children are numerically indexed => order guaranteed)
 -- Uses your class system; dot-call style; no public fields.
-WIP
 local function _AssertIndex(nIndex, nMin, nMax, sName)
     if type(nIndex) ~= "number" then
         error((sName or "Index").." must be a number", 3)

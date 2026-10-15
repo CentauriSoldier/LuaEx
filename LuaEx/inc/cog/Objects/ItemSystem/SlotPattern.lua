@@ -1,12 +1,14 @@
 --LOCALIZATION
 local class = class;
 
+-- Reject NaN, infinities and fractions while allowing negative relative offsets.
 local function validateCoordinate(nValue)
     assert(rawtype(nValue) == "number" and nValue == nValue and
            nValue ~= math.huge and nValue ~= -math.huge and nValue % 1 == 0,
            "SlotPattern coordinates must be finite integers.");
 end
 
+-- Validate every coordinate record and return fresh tables instead of retaining caller-owned input.
 local function copySlots(tInput)
     assert(rawtype(tInput) == "table", "SlotPattern requires a table of relative slots.");
     local tSlots = {};
@@ -25,6 +27,7 @@ local function copySlots(tInput)
             assert(sField == "x" or sField == "y", "Unknown slot coordinate field.");
         end
 
+        -- Track both coordinates so duplicate cells are rejected regardless of their list positions.
         local nX, nY = tSlot.x, tSlot.y;
         tSeen[nX] = tSeen[nX] or {};
         assert(not tSeen[nX][nY], "SlotPattern contains duplicate coordinates.");
@@ -33,6 +36,7 @@ local function copySlots(tInput)
         nCount = nCount + 1;
     end
 
+    -- Valid integer keys can still leave holes; verify every position in the counted range.
     for nIndex = 1, nCount do
         assert(tSlots[nIndex] ~= nil, "SlotPattern slot lists cannot contain holes.");
     end
@@ -53,10 +57,19 @@ end
 !]]
 return class("SlotPattern",
 {--METAMETHODS
+
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.__clone
+        @desc Constructs an independent pattern; the constructor copies every coordinate record.
+    !]]
     __clone = function(this, cdat)
         return SlotPattern(cdat.pri.slots);
     end,
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.__len
+        @desc Returns occupied-coordinate count rather than the area of the bounding rectangle.
+    !]]
     __len = function(this, cdat)
         return #cdat.pri.slots;
     end,
@@ -67,6 +80,10 @@ return class("SlotPattern",
 {--PRIVATE
     slots = {},
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.validateSnapshot
+        @desc Validates and independently copies all saved coordinates before accepting the pattern.
+    !]]
     validateSnapshot = function(tState)
         assert(rawtype(tState.pri) == "table", "Invalid SlotPattern snapshot.");
         tState.pri.slots = copySlots(tState.pri.slots);
@@ -76,28 +93,51 @@ return class("SlotPattern",
 {--PROTECTED
 },
 {--PUBLIC
+
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.SlotPattern
+        @desc Creates an empty layout, or validates and copies the supplied relative coordinates.
+    !]]
     SlotPattern = function(this, cdat, tSlots)
 
         if (tSlots ~= nil) then
             this.setSlots(tSlots);
         end
-
     end,
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.setSlots
+        @desc Validates the entire input before replacing the layout, leaving the previous pattern intact on
+        failure.
+    !]]
     setSlots = function(this, cdat, tSlots)
+
         -- Validate and copy everything before replacing the current layout.
         cdat.pri.slots = copySlots(tSlots);
+
         return this;
     end,
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.getSlots
+        @desc Returns independent coordinate tables so callers cannot mutate the stored layout.
+    !]]
     getSlots = function(this, cdat)
         return copySlots(cdat.pri.slots);
     end,
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.getSlotCount
+        @desc Returns the number of occupied relative coordinates.
+    !]]
     getSlotCount = function(this, cdat)
         return #cdat.pri.slots;
     end,
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.contains
+        @desc Validates integer coordinates and reports whether that exact relative cell belongs to the pattern.
+    !]]
     contains = function(this, cdat, nX, nY)
         validateCoordinate(nX);
         validateCoordinate(nY);
@@ -107,13 +147,18 @@ return class("SlotPattern",
             if (tSlot.x == nX and tSlot.y == nY) then
                 return true;
             end
-
         end
 
         return false;
     end,
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.eachSlot
+        @desc Captures a copied layout and returns an iterator yielding index, x and y.
+    !]]
     eachSlot = function(this, cdat)
+
+        -- Capture a copy so later pattern edits do not alter an iteration already in progress.
         local tSlots = this.getSlots();
         local nIndex = 0;
 
@@ -124,11 +169,14 @@ return class("SlotPattern",
             if (tSlot) then
                 return nIndex, tSlot.x, tSlot.y;
             end
-
         end;
-
     end,
 
+    --[[!
+        @fqxn CoG.ItemSystem.SlotPattern.Methods.getBounds
+        @desc Returns inclusive minimum/maximum coordinates and rectangle dimensions; an empty pattern returns
+        nil.
+    !]]
     getBounds = function(this, cdat)
         local tSlots = cdat.pri.slots;
 
@@ -136,6 +184,7 @@ return class("SlotPattern",
             return nil;
         end
 
+        -- Seed bounds from an occupied cell so offset-only patterns are not enlarged toward zero.
         local nMinX, nMaxX = tSlots[1].x, tSlots[1].x;
         local nMinY, nMaxY = tSlots[1].y, tSlots[1].y;
 

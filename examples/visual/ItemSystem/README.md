@@ -22,3 +22,16 @@ Properties include names/descriptions, kinds, rarity, legal owner, durability Po
 Switching to Code preserves the running visual state. Reset laboratory restores all 20 starter items and wallets. Changes are in memory; a page reload or Run visual starts a fresh lab.
 
 Verification: examples/api/node/node.exe examples/api/workbench/verify-items.cjs. It checks seeded counts, ownership, permissions, rejected wallet changes, whole-stash exclusivity, edit rollback, grid/stack behavior, single-instance consumption, attachments, copying/deletion, creation, slot swaps, capacity, locks, tab management and reset.
+
+## Saving and loading
+
+Click **Save laboratory**, change items, coins or container settings, then click
+**Load saved laboratory** to restore that snapshot. The save stays in the current
+session and is cleared by Reset laboratory or by restarting the example. The
+status line shows snapshot size and confirms owner reconnection after loading.
+
+The application saves its world with the existing `serialize`/`deserialize` API.
+Inventory owners load as `null`; the application then calls `setOwner` with the
+corresponding loaded actor. The independent Code tab walks through saving a
+stash, restoring its contents and lock, checking item identity and location, and
+reconnecting its external owner.

@@ -1,4 +1,43 @@
 --[[
+IMPLEMENTATION NOTES: AGREED AFFIX NAMING DESIGN
+
+This class is unfinished. The rules below record the user's agreed design for
+future implementation; they do not describe behavior already implemented here.
+
+Each affix supplies its own display text, a naming priority, and a stable
+DEFINITION ID. The ID belongs to the affix definition, not to an individual
+instance: never use an instance UUID, memory address, or application/load order
+as the naming tie-breaker. Definition IDs must remain stable across cold reloads.
+
+Choose the displayed prefix and suffix independently from their respective
+applied-affix groups. Rank candidates in this exact order:
+
+   1. Highest affix tier.
+   2. Highest naming priority when tiers tie.
+   3. Alphabetically first stable definition ID when both values tie.
+
+Compose the result as:
+
+   [selected prefix text] [base object name] [selected suffix text]
+
+Omit absent prefix/suffix groups and their surrounding extra spaces. Selection
+is for naming only: every applied affix retains its own identity and effects.
+
+For SINGULAR rarity, allow an optional single explicit item name. When supplied,
+it replaces the composed display name; otherwise use the same selection rules.
+Do not assign different naming strategies merely from the other rarity levels.
+
+The result must be deterministic from the definitions and currently applied
+affixes. Do not roll randomly, use first-applied wins, or persist an additional
+tie selection/generated name merely to keep this composition stable. Reloading
+the same affixes and definitions must reproduce the same display name.
+
+Naming priority/definition ID fields, their validation, and the resolver still
+need implementation. Follow existing camelCase methods and field-prefix naming
+conventions when adding them.
+]]
+
+--[[
 Brainstorming
 
 an affix (equipment):

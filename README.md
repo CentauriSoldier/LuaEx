@@ -14,8 +14,56 @@ in **LuaEx** (*See documentation for full details*).
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
 To push **LuaEx** into the global environment, place the **LuaEx** folder into your package path and add the following line of code to your project:
 ```lua
-require("LuaEx.init");
+local init = require("LuaEx.load");
+init();
 ```
+
+The loader accepts `init(configParentLevels, classLoadLevel, configName)`. Omitted or `nil`
+arguments use the defaults `0`, `6`, and `"config"`. Non-string third arguments
+also use `"config"`. Supply the name only: the loader appends `.lua`. Empty or
+blank names, extensions, and directory paths are rejected. Configuration parent levels are counted
+from `LuaEx/inc/cog`. Zero uses bundled CoG defaults only. Positive levels select
+a user configuration file at that ancestor directory. For example,
+`init(4, 6, "CoGConfig")` selects `CoGConfig.lua` four parents above
+`LuaEx/inc/cog`, through the LuaEx path used to load the module. The bundled CoG config always loads
+first, then applies the user's table recursively to existing keys. Omitted keys
+retain their defaults; unknown keys are ignored. Set the metavalue `__purge = true`
+on any user table's metatable to replace that branch and all its descendants.
+A purged branch accepts new keys, and an empty purged table clears that branch.
+Lists follow the same rule: mark a list to replace it or shorten it. The marker
+stays in the user metatable; user metatables are not copied into the independent
+read-only config snapshot. An ordinary `__purge` data field does not enable purge.
+For example, `init(3)` reads the repository-root `config.lua`:
+
+```lua
+return {
+    app = {name = "My game", path = {data = "data/", save = "saves/"}},
+    Pool = {reservationMax = 0.9},
+    MyGame = CoG.purge({difficulty = "normal"}),
+};
+```
+
+`CoG.purge(tConfig)` adds the metavalue and returns the same table. It is available
+inside the user config because the base CoG class loads before configuration.
+
+For a completely custom rarity configuration, supply all required rarity settings
+in `tRarity` and use `Rarity = CoG.purge(tRarity)`. For a smaller override, supply only the
+existing values to change, such as `app = {path = {save = "saves/"}}`.
+
+Class-load levels must be whole numbers from `0` through `6`:
+
+| Level | Includes previous levels, plus |
+| --- | --- |
+| 0 | Core hooks, factories, cloning and serialization |
+| 1 | Class system and interfaces |
+| 2 | Basic primitives and collections |
+| 3 | Components |
+| 4 | Documentation and utilities |
+| 5 | Geometry |
+| 6 | Code of Gaming |
+
+Requiring `LuaEx.load` does not initialize the framework. After initialization,
+further calls return the existing `luaex` environment without changing its settings.
 From here on out, all modules of **LuaEx** will be available in the global environment.
 
 
@@ -95,7 +143,7 @@ Variables are prefixed with the following lower-case symbols based on their type
 *b*	|	**boolean**  
 *c*	|	**class**  
 *e*	|	**enum**  
-*f*	| 	**function**  
+*f* | **embedded local function declared inside another function**
 *h*	|	**file\window\etc. handle** *(number)*  
 *j*	|	**event**  
 *k*	|	**eventrix**

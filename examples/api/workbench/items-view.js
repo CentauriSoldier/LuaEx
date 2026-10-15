@@ -5,6 +5,7 @@
  panel.innerHTML=`
  <header class="items-heading"><div><span class="items-eyebrow">COG · ITEM SYSTEM</span><h2>The quartermaster's table</h2><p>Four inventories. Twenty starter items. Every move checked by LuaEx.</p><small>Click to inspect · Drag to move for testing · Buy/Sell for actual trades</small></div><button id="items-reset" class="button subtle">Reset laboratory</button></header>
  <div class="items-actor-bar"><label>Act as <select id="items-actor" aria-label="Active item-system actor"></select></label><span id="items-actor-stats"></span><span id="items-total"></span><button id="items-validate" class="button subtle">Check consistency</button><button id="items-inspect" class="button subtle">Edit selected item ↓</button></div>
+ <section class="items-persistence" aria-label="Save and load the laboratory"><div><strong>Save &amp; load</strong><p>Save all inventories, item edits and coins. Make changes, then load the snapshot. The caller reconnects container owners.</p><small id="items-save-status" role="status" aria-live="polite">No snapshot saved in this session.</small></div><div class="items-actions"><button id="items-save" class="button subtle">Save laboratory</button><button id="items-load" class="button subtle">Load saved laboratory</button></div></section>
  <p id="items-message" class="items-feedback" role="status" aria-live="polite"></p>
  <div class="items-layout"><div><div id="items-boards" class="items-boards"></div><section class="items-loose"><h3>Unplaced & attached items <span id="items-loose-count"></span></h3><p>Copies, rejected insertions and items taken out of storage stay here. Attached gems follow their host relationship.</p><div id="items-loose" class="items-card-list"></div></section></div>
  <aside class="items-inspector"><div class="items-inspector-head"><h3 id="items-selected-name">Select an item</h3><button id="items-new" class="button primary">New item</button></div><button id="items-back" class="text-button">↑ Back to inventories</button><p id="items-selected-location"></p><p id="items-selected-requirements"></p><small id="items-permission-actor"></small><div id="items-permissions" class="items-permissions"></div>
@@ -31,7 +32,7 @@
   busy=true;availability();
   try{return await send(name,data);}finally{busy=false;availability();}
  }
- function availability(){for(const b of panel.querySelectorAll('button'))b.disabled=!send||!state||busy||((b.hasAttribute('data-item-action')||b.id==='items-apply')&&!creating&&!selected());}
+ function availability(){for(const b of panel.querySelectorAll('button'))b.disabled=!send||!state||busy||(b.id==='items-load'&&!state?.persistence?.saved)||((b.hasAttribute('data-item-action')||b.id==='items-apply')&&!creating&&!selected());}
  function card(item,compact=false){
   const b=button('',async()=>{creating=false;dirty=false;await act('select',{id:item.id});if(window.matchMedia('(max-width:1150px)').matches)panel.querySelector('.items-inspector').scrollIntoView({block:'start'});},'items-card '+(item.id===state.selectedID?'selected ':'')+item.kind.toLowerCase());b.title=`#${item.id} ${item.name}\n${item.location}\nLegal owner: ${item.ownerName}\n${item.config.description}`;
   const symbol=el('span','items-icon',icons[item.kind]);symbol.setAttribute('aria-hidden','true');
@@ -132,6 +133,8 @@
  $('items-editor').onsubmit=async e=>{e.preventDefault();const form=$('items-editor');if(!form.reportValidity())return;const config=collect();const result=await act(creating?'create':'edit',{id:selected()?.id,config,destination:$('items-destination').value,slot:Number($('items-target-slot').value)});if(result?.ok){creating=false;dirty=false;lastID=null;inspector();availability();}};
  $('items-new').onclick=()=>{if(!state||!send)return;creating=true;dirty=false;populateChoices();fill(state.defaults);inspector();availability();$('item-field-name').focus();};
  $('items-reset').onclick=()=>{dirty=false;creating=false;lastID=null;capacityDrafts.clear();act('reset');};
+ $('items-save').onclick=()=>act('save');
+ $('items-load').onclick=async()=>{const result=await act('load');if(result?.ok){dirty=false;creating=false;lastID=null;capacityDrafts.clear();inspector();renderBoards();availability();}};
  $('items-validate').onclick=()=>act('validate');$('items-actor').onchange=()=>act('actor',{key:$('items-actor').value});
  $('items-target-tab').onchange=()=>act('tab',{tab:Number($('items-target-tab').value)});
  $('items-inspect').onclick=()=>panel.querySelector('.items-inspector').scrollIntoView({block:'start'});
@@ -146,6 +149,7 @@
  window.ItemView={dispose(){send=null;dirty=false;creating=false;lastID=null;state=null;busy=false;capacityDrafts.clear();availability();},render(value,action){
   state=value;send=action;options($('items-actor'),list(state.actors),a=>a.key,a=>a.name,state.actor);options($('items-target-tab'),list(state.tabs),t=>t.index,t=>'Tab '+t.index+' · '+t.count+'/'+t.capacity,state.tab);const actor=list(state.actors).find(a=>a.key===state.actor);
   $('items-actor-stats').textContent=`${actor.race} · Level ${actor.level} · Strength ${actor.strength} · ${fmt(actor.coins)} coins`;$('items-total').textContent=`${state.totals.live} live · ${state.totals.retired} consumed/deleted`;
+  const snapshot=state.persistence;$('items-save-status').textContent=snapshot?.saved?`Saved in this session · ${fmt(snapshot.bytes/1024)} KiB${snapshot.ownersReconnected?' · Loaded owners reconnected by the caller':''}`:'No snapshot saved in this session.';
   $('items-message').textContent=state.message;$('items-message').classList.toggle('rejected',!state.ok);renderBoards();inspector();availability();$('items-events').textContent=list(state.events).slice().reverse().join('\n');
  }};
  availability();

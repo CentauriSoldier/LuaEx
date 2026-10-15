@@ -124,6 +124,32 @@ return class("CoG",
     --getBlueprint = function(this, cdat, sID)
 --        return cdat.pri.blueprintsByID[sID] or nil;
 --    end,
+    --[[!
+        @fqxn CoG.CoG.Methods.purge
+        @pulsarlua function CoG.purge
+        @desc Marks an ordinary user configuration table for complete replacement
+        of the matching default branch. Adds __purge = true to its metatable,
+        preserving its contents and existing metatable values. Returns the same
+        table for inline use in config.lua. Shared metatables receive the same marker.
+        This marks the table; the config assembler performs replacement when loading.
+        @param table tConfig The user configuration table to mark.
+        @ret table tConfig The same table, with the purge metavalue set.
+        @throws The input is not an ordinary table.
+        @ex return {app = {path = CoG.purge({save = "saves/"})}};
+    !]]
+    purge = function(tConfig)
+        type.assert.custom(tConfig, "table", "CoG.purge requires a configuration table.");
+        local tMeta = debug.getmetatable(tConfig);
+
+        if (tMeta == nil) then
+            tMeta = {};
+            setmetatable(tConfig, tMeta);
+        end
+
+        rawset(tMeta, "__purge", true);
+        return tConfig;
+    end,
+
     BuildVersionID      = BuildVersionID,
     VersionIDIsNewer    = VersionIDIsNewer,
     VersionIDIsOlder    = VersionIDIsOlder,

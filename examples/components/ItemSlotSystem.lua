@@ -4,12 +4,12 @@ local sExampleSource = debug.getinfo(1, "S").source:gsub("^@", "")
 local sSourcePath = sExampleSource:match("^(.*)[/\\]") or "."
 local sRepositoryPath = sSourcePath
 for _ = 1, 8 do
-    local file = io.open(sRepositoryPath .. "/LuaEx/init.lua", "r")
+    local file = io.open(sRepositoryPath .. "/LuaEx/load.lua", "r")
     if file then file:close(); break end
     sRepositoryPath = sRepositoryPath .. "/.."
 end
 package.path = sRepositoryPath .. "/?.lua;" .. package.path
-if not LUAEX_INIT then require("LuaEx.init") end
+if not LUAEX_INIT then require("LuaEx.load")() end
 
 local D = require("examples.support.tutorial").new("Complete item containers", "Individual items, stacks, stash-wide exclusivity, transfers, equipment permissions and coordinate footprints.");
 
@@ -128,4 +128,40 @@ D.check("Clear succeeds", cleared);
 D.equal("Clear returns exactly one removed instance", #removed, 1);
 D.check("Cleared item becomes unplaced", goods.getLocation() == null);
 D.note("Durability zero does not destroy an item. Prices, damage/repair effects and upgrade effects are caller policy. Concrete item subclasses define copying.");
+D.section("Save, load and reconnect the owner", "Generated class snapshots keep contents and settings. Owners remain external, so the caller reconnects them after loading.");
+local oSavedStash = ItemStashSystem(actor, 2, 4);
+local oSavedItem = ExampleItem("Saved compass", {
+    scope = CoGRegistry({oSavedStash}), conflicts = CoGRegistry({ExampleItem})
+});
+D.check("Put the compass in tab two", oSavedStash.getTab(2).addItem(oSavedItem));
+oSavedStash.setLocked(true);
+
+-- Save the inventory graph, then change the original to make restoration visible.
+local sInventorySave = serialize(oSavedStash);
+oSavedStash.setLocked(false);
+D.check("Remove the original compass after saving", select(2, oSavedStash.removeItem(oSavedItem)));
+local oLoadedStash = deserialize(sInventorySave);
+local oLoadedItem = oLoadedStash.getTab(2).getItemAt(1);
+D.equal("Saved item count restored", oLoadedStash.getItemCount(), 1);
+D.check("Saved lock restored", oLoadedStash.isLocked());
+D.check("Loaded item is a new instance", not rawequal(oLoadedItem, oSavedItem));
+D.check("Loaded location is the loaded tab", rawequal(oLoadedItem.getLocation(), oLoadedStash.getTab(2)));
+D.check("Owner starts null", oLoadedStash.getOwner() == null);
+
+-- Reconnect the external owner after loading; all tabs resolve it through the stash.
+oLoadedStash.setOwner(actor);
+D.check("Caller reconnects the owner", rawequal(oLoadedStash.getOwner(), actor));
+D.check("Tab inherits the reconnected owner", rawequal(oLoadedStash.getTab(2).getOwner(), actor));
+local bLoadedScope = false;
+
+for _, vScope in oLoadedItem.getExclusive_In().eachEntry() do
+    bLoadedScope = bLoadedScope or rawequal(vScope, oLoadedStash);
+end
+
+D.check("Specific registry entry targets the loaded stash", bLoadedScope);
+oLoadedStash.setLocked(false);
+D.check("Loaded exclusivity still spans tabs", not oLoadedStash.getTab(1).addItem(ExampleItem("Conflicting compass")));
+D.check("A loaded inventory can be saved again", #serialize(oLoadedStash) > 0);
+D.note("The Visual tab also saves and restores the laboratory's inventories, actors, coins and edits for this session.");
+
 D.finish();

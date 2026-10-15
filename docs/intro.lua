@@ -5,12 +5,14 @@ return [[
 
 <hr>
 <h2 id="🆆🅷🅰🆃-🅸🆂-🅻🆄🅰🅴🆇❓-🔬">🆆🅷🅰🆃 🅸🆂 🅻🆄🅰🅴🆇❓ 🔬</center></h2>
+<p>The loader accepts init(configParentLevels, classLoadLevel, configName). Defaults are 0, 6, and config. Non-string config names use config; empty or blank names, extensions and directory components are rejected. The loader appends .lua. Parent levels are counted above LuaEx/inc/cog. Example: init(4, 6, "CoGConfig").</p>
 <p>Simply put, <strong>LuaEx</strong> is a lightweight overhaul of Lua that extends its functionality.</p>
 <p>Below are some of the <a href="#features">🅵🅴🅰🆃🆄🆁🅴🆂</a>
 in <strong>LuaEx</strong> (<em>See documentation for full details</em>).</p>
 <h2 id="🅶🅴🆃🆃🅸🅽🅶-🆂🆃🅰🆁🆃🅴🅳-🚀">🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀</h2>
 <p>In order to push all the code in <strong>LuaEx</strong> into the global environment, place the <strong>LuaEx</strong> folder into your package path and run the following code:</p>
-<pre><code class="language-lua">require(&quot;LuaEx.init&quot;);
+<pre><code class="language-lua">local init = require(&quot;LuaEx.load&quot;);
+init();
 </code></pre>
 <p>From here on out, all modules of <strong>LuaEx</strong> will be available in the global environment.</p>
 <h2 id="🆅🅴🆁🆂🅸🅾🅽-⚗">🆅🅴🆁🆂🅸🅾🅽 ⚗</h2>

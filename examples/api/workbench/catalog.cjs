@@ -45,7 +45,7 @@ function generate() {
     entry.codePath='examples/code/'+entry.id;
     if(entry.id==='cog/Tiled.lua'){entry.visualPath='examples/visual/Tiled/browser.lua';entry.visualType='tiled';entry.description='Explore square and both hex maps, scout/goblin terrain costs, cave permissions, path movement and TMX editing.';}
     if(entry.id==='cog/Cards.lua'){entry.title='Cards & decks';entry.visualPath='examples/visual/Cards/browser.lua';entry.visualType='cards';entry.description='Draw, shuffle, flip and edit real BaseCard instances across a deck, hand and discard pile.';}
-    if(entry.id==='components/ItemSlotSystem.lua'){entry.title='Item system';entry.visualPath='examples/visual/ItemSystem/browser.lua';entry.visualType='items';entry.description='A tabbed stash, character inventory, ground and shop: edit items, test permissions, ownership, footprints and transfers.';}
+    if(entry.id==='components/ItemSlotSystem.lua'){entry.title='Item system';entry.visualPath='examples/visual/ItemSystem/browser.lua';entry.visualType='items';entry.description='A tabbed stash, character inventory, ground and shop: edit, move, save and load items, with owner reconnection and permission checks.';}
     if(entry.id==='pathfinding/AStar.lua'){entry.visualPath='examples/visual/AStar/browser.lua';entry.visualType='astar';}
     if(entry.id==='components/Pool.lua'){entry.visualPath='examples/visual/Pool/browser.lua';entry.visualType='pool';}
     if(entry.id==='components/Potentiometer.lua'){entry.visualPath='examples/visual/Potentiometer/browser.lua';entry.visualType='pot';}

@@ -2,6 +2,8 @@
 local M = {};
 local World;
 local Item;
+local sSavedWorld;
+local bOwnersReconnected = false;
 local kinds = {"Weapon", "Armor", "Potion", "Gem", "Material", "Relic", "Quest", "Tool"};
 local races = {"Any", "Human", "Elf", "Goblin"};
 local scopes = {"None", "Stash", "Character", "Shop", "Everywhere"};
@@ -390,6 +392,8 @@ local seeds = {
 };
 
 local function reset()
+    sSavedWorld = nil;
+    bOwnersReconnected = false;
     World = {records = {}, events = {}, nextID = 1, selected = 1, tab = 1, actor = "player", message = "Ready", ok = true,
         actors = {player = Actor("player", "Adventurer", "Human", 7, 8), merchant = Actor("merchant", "Merchant", "Elf", 12, 10),
                   visitor = Actor("visitor", "Goblin visitor", "Goblin", 2, 3)}, coins = {player = 120, merchant = 200, visitor = 25}};
@@ -526,6 +530,7 @@ local function view()
             stash = {enabled = World.stash.isEnabled(), locked = World.stash.isLocked()},
             ground = {enabled = World.ground.isEnabled(), locked = World.ground.isLocked()},
             shop = {enabled = World.shop.isEnabled(), locked = World.shop.isLocked()}},
+        persistence = {saved = sSavedWorld ~= nil, bytes = sSavedWorld and #sSavedWorld or 0, ownersReconnected = bOwnersReconnected},
         message = World.message, ok = World.ok, events = clone(World.events), defaults = clone(defaults),
         choices = {kinds = kinds, races = races, scopes = scopes, storage = storageModes, rarities = #Rarity.LEVEL, rarityNames = tRarities}};
 end
@@ -538,6 +543,33 @@ local function action(sAction, tData)
             return;
         elseif (sAction == "reset") then
             reset();
+            return;
+        elseif (sAction == "save") then
+            -- Register locally bound application classes as symbolic factory references.
+            -- Inventory classes continue to use their existing generated snapshots/adapters.
+            local Serializer = require("LuaEx.lib.serializer");
+            Serializer.registerFactory(Actor, {name = "ItemLabActor"});
+            Serializer.registerFactory(Item, {name = "ItemLabItem"});
+            local sSnapshot = serialize(World);
+            sSavedWorld = sSnapshot;
+            bOwnersReconnected = false;
+            log("Saved the laboratory: inventories, actors, coins, item edits and settings. Make a change, then load to restore it.");
+            return;
+        elseif (sAction == "load") then
+            assert(sSavedWorld, "Save the laboratory before loading.");
+            local tLoadedWorld = deserialize(sSavedWorld);
+
+            -- Owners are intentionally external to the inventory snapshot. The caller
+            -- chooses their loaded actor counterparts and reconnects them explicitly.
+            assert(tLoadedWorld.inventory.getOwner() == null and
+                   tLoadedWorld.stash.getOwner() == null and tLoadedWorld.shop.getOwner() == null,
+                   "Loaded container owners must start null.");
+            tLoadedWorld.inventory.setOwner(tLoadedWorld.actors.player);
+            tLoadedWorld.stash.setOwner(tLoadedWorld.actors.player);
+            tLoadedWorld.shop.setOwner(tLoadedWorld.actors.merchant);
+            World = tLoadedWorld;
+            bOwnersReconnected = true;
+            log("Loaded the saved laboratory. Item identities and locations were rebuilt; the caller reconnected container owners.");
             return;
         elseif (sAction == "select") then
             World.selected = record(tData.id).id;
