@@ -46,46 +46,46 @@ local _bOSIsWindows  = package.config:sub(1, 1) == "\\";
 
 -- Exact-tag replacement data used by the single-pass HTML formatting helper.
 local tHTMLReplacements = {
-    ["<b>"] = "**",
-    ["</b>"] = "**",
-    ["<strong>"] = "**",
-    ["</strong>"] = "**",
-    ["<h1>"] = "# ",
-    ["</h1>"] = "\n",
-    ["<h2>"] = "## ",
-    ["</h2>"] = "\n",
-    ["<h3>"] = "### ",
-    ["</h3>"] = "\n",
-    ["<h4>"] = "#### ",
-    ["</h4>"] = "\n",
-    ["<h5>"] = "##### ",
-    ["</h5>"] = "\n",
-    ["<h6>"] = "###### ",
-    ["</h6>"] = "\n",
-    ["<i>"] = "*",
-    ["</i>"] = "*",
-    ["<em>"] = "*",
-    ["</em>"] = "*",
-    ["<u>"] = "_",
-    ["</u>"] = "_",
-    ["<br>"] = "  \n",
-    ["<br/>"] = "  \n",
-    ["<p>"] = "\n\n",
-    ["</p>"] = "\n\n",
-    ["<blockquote>"] = "> ",
-    ["</blockquote>"] = "\n",
-    ["<code>"] = "`",
-    ["</code>"] = "`",
-    ["<pre>"] = "```\n",
-    ["</pre>"] = "\n```",
-    ["<ul>"] = "\n",
-    ["</ul>"] = "\n",
-    ["<ol>"] = "\n",
-    ["</ol>"] = "\n",
-    ["<li>"] = "- ",
-    ["</li>"] = "\n",
-    ["<hr>"] = "\n---\n",
-    ["<hr/>"] = "\n---\n",
+    ["<b>"]             = "**",
+    ["</b>"]            = "**",
+    ["<strong>"]        = "**",
+    ["</strong>"]       = "**",
+    ["<h1>"]            = "# ",
+    ["</h1>"]           = "\n",
+    ["<h2>"]            = "## ",
+    ["</h2>"]           = "\n",
+    ["<h3>"]            = "### ",
+    ["</h3>"]           = "\n",
+    ["<h4>"]            = "#### ",
+    ["</h4>"]           = "\n",
+    ["<h5>"]            = "##### ",
+    ["</h5>"]           = "\n",
+    ["<h6>"]            = "###### ",
+    ["</h6>"]           = "\n",
+    ["<i>"]             = "*",
+    ["</i>"]            = "*",
+    ["<em>"]            = "*",
+    ["</em>"]           = "*",
+    ["<u>"]             = "_",
+    ["</u>"]            = "_",
+    ["<br>"]            = "  \n",
+    ["<br/>"]           = "  \n",
+    ["<p>"]             = "\n\n",
+    ["</p>"]            = "\n\n",
+    ["<blockquote>"]    = "> ",
+    ["</blockquote>"]   = "\n",
+    ["<code>"]          = "`",
+    ["</code>"]         = "`",
+    ["<pre>"]           = "```\n",
+    ["</pre>"]          = "\n```",
+    ["<ul>"]            = "\n",
+    ["</ul>"]           = "\n",
+    ["<ol>"]            = "\n",
+    ["</ol>"]           = "\n",
+    ["<li>"]            = "- ",
+    ["</li>"]           = "\n",
+    ["<hr>"]            = "\n---\n",
+    ["<hr/>"]           = "\n---\n",
 };
 
 
@@ -437,14 +437,18 @@ function string.makefilesafe(sInput, bLower)
     -- Step 4: provide usable output for empty input and reserved device basenames.
     if (sRet == "") then
         sRet = "_";
+
     elseif (isReservedFilename(sRet)) then
         sRet = ("_"..sRet):sub(1, 255);
 
         if (bUTF8) then
+
             while (utf8.len(sRet) == nil) do
                 sRet = sRet:sub(1, -2);
             end
+
         end
+
     end
 
     return sRet;
@@ -515,7 +519,9 @@ function string.totable(sInput, sDelimiter, bAllowBlank, fCallback)
             if (vItem ~= nil) then
                 tRet[#tRet + 1] = vItem;
             end
+
         end
+        
     end
 
     -- Use literal find: delimiters can contain Lua pattern characters or multiple bytes.

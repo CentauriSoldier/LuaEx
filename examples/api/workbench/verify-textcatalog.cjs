@@ -1,0 +1,113 @@
+// Exercise the visual bridge with real Lua public APIs, then run its Code tutorial.
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const {generate, root} = require('./catalog.cjs');
+const {LuaSession} = require('./runtime.js');
+const wasmoon = require('../wasmoon/package/dist/index.js');
+const wasm = new Uint8Array(fs.readFileSync(path.join(root, 'examples/api/wasmoon/package/dist/glue.wasm')));
+(async () => {
+  const manifest = generate();
+  const files = Object.fromEntries(manifest.files.map(file => [file, new Uint8Array(fs.readFileSync(path.join(root, file)))]));
+  const visual = new LuaSession(wasmoon, wasm, () => {});
+  try {
+    await visual.boot(files);
+    const file = 'examples/visual/TextCatalog/browser.lua';
+    let state = await visual.run(file, fs.readFileSync(path.join(root, file), 'utf8'));
+    assert.equal(state.visual, 'textcatalog');
+    assert.equal(state.active, '');
+    assert.equal(state.catalogs.length, 2);
+    assert.match(state.catalogs[0].greeting, /Mira.*Elian/);
+    assert.match(state.catalogs[1].greeting, /Tomas.*Rowan/);
+    assert(state.rows.some(row => row.path === 'empty' && row.kind === 'node'));
+    state = await visual.action('inspect', {method:'gettext', query:'DIALOGUE.MERCHANT.GREETING', useactive:true});
+    assert.equal(state.result.found, true);
+    assert.match(state.result.value, /Mira.*Elian/);
+    state = await visual.action('active', {path:'DIALOGUE.MERCHANT'});
+    assert.equal(state.active, 'dialogue.merchant');
+    state = await visual.action('inspect', {method:'gettext', query:'greeting', useactive:true});
+    assert.match(state.result.value, /Mira.*Elian/);
+    state = await visual.action('inspect', {method:'findtext', query:'ELIAN', useactive:true});
+    assert.equal(state.result.found, false);
+    assert.equal(state.result.path, 'dialogue.merchant');
+    state = await visual.action('inspect', {method:'findtext', query:'HELLO', useactive:true});
+    assert.equal(state.result.path, 'dialogue.merchant.greeting');
+    assert.match(state.result.value, /Elian/);
+    for (const query of ['100%?', '[gold]', '*']) {
+      state = await visual.action('inspect', {method:'findtext', query, scope:'', useactive:false});
+      assert.equal(state.result.path, 'menu.literal');
+      assert.equal(state.active, 'dialogue.merchant');
+    }
+    state = await visual.action('inspect', {method:'findtext', query:'x', scope:'missing', useactive:false});
+    assert.equal(state.result.found, false);
+    assert.equal(state.result.path, undefined);
+    state = await visual.action('inspect', {method:'findnode', query:'RUM', useactive:true});
+    assert.equal(state.result.path, 'dialogue.merchant.rumors');
+    assert.match(state.result.value.road, /traveler/);
+    state = await visual.action('inspect', {method:'getnode', useactive:true});
+    assert.equal(state.result.path, 'dialogue.merchant');
+    assert(state.result.value.greeting);
+    state = await visual.action('snapshot');
+    assert.match(state.message, /^PASS:/);
+    assert(state.result.value.snapshotOnly);
+    assert.equal(state.snapshot.snapshotOnly, undefined);
+    state = await visual.action('setvar', {name:'FRIEND', value:'${player}'});
+    assert.match(state.selection.rendered, /friend \$\{player\}/);
+    state = await visual.action('selecttext', {path:'dialogue.merchant.literal'});
+    assert.equal(state.selection.rendered, 'Write ${friend} to show a literal placeholder.');
+    state = await visual.action('clearvar', {name:'PLAYER'});
+    assert.match(state.catalogs[0].greeting, /Hello \$\{player\}/);
+    state = await visual.action('clearvars');
+    assert.equal(Object.values(state.variables).length, 0);
+    state = await visual.action('setvar', {name:'friend', value:'Nova'});
+    state = await visual.action('selecttext', {path:'dialogue.merchant.greeting'});
+    state = await visual.action('settext', {text:'Welcome ${friend}!'});
+    assert.equal(state.selection.template, 'Welcome ${friend}!');
+    assert.equal(state.selection.rendered, 'Welcome Nova!');
+    state = await visual.action('checkpoint');
+    assert.match(state.saved, /serializer\.restoreGraph/);
+    const saved = state.saved;
+    state = await visual.action('clone');
+    assert.equal(state.selected, 2);
+    assert.equal(state.selection.rendered, 'Welcome Nova!');
+    state = await visual.action('setvar', {name:'friend', value:'Clone name'});
+    state = await visual.action('settext', {text:'Clone ${friend}'});
+    state = await visual.action('select', {id:1});
+    assert.equal(state.selection.rendered, 'Welcome Nova!');
+    state = await visual.action('settext', {text:'Changed'});
+    state = await visual.action('active', {reset:true});
+    assert.equal(state.active, '');
+    state = await visual.action('restore');
+    assert.equal(state.active, 'dialogue.merchant');
+    assert.equal(state.selection.rendered, 'Welcome Nova!');
+    assert.equal(state.saved, saved);
+    for (const test of ['insert','node','variable','active','duplicate']) {
+      state = await visual.action('probe', {test});
+      assert.match(state.message, /^Expected rejection:/);
+      assert.equal(state.active, 'dialogue.merchant');
+      assert.equal(state.selection.rendered, 'Welcome Nova!');
+    }
+    state = await visual.action('active', {path:'dialogue.merchant.greeting'});
+    assert.match(state.message, /^Rejected:/);
+    assert.equal(state.active, 'dialogue.merchant');
+    state = await visual.action('reset');
+    assert.equal(state.saved, '');
+    state = await visual.action('restore');
+    assert.match(state.message, /^Rejected:/);
+    console.log('PASS textcatalog visual: public lookups, active/root scopes, raw-template searches, literal queries, variables, snapshots, independent clone, checkpoint restoration and rejection probes.');
+  } finally { visual.close(); }
+  const lines = [];
+  const code = new LuaSession(wasmoon, wasm, line => lines.push(line));
+  try {
+    await code.boot(files);
+    const file = 'examples/code/utilities/textcatalog.lua';
+    await code.run(file, fs.readFileSync(path.join(root, file), 'utf8'));
+    const summary = lines.find(line => line.includes('[SUMMARY] Text catalog'));
+    assert(summary);
+    console.log(summary);
+    const target = path.join(root, 'examples/verification.json');
+    const verification = JSON.parse(fs.readFileSync(target, 'utf8')).filter(item => item.id !== 'utilities/textcatalog.lua');
+    verification.push({id:'utilities/textcatalog.lua', result:'passed', runs:[{result:'passed', lines:lines.length, summary, inputs:{}}]});
+    fs.writeFileSync(target, JSON.stringify(verification, null, 2) + '\n');
+  } finally { code.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -153,15 +153,19 @@ local function splitpath(sPath);
             tRet.filename  = sStem;
             tRet.extension = rawtype(sExt) == "string" and sExt or "";
         else
+
             if (tRet.filename:sub(1, 1) == "." and not tRet.filename:sub(2):find("%.", 1, true)) then
                 sExt = tRet.filename:sub(2);
+
                 if (sExt ~= "") then
                     tRet.filename  = "";
                     tRet.extension = sExt;
                 end
-            end
-        end
 
+            end
+
+        end
+        
     end
 
     return tRet;

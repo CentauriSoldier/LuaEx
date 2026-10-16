@@ -41,6 +41,8 @@ function generate() {
       ...(relative.startsWith('legacy/creatures/') ? {note:'Historical class experiments may require other globals and older APIs.'} : {})});
   }
   for(const entry of entries) {
+    if(entry.id==='utilities/textcatalog.lua'){entry.title='Text catalog';entry.visualPath='examples/visual/TextCatalog/browser.lua';entry.visualType='textcatalog';entry.description='Explore central game text, persistent variables, active nodes, scoped searches, safe wording edits, snapshots and public serialization.';}
+    if(entry.id==='cog/Vehicles.lua'){entry.title='Vehicles';entry.visualPath='examples/visual/Vehicles/browser.lua';entry.visualType='vehicles';entry.description='Explore an illustrated garage: fuel, trips, component identity, constructor settings, concrete cloning and validation.';}
     if(['components/Pool.lua','components/ItemSlotSystem.lua','pathfinding/AStar.lua','pathfinding/HexMap.lua','utilities/TagSystem.lua','classes/BlueprintFactory.lua','classes/Creature.lua','classes/Human.lua','classes/Soldier.lua'].includes(entry.id))entry.group='CoG';
     entry.codePath='examples/code/'+entry.id;
     if(entry.id==='cog/Tiled.lua'){entry.visualPath='examples/visual/Tiled/browser.lua';entry.visualType='tiled';entry.description='Explore square and both hex maps, scout/goblin terrain costs, cave permissions, path movement and TMX editing.';}

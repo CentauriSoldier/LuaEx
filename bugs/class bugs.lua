@@ -36,7 +36,9 @@ if not (LUAEX_INIT) then
     package.path = package.path..";"..sSourcePath.."\\..\\?.lua;";
 
     --load LuaEx
-    require("LuaEx.init");
+    local fInit = require("LuaEx.load");
+    fInit();
+
 end
 --==============================================================================
 --==============================^^ Load LuaEx ^^================================

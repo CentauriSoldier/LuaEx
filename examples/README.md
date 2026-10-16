@@ -23,6 +23,9 @@ Any ordinary static web host can also serve this repository.
 | `utilities` | CSV, INI, QR, Dox documentation and TagSystem |
 | `visual/AStar` | Shared Lua AStar model, browser bridge, and temporary Budo frontend |
 | `visual/Pool` | Health and Mana globes, Stamina meter and interactive LuaEx resource controls |
+| `utilities/textcatalog.lua`, `visual/TextCatalog` | Interactive dialogue desk and independent text catalog tutorial |
+| `cog/Vehicles.lua`, `visual/Vehicles` | Illustrated vehicle garage and independent constructor, component and cloning tutorial |
+| `resources/vehicles` | Rover, cargo airship and survey skiff illustrations, with art prompts |
 | `resources` | CSV/INI inputs and the QR image |
 | `api` | Local Wasmoon, optional Node, and workbench code; see its license README |
 

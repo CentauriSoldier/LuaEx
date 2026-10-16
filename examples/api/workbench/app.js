@@ -35,6 +35,8 @@
     window.EnumView.dispose();
     window.ItemView.dispose();
     window.CardView.dispose();
+    window.VehicleView.dispose();
+    window.TextCatalogView.dispose();
     window.TiledView.dispose();
     generation++; pause(); if (worker) worker.terminate(); worker = null;
     for (const request of pending.values()) { clearTimeout(request.timer); request.reject(Error(message)); }
@@ -69,7 +71,7 @@
     $('runtime-status').innerHTML = '<i></i>Reading repository…';
     try {
       manifest = JSON.parse(decode(await provider.read('examples/manifest.json')));
-      if (!Array.isArray(manifest.entries) || !manifest.files.includes('LuaEx/init.lua')) throw Error('Invalid example catalog');
+      if (!Array.isArray(manifest.entries) || !manifest.files.includes('LuaEx/load.lua')) throw Error('Invalid example catalog');
       try { verification = JSON.parse(decode(await provider.read('examples/verification.json'))); } catch { verification = []; }
       $('runtime-status').innerHTML = '<i></i>Lua 5.4 · local runtime'; $('runtime-status').classList.add('ready');
       $('example-count').textContent = manifest.entries.length;
@@ -112,6 +114,8 @@
     $('enum-panel').hidden=!showVisual||entry?.visualType!=='enum';
     $('items-panel').hidden=!showVisual||entry?.visualType!=='items';
     $('cards-panel').hidden=!showVisual||entry?.visualType!=='cards';
+    $('vehicles-panel').hidden=!showVisual||entry?.visualType!=='vehicles';
+    $('textcatalog-panel').hidden=!showVisual||entry?.visualType!=='textcatalog';
     $('tiled-panel').hidden=!showVisual||entry?.visualType!=='tiled';
     $('visual-empty').hidden=!showVisual||Boolean(entry?.visualPath);
     $('example-inputs').hidden=!showVisual||!entry?.inputs?.length;
@@ -216,6 +220,8 @@
     if(state.visual==='enum'){window.EnumView.render(state,action);return;}
     if(state.visual==='items'){window.ItemView.render(state,action);return;}
     if(state.visual==='cards'){window.CardView.render(state,action);return;}
+    if(state.visual==='vehicles'){window.VehicleView.render(state,action);return;}
+    if(state.visual==='textcatalog'){window.TextCatalogView.render(state,action);return;}
     if(state.visual==='tiled'){window.TiledView.render(state,action);return;}
     for (const name of ['turn','moves','nodes','turns']) $(name).textContent = state[name] ?? '—';
     $('speed').value = state.speed; $('speed-value').textContent = state.speed + ' / sec';

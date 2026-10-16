@@ -468,5 +468,29 @@
         "inputs": {}
       }
     ]
+  },
+  {
+    "id": "cog/Vehicles.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 76,
+        "summary": "\n[SUMMARY] Vehicles: 8 sections, 42 verified checks, 8 expected rejections.",
+        "inputs": {}
+      }
+    ]
+  },
+  {
+    "id": "utilities/textcatalog.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 78,
+        "summary": "\n[SUMMARY] Text catalog: 8 sections, 49 verified checks, 6 expected rejections.",
+        "inputs": {}
+      }
+    ]
   }
 ]

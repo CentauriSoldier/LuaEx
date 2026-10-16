@@ -26,7 +26,7 @@
           for index = 1, select('#', ...) do values[index] = nativeToString(select(index,...)) end
           __workbench_emit(table.concat(values, '\\t'))
         end
-        require('LuaEx.init')
+        require('LuaEx.load')()
         -- The virtual filesystem uses forward slashes on every host.
         local open = io.open
         io.open = function(file, ...) return open(file:gsub('\\\\','/'), ...) end

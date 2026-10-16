@@ -286,7 +286,7 @@ local function init(...)
         structfactory           =   tStruct.structfactory;
         source			        =	require("LuaEx.util.source");
         isotominutes            =   require("LuaEx.util.isotominutes");
-        infusedhelp		        = 	require("LuaEx.lib.infusedhelp");
+        textcatalog             =   require("LuaEx.lib.textcatalog");
 
         --[[
              ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     ███████╗
