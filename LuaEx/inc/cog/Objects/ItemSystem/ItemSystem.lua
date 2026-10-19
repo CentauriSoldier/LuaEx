@@ -1,3 +1,7 @@
+--[[!
+    @fqxn CoG.ItemSystem.ItemSystem
+    @desc An ordered inventory of individual BaseItem instances. Capacity defaults to math.huge, membership is empty, enabled is true and locked is false. Storage eligibility, exclusivity and ancestor restrictions are enforced by shared transactions. Owners are external references and must be reconnected after loading.
+!]]
 --LOCALIZATION
 local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
 
@@ -97,7 +101,7 @@ local cItemSystem = class("ItemSystem",
         @fqxn CoG.ItemSystem.ItemSystem.Methods.setOwner
         @desc Reconnects the caller-owned owner after loading. The owner is not saved.
         @param object|null oOwner A class instance, or null to clear the owner.
-        @ret ItemSystem this
+        @ret ItemSystem this This container.
     !]]
     setOwner = function(this, cdat, oOwner)
         Rules.setOwner(this, oOwner);

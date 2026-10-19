@@ -56,7 +56,7 @@ end
 
 --[[!
     @fqxn CoG.ItemSystem.BaseItem
-    @desc Base class for individual items. CoGRegistry fields express eligibility;
+    @desc Base class for individual items. ObjectRegistry action permissions and CoGRegistry storage/conflict fields express eligibility;
     callers perform actions and enforce their gameplay consequences. Durability
     reaching zero does not imply destruction. Inimitable is metadata only.
     Every omitted registry/Pool/SlotPattern input creates a fresh object in the constructor;
@@ -137,28 +137,154 @@ local cBaseItem = class("BaseItem",
     end,
 },
 {--PROTECTED
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getAttachable_To
+        @pulsarlua function BaseItem.getAttachable_To
+        @desc Returns the Attachable_To component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Attachable_To__autoA_    = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getConsumable_By
+        @pulsarlua function BaseItem.getConsumable_By
+        @desc Returns the Consumable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Consumable_By__autoA_    = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getDamageable_By
+        @pulsarlua function BaseItem.getDamageable_By
+        @desc Returns the Damageable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Damageable_By__autoA_    = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getDetachable_By
+        @pulsarlua function BaseItem.getDetachable_By
+        @desc Returns the Detachable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Detachable_By__autoA_    = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getEquipable_By
+        @pulsarlua function BaseItem.getEquipable_By
+        @desc Returns the Equipable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Equipable_By__autoA_     = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getExclusive_In
+        @pulsarlua function BaseItem.getExclusive_In
+        @desc Returns the Exclusive_In component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret CoGRegistry vValue Stored value/reference.
+    !]]
     Exclusive_In__autoA_    = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getExclusive_With
+        @pulsarlua function BaseItem.getExclusive_With
+        @desc Returns the Exclusive_With component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret CoGRegistry vValue Stored value/reference.
+    !]]
     Exclusive_With__autoA_  = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.isInimitable
+        @pulsarlua function BaseItem.isInimitable
+        @desc Returns the Inimitable component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret boolean vValue Stored value/reference.
+    !]]
     Inimitable__autoA_is    = false,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getRemovable_By
+        @pulsarlua function BaseItem.getRemovable_By
+        @desc Returns the Removable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Removable_By__autoA_    = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getRepairable_By
+        @pulsarlua function BaseItem.getRepairable_By
+        @desc Returns the Repairable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Repairable_By__autoA_   = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getStorable_In
+        @pulsarlua function BaseItem.getStorable_In
+        @desc Returns the Storable_In component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret CoGRegistry vValue Stored value/reference.
+    !]]
     Storable_In__autoA_     = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getTradable_By
+        @pulsarlua function BaseItem.getTradable_By
+        @desc Returns the Tradable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Tradable_By__autoA_     = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getTradable_To
+        @pulsarlua function BaseItem.getTradable_To
+        @desc Returns the Tradable_To component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Tradable_To__autoA_     = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getUnequippable_By
+        @pulsarlua function BaseItem.getUnequippable_By
+        @desc Returns the Unequippable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Unequippable_By__autoA_ = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getUpgradeable_By
+        @pulsarlua function BaseItem.getUpgradeable_By
+        @desc Returns the Upgradeable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Upgradeable_By__autoA_  = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getDowngradable_By
+        @pulsarlua function BaseItem.getDowngradable_By
+        @desc Returns the Downgradable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret ObjectRegistry vValue Stored value/reference.
+    !]]
     Downgradable_By__autoA_ = null,
 
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getDurability
+        @pulsarlua function BaseItem.getDurability
+        @desc Returns the Durability component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret Pool vValue Stored value/reference.
+    !]]
     Durability__autoA_      = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getSize
+        @pulsarlua function BaseItem.getSize
+        @desc Returns the Size component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret Pool vValue Stored value/reference.
+    !]]
     Size__autoA_            = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getValue
+        @pulsarlua function BaseItem.getValue
+        @desc Returns the Value component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret Pool vValue Stored value/reference.
+    !]]
     Value__autoA_           = null,
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getWeight
+        @pulsarlua function BaseItem.getWeight
+        @desc Returns the Weight component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret Pool vValue Stored value/reference.
+    !]]
     Weight__autoA_          = null,
 
+    --[[!
+        @fqxn CoG.ItemSystem.BaseItem.Methods.getSlot_Pattern
+        @pulsarlua function BaseItem.getSlot_Pattern
+        @desc Returns the Slot_Pattern component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
+        @ret SlotPattern vValue Stored value/reference.
+    !]]
     Slot_Pattern__autoA_    = null,
 
     --TODO Revisit blueprint identity and its relationship to item definitions.
@@ -168,7 +294,7 @@ local cBaseItem = class("BaseItem",
     --[[!
         @fqxn CoG.ItemSystem.BaseItem.Methods.BaseItem
         @desc Protected constructor invoked by concrete item subclasses.
-        CoGRegistry/Pool arguments are optional objects, never booleans or numbers.
+        Registry/Pool arguments are optional objects, never booleans or numbers.
         vExclusiveIn accepts a CoGRegistry or a particular supported system instance;
         omission includes slot systems, inventories and stashes. Other registries start empty.
         Location and Attached_To accept class instances or null/nil; omitted values
@@ -441,3 +567,8 @@ nil         --interface(s)
 );
 
 return cBaseItem;
+
+--[[!
+    @fqxn CoG.ItemSystem.BaseItem.InheritedBaseObject
+    @inheritdoc CoG.BaseObject
+!]]

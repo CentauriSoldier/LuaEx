@@ -1,3 +1,7 @@
+--[[!
+    @fqxn CoG.ItemSystem.ItemPersistence
+    @desc Internal serializer adapters for inventory identities and shared permission registries. Load tokens isolate independent graph restorations. Owners remain external. This module uses the existing serializer factory protocol and does not define a separate save format for gameplay callers.
+!]]
 -- Inventory adapters use the serializer's existing factory protocol.
 local M = {};
 

@@ -8,7 +8,11 @@
     Ordinary overrides apply recursively to existing keys only, including list indices.
     A user table whose metatable contains __purge = true replaces that branch with its supplied
     contents, allowing new keys and shorter lists. The marker is not runtime data.
+    StatusTracker is an application-defined hierarchy and replaces its section in full.
     The final table and its ordinary subtables are read-only at runtime.
+    TIER is a private enum stored in this table, not registered globally. Project
+    overrides load first so the selected tier is available to dependent defaults.
+    The bundled Rarity section receives that selected enum explicitly.
 !]]
 local _sConfigModule, _tConfigOptions = ...; -- require may supply a filename as its second argument.
 local _pUserDirectory = rawtype(_tConfigOptions) == "table" and _tConfigOptions.userDirectory or nil;
@@ -89,32 +93,40 @@ local function applySettings(tConfig, tUserConfig, tCopies, tMerged)
     return tConfig;
 end
 
--- Always load the framework's adjacent section modules, never the user's directory.
+-- Load the project table once before constructing defaults which depend on TIER.
+local tUserConfig = {};
+if (_pUserDirectory ~= nil) then
+    local sUserFilename = _tConfigOptions.userFilename or "config.lua";
+    local pUserConfigFile = _pUserDirectory.."/"..sUserFilename;
+    local userConfigLoader, sError = loadfile(pUserConfigFile);
+    assert(userConfigLoader, "Unable to load CoG user config at '"..pUserConfigFile.."': "..tostring(sError));
+    tUserConfig = userConfigLoader(_sConfigModule, {directory = _pUserDirectory});
+    type.assert.custom(tUserConfig, "table", "CoG user config at '"..pUserConfigFile.."' must return a table.");
+end
+
+-- Typed enum overrides retain identity; do not deep-merge their member objects.
+local eTier = tUserConfig.TIER;
+if (eTier == nil) then eTier = require(_sConfigModule..".TIER"); end
+assert(enum.isenum(eTier), "CoG config TIER must be an enum collection.");
+
+-- Always load framework-adjacent defaults; Rarity must use the selected tier.
 local tConfig = {
+    TIER          = eTier,
     app           = require(_sConfigModule..".app"),
     AStar         = require(_sConfigModule..".AStar"),
     Pool          = require(_sConfigModule..".Pool"),
     BaseObject    = require(_sConfigModule..".BaseObject"),
     BaseVehicle   = require(_sConfigModule..".BaseVehicle"),
     BaseMod       = require(_sConfigModule..".BaseMod"),
-    Rarity        = require(_sConfigModule..".Rarity"),
+    Rarity        = require(_sConfigModule..".Rarity")(eTier),
     StatusTracker = require(_sConfigModule..".StatusTracker"),
 };
+tConfig = applySettings(copySettings(tConfig, {}, false), tUserConfig, {}, {});
 
-if (_pUserDirectory ~= nil) then
-    -- The LuaEx loader validates the optional filename before framework initialization.
-    local sUserFilename = _tConfigOptions.userFilename or "config.lua";
-    local pUserConfigFile = _pUserDirectory.."/"..sUserFilename;
-    local userConfigLoader, sError = loadfile(pUserConfigFile);
-    assert(userConfigLoader, "Unable to load CoG user config at '"..pUserConfigFile.."': "..tostring(sError));
-
-    -- Retain the module/directory arguments for user assemblers that load adjacent sections.
-    local tUserConfig = userConfigLoader(_sConfigModule, {directory = _pUserDirectory});
-    type.assert.custom(tUserConfig, "table", "CoG user config at '"..pUserConfigFile.."' must return a table.");
-    -- Merge against independent defaults, then let a marker replace only its own branch.
-    tConfig = applySettings(copySettings(tConfig, {}, false), tUserConfig, {}, {});
+-- StatusTracker is an application-defined hierarchy, not an overlay of fixed default keys.
+if (tUserConfig.StatusTracker ~= nil) then
+    type.assert.custom(tUserConfig.StatusTracker, "table", "CoG StatusTracker config must be a table.");
+    tConfig.StatusTracker = copySettings(tUserConfig.StatusTracker, {}, true);
 end
-
--- Snapshot the assembled settings once. The independent read-only result leaves
--- both cached default sections and the user's original table untouched.
+-- Keep typed enums intact while locking ordinary configuration tables.
 return table.readonly(tConfig);

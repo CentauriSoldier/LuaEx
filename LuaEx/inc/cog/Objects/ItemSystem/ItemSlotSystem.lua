@@ -1,3 +1,7 @@
+--[[!
+    @fqxn CoG.ItemSystem.ItemSlotSystem
+    @desc An ordered collection of ItemSlot children, initially empty. Equipment actions enforce item actor permissions; no gameplay stat effects are applied. Optional grids map zero-based coordinates to one-based row-major slots and validate complete relative footprints. Slots have one parent at a time.
+!]]
 --LOCALIZATION
 local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
 
@@ -101,7 +105,7 @@ local cItemSlotSystem = class("ItemSlotSystem",
         @fqxn CoG.ItemSystem.ItemSlotSystem.Methods.setOwner
         @desc Reconnects the caller-owned owner after loading. The owner is not saved.
         @param object|null oOwner A class instance, or null to clear the owner.
-        @ret ItemSlotSystem this
+        @ret ItemSlotSystem this This container.
     !]]
     setOwner = function(this, cdat, oOwner)
         Rules.setOwner(this, oOwner);

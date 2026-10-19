@@ -164,6 +164,12 @@ Variables are prefixed with the following lower-case symbols based on their type
 Types ignored by this convention are types **nil** and **null** since prefixing such a variable type would, generally, serve no real purpose.
 
 ###### Exceptions:
+A function receives the lowercase f prefix only when embedded within another function. File-scoped functions, module functions and class methods do not receive this prefix.
+
+Exported modules, including tables containing functions and properties, use PascalCase like class names, without a type prefix. For example, use MyModule rather than tMyModule.
+
+**Readability:** Where practical, align related lines in vertical columns, including assignment signs in declarations and corresponding comma-separated arguments or values in repeated calls or definitions.
+
 In **for loops**, sometimes '*x*' is used to indicate active index while '*k*' and '*v*' are used (when using pairs/ipairs) to reference the key and value of a table respectively. This shorthand is used often when the purpose and process of the loop is self-evident or easily determined at a glance.
 
 Global directory paths begin with **_** and ***do not*** have a variable prefix.

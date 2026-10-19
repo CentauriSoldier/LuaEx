@@ -177,8 +177,9 @@ return class("Affix",
         type.assert["function"](fActivator);
         type.assert["function"](fDeactivator);
 
-        if (eTier > _eMaxTier) then
-            error("Error creating Affix.\nMax TIER is "..tostring(eMaxTier)..'. TIER given: '..tostring(eTier)..'.');
+        -- Configured tiers may contain nested data; rank is their ordinal.
+        if (eTier.id > _eMaxTier.id) then
+            error("Error creating Affix.\nMax TIER is "..tostring(_eMaxTier)..'. TIER given: '..tostring(eTier)..'.');
         end
 
         pri.Tier            = eTier;

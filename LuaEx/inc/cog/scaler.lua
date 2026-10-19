@@ -53,7 +53,7 @@ return class("Scaler",
         --tScaler.app.y       = tApp.y;
 
         --configure the viewport
-        local tViewport = fitrect({width = nScreenWidth, height = nScreenHeight, x = 0, y = 0}, {width = nBuildWidth, height = nBuildHeight}, 1, true);
+        local tViewport = fitrect({width = nScreenWidth, height = nScreenHeight, x = 0, y = 0}, {width = nBuildWidth, height = nBuildHeight}, true);
 
         local nViewportWidth    = tViewport.width;
         local nViewportHeight   = tViewport.height;

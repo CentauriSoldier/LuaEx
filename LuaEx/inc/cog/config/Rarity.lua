@@ -1,3 +1,11 @@
+--[[!
+@fqxn CoG.Config.Rarity
+@desc Builds rarity defaults with the configured tier enum; no global TIER is required.
+@param enum eTier The tier collection selected by the configuration assembler.
+@ret table Rarity settings referencing that exact collection.
+!]]
+return function(eTier)
+local TIER = eTier;
 return {
     Affix = {
         maxTier = TIER.VI,--NOTE: every rarity's maximum affix tier must be no higher than this cap
@@ -110,3 +118,4 @@ return {
     MIN_SUFFIXES        = {0,           1,              1,              2,          3,              3},
     MAX_SUFFIXES        = {1,           2,              2,              3,          3,              3},
 };
+end;

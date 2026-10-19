@@ -478,8 +478,7 @@ local function init(...)
                                 return tConfig;
                             end
 
-                            --load the enums
-                            require(pCoG..".Enums");
+                            -- Configurable enums are loaded by the CoG config assembler.
 
                             -- The base class has no config dependencies. Load it first so
                             -- user config.lua can mark replacement tables with CoG.purge.

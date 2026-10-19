@@ -1,3 +1,7 @@
+--[[!
+    @fqxn CoG.ItemSystem.ItemRules
+    @desc Internal module coordinating container state, attachment indexes, transactions, eligibility, footprints and persistence. Functions use dot calls. State references are live internal tables; gameplay code should use the public container APIs. Argument assertions can raise errors; transaction validation failures return false and a reason. Permission callbacks inspect projected state and cannot reenter mutations.
+!]]
 -- Shared containment rules used by the public container classes.
 -- Leaf slots and inventories own item arrays; slot systems and stashes own child arrays.
 -- A child's parent link points outward, so edits can check restrictions across the entire hierarchy.

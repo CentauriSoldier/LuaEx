@@ -7,41 +7,97 @@ local ipairs    = ipairs;
 local pairs     = pairs;
 
 -- Configuration is assembled and locked before this factory loads.
-local tConfigured   = luaex.cog.config.StatusTracker.EFFECT;
-local tNames        = {};
-local tKnown        = {};
-local tEnumNames    = {};
-local Effect;
+local tConfigured = luaex.cog.config.StatusTracker;
+local tScopes     = {};
+local tPaths      = {};
+local tExports    = {};
 
--- Check list positions explicitly so sparse configuration is not silently truncated.
-local nConfigured = 0;
+-- Named tables are categories; numeric entries are terminal effect names.
+-- Only the recursion stack is marked, allowing shared config tables in different branches.
+local function buildCategory(sCategory, tCategory, tStack)
 
-for nIndex in pairs(tConfigured) do
-    assert(rawtype(nIndex) == "number" and nIndex >= 1 and nIndex % 1 == 0,
-           "StatusTracker effect configuration must be a dense list.");
-    nConfigured = nConfigured + 1;
-end
+    assert(type(tCategory) == "table", "StatusTracker categories must be ordinary tables.");
+    assert(not tStack[tCategory], "StatusTracker configuration cannot contain cycles.");
+    tStack[tCategory] = true;
+    local tNames, tValues, tChildren, tSeen = {}, {}, {}, {};
+    local nEffects = 0;
 
-for nIndex = 1, nConfigured do
-    assert(tConfigured[nIndex] ~= nil, "StatusTracker effect configuration cannot contain holes.");
-end
-
-for nIndex, sName in ipairs(tConfigured) do
-    type.assert.string(sName, "%S+");
-    assert(not tKnown[sName], "Duplicate StatusTracker effect name.");
-    tNames[nIndex] = sName;
-    tKnown[sName] = true;
-end
-
--- Empty configuration is valid; LuaEx enums require at least one member.
-if (#tNames > 0) then
-    Effect = enum("StatusTracker.EFFECT", tNames, nil, true);
-
-    for nIndex, eEffect in Effect() do
-        tEnumNames[eEffect] = tNames[nIndex];
+    for k, v in pairs(tCategory) do
+        if (rawtype(k) == "number") then
+            assert(k >= 1 and k % 1 == 0, "StatusTracker effects must form a dense list.");
+            nEffects = nEffects + 1;
+        else
+            assert(rawtype(k) == "string" and k:match("^[A-Z][A-Z0-9_]*$"),
+                   "StatusTracker category names must use UPPERCASE_WITH_UNDERSCORES.");
+            assert(type(v) == "table", "StatusTracker named entries must be category tables.");
+            tChildren[#tChildren + 1] = k;
+        end
     end
-else
-    Effect = table.readonly({});
+
+    for nIndex = 1, nEffects do
+        local sName = tCategory[nIndex];
+        assert(rawtype(sName) == "string" and sName:match("^[A-Z][A-Z0-9_]*$"),
+               "StatusTracker effects must be a dense list of UPPERCASE_WITH_UNDERSCORES names.");
+        assert(not tSeen[sName], "Duplicate StatusTracker member name.");
+        tSeen[sName] = true;
+        tNames[#tNames + 1] = sName;
+    end
+
+    table.sort(tChildren);
+    for _, sName in ipairs(tChildren) do
+        assert(not tSeen[sName], "StatusTracker effect and category names cannot collide.");
+        tSeen[sName] = true;
+        tNames[#tNames + 1] = sName;
+        tValues[#tNames] = buildCategory(sName, tCategory[sName], tStack);
+    end
+
+    assert(#tNames > 0, "StatusTracker categories must contain an effect or category.");
+    tStack[tCategory] = nil;
+    return enum(sCategory, tNames, tValues, true);
+end
+
+-- Index final enum objects after nesting, because nested definitions acquire new identities.
+local function indexCategory(eCategory, sPath)
+
+    local tScope = { path = sPath, names = {}, known = {}, effects = {}, absolute = {} };
+    tScopes[eCategory] = tScope;
+    tPaths[sPath] = tScope;
+
+    for _, eMember in eCategory() do
+        local sName = eMember.name;
+        local sAbsolute = sPath.."."..sName;
+
+        if (enum.isenum(eMember)) then
+            local tChild = indexCategory(eMember, sAbsolute);
+            for _, sChildName in ipairs(tChild.names) do
+                local sRelative = sName.."."..sChildName;
+                tScope.names[#tScope.names + 1] = sRelative;
+                tScope.known[sRelative] = true;
+            end
+            for eEffect, sChildName in pairs(tChild.effects) do
+                tScope.effects[eEffect] = sName.."."..sChildName;
+            end
+            for sEffectPath, sChildName in pairs(tChild.absolute) do
+                tScope.absolute[sEffectPath] = sName.."."..sChildName;
+            end
+        else
+            tScope.names[#tScope.names + 1] = sName;
+            tScope.known[sName] = true;
+            tScope.effects[eMember] = sName;
+            tScope.absolute[sAbsolute] = sName;
+        end
+    end
+
+    return tScope;
+end
+
+type.assert.custom(tConfigured, "table", "StatusTracker config must be a table.");
+for sName, tCategory in pairs(tConfigured) do
+    assert(rawtype(sName) == "string" and sName:match("^[A-Z][A-Z0-9_]*$"),
+           "StatusTracker top-level names must be UPPERCASE_WITH_UNDERSCORES categories.");
+    local eCategory = buildCategory(sName, tCategory, {});
+    tExports[sName] = eCategory;
+    indexCategory(eCategory, sName);
 end
 
 --[[!
@@ -50,10 +106,10 @@ end
 Duration is nonnegative; active state is separate. Reaching zero deactivates only
 statuses whose doesExpire flag is true. Cycling uses a unit chosen by the caller.
 No inheritance, gameplay effects, stacking, resistance or RNG policy is imposed.
-Methods use dot calls and accept configured names or StatusTracker.EFFECT members.
+Methods use dot calls and accept descendant effect enums or exact scoped paths.
 @ex
-local oStatuses = StatusTracker();
--- After defining HASTENED in config/StatusTracker.lua:
+local oStatuses = StatusTracker(StatusTracker.ALL_THINGS.PEOPLE);
+-- After defining ALL_THINGS.PEOPLE = {"HASTENED"} in the user CoG config:
 oStatuses.activate("HASTENED", 5, true);
 oStatuses.cycle(1);
 !]]
@@ -72,26 +128,12 @@ local function validateDuration(nDuration)
            "Status duration must be a finite nonnegative number.");
 end
 
---[[!
-@fqxn CoG.StatusTracker.Helpers.getName
-@desc Resolves a configured string or this factory's enum member. Unknown statuses raise.
-@param string|StatusTracker.EFFECT vEffect Configured status identifier.
-@ret string sName Exact configured name; names are case-sensitive.
-@scope local
-!]]
-local function getName(vEffect)
-
-    -- Accept only the known enum objects or exact configured strings.
-    local sName = tEnumNames[vEffect] or vEffect;
-    assert(rawtype(sName) == "string" and tKnown[sName], "Unknown StatusTracker effect.");
-    return sName;
-end
 
 --[[!
 @fqxn CoG.StatusTracker.Helpers.validateState
 @desc Validates complete serialized state before allocating live storage. Unknown names,
 extra fields and inconsistent active expiring statuses are rejected.
-@param table tState State containing a statuses map of configured names to state records.
+@param table tState State containing a configured category scope path and relative status records.
 @scope local
 !]]
 local function validateState(tState)
@@ -99,15 +141,17 @@ local function validateState(tState)
     -- Step 1: require the expected outer shape rather than trusting serialized data.
     type.assert.table(tState);
     type.assert.table(tState.statuses);
+    local tScope = tPaths[tState.scope];
+    assert(tScope, "Saved StatusTracker scope must name a configured category.");
 
     for sKey in pairs(tState) do
-        assert(sKey == "statuses", "Unknown StatusTracker state field.");
+        assert(sKey == "statuses" or sKey == "scope", "Unknown StatusTracker state field.");
     end
 
     -- Step 2: validate every saved record and prohibit unknown configured names.
     for sName, tStatus in pairs(tState.statuses) do
         assert(rawtype(sName) == "string", "Saved status keys must be configured names.");
-        getName(sName);
+        assert(tScope.known[sName], "Saved status is outside the configured scope.");
         type.assert.table(tStatus);
         validateDuration(tStatus.duration);
         assert(rawtype(tStatus.active) == "boolean", "Status active state must be boolean.");
@@ -121,21 +165,35 @@ local function validateState(tState)
         assert(not (tStatus.active and tStatus.doesExpire and tStatus.duration == 0),
                "An active expiring status must have a positive duration.");
     end
+
+    return tScope;
 end
 
 --[[!
 @fqxn CoG.StatusTracker.Methods.StatusTracker
 @pulsarlua function StatusTracker
-@desc Creates independent storage for configured statuses. Initially inactive, duration zero,
+@desc Creates independent storage for descendants of a configured category. Initially inactive, duration zero,
 and doesExpire true. The optional state argument is private to clone/deserialization.
-@param table|nil tState Internal restoration state; public construction takes no arguments.
+@param enum eScope Configured category enum; terminal effect members are rejected.
 @ret StatusTracker oStatuses New tracker.
 !]]
-local function build(tState)
+local function build(tScope, tState)
+
+    local tNames = tScope.names;
+    -- Resolve exact descendant identities or scoped paths without walking the enum tree.
+    local function fGetName(vEffect)
+
+        local sName = tScope.effects[vEffect];
+        if (not sName and rawtype(vEffect) == "string") then
+            sName = tScope.known[vEffect] and vEffect or tScope.absolute[vEffect];
+        end
+        assert(sName, "Unknown StatusTracker effect or effect outside this scope.");
+        return sName;
+    end
 
     -- Step 1: validate restoration input before constructing any live records.
     if (tState ~= nil) then
-        validateState(tState);
+        assert(validateState(tState) == tScope, "StatusTracker restoration scope mismatch.");
     end
 
     local tStatuses = {};
@@ -159,7 +217,7 @@ local function build(tState)
     !]]
     local function getState()
 
-        local tCopy = { statuses = {} };
+        local tCopy = { scope = tScope.path, statuses = {} };
 
         for _, sName in ipairs(tNames) do
             local tStatus = tStatuses[sName];
@@ -181,7 +239,7 @@ local function build(tState)
         @desc Activates a configured status with optional duration/expiration overrides.
         Omitted arguments retain current settings. An expiring zero-duration status remains
         inactive. Reapplication replaces supplied settings rather than stacking.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @param number|nil nDuration Optional finite nonnegative duration.
         @param boolean|nil bDoesExpire Optional expiration flag.
         @ret boolean bActive Resulting active state.
@@ -189,7 +247,7 @@ local function build(tState)
         activate = function(vEffect, nDuration, bDoesExpire)
 
             -- Step 1: validate every argument before changing the record.
-            local sName = getName(vEffect);
+            local sName = fGetName(vEffect);
 
             if (nDuration ~= nil) then
                 validateDuration(nDuration);
@@ -217,12 +275,12 @@ local function build(tState)
         --[[!
         @fqxn CoG.StatusTracker.Methods.deactivate
         @desc Explicitly stops a status, including one that does not expire. Retains its settings.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @ret boolean bChanged True if it was active before this call.
         !]]
         deactivate = function(vEffect)
 
-            local tStatus = tStatuses[getName(vEffect)];
+            local tStatus = tStatuses[fGetName(vEffect)];
             local bRet = tStatus.active;
             tStatus.active = false;
             return bRet;
@@ -231,37 +289,37 @@ local function build(tState)
         --[[!
         @fqxn CoG.StatusTracker.Methods.isActive
         @desc Reports explicit active state, independently of an indefinite status's duration.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @ret boolean bActive Current active flag.
         !]]
         isActive = function(vEffect)
 
-            return tStatuses[getName(vEffect)].active;
+            return tStatuses[fGetName(vEffect)].active;
         end,
 
         --[[!
         @fqxn CoG.StatusTracker.Methods.getDuration
         @desc Returns remaining duration in the caller's time unit.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @ret number nDuration Finite nonnegative duration.
         !]]
         getDuration = function(vEffect)
 
-            return tStatuses[getName(vEffect)].duration;
+            return tStatuses[fGetName(vEffect)].duration;
         end,
 
         --[[!
         @fqxn CoG.StatusTracker.Methods.setDuration
         @desc Replaces duration without activating an inactive status. Zero deactivates an
         expiring status, but leaves a non-expiring status's active state unchanged.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @param number nDuration Finite nonnegative remaining duration.
         @ret StatusTracker oStatuses This tracker for chaining.
         !]]
         setDuration = function(vEffect, nDuration)
 
             -- Validate before committing, then reconcile expiration only.
-            local tStatus = tStatuses[getName(vEffect)];
+            local tStatus = tStatuses[fGetName(vEffect)];
             validateDuration(nDuration);
             tStatus.duration = nDuration;
 
@@ -276,13 +334,13 @@ local function build(tState)
         @fqxn CoG.StatusTracker.Methods.adjustDuration
         @desc Adds a finite signed delta, clamping at zero. Never converts underflow to infinity.
         Overflow is rejected before mutation; adjustment does not activate an inactive status.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @param number nDelta Finite signed duration change.
         @ret StatusTracker oStatuses This tracker for chaining.
         !]]
         adjustDuration = function(vEffect, nDelta)
 
-            local tStatus = tStatuses[getName(vEffect)];
+            local tStatus = tStatuses[fGetName(vEffect)];
             assert(rawtype(nDelta) == "number" and nDelta == nDelta and math.abs(nDelta) < math.huge,
                    "Duration adjustment must be a finite number.");
             local nDuration = math.max(0, tStatus.duration + nDelta);
@@ -292,25 +350,25 @@ local function build(tState)
         --[[!
         @fqxn CoG.StatusTracker.Methods.doesExpire
         @desc Reports whether reaching zero automatically deactivates this status.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @ret boolean bDoesExpire Current expiration policy.
         !]]
         doesExpire = function(vEffect)
 
-            return tStatuses[getName(vEffect)].doesExpire;
+            return tStatuses[fGetName(vEffect)].doesExpire;
         end,
 
         --[[!
         @fqxn CoG.StatusTracker.Methods.setDoesExpire
         @desc Changes expiration policy. Enabling expiration at zero immediately deactivates.
         Disabling expiration does not automatically activate an inactive status.
-        @param string|StatusTracker.EFFECT vEffect Configured status.
+        @param string|enum vEffect Configured status.
         @param boolean bFlag Whether reaching zero should stop the status.
         @ret StatusTracker oStatuses This tracker for chaining.
         !]]
         setDoesExpire = function(vEffect, bFlag)
 
-            local tStatus = tStatuses[getName(vEffect)];
+            local tStatus = tStatuses[fGetName(vEffect)];
             assert(rawtype(bFlag) == "boolean", "Status expiration flag must be boolean.");
             tStatus.doesExpire = bFlag;
 
@@ -354,7 +412,7 @@ local function build(tState)
 
         --[[!
         @fqxn CoG.StatusTracker.Methods.eachStatus
-        @desc Iterates configured names and copied state records in configuration order.
+        @desc Iterates scope-relative paths and copied records in deterministic configured order.
         Includes inactive statuses. Later tracker changes do not alter the snapshot.
         @ret function fIterator Iterator returning name, state record.
         !]]
@@ -427,7 +485,7 @@ local function build(tState)
         end,
         --[[!
         @fqxn CoG.StatusTracker.Metamethods.__serialize
-        @desc Returns fresh plain state containing all configured status records.
+        @desc Returns fresh plain state containing the selected scope path and descendant status records.
         @ret table tState Duration, active and doesExpire data by configured name.
         !]]
         __serialize = getState,
@@ -438,7 +496,7 @@ local function build(tState)
         !]]
         __clone = function()
 
-            return build(getState());
+            return build(tScope, getState());
         end,
     };
 
@@ -447,7 +505,6 @@ local function build(tState)
 end
 
 local StatusTrackerFactory = {
-    EFFECT = Effect,
     --[[!
     @fqxn CoG.StatusTracker.Methods.deserialize
     @desc Restores independent private state using the current configured status names.
@@ -456,20 +513,21 @@ local StatusTrackerFactory = {
     !]]
     deserialize = function(tState)
 
-        validateState(tState);
-        return build(tState);
+        return build(validateState(tState), tState);
     end,
 };
 
 local StatusTrackerFactoryMeta = {
     __call = function(this, ...)
 
-        assert(select("#", ...) == 0, "Use StatusTracker() and configure it with methods.");
-        return build();
+        assert(select("#", ...) == 1, "StatusTracker requires one configured category enum.");
+        local tScope = tScopes[(...)];
+        assert(tScope, "StatusTracker scope must be a configured category enum, not an effect.");
+        return build(tScope);
     end,
     __index = function(t, k)
 
-        return StatusTrackerFactory[k] or nil;
+        return StatusTrackerFactory[k] or tExports[k];
     end,
     __newindex = function(t, k, v)
 

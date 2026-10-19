@@ -20,6 +20,20 @@ local function validateAffix(vAffix)
     end
 end
 
+--[[!
+    @fqxn CoG.BaseObject
+    @desc Shared CoG object metadata, tags and event dispatch. Concrete subclasses call the protected constructor.
+    Names and descriptions must contain non-whitespace text. Rarity falls back to the first configured level.
+    <ul>
+    <li>getName() and getDescription() expose protected strings; no replacement setters are generated.</li>
+    <li>getRarity()/setRarity(eRarity) expose the rarity property through generated accessors.</li>
+    <li>getTagSystem() is final and returns the mutable per-object TagSystem; no replacement setter is generated.</li>
+    <li>fireEvent(eEventID, ...) is final and delegates to this object's eventrix.</li>
+    <li>applyAffix(oAffix, ...) and removeAffix(oAffix, ...) are final, unfinished affix operations; see their limitations below.</li>
+    <li>getMaxPrefixes()/getMaxSuffixes() currently read undeclared private fields; they are unfinished.</li>
+    </ul>
+    @note Affix sorting/storage is unfinished. This class does not currently provide a complete safe affix lifecycle.
+!]]
 return class("BaseObject",
 {--METAMETHODS
 
@@ -39,16 +53,49 @@ return class("BaseObject",
 },
 {--PROTECTED
     eventrix__RO            = null,
+    --[[!
+        @fqxn CoG.BaseObject.Methods.getDescription
+        @pulsarlua function BaseObject.getDescription
+        @desc Returns the stored description. Generated non-final getter; no public setter.
+        @ret string vValue Stored value/reference.
+    !]]
     Description__autoA_     = "",
+    --[[!
+        @fqxn CoG.BaseObject.Methods.getName
+        @pulsarlua function BaseObject.getName
+        @desc Returns the stored name. Generated non-final getter; no public setter.
+        @ret string vValue Stored value/reference.
+    !]]
     Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
+    --[[!
+        @fqxn CoG.BaseObject.Methods.getRarity
+        @pulsarlua function BaseObject.getRarity
+        @desc Returns the current rarity reference. Generated non-final getter.
+        @ret Rarity.LEVEL vValue Stored value/reference.
+    !]]
+    --[[!
+        @fqxn CoG.BaseObject.Methods.setRarity
+        @pulsarlua function BaseObject.setRarity
+        @desc Generated setter. Assigns through the class field's type rules; it does not repeat the constructor's membership fallback.
+        @param Rarity.LEVEL eRarity Replacement rarity.
+        @ret BaseObject this This object.
+    !]]
     Rarity__auto__          = null,
+    --[[!
+        @fqxn CoG.BaseObject.Methods.getTagSystem
+        @pulsarlua function BaseObject.getTagSystem
+        @desc Returns the mutable tag component by reference. Final getter; no replacement setter.
+        @ret TagSystem vValue Stored value/reference.
+    !]]
     TagSystem__autoAF       = null,
     --[[!
     @fqxn CoG.BaseObject.Methods.BaseObject
-    @des The constructor for this class.
+    @desc Protected constructor. Creates a fresh eventrix and TagSystem after validating the name and description.
     @param string sName The name of the object.
     @param string sDescription The description of the object.
-    @param Rarity.LEVEL eRarityLevel The <a href="#CoG.Rarity" >Rarity</a> level of the object.
+    @param Rarity.LEVEL|nil eRarity Configured rarity member; other values use Rarity.LEVEL[1].
+    @param string|nil wEventrix Optional registered event environment name.
+    @throws Blank/non-string metadata or inherited/eventrix initialization errors.
     !]]
     BaseObject = function(this, cdat, super, sName, sDescription, eRarity, wEventrix)
         local pri = cdat.pri;
@@ -71,7 +118,12 @@ return class("BaseObject",
     --[[!
     @fqxn CoG.BaseObject.Methods.ApplyAffix
     @pulsarlua function BaseObject.applyAffix
-    @des stuff
+    @desc Applies a compatible affix within the configured rarity limit.
+          Tier limits compare enum ordinals, including tiers with nested payloads.
+    @param Affix oAffix Affix subclass instance, validated before use.
+    @param varargs ... Arguments forwarded to onApply.
+    @ret boolean bApplied True after application; false if already present or rejected.
+    @note Incomplete: sorting selects undeclared prefixes/suffixes tables. An otherwise eligible affix can raise an error after its membership entry has been recorded. Do not rely on atomic application.
     !]]
     applyAffix__FNL = function(this, cdat, oAffix, ...)--, eEventID, wEnv, ...)
         local bRet      = false;
@@ -96,7 +148,7 @@ return class("BaseObject",
             local tSortedAffixes    = bIsPrefix and pri.prefixes or pri.suffixes;
 
             if (#tAffixes < nMaxAffixes and
-                eAffixTier <= eMaxAffixTier  and
+                eAffixTier.id <= eMaxAffixTier.id  and
                 oAffix.isCompatibleWithClass(class.of(this))) then
                 local sEnv = oAffix.getEnvironment();
 
@@ -146,9 +198,26 @@ return class("BaseObject",
 
         return bRet;
     end,
+    --[[!
+        @fqxn CoG.BaseObject.Methods.fireEvent
+        @pulsarlua function BaseObject.fireEvent
+        @desc Dispatches an event through this object's eventrix. Final method.
+        @param enumitem eEventID Event identifier.
+        @param varargs ... Arguments forwarded to hooks.
+        @ret table tResults Hook results/errors, as returned by eventrix.fire.
+    !]]
     fireEvent__FNL = function(this, cdat, eEventID, ...)
         return cdat.pri.eventrix.fire(eEventID, ...);
     end,
+    --[[!
+        @fqxn CoG.BaseObject.Methods.removeAffix
+        @pulsarlua function BaseObject.removeAffix
+        @desc Intended to unregister hooks and call onRemove for an affix. Final method; implementation is unfinished.
+        @param Affix oAffix Affix subclass instance.
+        @param varargs ... Arguments intended for onRemove.
+        @ret nil No explicit return.
+        @note References tAffixes before its local declaration and uses undeclared sorted-prefix/suffix state. With no external tAffixes binding, removal raises an error. This is not a working removal guarantee.
+    !]]
     removeAffix__FNL = function(this, cdat, oAffix, ...)
         local pri           = cdat.pri;
 
@@ -192,6 +261,12 @@ return class("BaseObject",
     @desc Gets the maximum number of prefixes this container can hold.
     @ret int nMaxPrefixes The maximum number of prefixes.
     ]]
+    --[[!
+        @fqxn CoG.BaseObject.Methods.getMaxPrefixes
+        @pulsarlua function BaseObject.getMaxPrefixes
+        @desc Placeholder accessor reading an undeclared private field. This is not a working configured-limit API.
+        @note This class does not initialize the referenced field.
+    !]]
     getMaxPrefixes = function(this, cdat)
         return cdat.pri.maxPrefixes;
     end,
@@ -200,6 +275,12 @@ return class("BaseObject",
     @desc Gets the maximum number of suffixes this container can hold.
     @ret int nMaxSuffixes The maximum number of suffixes.
     ]]
+    --[[!
+        @fqxn CoG.BaseObject.Methods.getMaxSuffixes
+        @pulsarlua function BaseObject.getMaxSuffixes
+        @desc Placeholder accessor reading an undeclared private field. This is not a working configured-limit API.
+        @note This class does not initialize the referenced field.
+    !]]
     getMaxSuffixes = function(this, cdat)
         return cdat.pri.maxSuffixes;
     end,

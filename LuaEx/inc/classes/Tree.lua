@@ -22,7 +22,9 @@ return class("Tree",
         --MyClass = function(this, sAuthCode) end, --static constructor (runs after class object creation)
     },
     {--PRIVATE
-
+        _Value    = {}, -- container allows nil and changing value types
+        _Children = {},
+        _Parent   = {}, -- container allows an absent parent
     },
     {--PROTECTED
 
@@ -30,24 +32,24 @@ return class("Tree",
     {--PUBLIC
     Tree = function(this, cdat, vValue)
         local pri = cdat.pri
-        pri._Value    = vValue
+        pri._Value    = { vValue }
         pri._Children = {}  -- ordered
-        pri._Parent   = nil -- optional; set when added
+        pri._Parent   = {}  -- optional; set when added
     end,
 
     -- Value
     GetValue = function(this, cdat)
-        return cdat.pri._Value
+        return cdat.pri._Value[1]
     end,
 
     SetValue = function(this, cdat, vValue)
-        cdat.pri._Value = vValue
+        cdat.pri._Value[1] = vValue
         return this
     end,
 
     -- Parent (optional)
     GetParent = function(this, cdat)
-        return cdat.pri._Parent
+        return cdat.pri._Parent[1]
     end,
 
     -- Children
@@ -73,13 +75,7 @@ return class("Tree",
     Add = function(this, cdat, vValue)
         local t = cdat.pri._Children
         local child = Tree(vValue)
-        -- set parent link
-        child.GetParent(child, { pri = { _Parent = nil } }) -- no-op safety if your system blocks direct
-        -- In your system, we must set via child's cdat.pri; do it through an internal setter pattern:
-        local _ = child  -- keep reference
-        -- safest: rely on Tree itself storing parent during insertion via a private channel:
-        -- since we can't access child's pri directly from here without your internals,
-        -- we keep parent optional; Menu can ignore parent anyway.
+        cdat.ins[child].pri._Parent[1] = this
         t[#t + 1] = child
         return child
     end,
@@ -88,6 +84,7 @@ return class("Tree",
         local t = cdat.pri._Children
         _AssertIndex(nIndex, 1, #t + 1, "Insert index")
         local child = Tree(vValue)
+        cdat.ins[child].pri._Parent[1] = this
         table.insert(t, nIndex, child)
         return child
     end,
@@ -98,11 +95,11 @@ return class("Tree",
         tOut  = tOut  or {}
 
         local indent = string.rep("  ", depth)
-        tOut[#tOut + 1] = indent .. tostring(node.GetValue(node))
+        tOut[#tOut + 1] = indent .. tostring(node.GetValue())
 
-        local children = node.GetChildren(node)
+        local children = node.GetChildren()
         for i = 1, #children do
-            this.Print(this, cdat, children[i], depth + 1, tOut)
+            this.Print(children[i], depth + 1, tOut)
         end
 
         return table.concat(tOut, "\n")
@@ -113,10 +110,16 @@ return class("Tree",
     RemoveAt = function(this, cdat, nIndex)
         local t = cdat.pri._Children
         _AssertIndex(nIndex, 1, #t, "Remove index")
-        return table.remove(t, nIndex)
+        local child = table.remove(t, nIndex)
+        cdat.ins[child].pri._Parent[1] = nil
+        return child
     end,
 
     Clear = function(this, cdat)
+        local t = cdat.pri._Children
+        for i = 1, #t do
+            cdat.ins[t[i]].pri._Parent[1] = nil
+        end
         cdat.pri._Children = {}
         return this
     end,
@@ -132,7 +135,7 @@ return class("Tree",
         local t = cdat.pri._Children
         for i = 1, #t do
             -- dot-call style; each child receives its own cdat internally via your class system
-            t[i].Walk(t[i], fn)
+            t[i].Walk(fn)
         end
 
         return this

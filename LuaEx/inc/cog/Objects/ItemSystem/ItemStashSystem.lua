@@ -1,3 +1,7 @@
+--[[!
+    @fqxn CoG.ItemSystem.ItemStashSystem
+    @desc A hierarchy of ItemSystem inventory tabs, initially one tab. Default new-tab capacity is math.huge. Stash-wide exclusivity and outer ownership apply across tabs; releasing tabs requires them to be empty and at least one tab must remain.
+!]]
 --LOCALIZATION
 local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
 
@@ -90,7 +94,7 @@ local cItemStashSystem = class("ItemStashSystem",
         @fqxn CoG.ItemSystem.ItemStashSystem.Methods.setOwner
         @desc Reconnects the caller-owned owner after loading. The owner is not saved.
         @param object|null oOwner A class instance, or null to clear the owner.
-        @ret ItemStashSystem this
+        @ret ItemStashSystem this This container.
     !]]
     setOwner = function(this, cdat, oOwner)
         Rules.setOwner(this, oOwner);

@@ -32,6 +32,11 @@ return class("ObjectRegistry",
 {--METAMETHODS
     -- Own the entry list independently; class/instance identities and the callback
     -- reference are shared intentionally. The callback's captured state is not cloned.
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.__clone
+        @desc Copies the entry array while retaining class/instance identities and the callback reference. Captured callback state is shared.
+        @ret ObjectRegistry oCopy Independent registry.
+    !]]
     __clone = function(this, cdat)
         local pri = cdat.pri;
         local tEntries = {};
@@ -43,6 +48,11 @@ return class("ObjectRegistry",
         return ObjectRegistry(tEntries, pri.prerequisite, pri.defaultPrerequisite);
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.__len
+        @desc Returns the number of stored entries.
+        @ret number nCount Entry count.
+    !]]
     __len = function(this, cdat)
         return #cdat.pri.entries;
     end,
@@ -64,6 +74,7 @@ return class("ObjectRegistry",
         @param function|nil fPrerequisite An optional additional eligibility check.
         @param boolean|nil bDefaultPrerequisite Dummy result; defaults to true.
         @desc A supplied callback takes precedence over the default dummy.
+        @pulsarlua function ObjectRegistry
     !]]
     ObjectRegistry = function(this, cdat, tEntries, fPrerequisite, bDefaultPrerequisite)
         assert(bDefaultPrerequisite == nil or rawtype(bDefaultPrerequisite) == "boolean",
@@ -91,6 +102,14 @@ return class("ObjectRegistry",
 
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.add
+        @pulsarlua function ObjectRegistry.add
+        @desc Adds a CoG class or instance unless the exact entry already exists.
+        @param class|CoG vEntry Entry to register.
+        @ret ObjectRegistry this This registry.
+        @ret boolean bAdded Whether a new entry was inserted.
+    !]]
     add = function(this, cdat, vEntry)
         validateEntry(vEntry);
         local tEntries = cdat.pri.entries;
@@ -107,6 +126,14 @@ return class("ObjectRegistry",
         return this, true;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.remove
+        @pulsarlua function ObjectRegistry.remove
+        @desc Removes only the exact class/instance entry, not its descendants.
+        @param class|CoG vEntry Entry to remove.
+        @ret ObjectRegistry this This registry.
+        @ret boolean bRemoved Whether an entry was removed.
+    !]]
     remove = function(this, cdat, vEntry)
         validateEntry(vEntry);
         local tEntries = cdat.pri.entries;
@@ -123,11 +150,24 @@ return class("ObjectRegistry",
         return this, false;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.clear
+        @pulsarlua function ObjectRegistry.clear
+        @desc Clears entries, retaining prerequisite settings. An empty registry denies all objects.
+        @ret ObjectRegistry this This registry.
+    !]]
     clear = function(this, cdat)
         cdat.pri.entries = {};
         return this;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.contains
+        @pulsarlua function ObjectRegistry.contains
+        @desc Checks exact entry identity, without inheritance matching or invoking prerequisites.
+        @param class|CoG vEntry Valid CoG class or instance.
+        @ret boolean bFound Whether that exact entry is stored.
+    !]]
     contains = function(this, cdat, vEntry)
         validateEntry(vEntry);
 
@@ -142,10 +182,22 @@ return class("ObjectRegistry",
         return false;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.getCount
+        @pulsarlua function ObjectRegistry.getCount
+        @desc Returns stored entry count.
+        @ret number nCount Entry count.
+    !]]
     getCount = function(this, cdat)
         return #cdat.pri.entries;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.eachEntry
+        @pulsarlua function ObjectRegistry.eachEntry
+        @desc Returns an iterator over a copied entry array. Later registry edits do not alter its order.
+        @ret function fIterator Yields one-based index and class/instance entry.
+    !]]
     eachEntry = function(this, cdat)
         local tEntries = {};
 
@@ -166,10 +218,23 @@ return class("ObjectRegistry",
     end,
 
     -- Compatibility with the original class-only registry API.
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.eachClass
+        @pulsarlua function ObjectRegistry.eachClass
+        @desc Compatibility alias of eachEntry; includes instance entries as well as classes.
+        @ret function fIterator Yields one-based index and stored entry.
+    !]]
     eachClass = function(this, cdat)
         return this.eachEntry();
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.setPrerequisite
+        @pulsarlua function ObjectRegistry.setPrerequisite
+        @desc Replaces the eligibility callback. Nil selects the current default dummy. Callback receives (oObject, ...) after entry matching and must return boolean plus optional string reason.
+        @param function|nil fPrerequisite Callback or nil to restore the dummy.
+        @ret ObjectRegistry this This registry.
+    !]]
     setPrerequisite = function(this, cdat, fPrerequisite)
         assert(fPrerequisite == nil or rawtype(fPrerequisite) == "function",
                "Prerequisite must be a function or nil.");
@@ -178,10 +243,23 @@ return class("ObjectRegistry",
         return this;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.getPrerequisite
+        @pulsarlua function ObjectRegistry.getPrerequisite
+        @desc Returns the current callback, including the selected default dummy.
+        @ret function fPrerequisite Current eligibility function.
+    !]]
     getPrerequisite = function(this, cdat)
         return cdat.pri.prerequisite;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.setDefaultPrerequisite
+        @pulsarlua function ObjectRegistry.setDefaultPrerequisite
+        @desc Changes the dummy result and updates an active dummy immediately; a custom callback remains unchanged.
+        @param boolean bDefault Dummy eligibility result.
+        @ret ObjectRegistry this This registry.
+    !]]
     setDefaultPrerequisite = function(this, cdat, bDefault)
         assert(rawtype(bDefault) == "boolean", "Default prerequisite must be a boolean.");
         local pri = cdat.pri;
@@ -195,6 +273,12 @@ return class("ObjectRegistry",
         return this;
     end,
 
+    --[[!
+        @fqxn CoG.ObjectRegistry.Methods.getDefaultPrerequisite
+        @pulsarlua function ObjectRegistry.getDefaultPrerequisite
+        @desc Returns the selected default dummy result.
+        @ret boolean bDefault Default eligibility result.
+    !]]
     getDefaultPrerequisite = function(this, cdat)
         return cdat.pri.defaultPrerequisite;
     end,
@@ -204,6 +288,9 @@ return class("ObjectRegistry",
         @desc Class entries use child-or-self checks (isa semantics); instance
         entries use exact identity, ignoring overloaded equality operators.
         A match invokes the prerequisite once, not once per matching entry.
+        @pulsarlua function ObjectRegistry.allows
+        @param CoG oObject Candidate instance; non-CoG inputs return false and a reason.
+        @param varargs ... Extra prerequisite context.
         @ret boolean bAllowed Eligibility result.
         @ret string|nil sReason Optional explanation for denial.
     !]]

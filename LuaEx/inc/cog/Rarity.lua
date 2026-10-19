@@ -73,13 +73,14 @@ local function validateConfig(tRarity)
         nPreviousChance = nChance;
 
         -- Equal thresholds intentionally permit zero-probability rarities.
+        -- Compare tier ordinals so configured nested payloads remain supported.
         -- Tier and count ranges must remain internally ordered for every row.
         local eMinTier = tRarity.MIN_AFFIX_TIER[nIndex];
         local eMaxTier = tRarity.MAX_AFFIX_TIER[nIndex];
         type.assert.custom(eMinTier, "TIER", "\n"..sContext.." MIN_AFFIX_TIER");
         type.assert.custom(eMaxTier, "TIER", "\n"..sContext.." MAX_AFFIX_TIER");
-        assert(eMinTier <= eMaxTier, sContext.." minimum affix tier exceeds maximum.");
-        assert(eMaxTier <= tRarity.Affix.maxTier, sContext.." affix tier exceeds Affix.maxTier.");
+        assert(eMinTier.id <= eMaxTier.id, sContext.." minimum affix tier exceeds maximum.");
+        assert(eMaxTier.id <= tRarity.Affix.maxTier.id, sContext.." affix tier exceeds Affix.maxTier.");
 
         for _, sKind in ipairs({"PREFIXES", "SUFFIXES"}) do
             local nMinimum = tRarity["MIN_"..sKind][nIndex];

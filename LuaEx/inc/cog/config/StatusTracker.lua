@@ -1,7 +1,7 @@
 return {
-    -- Define application-specific status names here before LuaEx initializes.
+    -- Define application-specific categories under StatusTracker in the user CoG config.
     -- The preserved names below are examples; none are enabled by default.
-    EFFECT = {
+    --EFFECT = {
         --"ARMOURED",
         --"BERSERK",
         --"BLESSED",
@@ -66,5 +66,5 @@ return {
         --"VEXED",
         --"VULNERABLE",
         --"WEAKENED",
-    },
+    --},
 };

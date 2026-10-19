@@ -142,15 +142,75 @@ return class("BaseVehicle",
 },
 {--PROTECTED
     Components                 = {},    -- Configured names mapped to class instances or null.
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getDistancePerFuelUnit
+        @pulsarlua function BaseVehicle.getDistancePerFuelUnit
+        @desc Returns the stored DistancePerFuelUnit value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret number vValue Stored value/reference.
+    !]]
     DistancePerFuelUnit__autoA_ = 0,     -- Nonnegative distance travelled per fuel unit.
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getExclusive
+        @pulsarlua function BaseVehicle.getExclusive
+        @desc Returns the stored Exclusive value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret boolean vValue Stored value/reference.
+    !]]
     Exclusive__autoA_           = false,
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getFuel
+        @pulsarlua function BaseVehicle.getFuel
+        @desc Returns the stored Fuel value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret Pool vValue Stored value/reference.
+    !]]
     Fuel__autoA_                = null,  -- Supplied Pool or an independent default Pool.
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getInimitable
+        @pulsarlua function BaseVehicle.getInimitable
+        @desc Returns the stored Inimitable value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret boolean vValue Stored value/reference.
+    !]]
     Inimitable__autoA_          = false,
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getMaxSpeed
+        @pulsarlua function BaseVehicle.getMaxSpeed
+        @desc Returns the stored MaxSpeed value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret number vValue Stored value/reference.
+    !]]
     MaxSpeed__autoA_            = 0,
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getOwner
+        @pulsarlua function BaseVehicle.getOwner
+        @desc Returns the stored Owner value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret object|null vValue Stored value/reference.
+    !]]
     Owner__autoA_               = null,  -- Optional caller-owned class instance.
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getQuest
+        @pulsarlua function BaseVehicle.getQuest
+        @desc Returns the stored Quest value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret boolean vValue Stored value/reference.
+    !]]
     Quest__autoA_               = false,
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getTradeable
+        @pulsarlua function BaseVehicle.getTradeable
+        @desc Returns the stored Tradeable value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret boolean vValue Stored value/reference.
+    !]]
     Tradeable__autoA_           = true,
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getUnmanned
+        @pulsarlua function BaseVehicle.getUnmanned
+        @desc Returns the stored Unmanned value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret boolean vValue Stored value/reference.
+    !]]
     Unmanned__autoA_            = false,
+    --[[!
+        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getValue
+        @pulsarlua function BaseVehicle.getValue
+        @desc Returns the stored Value value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
+        @ret number vValue Stored value/reference.
+    !]]
     Value__autoA_               = 0,
 },
 {--PUBLIC
@@ -283,3 +343,8 @@ BaseObject,  --extending class
 false,       --if the class is final
 nil          --interfaces
 );
+
+--[[!
+    @fqxn CoG.VehicleSystem.BaseVehicle.InheritedBaseObject
+    @inheritdoc CoG.BaseObject
+!]]

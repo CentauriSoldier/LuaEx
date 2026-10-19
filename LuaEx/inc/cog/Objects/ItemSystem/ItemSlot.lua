@@ -1,3 +1,7 @@
+--[[!
+    @fqxn CoG.ItemSystem.ItemSlot
+    @desc A final leaf container for individual items, with a mutable ObjectRegistry eligibility filter. Default capacity is one; stacking counts instances rather than quantities. Standalone slots do not require inventory storage eligibility. Containment/footprint rules apply when adopted into a system.
+!]]
 --LOCALIZATION
 local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
 
@@ -45,6 +49,12 @@ local cItemSlot = class("ItemSlot",
     end,
 },
 {--PROTECTED
+    --[[!
+        @fqxn CoG.ItemSystem.ItemSlot.Methods.getName
+        @pulsarlua function ItemSlot.getName
+        @desc Returns the slot name, initially empty when omitted. Generated non-final getter; no setter.
+        @ret string vValue Stored value/reference.
+    !]]
     Name__autoA_ = "",
 },
 {--PUBLIC
@@ -104,7 +114,7 @@ local cItemSlot = class("ItemSlot",
         @fqxn CoG.ItemSystem.ItemSlot.Methods.setOwner
         @desc Reconnects the caller-owned owner after loading. The owner is not saved.
         @param object|null oOwner A class instance, or null to clear the owner.
-        @ret ItemSlot this
+        @ret ItemSlot this This container.
     !]]
     setOwner = function(this, cdat, oOwner)
         Rules.setOwner(this, oOwner);

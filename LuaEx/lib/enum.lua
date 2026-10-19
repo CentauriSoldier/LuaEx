@@ -7,7 +7,8 @@
     Entries compare by identity; compare their value fields to compare payloads.
     Payload objects remain references and are not recursively made immutable.
     clone retains immutable collection/member/factory identity. Public metadata
-    views and ordinary writes are protected. Nested collections own their wrappers.
+    views and ordinary writes are protected. Fresh private definitions embed as
+    nested fields; public enums and existing members remain shared references.
 !]]
 local _tLuaEx    = rawget(_G, "luaex");
 local _tEnums    = setmetatable({}, {__mode = "k"});
@@ -264,8 +265,20 @@ local function itemMeta(oItem, tState, tActual)
     return ItemMeta;
 end
 
-buildEnum = function(sName, tNames, tValues, bPrivate, oParent, nID, sItemName, tOwner)
+-- Fresh private collections define nested fields; public collections and existing
+-- members are shared payload references. Snapshots explicitly mark owned children.
+local function embedsValue(vValue, nIndex, tEmbedded)
+    local tValue = _tEnums[vValue];
+
+    if (not tValue) then return false; end
+    if (tEmbedded ~= nil) then return tEmbedded[nIndex] == true; end
+
+    return tValue.private and not tValue.parent;
+end
+
+buildEnum = function(sName, tNames, tValues, bPrivate, oParent, nID, sItemName, tOwner, tEmbedded)
     local nCount = validateInputs(sName, tNames, tValues, bPrivate);
+    if (tEmbedded ~= nil) then type.assert.table(tEmbedded); end
     local EnumDecoy = {};
     local tActual = {};
     local tState = {name = sName, items = {}, values = {}, parent = oParent, id = nID, itemName = sItemName, actual = tActual, private = bPrivate};
@@ -281,7 +294,7 @@ buildEnum = function(sName, tNames, tValues, bPrivate, oParent, nID, sItemName, 
         local tItemActual = {};
         local tItemState = {id = nIndex, itemName = sItem, parent = EnumDecoy, value = vValue};
 
-        if (_tEnums[vValue]) then
+        if (embedsValue(vValue, nIndex, tEmbedded)) then
             if (tOwner) then
                 -- The codec owns these freshly restored children. Adopting them
                 -- preserves graph references to their members instead of copying twice.
@@ -299,7 +312,7 @@ buildEnum = function(sName, tNames, tValues, bPrivate, oParent, nID, sItemName, 
             else
                 -- Embed an independent wrapper; do not mutate supplied live enums.
                 local tChild = snapshot(vValue);
-                ItemDecoy = buildEnum(tChild.name, tChild.names, tChild.values, true, EnumDecoy, nIndex, sItem);
+                ItemDecoy = buildEnum(tChild.name, tChild.names, tChild.values, true, EnumDecoy, nIndex, sItem, nil, tChild.embedded);
             end
 
             tItemState = _tEnums[ItemDecoy];
@@ -410,18 +423,21 @@ end;
     @pulsarlua function enum.snapshot
     @desc Returns a fresh definition table for an enum, including private/nested
     enums. Payload objects are retained; member names and value lists are copied.
+    The embedded map marks owned child collections, keeping shared enum payloads
+    distinct from nested definitions when the snapshot is restored.
     @param enum oEnum The enum to describe.
-    @ret table The definition {name, names, values}.
+    @ret table The definition {name, names, values, embedded}.
     @ex local tDefinition = enum.snapshot(TIER);
 !]]
 snapshot = function(oEnum)
     local tState = _tEnums[oEnum];
     assert(tState, "Expected an enum collection.");
-    local tResult = {name = tState.name, names = {}, values = {}};
+    local tResult = {name = tState.name, names = {}, values = {}, embedded = {}};
 
     for nIndex, oItem in ipairs(tState.items) do
         tResult.names[nIndex] = _tItems[oItem].itemName;
         tResult.values[nIndex] = _tEnums[oItem] and oItem or tState.values[nIndex];
+        if (_tEnums[oItem]) then tResult.embedded[nIndex] = true; end
     end
 
     return tResult;
@@ -453,7 +469,7 @@ local function deserialize(vData)
         oResult = vValue;
     else
         type.assert.table(vData);
-        oResult = buildEnum(vData.name, vData.names, vData.values, true);
+        oResult = buildEnum(vData.name, vData.names, vData.values, true, nil, nil, nil, nil, vData.embedded);
     end
 
     return oResult;
@@ -549,8 +565,9 @@ local function isitem(vValue) return _tItems[vValue] ~= nil; end
     to preserve references to nested members. Children must be unparented and
     privately owned by the same decoding token. Member state {parent, name}
     resolves a member of its restored parent. Use deserialize for snapshots of live enums,
-    which instead creates independent child wrappers.
-    @param table tData An owned decoded definition {name, names, values}.
+    which instead creates independent owned-child wrappers while keeping shared
+    enum payload references intact. The embedded map identifies owned children.
+    @param table tData An owned decoded definition {name, names, values, embedded}.
     @param table tOwner The codec's opaque ownership token.
     @ret enum A restored private enum.
     @ex local oDecoded = enum.restore({name = "DecodedExample", names = {"FIRST"}, values = {false}}, {});
@@ -570,16 +587,18 @@ local function restore(tData, tOwner)
         local tSeen = {};
         type.assert.table(tData.values);
 
-        for _, oChild in pairs(tData.values) do
+        if (tData.embedded ~= nil) then type.assert.table(tData.embedded); end
+
+        for nIndex, oChild in pairs(tData.values) do
             local tChild = _tEnums[oChild];
 
-            if (tChild) then
+            if (embedsValue(oChild, nIndex, tData.embedded)) then
                 assert(tChild.private and not tChild.parent and rawequal(tChild.owner, tOwner) and not tSeen[oChild], "Decoded enum children must be distinct collections owned by this restoration.");
                 tSeen[oChild] = true;
             end
         end
 
-        oResult = buildEnum(tData.name, tData.names, tData.values, true, nil, nil, nil, tOwner);
+        oResult = buildEnum(tData.name, tData.names, tData.values, true, nil, nil, nil, tOwner, tData.embedded);
     end
 
     return oResult;
@@ -603,6 +622,9 @@ local EnumFactoryDecoy = {};
     Call a completed enum, or use pairs/ipairs, to iterate members in order.
     __count and # return its size, __name returns its declared name, and __hasa
     tests exact parent membership. Dot/string and one-based numeric lookup agree.
+    Fresh unparented private collections define nested fields. Existing members
+    and public collections remain exact references in the receiving item's value;
+    their parent, name and identity are not changed.
     @param string sName The declared name.
     @param table tNames The member-name list.
     @param table tValues Optional payloads; defaults to an empty table.
