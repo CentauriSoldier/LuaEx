@@ -26,7 +26,7 @@ local ExampleItem = class("ContainerExampleItem", {}, {}, {}, {}, {
               t.storage or CoGRegistry({ItemSystem, ItemStashSystem}),t.tradeBy,t.tradeTo,t.unequip,nil,nil,
               nil,nil,nil,nil,nil,nil,t.pattern);
     end,
-}, BaseItem);
+}, CoGItem);
 
 D.section("Individual instances in one stack", "The slot owns capacity; items remain separate objects. Removing one preserves the others.");
 local stack = ItemSlot(nil, nStackCapacity);

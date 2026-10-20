@@ -1,8 +1,8 @@
 # Item system review
 
-Reviewed the five files in `LuaEx/inc/cog/Objects/ItemSystem`, their initializer registration, and the BaseObject/Affix/Rarity dependencies. This is a review of the current working tree, including existing uncommitted work.
+Reviewed the five files in `LuaEx/inc/cog/Objects/ItemSystem`, their initializer registration, and the CoGObject/Affix/Rarity dependencies. This is a review of the current working tree, including existing uncommitted work.
 
-The system is incomplete and has blocking runtime defects. Normal BaseItem subclass construction fails before a usable item exists. Inventory capacity and initialization are broken; equipment lookup and swapping are broken; inherited affix/event behavior is inconsistent.
+The system is incomplete and has blocking runtime defects. Normal CoGItem subclass construction fails before a usable item exists. Inventory capacity and initialization are broken; equipment lookup and swapping are broken; inherited affix/event behavior is inconsistent.
 
 ## Validation and limits of evidence
 
@@ -12,11 +12,11 @@ The script first checks unmodified initialization and normal item construction. 
 
 ## Blocking/high-priority defects
 
-1. **BaseItem construction calls a missing global `super`.** `BaseItem.lua:37–42` omits the injected superclass parameter and calls `super(...)`. An ordinary child constructor calling its superclass fails with `attempt to call a nil value (global 'super')`. Reproduced without adapters.
+1. **CoGItem construction calls a missing global `super`.** `CoGItem.lua:37–42` omits the injected superclass parameter and calls `super(...)`. An ordinary child constructor calling its superclass fails with `attempt to call a nil value (global 'super')`. Reproduced without adapters.
 
-2. **BaseObject has additional constructor blockers.** `BaseObject.lua:52–62` also omits the superclass parameter/call despite extending CoG. It assigns undeclared private `Eventrix`, while the declared field is protected lowercase `eventrix`. Its fallback `_eRarity` is undefined, and `Rarity` starts as boolean false despite being assigned an enum item under the class system's field-type checks. Source inspection; the undeclared Eventrix assignment also failed while isolating the constructor chain.
+2. **CoGObject has additional constructor blockers.** `CoGObject.lua:52–62` also omits the superclass parameter/call despite extending CoG. It assigns undeclared private `Eventrix`, while the declared field is protected lowercase `eventrix`. Its fallback `_eRarity` is undefined, and `Rarity` starts as boolean false despite being assigned an enum item under the class system's field-type checks. Source inspection; the undeclared Eventrix assignment also failed while isolating the constructor chain.
 
-3. **Inventory/stash classes are not initialized.** `LuaEx/init.lua:489–492` registers BaseItem, ItemSlot and ItemSlotSystem, but not ItemSystem or ItemStashSystem. Both globals are nil after standard initialization. Stash construction also expects a global ItemSystem, so merely requiring the stash module is insufficient. Baseline reproduced.
+3. **Inventory/stash classes are not initialized.** `LuaEx/init.lua:489–492` registers CoGItem, ItemSlot and ItemSlotSystem, but not ItemSystem or ItemStashSystem. Both globals are nil after standard initialization. Stash construction also expects a global ItemSystem, so merely requiring the stash module is insufficient. Baseline reproduced.
 
 4. **ItemSystem shifts its constructor arguments.** `ItemSystem.lua:97` declares `super` even though the class has no parent. `ItemSystem(1)` therefore ignores the intended capacity and stays unlimited; a second item is accepted. `ItemSystem(2, {item})` initializes zero items. A stash configured for one item per tab inherits the same problem. Reproduced with item-construction adapters.
 
@@ -30,11 +30,11 @@ The script first checks unmodified initialization and normal item construction. 
 
 9. **Slot swapping errors or reports a false success.** `ItemSlotSystem.lua:278–305` uses nonexistent `getItem()`/`setItem()` methods. With occupied slots it throws. With different indices and an empty slot, `bRet` remains true despite no swap occurring. The same success-initialization flaw applies when locks prevent swapping. There is no rollback if the first reassignment succeeds but the second fails type compatibility. Both empty and occupied cases reproduced; atomicity/type compatibility risks are source findings.
 
-10. **Explicit false item flags are lost.** `BaseItem.lua:50–54` uses `condition and value or true` for Removable, Sellable and Tradable. Supplying false therefore produces true. All three reproduced after constructor adapters. This matters for quest items, bound items and non-removable equipment.
+10. **Explicit false item flags are lost.** `CoGItem.lua:50–54` uses `condition and value or true` for Removable, Sellable and Tradable. Supplying false therefore produces true. All three reproduced after constructor adapters. This matters for quest items, bound items and non-removable equipment.
 
-11. **Item cloning is unusable.** `BaseItem.lua:7–10` constructs BaseItem directly even though its constructor is protected. `clone()` of a subclass throws. Even if direct construction were enabled, this implementation would discard the concrete subclass, item state and flags, including Inimitable. Reproduced error; state-loss risk confirmed in source.
+11. **Item cloning is unusable.** `CoGItem.lua:7–10` constructs CoGItem directly even though its constructor is protected. `clone()` of a subclass throws. Even if direct construction were enabled, this implementation would discard the concrete subclass, item state and flags, including Inimitable. Reproduced error; state-loss risk confirmed in source.
 
-12. **Inherited event/affix operations have multiple defects.** `BaseObject.lua`:
+12. **Inherited event/affix operations have multiple defects.** `CoGObject.lua`:
     - `:147` reads lowercase private `eventrix`, while initialization/application uses uppercase private `Eventrix` and the declaration is in protected storage. `fireEvent()` fails in the downstream probe.
     - `:91–93` calls nonexistent `Rarity.getPrefixCount/getSuffixCount` and accesses undeclared `pri.prefixes/suffixes`; Rarity exposes `getMaxPrefixCount/getMaxSuffixCount`.
     - `:95` takes `#` of an affix-keyed dictionary, which does not count its entries or separate prefix/suffix totals. Capacity enforcement would remain wrong after fixing method names.

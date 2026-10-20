@@ -33,7 +33,7 @@ and Stillwater (unmanned survey skiff). Select an illustration to inspect it.
   status message and bounded operation journal.
 
 Movement, units, trip counters, condition, images and concrete clone choices are
-example policy. BaseVehicle supplies validated storage and inherited identity.
+example policy. CoGVehicle supplies validated storage and inherited identity.
 `Tradeable` covers selling. Flags do not automatically enforce game rules.
 
 ## Current framework limits shown honestly
@@ -46,7 +46,7 @@ instead of rebinding an independently defined callback's lexical environment.
 The inspector and journal show configured and observed environments separately.
 The callback still runs and increments that vehicle's inspection count.
 
-BaseObject's unfinished affix implementation is documented rather than exposed
+CoGObject's unfinished affix implementation is documented rather than exposed
 as a functioning control. Affixes and arbitrary user hooks are not cloned by
 this example. The inspection hook is recreated by the concrete constructor.
 

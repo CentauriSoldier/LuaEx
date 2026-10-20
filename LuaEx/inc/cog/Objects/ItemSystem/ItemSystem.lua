@@ -1,6 +1,6 @@
 --[[!
     @fqxn CoG.ItemSystem.ItemSystem
-    @desc An ordered inventory of individual BaseItem instances. Capacity defaults to math.huge, membership is empty, enabled is true and locked is false. Storage eligibility, exclusivity and ancestor restrictions are enforced by shared transactions. Owners are external references and must be reconnected after loading.
+    @desc An ordered inventory of individual CoGItem instances. Capacity defaults to math.huge, membership is empty, enabled is true and locked is false. Storage eligibility, exclusivity and ancestor restrictions are enforced by shared transactions. Owners are external references and must be reconnected after loading.
 !]]
 --LOCALIZATION
 local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");

@@ -159,7 +159,7 @@ return class("Affix",
     @param table tAppliesTo The classes with which the affix is compatible. It must be a numerically-indexed table whose values are classes and there must be at least one entry.
     @param function fActivator The activator function that is fired when the Affix is applied by the owner object. The activator function must accept the following parameters.
         <ol>
-            <li>The object upon which the Affix is applied (a descendant of the BaseObject).</li>
+            <li>The object upon which the Affix is applied (a descendant of the CoGObject).</li>
             <li>Any other arguments you want passed to the activator function by the object's call to its ApplyAffix method. Essentially, the object's ApplyAffix method's varargs are sent directly to the Affix's onApply method that, in turn, inputs them in this activator function allowing you to pass whatever data you want to the activator during application of the Affix.</li>
         </ol>
         If a return is provided by the activator function, it must be a table whose keys are enumitems and values are numerically-indexed tables with event hook function values. This tables is used by the calling object to add events to the object's eventrix during application of the Affix.
@@ -274,8 +274,8 @@ return class("Affix",
     @fqxn CoG.Affix.Methods.onApply
     @pulsarlua function Affix.onApply
     @desc Fires the activator function provided during construction. This is called by the object to which the affix is applied. This is basically a controlled wrapper for the activator function to prevent erroneous or multiple calls and to restrict the environment in which the function is called.
-    @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
-    @param varargs varargs Any arguments that should be passed to the activator function from the object's <a href="#CoG.BaseObject.Methods.ApplyAffix">ApplyAffix</a> method.
+    @param object oObject The object (a descendant of the CoGObject) that upon which the affix is applied.
+    @param varargs varargs Any arguments that should be passed to the activator function from the object's <a href="#CoG.CoGObject.Methods.ApplyAffix">ApplyAffix</a> method.
     @ret boolean bApplied True if the affix was applied, false otherwise.
     !]]
     --must accept object which contains it (and any varargs), may return any events and functions
@@ -291,7 +291,7 @@ return class("Affix",
     @fqxn CoG.Affix.Methods.onRemove
     @pulsarlua function Affix.onRemove
     @desc Fires the deactivator function provided during construction. This is called by the object from which the affix is removed. This is basically a controlled wrapper for the deactivator function to prevent erroneous or multiple calls and to restrict the environment in which the function is called.
-    @param object oObject The object (a descendant of the BaseObject) that upon which the affix is applied.
+    @param object oObject The object (a descendant of the CoGObject) that upon which the affix is applied.
     @param varargs varargs Any arguments that should be passed to the deactivator function.
     !]]
     onRemove__FNL = function(this, cdat, oCoGObject, ...)

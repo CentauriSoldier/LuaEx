@@ -21,7 +21,7 @@ local function validateAffix(vAffix)
 end
 
 --[[!
-    @fqxn CoG.BaseObject
+    @fqxn CoG.CoGObject
     @desc Shared CoG object metadata, tags and event dispatch. Concrete subclasses call the protected constructor.
     Names and descriptions must contain non-whitespace text. Rarity falls back to the first configured level.
     <ul>
@@ -34,13 +34,13 @@ end
     </ul>
     @note Affix sorting/storage is unfinished. This class does not currently provide a complete safe affix lifecycle.
 !]]
-return class("BaseObject",
+return class("CoGObject",
 {--METAMETHODS
 
 },
 {--STATIC PUBLIC
-    BaseObject = function(stapub)
-        --stapub.RARITY = enum("BaseObject.RARITY", tRarity.rarity, tRarity.colors, true);
+    CoGObject = function(stapub)
+        --stapub.RARITY = enum("CoGObject.RARITY", tRarity.rarity, tRarity.colors, true);
     end,
 },
 {--PRIVATE
@@ -54,42 +54,42 @@ return class("BaseObject",
 {--PROTECTED
     eventrix__RO            = null,
     --[[!
-        @fqxn CoG.BaseObject.Methods.getDescription
-        @pulsarlua function BaseObject.getDescription
+        @fqxn CoG.CoGObject.Methods.getDescription
+        @pulsarlua function CoGObject.getDescription
         @desc Returns the stored description. Generated non-final getter; no public setter.
         @ret string vValue Stored value/reference.
     !]]
     Description__autoA_     = "",
     --[[!
-        @fqxn CoG.BaseObject.Methods.getName
-        @pulsarlua function BaseObject.getName
+        @fqxn CoG.CoGObject.Methods.getName
+        @pulsarlua function CoGObject.getName
         @desc Returns the stored name. Generated non-final getter; no public setter.
         @ret string vValue Stored value/reference.
     !]]
     Name__autoA_            = "", --leave as non-final so subclasses can alter it but create a public accessor only
     --[[!
-        @fqxn CoG.BaseObject.Methods.getRarity
-        @pulsarlua function BaseObject.getRarity
+        @fqxn CoG.CoGObject.Methods.getRarity
+        @pulsarlua function CoGObject.getRarity
         @desc Returns the current rarity reference. Generated non-final getter.
         @ret Rarity.LEVEL vValue Stored value/reference.
     !]]
     --[[!
-        @fqxn CoG.BaseObject.Methods.setRarity
-        @pulsarlua function BaseObject.setRarity
+        @fqxn CoG.CoGObject.Methods.setRarity
+        @pulsarlua function CoGObject.setRarity
         @desc Generated setter. Assigns through the class field's type rules; it does not repeat the constructor's membership fallback.
         @param Rarity.LEVEL eRarity Replacement rarity.
-        @ret BaseObject this This object.
+        @ret CoGObject this This object.
     !]]
     Rarity__auto__          = null,
     --[[!
-        @fqxn CoG.BaseObject.Methods.getTagSystem
-        @pulsarlua function BaseObject.getTagSystem
+        @fqxn CoG.CoGObject.Methods.getTagSystem
+        @pulsarlua function CoGObject.getTagSystem
         @desc Returns the mutable tag component by reference. Final getter; no replacement setter.
         @ret TagSystem vValue Stored value/reference.
     !]]
     TagSystem__autoAF       = null,
     --[[!
-    @fqxn CoG.BaseObject.Methods.BaseObject
+    @fqxn CoG.CoGObject.Methods.CoGObject
     @desc Protected constructor. Creates a fresh eventrix and TagSystem after validating the name and description.
     @param string sName The name of the object.
     @param string sDescription The description of the object.
@@ -97,7 +97,7 @@ return class("BaseObject",
     @param string|nil wEventrix Optional registered event environment name.
     @throws Blank/non-string metadata or inherited/eventrix initialization errors.
     !]]
-    BaseObject = function(this, cdat, super, sName, sDescription, eRarity, wEventrix)
+    CoGObject = function(this, cdat, super, sName, sDescription, eRarity, wEventrix)
         local pri = cdat.pri;
         local pro = cdat.pro;
         type.assert.string(sName, "%S+");
@@ -116,8 +116,8 @@ return class("BaseObject",
 },
 {--PUBLIC
     --[[!
-    @fqxn CoG.BaseObject.Methods.ApplyAffix
-    @pulsarlua function BaseObject.applyAffix
+    @fqxn CoG.CoGObject.Methods.ApplyAffix
+    @pulsarlua function CoGObject.applyAffix
     @desc Applies a compatible affix within the configured rarity limit.
           Tier limits compare enum ordinals, including tiers with nested payloads.
     @param Affix oAffix Affix subclass instance, validated before use.
@@ -199,8 +199,8 @@ return class("BaseObject",
         return bRet;
     end,
     --[[!
-        @fqxn CoG.BaseObject.Methods.fireEvent
-        @pulsarlua function BaseObject.fireEvent
+        @fqxn CoG.CoGObject.Methods.fireEvent
+        @pulsarlua function CoGObject.fireEvent
         @desc Dispatches an event through this object's eventrix. Final method.
         @param enumitem eEventID Event identifier.
         @param varargs ... Arguments forwarded to hooks.
@@ -210,8 +210,8 @@ return class("BaseObject",
         return cdat.pri.eventrix.fire(eEventID, ...);
     end,
     --[[!
-        @fqxn CoG.BaseObject.Methods.removeAffix
-        @pulsarlua function BaseObject.removeAffix
+        @fqxn CoG.CoGObject.Methods.removeAffix
+        @pulsarlua function CoGObject.removeAffix
         @desc Intended to unregister hooks and call onRemove for an affix. Final method; implementation is unfinished.
         @param Affix oAffix Affix subclass instance.
         @param varargs ... Arguments intended for onRemove.
@@ -262,8 +262,8 @@ return class("BaseObject",
     @ret int nMaxPrefixes The maximum number of prefixes.
     ]]
     --[[!
-        @fqxn CoG.BaseObject.Methods.getMaxPrefixes
-        @pulsarlua function BaseObject.getMaxPrefixes
+        @fqxn CoG.CoGObject.Methods.getMaxPrefixes
+        @pulsarlua function CoGObject.getMaxPrefixes
         @desc Placeholder accessor reading an undeclared private field. This is not a working configured-limit API.
         @note This class does not initialize the referenced field.
     !]]
@@ -276,8 +276,8 @@ return class("BaseObject",
     @ret int nMaxSuffixes The maximum number of suffixes.
     ]]
     --[[!
-        @fqxn CoG.BaseObject.Methods.getMaxSuffixes
-        @pulsarlua function BaseObject.getMaxSuffixes
+        @fqxn CoG.CoGObject.Methods.getMaxSuffixes
+        @pulsarlua function CoGObject.getMaxSuffixes
         @desc Placeholder accessor reading an undeclared private field. This is not a working configured-limit API.
         @note This class does not initialize the referenced field.
     !]]

@@ -14,7 +14,7 @@ package.path = sRepositoryPath.."/?.lua;"..package.path;
 
 if (not LUAEX_INIT) then require("LuaEx.load")(); end
 
-local _cBase    = require("LuaEx.inc.cog.Objects.VehicleSystem.BaseVehicle");
+local _cBase    = require("LuaEx.inc.cog.Objects.VehicleSystem.CoGVehicle");
 local _cVehicle = require("examples.visual.Vehicles.Vehicle");
 local D         = require("examples.support.tutorial").new("Vehicles", "Identity, fuel, flags, configured component objects and explicit concrete copying.");
 local oFuel     = Pool(80, 60);
@@ -30,7 +30,7 @@ D.check("Default tradeable",  oDefault.getTradeable());
 D.check("Default owner null", type.isnull(oDefault.getOwner()));
 D.check("Fuel independent",   not rawequal(oDefault.getFuel(), _cBase().getFuel()));
 
-D.section("Concrete construction", "The example subclass translates named settings into BaseVehicle's positional constructor. Owner, component and fuel references are retained.");
+D.section("Concrete construction", "The example subclass translates named settings into CoGVehicle's positional constructor. Owner, component and fuel references are retained.");
 local oVehicle = _cVehicle({
     name        = "Trailwarden",
     description = "An expedition rover.",
@@ -57,7 +57,7 @@ D.check("Explicit false preserved", not oVehicle.getTradeable() and not oVehicle
 D.check("Other flags preserved", oVehicle.getQuest() and oVehicle.getExclusive() and oVehicle.getInimitable());
 D.check("Vehicle inheritance", class.ischildorself(class.of(oVehicle), _cBase));
 
-D.section("Movement is application policy", "For a 40 km journey at 4 km/unit, the example spends 10 units after checking fuel. BaseVehicle does not perform this calculation.");
+D.section("Movement is application policy", "For a 40 km journey at 4 km/unit, the example spends 10 units after checking fuel. CoGVehicle does not perform this calculation.");
 local nDistance = 40;
 local nCost     = nDistance / oVehicle.getDistancePerFuelUnit();
 assert(nCost <= oFuel.get(), "Not enough fuel for the trip.");
@@ -80,7 +80,7 @@ oOther.setComponent(sSlot, nil);
 D.check("Nil clears slot", type.isnull(oOther.getComponent(sSlot)));
 D.check("Other binding unchanged", rawequal(oVehicle.getComponent(sSlot), oBody));
 
-D.section("Inherited metadata", "Names, descriptions, rarity, tags and event dispatch come from BaseObject. The example uses the default event environment.");
+D.section("Inherited metadata", "Names, descriptions, rarity, tags and event dispatch come from CoGObject. The example uses the default event environment.");
 oVehicle.getTagSystem().add("expedition");
 D.check("Tag added", oVehicle.getTagSystem().contains("EXPEDITION"));
 D.show("Rarity", oVehicle.getRarity().name);
@@ -88,7 +88,7 @@ oVehicle.fireEvent(_cVehicle.EVENT.INSPECTION, oVehicle);
 D.equal("Inspection hook ran", oVehicle.getInspectionCount(), 1);
 D.equal("Configured event environment", oVehicle.getEventEnvironment(), "ExampleGarageWorkshop");
 D.show("Observed callback lexical environment", oVehicle.getLastEnvironment());
-D.note("Eventrix currently changes its own environment, leaving this hook's lexical environment unchanged. The subclass registers a fresh hook per vehicle. Affix support remains unfinished in BaseObject.");
+D.note("Eventrix currently changes its own environment, leaving this hook's lexical environment unchanged. The subclass registers a fresh hook per vehicle. Affix support remains unfinished in CoGObject.");
 
 D.section("Explicit clone policy", "The base rejects copying. This concrete subclass copies fuel, components and tags, retains the owner, and treats Inimitable as caller-enforced metadata.");
 D.reject("Base clone requires subclass", function() clone(_cBase()); end);

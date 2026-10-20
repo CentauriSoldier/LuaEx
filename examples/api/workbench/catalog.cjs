@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../..');
 const descriptions = {
+  'utilities/VFS.lua':'Explore mounts, aliases, listings, permissions and file operations in an in-memory filesystem.',
   'cog/Tiled.lua':'Load square and both hex orientations from TMX, import terrain and rover settings, and follow native AStar routes.',
   'fundamentals/array.lua':'Fixed arrays, type checks, iteration, and copying.',
   'fundamentals/enum.lua':'Named values, iteration, and enum serialization.',
@@ -45,6 +46,7 @@ function generate() {
     if(entry.id==='cog/Vehicles.lua'){entry.title='Vehicles';entry.visualPath='examples/visual/Vehicles/browser.lua';entry.visualType='vehicles';entry.description='Explore an illustrated garage: fuel, trips, component identity, constructor settings, concrete cloning and validation.';}
     if(['components/Pool.lua','components/ItemSlotSystem.lua','pathfinding/AStar.lua','pathfinding/HexMap.lua','utilities/TagSystem.lua','classes/BlueprintFactory.lua','classes/Creature.lua','classes/Human.lua','classes/Soldier.lua'].includes(entry.id))entry.group='CoG';
     entry.codePath='examples/code/'+entry.id;
+    if(entry.id==='utilities/VFS.lua')entry.codePath=entry.path;
     if(entry.id==='cog/Tiled.lua'){entry.visualPath='examples/visual/Tiled/browser.lua';entry.visualType='tiled';entry.description='Explore square and both hex maps, scout/goblin terrain costs, cave permissions, path movement and TMX editing.';}
     if(entry.id==='cog/Cards.lua'){entry.title='Cards & decks';entry.visualPath='examples/visual/Cards/browser.lua';entry.visualType='cards';entry.description='Draw, shuffle, flip and edit real BaseCard instances across a deck, hand and discard pile.';}
     if(entry.id==='components/ItemSlotSystem.lua'){entry.title='Item system';entry.visualPath='examples/visual/ItemSystem/browser.lua';entry.visualType='items';entry.description='A tabbed stash, character inventory, ground and shop: edit, move, save and load items, with owner reconnection and permission checks.';}

@@ -6,13 +6,13 @@ local Protean = Protean;
 local function dummy() end
 
 --[[!
-    @fqxn CoG.BaseAbility
-    @pulsarlua class BaseAbility
+    @fqxn CoG.CoGAbility
+    @pulsarlua class CoGAbility
     @desc Generic ability callbacks, enabled state, Protean use cost and
     regenerating points. Callers configure the exposed components directly.
     The implementing system defines callback arguments and cycle units.
 !]]
-return class("BaseAbility",
+return class("CoGAbility",
 {--METAMETHODS
 },
 {--STATIC PUBLIC
@@ -30,8 +30,8 @@ return class("BaseAbility",
 },
 {--PUBLIC
     --[[!
-        @fqxn CoG.BaseAbility.Methods.BaseAbility
-        @pulsarlua function BaseAbility
+        @fqxn CoG.CoGAbility.Methods.CoGAbility
+        @pulsarlua function CoGAbility
         @desc Creates independent Protean and Pool components using their
         existing defaults. Callers configure them through getCost() and
         getPoints(). Omitted callbacks retain the shared dummy function.
@@ -45,7 +45,7 @@ return class("BaseAbility",
         @param function|nil fOnSuccess Successful-use callback.
         @param function|nil fOnFail Failed-use callback.
     !]]
-    BaseAbility = function(this, cdat, super,
+    CoGAbility = function(this, cdat, super,
                            sName, sDescription, eRarity, wEventrix, bEnabled,
                            fCheckActivationRequirements, fOnUse, fOnSuccess, fOnFail)
         type.assert.boolean(bEnabled);
@@ -76,8 +76,8 @@ return class("BaseAbility",
     end,
 
     --[[!
-        @fqxn CoG.BaseAbility.Methods.use
-        @pulsarlua function BaseAbility.use
+        @fqxn CoG.CoGAbility.Methods.use
+        @pulsarlua function CoGAbility.use
         @desc Checks enabled state, activation requirements and available points.
         Callbacks receive this ability followed by the supplied arguments.
         Requirements and OnUse reject by returning false and an optional reason.
@@ -128,12 +128,12 @@ return class("BaseAbility",
         return true;
     end,
 },
-BaseObject,
+CoGObject,
 false,
 nil
 );
 
 --[[!
-    @fqxn CoG.BaseAbility.InheritedBaseObject
-    @inheritdoc CoG.BaseObject
+    @fqxn CoG.CoGAbility.InheritedCoGObject
+    @inheritdoc CoG.CoGObject
 !]]

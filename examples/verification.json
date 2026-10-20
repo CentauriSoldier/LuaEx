@@ -492,5 +492,32 @@
         "inputs": {}
       }
     ]
+  },
+  {
+    "id": "utilities/VFS.lua",
+    "result": "passed",
+    "runs": [
+      {
+        "result": "passed",
+        "lines": 164,
+        "summary": "\n[SUMMARY] VFS: 8 sections, 58 verified checks, 4 expected rejections.",
+        "inputs": {},
+        "scenario": "default"
+      },
+      {
+        "result": "passed",
+        "lines": 164,
+        "summary": "\n[SUMMARY] VFS: 8 sections, 58 verified checks, 4 expected rejections.",
+        "inputs": {},
+        "scenario": "recursive files"
+      },
+      {
+        "result": "passed",
+        "lines": 161,
+        "summary": "\n[SUMMARY] VFS: 8 sections, 58 verified checks, 4 expected rejections.",
+        "inputs": {},
+        "scenario": "directories"
+      }
+    ]
   }
 ]

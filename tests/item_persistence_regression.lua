@@ -5,7 +5,7 @@ local Item = class("SavedInventoryItem", {}, {}, {}, {}, {
     SavedInventoryItem = function(this, cdat, super)
         super("Saved item", "Persistence test", nil, nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,CoGRegistry({ItemSystem, ItemStashSystem}));
     end,
-}, BaseItem);
+}, CoGItem);
 local oOwner = Item();
 local oStash = ItemStashSystem(oOwner, 2, 4);
 local oItem = Item();

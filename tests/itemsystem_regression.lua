@@ -7,7 +7,7 @@ local Item = class("HolisticItem", {}, {}, {}, {}, {
               t.storage or CoGRegistry({ItemSystem, ItemStashSystem}),t.tradeBy,t.tradeTo,t.unequip,t.upgrade,t.downgrade,
               nil,nil,nil,nil,nil,nil,t.pattern);
     end,
-}, BaseItem);
+}, CoGItem);
 local stash = ItemStashSystem(nil, 2, 3);
 local first, second = stash.getTab(1), stash.getTab(2);
 local kite = Item({scope = CoGRegistry({stash}), conflicts = CoGRegistry({Item})});
@@ -103,7 +103,7 @@ mutable.setSlots({{x = 0, y = 0}});
 assert(grid.validate());
 local actor, outsider = Item(), Item();
 local permissions = ObjectRegistry({actor});
-local host = Item({attach = ObjectRegistry({BaseItem}), detach = permissions});
+local host = Item({attach = ObjectRegistry({CoGItem}), detach = permissions});
 local gem = Item({attach = ObjectRegistry({host}), detach = permissions});
 assert(select(2, gem.attachTo(host)) and rawequal(gem.getAttached_To(), host));
 local count = 0;
@@ -156,6 +156,6 @@ local ownedStash = ItemStashSystem(actor);
 assert(rawequal(ownedStash.getTab(1).getOwner(), actor));
 assert(select(2, gem.attachTo(host)));
 count = 0;
-for _ in BaseItem.eachAttachmentOf(host) do count = count + 1; end
+for _ in CoGItem.eachAttachmentOf(host) do count = count + 1; end
 assert(count == 1 and select(2, gem.detach(actor)));
 print("PASS complete item system: stash-wide bidirectional exclusivity, direct-tab/slot enforcement, capacity, identity, atomic transfers/replacement/clear, location, ownership, callback isolation and grid footprints");

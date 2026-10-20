@@ -71,7 +71,7 @@ local cItemSlot = class("ItemSlot",
     --[[!
         @fqxn CoG.ItemSystem.ItemSlot.Methods.ItemSlot
         @desc Creates a leaf slot with an eligibility registry, capacity, optional owner and name. Omitted
-        eligibility allows BaseItem instances.
+        eligibility allows CoGItem instances.
     !]]
     ItemSlot = function(this, cdat, vAllowedItems, nCapacity, oOwner, sName)
         nCapacity = nCapacity == nil and 1 or nCapacity;
@@ -79,10 +79,10 @@ local cItemSlot = class("ItemSlot",
         assert(sName == nil or rawtype(sName) == "string", "Name must be a string.");
         local oRegistry;
 
-        -- Omission creates a permissive BaseItem registry. A supplied registry is retained;
+        -- Omission creates a permissive CoGItem registry. A supplied registry is retained;
         -- a supplied entry array is validated and used to construct a new registry.
         if (vAllowedItems == nil) then
-            oRegistry = ObjectRegistry({BaseItem});
+            oRegistry = ObjectRegistry({CoGItem});
         elseif (class.isinstance(vAllowedItems)) then
             assert(class.ischildorself(class.of(vAllowedItems), ObjectRegistry), "Expected an ObjectRegistry.");
             oRegistry = vAllowedItems;

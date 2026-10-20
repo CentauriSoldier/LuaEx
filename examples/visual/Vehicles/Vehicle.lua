@@ -1,5 +1,5 @@
--- The example owns movement and copying policy; BaseVehicle supplies storage.
-local _cBaseVehicle = BaseVehicle or require("LuaEx.inc.cog.Objects.VehicleSystem.BaseVehicle");
+-- The example owns movement and copying policy; CoGVehicle supplies storage.
+local _cCoGVehicle = CoGVehicle or require("LuaEx.inc.cog.Objects.VehicleSystem.CoGVehicle");
 local _eEvent       = enum("ExampleGarageVehicleEvent", {"INSPECTION"}, nil, true);
 local _cVehicle;
 
@@ -62,7 +62,7 @@ _cVehicle = class("ExampleGarageVehicle",
 {
     --[[!
         @fqxn Examples.Vehicles.Vehicle.ExampleGarageVehicle
-        @desc Passes named example settings to the positional BaseVehicle constructor.
+        @desc Passes named example settings to the positional CoGVehicle constructor.
         @param table tSettings Optional base vehicle settings.
     !]]
     ExampleGarageVehicle = function(this, cdat, super, tSettings)
@@ -84,6 +84,6 @@ _cVehicle = class("ExampleGarageVehicle",
 
         cdat.pro.eventrix.addHook(_eEvent.INSPECTION, fInspection);
     end,
-}, _cBaseVehicle, false, nil);
+}, _cCoGVehicle, false, nil);
 
 return _cVehicle;

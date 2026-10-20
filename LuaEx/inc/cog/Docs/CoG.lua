@@ -18,7 +18,7 @@
     <li><strong>TagSystem</strong>: A flexible system for managing string tags on objects, allowing for easy categorization and retrieval.</li>
     <li><strong>Pool</strong>: A dynamic system for tracking various attributes such as magic, stamina, and other vital statistics. It includes features such as auto-calulations and optional reservation.</li>
     <li><strong>Experience Tracking System</strong>: A customizable solution for tracking actor progression and performing complex calculations related to leveling and experience.</li>
-    <li><strong>Item System</strong>: A modular system for managing items, including components such as BaseItem, ItemSlot, Inventory, and ItemStash. This system facilitates item creation, container and equipment management, allowing for flexible item handling and organization.</li>
+    <li><strong>Item System</strong>: A modular system for managing items, including components such as CoGItem, ItemSlot, Inventory, and ItemStash. This system facilitates item creation, container and equipment management, allowing for flexible item handling and organization.</li>
     <li><strong>Affix System</strong>: A distinct system, taking advantage of LuaEx's event system, designed for applying prefixes and suffixes to items, monsters, and other game elements, enabling customization and enhancement through various affix combinations.</li>
     <li><strong>Weighted A-Star Pathfinding</strong>: An advanced pathfinding algorithm that considers both actor and terrain factors for efficient and realistic navigation.</li>
     <li><strong>Config File</strong>: A built-in configuration file that can be tailored per project to meet specific needs and adjust class behaviors.</li>

@@ -8,7 +8,7 @@ local class = class;
     effects and rules. No suit, rank or numeric value is required or provided.
     Methods use dot calls. FaceUp and Enabled are metadata flags, not game-rule
     enforcement. Generated flag getters are isFaceUp and isEnabled. Name, description,
-    rarity, tags and event support come from BaseObject.
+    rarity, tags and event support come from CoGObject.
     @ex
     local card = BaseCard("Fireball", "A spell card.");
     card.reveal();
@@ -52,14 +52,14 @@ return class("BaseCard",
 {--PUBLIC
     --[[!
         @fqxn CoG.CardSystem.BaseCard.Methods.BaseCard
-        @desc Validates optional presentation flags before initializing BaseObject. FaceUp defaults
-        to false and Enabled to true. BaseObject validates name/description and resolves rarity.
+        @desc Validates optional presentation flags before initializing CoGObject. FaceUp defaults
+        to false and Enabled to true. CoGObject validates name/description and resolves rarity.
         Specialized card fields and effects belong to developer-defined subclasses.
-        @param string|nil sName Name passed to BaseObject; defaults to Card.
-        @param string|nil sDescription Description passed to BaseObject; defaults to A card.
-        @param Rarity.LEVEL|nil eRarity Rarity passed to BaseObject; invalid/omitted values use its
+        @param string|nil sName Name passed to CoGObject; defaults to Card.
+        @param string|nil sDescription Description passed to CoGObject; defaults to A card.
+        @param Rarity.LEVEL|nil eRarity Rarity passed to CoGObject; invalid/omitted values use its
         default.
-        @param table|nil wEventrix Optional event-handler environment passed to BaseObject.
+        @param table|nil wEventrix Optional event-handler environment passed to CoGObject.
         @param boolean|nil bFaceUp Whether the card starts face up, default false.
         @param boolean|nil bEnabled Whether the card starts enabled, default true.
         @vis public
@@ -146,7 +146,7 @@ return class("BaseCard",
         return this.setFaceUp(false);
     end,
 },
-BaseObject,
+CoGObject,
 false,
 nil
 );

@@ -2,7 +2,7 @@
 
 Both are loaded by LuaEx.init. Use dot-style method calls.
 
-BaseCard extends BaseObject, inheriting name, description, rarity, tags and events. Constructor arguments are `(sName, sDescription, eRarity, wEventrix, bFaceUp, bEnabled)`. Defaults are Card, A card., inherited default rarity, face down and enabled. The base supports any card type and provides no suit, rank or numeric value fields. Developers define specialized fields and rules in their own subclasses; the library supplies no specialized card subclasses.
+BaseCard extends CoGObject, inheriting name, description, rarity, tags and events. Constructor arguments are `(sName, sDescription, eRarity, wEventrix, bFaceUp, bEnabled)`. Defaults are Card, A card., inherited default rarity, face down and enabled. The base supports any card type and provides no suit, rank or numeric value fields. Developers define specialized fields and rules in their own subclasses; the library supplies no specialized card subclasses.
 
 Getters use the existing accessor directives. Validated setters cover face state and enabled state. flip, reveal and hide return the card for chaining. Enabled is gameplay metadata; a deck does not automatically skip disabled cards.
 
@@ -16,4 +16,4 @@ shuffle(randomSource) uses Fisher–Yates on a temporary list and commits only a
 
 Cloning an exact BaseCard copies its common traits, metadata and independent tag state, with a fresh event environment. Cloning an exact BaseDeck clones each card into an independent collection. Subclasses must define __clone for their additional state; arbitrary affix/effect callbacks are not implicitly copied. Text serialization of cards/decks containing cards currently encounters inherited Eventrix state, which has no serialization hook; no state is silently dropped to bypass that limitation.
 
-Regression coverage: tests/card_system_regression.lua, included in examples/api/workbench/verify-baseitem.cjs. The local examples bundle includes both classes.
+Regression coverage: tests/card_system_regression.lua, included in examples/api/workbench/verify-cogitem.cjs. The local examples bundle includes both classes.

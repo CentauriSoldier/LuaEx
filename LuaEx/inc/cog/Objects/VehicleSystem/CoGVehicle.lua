@@ -2,14 +2,14 @@
 local class = class;
 
 -- Configuration defines the slot names; instances own separate slot tables.
-local _eComponent = enum("BaseVehicle.COMPONENT", luaex.cog.config.BaseVehicle.COMPONENT, nil, true);
+local _eComponent = enum("CoGVehicle.COMPONENT", luaex.cog.config.CoGVehicle.COMPONENT, nil, true);
 
 --[[!
-    @fqxn CoG.VehicleSystem.BaseVehicle.Helpers.componentName
+    @fqxn CoG.VehicleSystem.CoGVehicle.Helpers.componentName
     @scope local
     @desc Resolves an exact configured name or this class's component enum member.
     Unknown names and foreign enum members raise an error before mutation.
-    @param string|BaseVehicle.COMPONENT vComponent The component slot.
+    @param string|CoGVehicle.COMPONENT vComponent The component slot.
     @ret string sName The configured name.
 !]]
 local function componentName(vComponent)
@@ -30,13 +30,13 @@ local function componentName(vComponent)
 
     end
 
-    assert(sName ~= nil, "Unknown BaseVehicle component slot.");
+    assert(sName ~= nil, "Unknown CoGVehicle component slot.");
 
     return sName;
 end
 
 --[[!
-    @fqxn CoG.VehicleSystem.BaseVehicle.Helpers.validateComponent
+    @fqxn CoG.VehicleSystem.CoGVehicle.Helpers.validateComponent
     @scope local
     @desc Requires a LuaEx class instance or null for an empty component slot.
     @param any oComponent The component to validate.
@@ -47,7 +47,7 @@ local function validateComponent(oComponent)
 end
 
 --[[!
-    @fqxn CoG.VehicleSystem.BaseVehicle.Helpers.buildComponents
+    @fqxn CoG.VehicleSystem.CoGVehicle.Helpers.buildComponents
     @scope local
     @desc Creates independent slot storage and validates the complete initializer.
     Omitted slots contain null; supplied component objects retain identity.
@@ -78,7 +78,7 @@ local function buildComponents(tComponents)
 end
 
 --[[!
-    @fqxn CoG.VehicleSystem.BaseVehicle.Helpers.validateNumber
+    @fqxn CoG.VehicleSystem.CoGVehicle.Helpers.validateNumber
     @scope local
     @desc Requires a finite nonnegative vehicle measurement or value.
     @param number nValue The number to validate.
@@ -86,11 +86,11 @@ end
 !]]
 local function validateNumber(nValue, sName)
     assert(rawtype(nValue) == "number" and nValue >= 0 and nValue < math.huge,
-           "BaseVehicle "..sName.." must be a finite nonnegative number.");
+           "CoGVehicle "..sName.." must be a finite nonnegative number.");
 end
 
 --[[!
-    @fqxn CoG.VehicleSystem.BaseVehicle.Helpers.booleanValue
+    @fqxn CoG.VehicleSystem.CoGVehicle.Helpers.booleanValue
     @scope local
     @desc Defaults omitted flags and validates supplied booleans, preserving false.
     @param boolean|nil bValue The supplied flag.
@@ -99,7 +99,7 @@ end
     @ret boolean bValue The validated flag or its default.
 !]]
 local function booleanValue(bValue, bDefault, sName)
-    assert(bValue == nil or rawtype(bValue) == "boolean", "BaseVehicle "..sName.." must be a boolean or nil.");
+    assert(bValue == nil or rawtype(bValue) == "boolean", "CoGVehicle "..sName.." must be a boolean or nil.");
 
     if (bValue == nil) then
         return bDefault;
@@ -109,30 +109,30 @@ local function booleanValue(bValue, bDefault, sName)
 end
 
 --[[!
-    @fqxn CoG.VehicleSystem.BaseVehicle
+    @fqxn CoG.VehicleSystem.CoGVehicle
     @desc Generic vehicle identity, fuel, measurements and configured component slots.
     Supplied Pools, components and owners retain identity. Omitted fuel and slot
     storage are independent per instance. Flags are metadata; movement, trading,
     quest rules and copying of concrete vehicles belong to the application.
 !]]
-return class("BaseVehicle",
+return class("CoGVehicle",
 {--METAMETHODS
 
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.__clone
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.__clone
         @desc Rejects implicit copying. Concrete subclasses define how vehicle
         state, components, owners, affixes and runtime callbacks are copied.
         @throws Always; subclasses must provide their own __clone.
     !]]
     __clone = function()
-        error("BaseVehicle subclasses must implement __clone for their vehicle state.");
+        error("CoGVehicle subclasses must implement __clone for their vehicle state.");
     end,
 
 },
 {--STATIC PUBLIC
 
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.COMPONENT
+        @fqxn CoG.VehicleSystem.CoGVehicle.COMPONENT
         @desc Configured component slot names, accepted alongside their exact strings.
     !]]
     COMPONENT = _eComponent,
@@ -143,71 +143,71 @@ return class("BaseVehicle",
 {--PROTECTED
     Components                 = {},    -- Configured names mapped to class instances or null.
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getDistancePerFuelUnit
-        @pulsarlua function BaseVehicle.getDistancePerFuelUnit
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getDistancePerFuelUnit
+        @pulsarlua function CoGVehicle.getDistancePerFuelUnit
         @desc Returns the stored DistancePerFuelUnit value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret number vValue Stored value/reference.
     !]]
     DistancePerFuelUnit__autoA_ = 0,     -- Nonnegative distance travelled per fuel unit.
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getExclusive
-        @pulsarlua function BaseVehicle.getExclusive
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getExclusive
+        @pulsarlua function CoGVehicle.getExclusive
         @desc Returns the stored Exclusive value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret boolean vValue Stored value/reference.
     !]]
     Exclusive__autoA_           = false,
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getFuel
-        @pulsarlua function BaseVehicle.getFuel
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getFuel
+        @pulsarlua function CoGVehicle.getFuel
         @desc Returns the stored Fuel value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret Pool vValue Stored value/reference.
     !]]
     Fuel__autoA_                = null,  -- Supplied Pool or an independent default Pool.
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getInimitable
-        @pulsarlua function BaseVehicle.getInimitable
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getInimitable
+        @pulsarlua function CoGVehicle.getInimitable
         @desc Returns the stored Inimitable value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret boolean vValue Stored value/reference.
     !]]
     Inimitable__autoA_          = false,
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getMaxSpeed
-        @pulsarlua function BaseVehicle.getMaxSpeed
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getMaxSpeed
+        @pulsarlua function CoGVehicle.getMaxSpeed
         @desc Returns the stored MaxSpeed value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret number vValue Stored value/reference.
     !]]
     MaxSpeed__autoA_            = 0,
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getOwner
-        @pulsarlua function BaseVehicle.getOwner
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getOwner
+        @pulsarlua function CoGVehicle.getOwner
         @desc Returns the stored Owner value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret object|null vValue Stored value/reference.
     !]]
     Owner__autoA_               = null,  -- Optional caller-owned class instance.
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getQuest
-        @pulsarlua function BaseVehicle.getQuest
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getQuest
+        @pulsarlua function CoGVehicle.getQuest
         @desc Returns the stored Quest value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret boolean vValue Stored value/reference.
     !]]
     Quest__autoA_               = false,
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getTradeable
-        @pulsarlua function BaseVehicle.getTradeable
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getTradeable
+        @pulsarlua function CoGVehicle.getTradeable
         @desc Returns the stored Tradeable value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret boolean vValue Stored value/reference.
     !]]
     Tradeable__autoA_           = true,
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getUnmanned
-        @pulsarlua function BaseVehicle.getUnmanned
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getUnmanned
+        @pulsarlua function CoGVehicle.getUnmanned
         @desc Returns the stored Unmanned value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret boolean vValue Stored value/reference.
     !]]
     Unmanned__autoA_            = false,
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getValue
-        @pulsarlua function BaseVehicle.getValue
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getValue
+        @pulsarlua function CoGVehicle.getValue
         @desc Returns the stored Value value/reference. Generated non-final getter; no public replacement setter. Flags are caller-enforced metadata.
         @ret number vValue Stored value/reference.
     !]]
@@ -216,8 +216,8 @@ return class("BaseVehicle",
 {--PUBLIC
 
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.BaseVehicle
-        @desc Validates vehicle inputs, initializes BaseObject, then stores the
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.CoGVehicle
+        @desc Validates vehicle inputs, initializes CoGObject, then stores the
         vehicle state. Owner and inherited metadata are optional trailing arguments.
         Only nil selects defaults. Fuel defaults to Pool(); numbers to zero;
         Tradeable to true; other flags to false. Tradeable covers selling as well
@@ -235,11 +235,11 @@ return class("BaseVehicle",
         @param object|null|nil oOwner Optional class instance; nil means null.
         @param string|nil sName Nonblank name, defaulting to Vehicle.
         @param string|nil sDescription Nonblank description, defaulting to A vehicle.
-        @param Rarity.LEVEL|nil eRarity Rarity passed to BaseObject.
-        @param string|nil sEventrixEnvironment Event environment name passed to BaseObject.
+        @param Rarity.LEVEL|nil eRarity Rarity passed to CoGObject.
+        @param string|nil sEventrixEnvironment Event environment name passed to CoGObject.
         @throws Invalid vehicle inputs or an inherited constructor error.
     !]]
-    BaseVehicle = function(this, cdat, super, oFuel, bUnmanned, nDistancePerFuelUnit,
+    CoGVehicle = function(this, cdat, super, oFuel, bUnmanned, nDistancePerFuelUnit,
                           tComponents, nValue, bTradeable, bQuest,
                           bExclusive, bInimitable, nMaxSpeed, oOwner,
                           sName, sDescription, eRarity, sEventrixEnvironment)
@@ -247,7 +247,7 @@ return class("BaseVehicle",
         -- Validate the complete vehicle input before initializing inherited state.
         if (oFuel ~= nil) then
             assert(class.isinstance(oFuel) and class.ischildorself(class.of(oFuel), Pool),
-                   "BaseVehicle Fuel must be a Pool instance.");
+                   "CoGVehicle Fuel must be a Pool instance.");
         end
 
         nDistancePerFuelUnit    = nDistancePerFuelUnit == nil and 0 or nDistancePerFuelUnit;
@@ -267,9 +267,9 @@ return class("BaseVehicle",
         local tSlots = buildComponents(tComponents);
 
         assert(oOwner == nil or type.isnull(oOwner) or class.isinstance(oOwner),
-               "BaseVehicle Owner must be a class instance or null.");
+               "CoGVehicle Owner must be a class instance or null.");
         assert(sEventrixEnvironment == nil or rawtype(sEventrixEnvironment) == "string",
-               "BaseVehicle event environment must be a name or nil.");
+               "CoGVehicle event environment must be a name or nil.");
 
         sName           = sName == nil and "Vehicle" or sName;
         sDescription    = sDescription == nil and "A vehicle." or sDescription;
@@ -293,9 +293,9 @@ return class("BaseVehicle",
     end,
 
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getComponent
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getComponent
         @desc Returns the actual component in a configured slot, or null if empty.
-        @param string|BaseVehicle.COMPONENT vComponent The configured slot.
+        @param string|CoGVehicle.COMPONENT vComponent The configured slot.
         @ret object|null oComponent The stored reference or null.
     !]]
     getComponent = function(this, cdat, vComponent)
@@ -303,7 +303,7 @@ return class("BaseVehicle",
     end,
 
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.getComponents
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.getComponents
         @desc Copies slot bindings while retaining component object identities.
         Editing the returned table does not change the vehicle's slot bindings.
         @ret table tComponents Configured names mapped to objects or null.
@@ -319,13 +319,13 @@ return class("BaseVehicle",
     end,
 
     --[[!
-        @fqxn CoG.VehicleSystem.BaseVehicle.Methods.setComponent
+        @fqxn CoG.VehicleSystem.CoGVehicle.Methods.setComponent
         @desc Validates the slot and object before replacing the binding. Nil or
         null clears a slot. Shared components are allowed; a binding does not
         confer exclusive ownership of the component object.
-        @param string|BaseVehicle.COMPONENT vComponent The configured slot.
+        @param string|CoGVehicle.COMPONENT vComponent The configured slot.
         @param object|null|nil oComponent A class instance or an empty-slot value.
-        @ret BaseVehicle this The vehicle for chaining.
+        @ret CoGVehicle this The vehicle for chaining.
     !]]
     setComponent = function(this, cdat, vComponent, oComponent)
         local sName = componentName(vComponent);
@@ -339,12 +339,12 @@ return class("BaseVehicle",
     end,
 
 },
-BaseObject,  --extending class
+CoGObject,  --extending class
 false,       --if the class is final
 nil          --interfaces
 );
 
 --[[!
-    @fqxn CoG.VehicleSystem.BaseVehicle.InheritedBaseObject
-    @inheritdoc CoG.BaseObject
+    @fqxn CoG.VehicleSystem.CoGVehicle.InheritedCoGObject
+    @inheritdoc CoG.CoGObject
 !]]

@@ -3,7 +3,7 @@ local Item = class("SlotRegressionItem", {}, {}, {}, {}, {
     SlotRegressionItem = function(this, cdat, super)
         super("Slot test", "Individual instance");
     end,
-}, BaseItem);
+}, CoGItem);
 local a, b, c = Item(), Item(), Item();
 local slot = ItemSlot(nil, 2);
 assert(slot.getCapacity() == 2 and not slot.isOccupied());
@@ -31,7 +31,7 @@ assert(select(2, other.set(a)));
 assert(not select(2, slot.set(a)));
 assert(not select(2, slot.swapWith(other)));
 assert(rawequal(slot.get(), b) and rawequal(other.get(), a));
-other.getAllowed_Items().add(BaseItem);
+other.getAllowed_Items().add(CoGItem);
 assert(select(2, slot.swapWith(other)));
 assert(rawequal(slot.get(), a) and rawequal(other.get(), b));
 assert(rawequal(a.getLocation(), slot) and rawequal(b.getLocation(), other));
@@ -47,7 +47,7 @@ assert(not other.isOccupied() and empty.isOccupied());
 for _, capacity in ipairs({0, -1, 1.5, math.huge}) do
     assert(not pcall(ItemSlot, nil, capacity));
 end
-local registry = ObjectRegistry({BaseItem}, function(item, destination)
+local registry = ObjectRegistry({CoGItem}, function(item, destination)
     return rawequal(item, c) and destination.getCapacity() == 1;
 end);
 local filtered = ItemSlot(registry);

@@ -442,7 +442,7 @@ local function init(...)
                         --Polygon = require(pClasses..".geometry.shapes.Polygon");
                         --solids
                         --Solid   = require(pClasses..".geometry.solids.Solid");
-                        --TODO REMOVE SECTION  
+                        --TODO REMOVE SECTION
                         --[[
                              ██████╗ ██████╗  ██████╗
                             ██╔════╝██╔═══██╗██╔════╝
@@ -522,14 +522,14 @@ local function init(...)
                             local pCoGObjects   = pCoG..".Objects";
                             CoGRegistry            = require(pCoG..".CoGRegistry");
                             ObjectRegistry      = require(pCoGObjects..".ObjectRegistry");
-                            BaseObject          = require(pCoGObjects..".BaseObject");
+                            CoGObject          = require(pCoGObjects..".CoGObject");
                             BaseCard            = require(pCoG..".CardSystem.BaseCard");
                             BaseDeck            = require(pCoG..".CardSystem.BaseDeck");
 
                             --item system
                             local pItemSystem   = pCoGObjects..".ItemSystem";
                             SlotPattern         = require(pItemSystem..".SlotPattern");
-                            BaseItem            = require(pItemSystem..".BaseItem");
+                            CoGItem            = require(pItemSystem..".CoGItem");
                             ItemSlot            = require(pItemSystem..".ItemSlot");
                             ItemSlotSystem      = require(pItemSystem..".ItemSlotSystem");
                             ItemSystem          = require(pItemSystem..".ItemSystem");
@@ -538,7 +538,7 @@ local function init(...)
                             XPSystem        = require(pCoG..".XPSystem");
 
                             -- Creature composition requires inventory, Rover and XP components first.
-                            BaseCreature    = require(pCoGObjects..".CreatureSystem.BaseCreature");
+                            CoGCreature    = require(pCoGObjects..".CreatureSystem.CoGCreature");
                         end
 
                     end
@@ -606,6 +606,7 @@ local function init(...)
                         --ini
                         Ini     = require(pClasses..".util.Ini");
                         BaseLog = require(pClasses..".util.BaseLog");
+                        VFS     = require(pClasses..".util.VFS");
                     end
 
                 end

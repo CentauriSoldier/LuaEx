@@ -235,7 +235,7 @@ Item = class("ItemLabItem", {
         cdat.pro.Detachable_By = oPrevious;
         return bOK, sReason;
     end,
-}, BaseItem);
+}, CoGItem);
 
 local function log(sText, bOK)
     World.message, World.ok = sText, bOK ~= false;
@@ -416,7 +416,7 @@ local function reset()
     end
 
     World.tab, World.selected = 1, 1;
-    log("20 real BaseItem instances. Try moving Festival kite into any stash tab: Wind kite makes it exclusive across the whole stash.");
+    log("20 real CoGItem instances. Try moving Festival kite into any stash tab: Wind kite makes it exclusive across the whole stash.");
 end
 
 local function itemView(tRecord)

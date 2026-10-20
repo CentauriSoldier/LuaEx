@@ -19,7 +19,7 @@ local function acceptObject(vInput, cExpected, defaultFactory, sField)
     end
 
     assert(class.isinstance(vInput) and class.ischildorself(class.of(vInput), cExpected),
-           "BaseItem "..sField.." must be an instance of "..class.getname(cExpected)..".");
+           "CoGItem "..sField.." must be an instance of "..class.getname(cExpected)..".");
 
     return vInput;
 end
@@ -55,7 +55,7 @@ local function defaultSlotPattern()
 end
 
 --[[!
-    @fqxn CoG.ItemSystem.BaseItem
+    @fqxn CoG.ItemSystem.CoGItem
     @desc Base class for individual items. ObjectRegistry action permissions and CoGRegistry storage/conflict fields express eligibility;
     callers perform actions and enforce their gameplay consequences. Durability
     reaching zero does not imply destruction. Inimitable is metadata only.
@@ -63,25 +63,25 @@ end
     validated supplied objects are retained by reference. Stacking belongs to
     ItemSlot. Trading also covers selling; callers determine cost from Value.
 !]]
-local cBaseItem = class("BaseItem",
+local cCoGItem = class("CoGItem",
 {--METAMETHODS
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.__clone
+        @fqxn CoG.ItemSystem.CoGItem.Methods.__clone
         @desc Requires callers to choose how concrete items are cloned before populating another container.
     !]]
     __clone = function(this, cdat)
 
-        --TODO Define copying of subclass state, attachments and BaseObject affixes.
+        --TODO Define copying of subclass state, attachments and CoGObject affixes.
         -- Inimitable is deliberately not enforced here.
-        error("BaseItem subclasses must implement __clone for their item state.");
+        error("CoGItem subclasses must implement __clone for their item state.");
     end,
 
 },
 {--STATIC PUBLIC
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.eachAttachmentOf
+        @fqxn CoG.ItemSystem.CoGItem.Methods.eachAttachmentOf
         @desc Validates a CoG host and iterates a copied list of its attached item references.
     !]]
     eachAttachmentOf = function(oHost)
@@ -99,7 +99,7 @@ local cBaseItem = class("BaseItem",
     persistenceID = 0,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.validateSnapshot
+        @fqxn CoG.ItemSystem.CoGItem.Methods.validateSnapshot
         @desc Validates saved identity and attachment/location holders before generated class restoration.
     !]]
     validateSnapshot = function(tState)
@@ -112,7 +112,7 @@ local cBaseItem = class("BaseItem",
     end,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.prepareSnapshot
+        @fqxn CoG.ItemSystem.CoGItem.Methods.prepareSnapshot
         @desc Registers the concrete item adapter, wraps permission registries and omits inverse links from the
         copied snapshot.
     !]]
@@ -138,150 +138,150 @@ local cBaseItem = class("BaseItem",
 },
 {--PROTECTED
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getAttachable_To
-        @pulsarlua function BaseItem.getAttachable_To
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getAttachable_To
+        @pulsarlua function CoGItem.getAttachable_To
         @desc Returns the Attachable_To component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Attachable_To__autoA_    = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getConsumable_By
-        @pulsarlua function BaseItem.getConsumable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getConsumable_By
+        @pulsarlua function CoGItem.getConsumable_By
         @desc Returns the Consumable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Consumable_By__autoA_    = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getDamageable_By
-        @pulsarlua function BaseItem.getDamageable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getDamageable_By
+        @pulsarlua function CoGItem.getDamageable_By
         @desc Returns the Damageable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Damageable_By__autoA_    = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getDetachable_By
-        @pulsarlua function BaseItem.getDetachable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getDetachable_By
+        @pulsarlua function CoGItem.getDetachable_By
         @desc Returns the Detachable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Detachable_By__autoA_    = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getEquipable_By
-        @pulsarlua function BaseItem.getEquipable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getEquipable_By
+        @pulsarlua function CoGItem.getEquipable_By
         @desc Returns the Equipable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Equipable_By__autoA_     = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getExclusive_In
-        @pulsarlua function BaseItem.getExclusive_In
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getExclusive_In
+        @pulsarlua function CoGItem.getExclusive_In
         @desc Returns the Exclusive_In component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret CoGRegistry vValue Stored value/reference.
     !]]
     Exclusive_In__autoA_    = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getExclusive_With
-        @pulsarlua function BaseItem.getExclusive_With
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getExclusive_With
+        @pulsarlua function CoGItem.getExclusive_With
         @desc Returns the Exclusive_With component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret CoGRegistry vValue Stored value/reference.
     !]]
     Exclusive_With__autoA_  = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.isInimitable
-        @pulsarlua function BaseItem.isInimitable
+        @fqxn CoG.ItemSystem.CoGItem.Methods.isInimitable
+        @pulsarlua function CoGItem.isInimitable
         @desc Returns the Inimitable component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret boolean vValue Stored value/reference.
     !]]
     Inimitable__autoA_is    = false,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getRemovable_By
-        @pulsarlua function BaseItem.getRemovable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getRemovable_By
+        @pulsarlua function CoGItem.getRemovable_By
         @desc Returns the Removable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Removable_By__autoA_    = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getRepairable_By
-        @pulsarlua function BaseItem.getRepairable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getRepairable_By
+        @pulsarlua function CoGItem.getRepairable_By
         @desc Returns the Repairable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Repairable_By__autoA_   = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getStorable_In
-        @pulsarlua function BaseItem.getStorable_In
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getStorable_In
+        @pulsarlua function CoGItem.getStorable_In
         @desc Returns the Storable_In component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret CoGRegistry vValue Stored value/reference.
     !]]
     Storable_In__autoA_     = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getTradable_By
-        @pulsarlua function BaseItem.getTradable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getTradable_By
+        @pulsarlua function CoGItem.getTradable_By
         @desc Returns the Tradable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Tradable_By__autoA_     = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getTradable_To
-        @pulsarlua function BaseItem.getTradable_To
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getTradable_To
+        @pulsarlua function CoGItem.getTradable_To
         @desc Returns the Tradable_To component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Tradable_To__autoA_     = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getUnequippable_By
-        @pulsarlua function BaseItem.getUnequippable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getUnequippable_By
+        @pulsarlua function CoGItem.getUnequippable_By
         @desc Returns the Unequippable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Unequippable_By__autoA_ = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getUpgradeable_By
-        @pulsarlua function BaseItem.getUpgradeable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getUpgradeable_By
+        @pulsarlua function CoGItem.getUpgradeable_By
         @desc Returns the Upgradeable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Upgradeable_By__autoA_  = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getDowngradable_By
-        @pulsarlua function BaseItem.getDowngradable_By
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getDowngradable_By
+        @pulsarlua function CoGItem.getDowngradable_By
         @desc Returns the Downgradable_By component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret ObjectRegistry vValue Stored value/reference.
     !]]
     Downgradable_By__autoA_ = null,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getDurability
-        @pulsarlua function BaseItem.getDurability
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getDurability
+        @pulsarlua function CoGItem.getDurability
         @desc Returns the Durability component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret Pool vValue Stored value/reference.
     !]]
     Durability__autoA_      = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getSize
-        @pulsarlua function BaseItem.getSize
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getSize
+        @pulsarlua function CoGItem.getSize
         @desc Returns the Size component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret Pool vValue Stored value/reference.
     !]]
     Size__autoA_            = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getValue
-        @pulsarlua function BaseItem.getValue
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getValue
+        @pulsarlua function CoGItem.getValue
         @desc Returns the Value component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret Pool vValue Stored value/reference.
     !]]
     Value__autoA_           = null,
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getWeight
-        @pulsarlua function BaseItem.getWeight
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getWeight
+        @pulsarlua function CoGItem.getWeight
         @desc Returns the Weight component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret Pool vValue Stored value/reference.
     !]]
     Weight__autoA_          = null,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getSlot_Pattern
-        @pulsarlua function BaseItem.getSlot_Pattern
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getSlot_Pattern
+        @pulsarlua function CoGItem.getSlot_Pattern
         @desc Returns the Slot_Pattern component/value. Generated non-final getter; no replacement setter. Mutable components retain identity.
         @ret SlotPattern vValue Stored value/reference.
     !]]
@@ -292,7 +292,7 @@ local cBaseItem = class("BaseItem",
     -- and Pool replacement setters are deliberately not generated.
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.BaseItem
+        @fqxn CoG.ItemSystem.CoGItem.Methods.CoGItem
         @desc Protected constructor invoked by concrete item subclasses.
         Registry/Pool arguments are optional objects, never booleans or numbers.
         vExclusiveIn accepts a CoGRegistry or a particular supported system instance;
@@ -300,7 +300,7 @@ local cBaseItem = class("BaseItem",
         Location and Attached_To accept class instances or null/nil; omitted values
         remain null. Attached_To identifies one CoG host. Inimitable defaults false.
     !]]
-    BaseItem = function(this, cdat, super, sName, sDescription, eRarity, wEventrix,
+    CoGItem = function(this, cdat, super, sName, sDescription, eRarity, wEventrix,
                         oAttachableTo, oConsumableBy, oDamageableBy, oDetachableBy,
                         oEquipableBy, vExclusiveIn, oExclusiveWith, bInimitable,
                         oRemovableBy, oRepairableBy, oStorableIn,
@@ -378,7 +378,7 @@ local cBaseItem = class("BaseItem",
 {--PUBLIC
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.restoreItemRuntime
+        @fqxn CoG.ItemSystem.CoGItem.Methods.restoreItemRuntime
         @desc Internal save/load reconnection of location and attachment indexes.
         Membership restores exact decoded identities without permission callbacks.
     !]]
@@ -408,98 +408,98 @@ local cBaseItem = class("BaseItem",
     end,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canAttachTo
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canAttachTo
         @desc Checks the Attachable_To registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canAttachTo = permission("Attachable_To"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canConsumeBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canConsumeBy
         @desc Checks the Consumable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canConsumeBy = permission("Consumable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canDamageBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canDamageBy
         @desc Checks the Damageable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canDamageBy = permission("Damageable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canDetachBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canDetachBy
         @desc Checks the Detachable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canDetachBy = permission("Detachable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canEquipBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canEquipBy
         @desc Checks the Equipable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canEquipBy = permission("Equipable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canRemoveBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canRemoveBy
         @desc Checks the Removable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canRemoveBy = permission("Removable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canRepairBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canRepairBy
         @desc Checks the Repairable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canRepairBy = permission("Repairable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canStoreIn
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canStoreIn
         @desc Checks the Storable_In registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canStoreIn = permission("Storable_In"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canTradeBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canTradeBy
         @desc Checks the Tradable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canTradeBy = permission("Tradable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canTradeTo
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canTradeTo
         @desc Checks the Tradable_To registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canTradeTo = permission("Tradable_To"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canUnequipBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canUnequipBy
         @desc Checks the Unequippable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canUnequipBy = permission("Unequippable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canUpgradeBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canUpgradeBy
         @desc Checks the Upgradeable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canUpgradeBy = permission("Upgradeable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.canDowngradeBy
+        @fqxn CoG.ItemSystem.CoGItem.Methods.canDowngradeBy
         @desc Checks the Downgradable_By registry with (oObject, this, ...); returns its boolean and optional
         reason.
     !]]
     canDowngradeBy = permission("Downgradable_By"),
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getAttached_To
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getAttached_To
         @desc Returns this item's attachment host, or null when detached.
     !]]
     getAttached_To__FNL = function(this, cdat)
@@ -507,7 +507,7 @@ local cBaseItem = class("BaseItem",
     end,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.eachAttachment
+        @fqxn CoG.ItemSystem.CoGItem.Methods.eachAttachment
         @desc Iterates a copied list of items attached to this item.
     !]]
     eachAttachment = function(this)
@@ -515,7 +515,7 @@ local cBaseItem = class("BaseItem",
     end,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.attachTo
+        @fqxn CoG.ItemSystem.CoGItem.Methods.attachTo
         @desc Checks attachment permission and cycle rules before connecting this item to the host.
     !]]
     attachTo = function(this, cdat, oHost)
@@ -525,7 +525,7 @@ local cBaseItem = class("BaseItem",
     end,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.detach
+        @fqxn CoG.ItemSystem.CoGItem.Methods.detach
         @desc Checks the actor's detach permission before removing this item from its current host.
     !]]
     detach = function(this, cdat, oActor)
@@ -535,7 +535,7 @@ local cBaseItem = class("BaseItem",
     end,
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.getLocation
+        @fqxn CoG.ItemSystem.CoGItem.Methods.getLocation
         @desc Returns the current leaf container, or null while the item is not stored.
     !]]
     getLocation__FNL = function(this, cdat)
@@ -545,7 +545,7 @@ local cBaseItem = class("BaseItem",
     -- Coordinated container operations pass the expected previous location.
 
     --[[!
-        @fqxn CoG.ItemSystem.BaseItem.Methods.setLocation
+        @fqxn CoG.ItemSystem.CoGItem.Methods.setLocation
         @desc Changes the location only when the expected previous identity matches; transactions control writes
         during callbacks.
     !]]
@@ -561,14 +561,14 @@ local cBaseItem = class("BaseItem",
     end,
 
 },
-BaseObject, --extending class
+CoGObject, --extending class
 false,      --if the class is final
 nil         --interface(s)
 );
 
-return cBaseItem;
+return cCoGItem;
 
 --[[!
-    @fqxn CoG.ItemSystem.BaseItem.InheritedBaseObject
-    @inheritdoc CoG.BaseObject
+    @fqxn CoG.ItemSystem.CoGItem.InheritedCoGObject
+    @inheritdoc CoG.CoGObject
 !]]

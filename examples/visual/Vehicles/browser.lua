@@ -1,5 +1,5 @@
 local _cVehicle  = require("examples.visual.Vehicles.Vehicle");
-local _cBase     = require("LuaEx.inc.cog.Objects.VehicleSystem.BaseVehicle");
+local _cBase     = require("LuaEx.inc.cog.Objects.VehicleSystem.CoGVehicle");
 local _tFleet    = {};
 local _tEvents   = {};
 local _nSelected = 1;

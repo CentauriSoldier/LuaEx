@@ -1,10 +1,10 @@
-# BaseItem construction
+# CoGItem construction
 
-BaseItem is constructed through a concrete subclass calling its protected superclass constructor. It represents one item; container code handles quantities and stacking. Permission registries describe eligibility, not action execution.
+CoGItem is constructed through a concrete subclass calling its protected superclass constructor. It represents one item; container code handles quantities and stacking. Permission registries describe eligibility, not action execution.
 
 Arguments after the injected `this, cdat, super`, in order:
 
-1. `sName, sDescription, eRarity, wEventrix` — BaseObject metadata/environment.
+1. `sName, sDescription, eRarity, wEventrix` — CoGObject metadata/environment.
 2. `oAttachableTo, oConsumableBy, oDamageableBy, oDetachableBy, oEquipableBy` — ObjectRegistries.
 3. `vExclusiveIn` — a CoGRegistry or a specific ItemSlotSystem, ItemSystem or ItemStashSystem. Omission creates `CoGRegistry({ItemSlotSystem, ItemSystem, ItemStashSystem})`; a specific system creates `CoGRegistry({thatSystem})`.
 4. `oExclusiveWith` — CoGRegistry identifying conflicting classes/instances.
@@ -23,9 +23,9 @@ Accessor directives expose getters such as `getDamageable_By()` and `getDurabili
 
 There are no stacking, selling or destruction fields/methods. Trading covers sale eligibility; the caller interprets Value as cost information. Zero durability has no automatic consequence. Container/attachment operations must keep item Location/Attached_To synchronized with their membership records. Slot_Pattern provides occupied slot count and relative layout queries. Blueprint identity retains an explicit TODO note.
 
-The base clone hook explicitly requires a concrete subclass implementation rather than constructing protected BaseItem or silently losing subclass state. It does not enforce Inimitable. Copying affixes, attachment relationships, location and additional subclass state needs an explicit policy; this implementation does not guess those policies.
+The base clone hook explicitly requires a concrete subclass implementation rather than constructing protected CoGItem or silently losing subclass state. It does not enforce Inimitable. Copying affixes, attachment relationships, location and additional subclass state needs an explicit policy; this implementation does not guess those policies.
 
-Tests: `tests/baseitem_regression.lua`, run with the local `examples/api/node/node.exe examples/api/workbench/verify-baseitem.cjs`.
+Tests: `tests/cogitem_regression.lua`, run with the local `examples/api/node/node.exe examples/api/workbench/verify-cogitem.cjs`.
 
 
 See [Item system](item-system.md) for enforced containment, attachments, actor permission helpers and transactional operations.

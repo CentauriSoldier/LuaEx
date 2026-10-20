@@ -193,10 +193,10 @@ end
 
 --[[!
     @fqxn CoG.ItemSystem.ItemRules.item
-    @desc Require a BaseItem or subclass instance before calling item-specific methods.
+    @desc Require a CoGItem or subclass instance before calling item-specific methods.
 !]]
 function M.item(oItem)
-    assert(class.isinstance(oItem) and class.ischildorself(class.of(oItem), BaseItem), "Expected a BaseItem instance.");
+    assert(class.isinstance(oItem) and class.ischildorself(class.of(oItem), CoGItem), "Expected a CoGItem instance.");
 end
 
 --[[!
@@ -1083,7 +1083,7 @@ function M.registerPersistence(cObject, bItem)
     -- Let generated deserialization restore fields, then reconnect inventory-only runtime indexes.
     local function fRestore(tState, tToken)
         local oObject = cObject.deserialize(tState);
-        local nID = bItem and tState.BaseItem.pri.persistenceID or tState[sName].pri.state.persistenceID;
+        local nID = bItem and tState.CoGItem.pri.persistenceID or tState[sName].pri.state.persistenceID;
 
         -- Publish the loaded identity before resolving links that can point back to this object.
         Persistence.reconnect(nID, oObject, tToken);

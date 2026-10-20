@@ -4,8 +4,8 @@ All five item/container classes and SlotPattern are loaded by LuaEx.init. ItemRu
 
 ## Responsibilities
 
-- BaseItem represents one actual item, exposes mutable permission registries and Pools, and tracks its actual container and optional attachment host. It does not define stack capacity, prices, upgrade effects, or destruction.
-- ItemSlot holds separate BaseItem instances, with a positive integer capacity (default one) and ObjectRegistry eligibility. A stack is a collection of actual instances; consuming one removes that one.
+- CoGItem represents one actual item, exposes mutable permission registries and Pools, and tracks its actual container and optional attachment host. It does not define stack capacity, prices, upgrade effects, or destruction.
+- ItemSlot holds separate CoGItem instances, with a positive integer capacity (default one) and ObjectRegistry eligibility. A stack is a collection of actual instances; consuming one removes that one.
 - ItemSlotSystem owns ItemSlots and enforces rules across them. It can optionally interpret SlotPattern coordinates as footprints on a rectangular grid.
 - ItemSystem is an inventory of individual items, with a count limit (default unlimited). Capacity zero is valid. It can be a stash tab.
 - ItemStashSystem owns ItemSystem tabs, checks all their contents as one context, and always retains at least one tab.
@@ -24,9 +24,9 @@ local stash = ItemStashSystem(owner, 3, 20);
 
 All inputs are validated. Initial item arrays are accepted atomically: an invalid array or item leaves no partial membership or location updates. Arrays must be dense; input arrays are copied and supplied item/slot instances retained by reference.
 
-ItemSlot defaults to allowing BaseItem and descendants. An explicit empty registry permits nothing. Inventory and stash insertion require Storable_In to permit at least one actual context in the destination hierarchy (a particular tab, the stash, or an applicable class). Storable_In defaults empty, so concrete item constructors must configure their storage permissions. ItemSlotSystem is neutral: ordinary insertion checks slot eligibility, while equipItem also checks the actor's Equipable_By permission.
+ItemSlot defaults to allowing CoGItem and descendants. An explicit empty registry permits nothing. Inventory and stash insertion require Storable_In to permit at least one actual context in the destination hierarchy (a particular tab, the stash, or an applicable class). Storable_In defaults empty, so concrete item constructors must configure their storage permissions. ItemSlotSystem is neutral: ordinary insertion checks slot eligibility, while equipItem also checks the actor's Equipable_By permission.
 
-CoGRegistry callbacks receive useful context: slot eligibility `(item, slot)`; storage `(container, item)`; Exclusive_In `(container, ruleOwner)`; Exclusive_With `(otherItem, ruleOwner, container)`; BaseItem.can* helpers `(matchedObject, item, ...)`. Callbacks must be side-effect-free. Container, location and attachment mutations during callbacks are rejected. Exceptions become failed operations with a reason and unchanged membership.
+CoGRegistry callbacks receive useful context: slot eligibility `(item, slot)`; storage `(container, item)`; Exclusive_In `(container, ruleOwner)`; Exclusive_With `(otherItem, ruleOwner, container)`; CoGItem.can* helpers `(matchedObject, item, ...)`. Callbacks must be side-effect-free. Container, location and attachment mutations during callbacks are rejected. Exceptions become failed operations with a reason and unchanged membership.
 
 ## Exclusivity across a whole stash
 
@@ -59,9 +59,9 @@ Administrative containment APIs do not infer an actor. Passing an actor to remov
 - ItemSlotSystem.equipItem(item, actor, slotIndex) checks Equipable_By and moves from the current container if necessary.
 - ItemSlotSystem.unequipItem(item, actor, destinationLeaf) checks Unequippable_By and transfers to storage.
 - tradeItemTo(destinationLeaf, item, trader, recipient) checks both Tradable_By and Tradable_To. The stash facade can select a destination stash tab. Money, prices and barter effects remain caller policy.
-- BaseItem.attachTo(host) checks Attachable_To, requires the item to be outside storage and detached, and prevents self-attachment/cycles. detach(actor) checks Detachable_By and clears the host relation. eachAttachment yields attached item instances. One item has one host; a host can have several attached items. Attachments move with their host relationship and are not counted as separate stash contents.
+- CoGItem.attachTo(host) checks Attachable_To, requires the item to be outside storage and detached, and prevents self-attachment/cycles. detach(actor) checks Detachable_By and clears the host relation. eachAttachment yields attached item instances. One item has one host; a host can have several attached items. Attachments move with their host relationship and are not counted as separate stash contents.
 
-BaseItem.canDamageBy/canRepairBy/canUpgradeBy/canDowngradeBy and other can* helpers expose registry decisions. Callers adjust the relevant Pools or apply effects. Durability reaching zero does not destroy anything. No destruction field or method has been introduced. Inimitable is still caller-enforced metadata and does not forbid copying.
+CoGItem.canDamageBy/canRepairBy/canUpgradeBy/canDowngradeBy and other can* helpers expose registry decisions. Callers adjust the relevant Pools or apply effects. Durability reaching zero does not destroy anything. No destruction field or method has been introduced. Inimitable is still caller-enforced metadata and does not forbid copying.
 
 ## Optional grids
 
@@ -78,14 +78,14 @@ Supplied registries, Pools and SlotPatterns remain mutable by design. After deli
 
 ## Copying and persistence
 
-Concrete BaseItem subclasses define __clone because only the caller knows subclass state, affix effects and gameplay identity. Container clone hooks explicitly reject implicit copying rather than accidentally sharing live membership. Automatic class snapshots are explicitly rejected for containers; reconstruct through public constructors and insertion methods so ownership, permission and exclusivity checks run. The application decides how item identities, specific registry entries and attachment graphs persist.
+Concrete CoGItem subclasses define __clone because only the caller knows subclass state, affix effects and gameplay identity. Container clone hooks explicitly reject implicit copying rather than accidentally sharing live membership. Automatic class snapshots are explicitly rejected for containers; reconstruct through public constructors and insertion methods so ownership, permission and exclusivity checks run. The application decides how item identities, specific registry entries and attachment graphs persist.
 
 ## Verification
 
 Run the local runtime (no installation):
 
 ```text
-examples/api/node/node.exe examples/api/workbench/verify-baseitem.cjs
+examples/api/node/node.exe examples/api/workbench/verify-cogitem.cjs
 examples/api/node/node.exe examples/api/workbench/verify-code.cjs
 ```
 

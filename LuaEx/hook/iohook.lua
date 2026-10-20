@@ -4,6 +4,8 @@ local execute   = os.execute;
 local io        = io;
 local type      = type;
 local rawtype   = rawtype;
+local pcall     = pcall;
+local tostring  = tostring;
 
 -- Define the os type
 local _         = package.config:sub(1, 1);
@@ -165,11 +167,56 @@ local function splitpath(sPath);
             end
 
         end
-        
+
     end
 
     return tRet;
 end
+
+
+--[[!
+    @fqxn LuaEx.Lua Hooks.io.Private.readListingPipe
+    @scope local
+    @desc Opens a directory-listing process, consumes it through the supplied reader
+    and attempts closure exactly once even when iteration or a callback throws.
+    Opening, reading and reported process-exit failures return nil and a reason;
+    partial results are discarded. Runtimes without an exit status can report only
+    the success/failure available from file.close.
+    @param string sCommand Native listing command.
+    @param string sCaller Public operation name used in diagnostics.
+    @param function fReader Receives the open pipe and returns the collected list.
+    @ret table tItems Complete list, or nil followed by a failure reason.
+!]]
+local function readListingPipe(sCommand, sCaller, fReader)
+    local bOpened, uPipe, sOpenReason = pcall(io.popen, sCommand);
+
+    if (not bOpened or not uPipe) then
+        return nil, sCaller..": unable to open listing process: "..tostring(bOpened and sOpenReason or uPipe);
+    end
+
+    local bRead, vResult = pcall(fReader, uPipe);
+    local bClosed, vStatus, sExitKind, nExitCode = pcall(function()
+        return uPipe:close();
+    end);
+
+    if (not bRead) then
+        return nil, sCaller..": listing failed: "..tostring(vResult);
+    end
+
+    local bSucceeded = vStatus == true or (rawtype(vStatus) == "number" and vStatus == 0);
+
+    if (not bClosed or not bSucceeded or sExitKind == "signal" or
+        (sExitKind == "exit" and nExitCode ~= nil and nExitCode ~= 0)) then
+        return nil, sCaller..": listing process did not close successfully: "..tostring(vStatus);
+    end
+
+    return vResult;
+end
+
+
+-- Windows file enumeration excludes the directories collected by this helper.
+-- Forward declaration keeps that dependency local rather than using public io.
+local listdirs;
 
 
 --[[!
@@ -184,7 +231,10 @@ end
     <br>- Rejects <code>sPath</code> containing double quotes or CR/LF characters.
     <br>- Optional filetype filters may be provided as additional string arguments (extensions without dots).
     <br>- When filters are provided, only files whose extension matches (case-insensitive) are returned.
-    <br>- On Windows, executes <code>dir /b /a-d</code> with optional <code>/s</code>.
+    <br>- On Windows, enumerates <code>dir /b /a</code> and excludes the directory
+    paths from a separate successful directory listing. This preserves successful
+    empty file lists: <code>dir /a-d</code> may report a failing exit status when
+    there are no matching files. Optional <code>/s</code> enables recursion.
     <br>- On Unix-like systems, executes <code>find</code> with <code>-type f</code> and optional <code>-maxdepth 1</code>.
     <br>- When not recursive on Windows, results are prefixed with <code>sPath</code>.
     <br>- If a callback is provided, it is invoked as <code>fCallback(pFile, true)</code> for each included file.
@@ -192,7 +242,9 @@ end
     @param boolean|nil bRecursive Whether to recurse through subdirectories.
     @param function|nil fCallback Optional callback invoked per included file.
     @param string ... Optional file extension filters (without dots), e.g. <code>"exe"</code>, <code>"png"</code>.
-    @ret table tFiles A numerically-indexed table of full file paths.
+    @ret table tFiles A numerically-indexed table of full file paths. An empty table
+    means a successful listing with no matches. Process, iteration and callback
+    failures return nil followed by a reason; the pipe is closed on error.
     @ex
     local function printfile(pFile)
         print(pFile);
@@ -209,6 +261,7 @@ local function listfiles(sPath, vRecursive, fCallback, ...);
     local bHasCallback  = false;
     local bRecursive    = rawtype(vRecursive) == "boolean" and vRecursive or false;
     local sRecurse      = "";
+    local tDirectorySet = {};
 
     if not (rawtype(sPath) == "string") then
         error("io.listfiles: path must be of type string. Got "..rawtype(sPath)..".", 2);
@@ -252,7 +305,13 @@ local function listfiles(sPath, vRecursive, fCallback, ...);
     if (_bOSIsWindows) then
 
         sRecurse = bRecursive and " /s" or "";
-        sCmd     = 'dir "'..sPath..'" /b /a-d'..sRecurse..' 2>nul';
+        sCmd     = 'dir "'..sPath..'" /b /a'..sRecurse..' 2>nul';
+        local tDirectories, sReason = listdirs(sPath, bRecursive);
+        if (not tDirectories) then return nil, sReason; end
+
+        for _, pDirectory in ipairs(tDirectories) do
+            tDirectorySet[pDirectory] = true;
+        end
 
     elseif (_bOSIsUnix) then
 
@@ -263,13 +322,12 @@ local function listfiles(sPath, vRecursive, fCallback, ...);
         error("io.listfiles: unsupported operating system.", 2);
     end
 
-    local uPipe = io.popen(sCmd);
-    if (uPipe) then
+    return readListingPipe(sCmd, "io.listfiles", function(uPipe)
 
         for sLine in uPipe:lines() do
 
             local pFile     = nil;
-            local bInclude  = not bCheckTypes;
+            local bInclude;
 
             if (_bOSIsWindows and not bRecursive) then
                 pFile = sPath.._..sLine:gsub(__, _);
@@ -277,7 +335,10 @@ local function listfiles(sPath, vRecursive, fCallback, ...);
                 pFile = _bOSIsWindows and sLine:gsub(__, _) or sLine;
             end
 
-            if not (bInclude) then
+            local bDirectory = tDirectorySet[pFile] == true;
+            bInclude = not bDirectory and not bCheckTypes;
+
+            if (not bDirectory and not bInclude) then
 
                 local tParts    = splitpath(pFile);
                 local sExt      = (rawtype(tParts) == "table" and rawtype(tParts.extension) == "string") and tParts.extension:lower() or "";
@@ -303,11 +364,8 @@ local function listfiles(sPath, vRecursive, fCallback, ...);
 
         end
 
-        uPipe:close();
-
-    end
-
-    return tRet;
+        return tRet;
+    end);
 end
 
 
@@ -330,6 +388,8 @@ end
     @param boolean|nil bRecursive Whether to recurse through subdirectories.
     @param function|nil fCallback Optional callback invoked per directory found.
     @ret table tDirectories A numerically-indexed table of full directory paths.
+    An empty table means a successful listing with no matches. Process, iteration
+    and callback failures return nil followed by a reason; the pipe is closed on error.
     @ex
     local function printdir(pDir)
         print(pDir);
@@ -337,7 +397,7 @@ end
 
     local tDirectories = io.listdirs("C:\\Windows\\System32\\Speech", true, printdir);
 !]]
-local function listdirs(sPath, vRecursive, fCallback);
+listdirs = function(sPath, vRecursive, fCallback);
 
     local tRet          = {};
     local sCmd          = "";
@@ -377,8 +437,7 @@ local function listdirs(sPath, vRecursive, fCallback);
         error("io.listdirs: unsupported operating system.", 2);
     end
 
-    local uPipe = io.popen(sCmd);
-    if (uPipe) then
+    return readListingPipe(sCmd, "io.listdirs", function(uPipe)
 
         for sLine in uPipe:lines() do
 
@@ -403,11 +462,8 @@ local function listdirs(sPath, vRecursive, fCallback);
 
         end
 
-        uPipe:close();
-
-    end
-
-    return tRet;
+        return tRet;
+    end);
 end
 
 
@@ -1118,6 +1174,8 @@ end
     <br>This function must accept a string as its first argument which will be the full path to the item found.
     <br>This function must accept a boolean as its second argument which indicates whether the item found is a file (true if a file) or a directory (false if a directory).
     @ret table tItems A table whose keys are strings (directories, files) whose values are numerically-indexed table whose values are full paths of the found files and directories.
+    Returns nil and a reason if either listing fails; partial results are not
+    returned. Callbacks may already have run before a later listing failure.
     @ex
     local function printitem(pFile, bIsFile)
         print("Is File: "..tostring(bIsFile), pFile);
@@ -1138,9 +1196,15 @@ end
     \]\]
 !]]
 function io.list(sPath, bRecursive, fCallback, ...)
+    local tDirectories, sReason = listdirs(sPath, bRecursive, fCallback);
+    if (not tDirectories) then return nil, sReason; end
+    local tFiles;
+    tFiles, sReason = listfiles(sPath, bRecursive, fCallback, ...);
+    if (not tFiles) then return nil, sReason; end
+
     return {
-        directories = listdirs(sPath, bRecursive, fCallback),
-        files       = listfiles(sPath, bRecursive, fCallback, ...),
+        directories = tDirectories,
+        files       = tFiles,
     };
 end
 

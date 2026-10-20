@@ -1,7 +1,7 @@
 if not LUAEX_INIT then require("LuaEx.init") end
 
-local Item = class("BaseItemRegressionItem", {}, {}, {}, {}, {
-    BaseItemRegressionItem = function(this, cdat, super, tInput)
+local Item = class("CoGItemRegressionItem", {}, {}, {}, {}, {
+    CoGItemRegressionItem = function(this, cdat, super, tInput)
         local t = tInput or {};
         super("Test item", "An individual item", nil, nil,
               t.attach, t.consume, t.damage, t.detach, t.equip, t.exclusiveIn, t.exclusiveWith, t.inimitable,
@@ -9,7 +9,7 @@ local Item = class("BaseItemRegressionItem", {}, {}, {}, {}, {
               t.durability, t.size, t.value, t.weight, t.host, t.location, t.pattern);
     end,
 
-}, BaseItem);
+}, CoGItem);
 local first, second = Item(), Item();
 assert(first.getName() == "Test item");
 assert(first.getDurability().get() == 1);
@@ -51,17 +51,17 @@ for _,input in ipairs({{damage = CoGRegistry()}, {value = 0}, {exclusiveIn = Poi
 end
 
 local Cloneable;
-Cloneable = class("BaseItemRegressionCloneable", {
+Cloneable = class("CoGItemRegressionCloneable", {
     __clone = function(this, cdat)
         return Cloneable(this.isInimitable());
     end,
 
 }, {}, {}, {}, {
-    BaseItemRegressionCloneable = function(this, cdat, super, bInimitable)
+    CoGItemRegressionCloneable = function(this, cdat, super, bInimitable)
         super("Cloneable", "Caller-defined copying", nil, nil,
               nil,nil,nil,nil,nil,nil,nil,bInimitable);
     end,
 
-}, BaseItem);
+}, CoGItem);
 assert(clone(Cloneable(true)).isInimitable());
-print("PASS BaseItem: real superclass construction, independent defaults, registry directives, slot-system scope, supplied identity, Pools, validation and caller-defined cloning");
+print("PASS CoGItem: real superclass construction, independent defaults, registry directives, slot-system scope, supplied identity, Pools, validation and caller-defined cloning");

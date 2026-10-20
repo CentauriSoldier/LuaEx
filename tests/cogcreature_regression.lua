@@ -15,8 +15,8 @@ local function options()
         StatusScope = eScope,
     };
 end
-local creature = BaseCreature("Bob", "A soldier.", nil, nil, options());
-local other = BaseCreature("Other", "Another creature.", nil, nil, options());
+local creature = CoGCreature("Bob", "A soldier.", nil, nil, options());
+local other = CoGCreature("Other", "Another creature.", nil, nil, options());
 assert(creature.getName() == "Bob" and creature.getDescription() == "A soldier.");
 assert(creature.getRarity() == Rarity.LEVEL[1]);
 assert(creature.getHP().get(Pool.ASPECT.MAX) == 80 and creature.getHP().get() == 50);
@@ -45,19 +45,19 @@ for _, sName in ipairs({"XP", "HP", "Inventory", "Equipment", "StatusTracker", "
     local sClass = "CreatureFinalGetter"..sName;
     local tPublic = {[sClass] = function(this, cdat, super) super("Child", "A child.", nil, nil, options()); end};
     tPublic["get"..sName] = function() end;
-    assert(not pcall(class, sClass, {}, {}, {}, {}, tPublic, BaseCreature));
+    assert(not pcall(class, sClass, {}, {}, {}, {}, tPublic, CoGCreature));
 end
 for _, sName in ipairs({"getSpecies", "getFaction", "getLevel", "getAge", "getHealth", "getMana", "getStamina",
                        "setLevel", "setAge", "setFaction", "takeDamage", "heal", "spendMana", "spendStamina",
                        "isHealthDepleted", "isExhausted", "restoreResources", "cycleResources"}) do
-    assert(not pcall(function() return creature[sName]; end), sName.." should not be part of generic BaseCreature.");
+    assert(not pcall(function() return creature[sName]; end), sName.." should not be part of generic CoGCreature.");
 end
-assert(not pcall(BaseCreature));
+assert(not pcall(CoGCreature));
 for _, tBad in ipairs({{}, {XP = {}, HP = {Max = 10, Current = 10}, StatusScope = eScope},
                        {XP = options().XP, HP = {Max = 10}, StatusScope = eScope},
                        {XP = options().XP, HP = {Max = 10, Current = 10}},
                        {XP = options().XP, HP = {Max = 10, Current = 10}, StatusScope = StatusTracker.ALL_THINGS.CREATURES.HASTENED}}) do
-    assert(not pcall(BaseCreature, "Bad", "Invalid options.", nil, nil, tBad));
+    assert(not pcall(CoGCreature, "Bad", "Invalid options.", nil, nil, tBad));
 end
 local Child = class("CreatureGenericRegressionChild", {}, {}, {}, {}, {
     CreatureGenericRegressionChild = function(this, cdat, super, eCategory)
@@ -65,11 +65,11 @@ local Child = class("CreatureGenericRegressionChild", {}, {}, {}, {}, {
         tOptions.StatusScope = eCategory;
         super("Child", "A concrete creature.", nil, nil, tOptions);
     end,
-}, BaseCreature);
+}, CoGCreature);
 local child = Child(StatusTracker.ALL_THINGS.ITEMS);
 assert(child.getStatusTracker().activate("DAMAGED", 2, true));
 assert(not pcall(child.getStatusTracker().isActive, "HASTENED"));
 assert(child.getInventory().getOwner() == child);
 assert(not pcall(clone, creature));
 assert(not pcall(clone, child));
-print("PASS BaseCreature: explicit options, inherited metadata, six owned components, final getters/no setters, independent state, subclass scopes and removed policy APIs");
+print("PASS CoGCreature: explicit options, inherited metadata, six owned components, final getters/no setters, independent state, subclass scopes and removed policy APIs");
