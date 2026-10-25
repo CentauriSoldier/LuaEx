@@ -14,20 +14,17 @@ local _nBasicClasses     = 2;
 local _nComponentClasses = 3;
 local _nUtilClasses      = 4;
 local _nGeometryClasses  = 5;
-local _nCoGClasses       = 6;
 local _tClassRequirements = {
     [_nClassSystem]      = {},
     [_nBasicClasses]     = {_nClassSystem},
     [_nComponentClasses] = {_nClassSystem, _nBasicClasses},
     [_nGeometryClasses]  = {_nClassSystem, _nBasicClasses, _nComponentClasses},
     [_nUtilClasses]      = {_nClassSystem, _nBasicClasses, _nComponentClasses},
-    [_nCoGClasses]       = {_nClassSystem, _nBasicClasses, _nComponentClasses, _nGeometryClasses},
 };
 -- Default user choices. nil arguments retain these values.
 -- Levels: 0 core only; 1 class system; 2 basic; 3 components;
---         4 utilities; 5 geometry; 6 Code of Gaming.
-local nCoGConfigParentLevels = 0;
-local nClassLoadLevel = 6;
+--         4 utilities; 5 geometry.
+local nClassLoadLevel = 5;
 
 --[[!
 @fqxn LuaEx
@@ -43,8 +40,6 @@ local nClassLoadLevel = 6;
     <ul class="list-group">
       <li class="list-group-item">✅ Drop-in global environment initializer</li>
       <li class="list-group-item">✅ Class system with full OOP: inheritance, encapsulation, polymorphism</li>
-      <li class="list-group-item">✅ Dox documentation generator</li>
-      <li class="list-group-item">✅ CoG game framework</li>
       <li class="list-group-item">✅ Event system</li>
       <li class="list-group-item">✅ Ships with basic classes (<em>E.g., Set, Stack, Queue, SortedDictionary, etc.</em>)</li>
       <li class="list-group-item">✅ Strict naming, coding and commenting conventions for clarity and consistency</li>
@@ -138,41 +133,27 @@ local nClassLoadLevel = 6;
 @fqxn LuaEx.init
 @pulsarlua function init
 @desc Initializes LuaEx on demand. Requiring LuaEx.load only returns this function. Omitted or nil arguments use the defaults above. The class-load level enables every group up to that level. Further calls after successful initialization return the existing luaex environment without reconfiguring it.
-@param number|nil nConfigParentLevels Parent levels above LuaEx/inc/cog for the user config.lua overlay; 0 uses bundled defaults only. Validated when CoG is enabled.
-@param number|nil nLoadLevel Whole number from 0 (core only) to 6 (all groups); defaults to 6. Levels 1 through 5 enable class system, basic, components, utilities and geometry respectively.
-@param string|nil sConfigFilename User configuration name without an extension; non-string values default to config. Empty or blank names, extensions and directory components are rejected. Used when config-parent levels are positive.
+@param number|nil nLoadLevel Whole number from 0 (core only) to 5 (all groups); defaults to 5. Levels 1 through 5 enable class system, basic, components, utilities and geometry respectively.
 @ret table The global luaex environment.
 @throws Invalid options or module/configuration load errors. Failed initialization may leave loaded modules and globals; package.path is restored.
 @ex local init = require("LuaEx.load"); init();
-@ex local init = require("LuaEx.load"); init(3, 6);
+@ex local init = require("LuaEx.load"); init(5);
 !]]
 local function init(...)
     if (_G.LUAEX_INIT) then
         return luaex;
     end
 
-    assert(select("#", ...) <= 3, "LuaEx init accepts at most three options.");
-    local nConfigParentLevels, nLoadLevel, sConfigFilename = ...;
-    if (nConfigParentLevels == nil) then
-        nConfigParentLevels = nCoGConfigParentLevels;
-    end
+    assert(select("#", ...) <= 1, "LuaEx init accepts at most one option.");
+    local nLoadLevel = ...;
     if (nLoadLevel == nil) then
         nLoadLevel = nClassLoadLevel;
     end
-    -- Keep the legacy filename unless the caller supplies a project-specific name.
-    if (type(sConfigFilename) ~= "string") then
-        sConfigFilename = "config";
-    end
-    assert(type(sConfigFilename) == "string" and #sConfigFilename > 0 and
-           sConfigFilename:find("%S") and
-           not sConfigFilename:find("[./\\:%z]"),
-           "CoG config filename must be a nonblank name without an extension or directory components.");
-
     assert(type(nLoadLevel) == "number" and nLoadLevel >= 0 and
-           nLoadLevel <= 6 and nLoadLevel % 1 == 0,
-           "LuaEx class-load level must be a whole number from 0 to 6.");
+           nLoadLevel <= 5 and nLoadLevel % 1 == 0,
+           "LuaEx class-load level must be a whole number from 0 to 5.");
     local _tClassLoadValues = {};
-    for nGroup = 1, _nCoGClasses do
+    for nGroup = 1, _nGeometryClasses do
         _tClassLoadValues[nGroup] = nGroup <= nLoadLevel;
     end
 
@@ -189,12 +170,6 @@ local function init(...)
         if (_tClassLoadValues[nGroup]) then
             fEnableRequirements(nGroup);
         end
-    end
-    if (_tClassLoadValues[_nCoGClasses]) then
-        assert(type(nConfigParentLevels) == "number" and
-               nConfigParentLevels >= 0 and nConfigParentLevels < math.huge and
-               nConfigParentLevels % 1 == 0,
-               "CoG config parent levels must be zero or a positive whole number.");
     end
     assert(type(debug) == "table" and type(debug.getinfo) == "function", "LuaEx requires the debug library during initialization. Please enable the debug library before initializing LuaEx.");
 
@@ -286,6 +261,7 @@ local function init(...)
         structfactory           =   tStruct.structfactory;
         source			        =	require("LuaEx.util.source");
         isotominutes            =   require("LuaEx.util.isotominutes");
+        prettyLua               =   require("LuaEx.util.prettylua");
         textcatalog             =   require("LuaEx.lib.textcatalog");
 
         --[[
@@ -380,15 +356,15 @@ local function init(...)
         if (_tClassLoadValues[_nClassSystem]) then
 
             -- Interfaces must exist before classes implementing them.
-            iCloneable 		= require("LuaEx.inc.interfaces.iCloneable");
-            iSerializable 	= require("LuaEx.inc.interfaces.iSerializable");
-            iShape 	        = require("LuaEx.inc.interfaces.iShape");
+            iCloneable 		= require("LuaEx.interfaces.iCloneable");
+            iSerializable 	= require("LuaEx.interfaces.iSerializable");
+            iShape 	        = require("LuaEx.interfaces.iShape");
 
             -- Basic primitives and collections.
 
             if (_tClassLoadValues[_nBasicClasses]) then
                 --primitive
-                local pPrimitives   = "LuaEx.inc.primitives";
+                local pPrimitives   = "LuaEx.primitives";
                 point               = require(pPrimitives..".point");
                 line                = require(pPrimitives..".line");
                 circle              = require(pPrimitives..".circle");
@@ -397,10 +373,11 @@ local function init(...)
                 polygon             = require(pPrimitives..".polygon");
 
                 --actual classes
-                local pClasses = "LuaEx.inc.classes";
+                local pClasses = "LuaEx.classes";
 
                 --dependency class
                 Queue               = require(pClasses..".Queue");
+                ClassRegistry       = require(pClasses..".ClassRegistry");
                 XML                 = require(pClasses..".XML");
                 Stack               = require(pClasses..".Stack");
                 Tree                = require(pClasses..".Tree");
@@ -442,104 +419,6 @@ local function init(...)
                         --Polygon = require(pClasses..".geometry.shapes.Polygon");
                         --solids
                         --Solid   = require(pClasses..".geometry.solids.Solid");
-                        --TODO REMOVE SECTION
-                        --[[
-                             ██████╗ ██████╗  ██████╗
-                            ██╔════╝██╔═══██╗██╔════╝
-                            ██║     ██║   ██║██║  ███╗
-                            ██║     ██║   ██║██║   ██║
-                            ╚██████╗╚██████╔╝╚██████╔╝
-                             ╚═════╝ ╚═════╝  ╚═════╝
-                        ]]
-                        -- CODE OF GAMING
-
-                        if (_tClassLoadValues[_nCoGClasses]) then
-                            local pCoG      = "LuaEx.inc.cog";
-
-                            local function fLoadCoGConfig()
-                                -- Always execute the bundled assembler. It owns default sections,
-                                -- loads the optional user overlay and locks the combined result.
-                                local pConfigFile = pSourceDirectory.."/inc/cog/config.lua";
-                                local configLoader, sError = loadfile(pConfigFile);
-                                assert(configLoader, "Unable to load CoG config at '"..pConfigFile.."': "..tostring(sError));
-                                local tConfigOptions = {userFilename = sConfigFilename..".lua"};
-
-                                if (nConfigParentLevels > 0) then
-                                    -- Resolve the user's file independently of the working directory.
-                                    tConfigOptions.userDirectory = pSourceDirectory.."/inc/cog"..
-                                                                   string.rep("/..", nConfigParentLevels);
-                                end
-
-                                local tConfig = configLoader(pCoG..".config", tConfigOptions);
-                                type.assert.custom(tConfig, "table", "CoG config must return a table.");
-
-                                -- A later require must observe the same assembled config as luaex.cog.
-                                package.loaded[pCoG..".config"] = tConfig;
-                                return tConfig;
-                            end
-
-                            -- Configurable enums are loaded by the CoG config assembler.
-
-                            -- The base class has no config dependencies. Load it first so
-                            -- user config.lua can mark replacement tables with CoG.purge.
-                            CoG             = require(pCoG..".CoG");
-
-                            --create the CoG table
-                            local tCoG = {
-                                config  = fLoadCoGConfig(),
-                            };
-
-                            --import CoG's table into the luaex global table
-                            rawset(tLuaEx, "cog", table.readonly(tCoG));
-
-                            scaler          = require(pCoG..".scaler");
-                            Shuffler        = require(pCoG..".Shuffler");
-                            Rarity          = require(pCoG..".Rarity");
-                            RNG             = require(pCoG..".RNG");
-                            BaseMod         = require(pCoG..".ModSystem.BaseMod");
-                            Factorium       = require(pCoG..".ModSystem.Factorium");
-                            Tiled           = require(pCoG..".Tiled");
-
-                            --interfaces
-                            IEquippable     = require(pCoG..".Interfaces.IEquippable");
-                            IConsumable     = require(pCoG..".Interfaces.IConsumable");
-
-                            TagSystem       = require(pCoG..".TagSystem");
-                            Targetor        = require(pCoG..".Targetor");
-
-                            -- Register lightweight instance types with their exact names.
-                            type.TagSystem = true;
-                            type.Targetor = true;
-
-                            --affix system
-                            Affix               = require(pCoG..".Affix");
-
-                            Pool            = require(pCoG..".Pool");
-                            StatusTracker   = require(pCoG..".StatusTracker");
-                            AStar           = require(pCoG..".AStar");
-
-                            --objects
-                            local pCoGObjects   = pCoG..".Objects";
-                            CoGRegistry            = require(pCoG..".CoGRegistry");
-                            ObjectRegistry      = require(pCoGObjects..".ObjectRegistry");
-                            CoGObject          = require(pCoGObjects..".CoGObject");
-                            BaseCard            = require(pCoG..".CardSystem.BaseCard");
-                            BaseDeck            = require(pCoG..".CardSystem.BaseDeck");
-
-                            --item system
-                            local pItemSystem   = pCoGObjects..".ItemSystem";
-                            SlotPattern         = require(pItemSystem..".SlotPattern");
-                            CoGItem            = require(pItemSystem..".CoGItem");
-                            ItemSlot            = require(pItemSystem..".ItemSlot");
-                            ItemSlotSystem      = require(pItemSystem..".ItemSlotSystem");
-                            ItemSystem          = require(pItemSystem..".ItemSystem");
-                            ItemStashSystem     = require(pItemSystem..".ItemStashSystem");
-
-                            XPSystem        = require(pCoG..".XPSystem");
-
-                            -- Creature composition requires inventory, Rover and XP components first.
-                            CoGCreature    = require(pCoGObjects..".CreatureSystem.CoGCreature");
-                        end
 
                     end
 
@@ -551,58 +430,9 @@ local function init(...)
                         ╚██████╔╝   ██║   ██║███████╗██║   ██║   ██║███████╗███████║
                          ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝   ╚═╝╚══════╝╚══════╝
                     ]]
-                    -- DOCUMENTATION AND UTILITIES
+                    -- UTILITIES
 
                     if (_tClassLoadValues[_nUtilClasses]) then
-                        local pDox              = pClasses..".util.Dox";
-                        local pDoxBuilders      = pDox..".Builders";
-                        local pDoxComponents    = pDox..".Components";
-                        local pDoxParsers       = pDox..".Parsers";
-
-                        --dox and dox component classes
-                        DoxMime         = require(pDoxComponents..".DoxMime");
-                        DoxSyntax       = require(pDoxComponents..".DoxSyntax");
-                        DoxBlockTag     = require(pDoxComponents..".DoxBlockTag");
-                        DoxBlock        = require(pDoxComponents..".DoxBlock");
-                        DoxBuilder      = require(pDoxComponents..".DoxBuilder");
-
-                        --require Dox Builders
-                        DoxBuilderHTML      = require(pDoxBuilders..".HTML.DoxBuilderHTML");
-                        DoxBuilderPulsarLua = require(pDoxBuilders..".Pulsar.Lua.DoxBuilderPulsarLua");
-
-                        --require Dox and Dox parsers (subclasses)
-                        Dox                     = require(pDox..".Dox");
-                        DoxAssemblyNASM         = require(pDoxParsers..".DoxAssemblyNASM");
-                        DoxAutoPlayMediaStudio  = require(pDoxParsers..".DoxAutoPlayMediaStudio");
-                        DoxC                    = require(pDoxParsers..".DoxC");
-                        DoxCSharp               = require(pDoxParsers..".DoxCSharp");
-                        DoxCPlusPlus            = require(pDoxParsers..".DoxCPlusPlus");
-                        DoxCSS                  = require(pDoxParsers..".DoxCSS");
-                        DoxDart                 = require(pDoxParsers..".DoxDart");
-                        DoxElm                  = require(pDoxParsers..".DoxElm");
-                        DoxFSharp               = require(pDoxParsers..".DoxFSharp");
-                        DoxFortran              = require(pDoxParsers..".DoxFortran");
-                        DoxGo                   = require(pDoxParsers..".DoxGo");
-                        DoxGroovy               = require(pDoxParsers..".DoxGroovy");
-                        DoxHaskell              = require(pDoxParsers..".DoxHaskell");
-                        DoxHTML                 = require(pDoxParsers..".DoxHTML");
-                        DoxJava                 = require(pDoxParsers..".DoxJava");
-                        DoxJavaScript           = require(pDoxParsers..".DoxJavaScript");
-                        DoxJulia                = require(pDoxParsers..".DoxJulia");
-                        DoxKotlin               = require(pDoxParsers..".DoxKotlin");
-                        DoxLua                  = require(pDoxParsers..".DoxLua");
-                        DoxMatlab               = require(pDoxParsers..".DoxMatlab");
-                        DoxObjectiveC           = require(pDoxParsers..".DoxObjectiveC");
-                        DoxPerl                 = require(pDoxParsers..".DoxPerl");
-                        DoxPHP                  = require(pDoxParsers..".DoxPHP");
-                        DoxPython               = require(pDoxParsers..".DoxPython");
-                        DoxRuby                 = require(pDoxParsers..".DoxRuby");
-                        DoxRust                 = require(pDoxParsers..".DoxRust");
-                        DoxScala                = require(pDoxParsers..".DoxScala");
-                        DoxSwift                = require(pDoxParsers..".DoxSwift");
-                        DoxTypeScript           = require(pDoxParsers..".DoxTypeScript");
-                        DoxXML                  = require(pDoxParsers..".DoxXML");
-
                         --ini
                         Ini     = require(pClasses..".util.Ini");
                         BaseLog = require(pClasses..".util.BaseLog");

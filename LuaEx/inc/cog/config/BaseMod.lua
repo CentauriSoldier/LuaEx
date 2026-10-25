@@ -1,3 +1,0 @@
-return {
-    infoFilename = "modinfo.lua",
-};

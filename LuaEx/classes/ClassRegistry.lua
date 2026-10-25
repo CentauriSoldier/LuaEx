@@ -10,32 +10,31 @@ local function prerequisiteFalse()
 end
 
 local function validateEntry(vEntry)
-    local cObject = class.is(vEntry) and vEntry or class.of(vEntry);
-    assert((class.is(vEntry) or class.isinstance(vEntry)) and class.ischildorself(cObject, CoG),
-           "ObjectRegistry entries must be CoG classes or instances.");
+    assert(class.is(vEntry) or class.isinstance(vEntry),
+           "Registry entries must be LuaEx classes or class instances.");
 end
 
 --[[!
-    @fqxn CoG.ObjectRegistry
-    @desc A mutable registry of allowed CoG classes and specific instances.
+    @fqxn Classes.ClassRegistry
+    @desc A mutable registry of allowed LuaEx classes and specific instances.
     Class entries match through inheritance; instance entries match exact identity.
     An object must match at least one entry before the prerequisite is called.
-    Empty registries deny all objects. Register CoG to permit every CoG subtype.
+    Empty registries deny all objects. There is no required common base class.
     Methods use dot calls. Prerequisites receive (oObject, ...) and return a
     boolean, optionally followed by a string reason. Checks should not mutate
     game state. Callback errors propagate rather than silently denying access.
     @ex
-    local oRegistry = ObjectRegistry({CoG}, nil, true);
+    local oRegistry = ClassRegistry({ItemSlotSystem}, nil, true);
     local bAllowed, sReason = oRegistry.allows(oActor, oItem, tContext);
 !]]
-return class("ObjectRegistry",
+return class("ClassRegistry",
 {--METAMETHODS
     -- Own the entry list independently; class/instance identities and the callback
     -- reference are shared intentionally. The callback's captured state is not cloned.
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.__clone
+        @fqxn Classes.ClassRegistry.Methods.__clone
         @desc Copies the entry array while retaining class/instance identities and the callback reference. Captured callback state is shared.
-        @ret ObjectRegistry oCopy Independent registry.
+        @ret ClassRegistry oCopy Independent registry.
     !]]
     __clone = function(this, cdat)
         local pri = cdat.pri;
@@ -45,11 +44,11 @@ return class("ObjectRegistry",
             tEntries[nIndex] = vEntry;
         end
 
-        return ObjectRegistry(tEntries, pri.prerequisite, pri.defaultPrerequisite);
+        return ClassRegistry(tEntries, pri.prerequisite, pri.defaultPrerequisite);
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.__len
+        @fqxn Classes.ClassRegistry.Methods.__len
         @desc Returns the number of stored entries.
         @ret number nCount Entry count.
     !]]
@@ -69,14 +68,14 @@ return class("ObjectRegistry",
 },
 {--PUBLIC
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.ObjectRegistry
-        @param table|nil tEntries An optional dense list of CoG classes or instances.
+        @fqxn Classes.ClassRegistry.Methods.ClassRegistry
+        @param table|nil tEntries An optional dense list of LuaEx classes or instances.
         @param function|nil fPrerequisite An optional additional eligibility check.
         @param boolean|nil bDefaultPrerequisite Dummy result; defaults to true.
         @desc A supplied callback takes precedence over the default dummy.
-        @pulsarlua function ObjectRegistry
+        @pulsarlua function ClassRegistry
     !]]
-    ObjectRegistry = function(this, cdat, tEntries, fPrerequisite, bDefaultPrerequisite)
+    ClassRegistry = function(this, cdat, tEntries, fPrerequisite, bDefaultPrerequisite)
         assert(bDefaultPrerequisite == nil or rawtype(bDefaultPrerequisite) == "boolean",
                "Default prerequisite must be a boolean or nil.");
         cdat.pri.defaultPrerequisite = bDefaultPrerequisite ~= false;
@@ -103,11 +102,11 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.add
-        @pulsarlua function ObjectRegistry.add
-        @desc Adds a CoG class or instance unless the exact entry already exists.
-        @param class|CoG vEntry Entry to register.
-        @ret ObjectRegistry this This registry.
+        @fqxn Classes.ClassRegistry.Methods.add
+        @pulsarlua function ClassRegistry.add
+        @desc Adds a LuaEx class or instance unless the exact entry already exists.
+        @param class|instance vEntry Entry to register.
+        @ret ClassRegistry this This registry.
         @ret boolean bAdded Whether a new entry was inserted.
     !]]
     add = function(this, cdat, vEntry)
@@ -127,11 +126,11 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.remove
-        @pulsarlua function ObjectRegistry.remove
+        @fqxn Classes.ClassRegistry.Methods.remove
+        @pulsarlua function ClassRegistry.remove
         @desc Removes only the exact class/instance entry, not its descendants.
-        @param class|CoG vEntry Entry to remove.
-        @ret ObjectRegistry this This registry.
+        @param class|instance vEntry Entry to remove.
+        @ret ClassRegistry this This registry.
         @ret boolean bRemoved Whether an entry was removed.
     !]]
     remove = function(this, cdat, vEntry)
@@ -151,10 +150,10 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.clear
-        @pulsarlua function ObjectRegistry.clear
+        @fqxn Classes.ClassRegistry.Methods.clear
+        @pulsarlua function ClassRegistry.clear
         @desc Clears entries, retaining prerequisite settings. An empty registry denies all objects.
-        @ret ObjectRegistry this This registry.
+        @ret ClassRegistry this This registry.
     !]]
     clear = function(this, cdat)
         cdat.pri.entries = {};
@@ -162,10 +161,10 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.contains
-        @pulsarlua function ObjectRegistry.contains
+        @fqxn Classes.ClassRegistry.Methods.contains
+        @pulsarlua function ClassRegistry.contains
         @desc Checks exact entry identity, without inheritance matching or invoking prerequisites.
-        @param class|CoG vEntry Valid CoG class or instance.
+        @param class|instance vEntry Valid LuaEx class or instance.
         @ret boolean bFound Whether that exact entry is stored.
     !]]
     contains = function(this, cdat, vEntry)
@@ -183,8 +182,8 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.getCount
-        @pulsarlua function ObjectRegistry.getCount
+        @fqxn Classes.ClassRegistry.Methods.getCount
+        @pulsarlua function ClassRegistry.getCount
         @desc Returns stored entry count.
         @ret number nCount Entry count.
     !]]
@@ -193,8 +192,8 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.eachEntry
-        @pulsarlua function ObjectRegistry.eachEntry
+        @fqxn Classes.ClassRegistry.Methods.eachEntry
+        @pulsarlua function ClassRegistry.eachEntry
         @desc Returns an iterator over a copied entry array. Later registry edits do not alter its order.
         @ret function fIterator Yields one-based index and class/instance entry.
     !]]
@@ -219,8 +218,8 @@ return class("ObjectRegistry",
 
     -- Compatibility with the original class-only registry API.
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.eachClass
-        @pulsarlua function ObjectRegistry.eachClass
+        @fqxn Classes.ClassRegistry.Methods.eachClass
+        @pulsarlua function ClassRegistry.eachClass
         @desc Compatibility alias of eachEntry; includes instance entries as well as classes.
         @ret function fIterator Yields one-based index and stored entry.
     !]]
@@ -229,11 +228,11 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.setPrerequisite
-        @pulsarlua function ObjectRegistry.setPrerequisite
+        @fqxn Classes.ClassRegistry.Methods.setPrerequisite
+        @pulsarlua function ClassRegistry.setPrerequisite
         @desc Replaces the eligibility callback. Nil selects the current default dummy. Callback receives (oObject, ...) after entry matching and must return boolean plus optional string reason.
         @param function|nil fPrerequisite Callback or nil to restore the dummy.
-        @ret ObjectRegistry this This registry.
+        @ret ClassRegistry this This registry.
     !]]
     setPrerequisite = function(this, cdat, fPrerequisite)
         assert(fPrerequisite == nil or rawtype(fPrerequisite) == "function",
@@ -244,8 +243,8 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.getPrerequisite
-        @pulsarlua function ObjectRegistry.getPrerequisite
+        @fqxn Classes.ClassRegistry.Methods.getPrerequisite
+        @pulsarlua function ClassRegistry.getPrerequisite
         @desc Returns the current callback, including the selected default dummy.
         @ret function fPrerequisite Current eligibility function.
     !]]
@@ -254,11 +253,11 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.setDefaultPrerequisite
-        @pulsarlua function ObjectRegistry.setDefaultPrerequisite
+        @fqxn Classes.ClassRegistry.Methods.setDefaultPrerequisite
+        @pulsarlua function ClassRegistry.setDefaultPrerequisite
         @desc Changes the dummy result and updates an active dummy immediately; a custom callback remains unchanged.
         @param boolean bDefault Dummy eligibility result.
-        @ret ObjectRegistry this This registry.
+        @ret ClassRegistry this This registry.
     !]]
     setDefaultPrerequisite = function(this, cdat, bDefault)
         assert(rawtype(bDefault) == "boolean", "Default prerequisite must be a boolean.");
@@ -274,8 +273,8 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.getDefaultPrerequisite
-        @pulsarlua function ObjectRegistry.getDefaultPrerequisite
+        @fqxn Classes.ClassRegistry.Methods.getDefaultPrerequisite
+        @pulsarlua function ClassRegistry.getDefaultPrerequisite
         @desc Returns the selected default dummy result.
         @ret boolean bDefault Default eligibility result.
     !]]
@@ -284,12 +283,22 @@ return class("ObjectRegistry",
     end,
 
     --[[!
-        @fqxn CoG.ObjectRegistry.Methods.allows
+        @fqxn Classes.ClassRegistry.Methods.isDefaultPrerequisiteAllowed
+        @pulsarlua function ClassRegistry.isDefaultPrerequisiteAllowed
+        @desc Returns the selected default dummy result.
+        @ret boolean bDefault Default eligibility result.
+    !]]
+    isDefaultPrerequisiteAllowed = function(this, cdat)
+        return cdat.pri.defaultPrerequisite;
+    end,
+
+    --[[!
+        @fqxn Classes.ClassRegistry.Methods.allows
         @desc Class entries use child-or-self checks (isa semantics); instance
         entries use exact identity, ignoring overloaded equality operators.
         A match invokes the prerequisite once, not once per matching entry.
-        @pulsarlua function ObjectRegistry.allows
-        @param CoG oObject Candidate instance; non-CoG inputs return false and a reason.
+        @pulsarlua function ClassRegistry.allows
+        @param instance oObject Candidate LuaEx class instance; other inputs return false and a reason.
         @param varargs ... Extra prerequisite context.
         @ret boolean bAllowed Eligibility result.
         @ret string|nil sReason Optional explanation for denial.
@@ -297,8 +306,8 @@ return class("ObjectRegistry",
     allows = function(this, cdat, oObject, ...)
         local cObject = class.of(oObject);
 
-        if (not class.isinstance(oObject) or not class.ischildorself(cObject, CoG)) then
-            return false, "Object must be a CoG instance.";
+        if (not class.isinstance(oObject)) then
+            return false, "Object must be a LuaEx class instance.";
         end
 
         local bMatch = false;
