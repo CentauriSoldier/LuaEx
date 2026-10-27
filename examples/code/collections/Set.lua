@@ -4,12 +4,12 @@ local sExampleSource = debug.getinfo(1, "S").source:gsub("^@", "")
 local sSourcePath = sExampleSource:match("^(.*)[/\\]") or "."
 local sRepositoryPath = sSourcePath
 for _ = 1, 8 do
-    local file = io.open(sRepositoryPath .. "/LuaEx/init.lua", "r")
+    local file = io.open(sRepositoryPath .. "/LuaEx/load.lua", "r")
     if file then file:close(); break end
     sRepositoryPath = sRepositoryPath .. "/.."
 end
 package.path = sRepositoryPath .. "/?.lua;" .. package.path
-if not LUAEX_INIT then require("LuaEx.init") end
+if not LUAEX_INIT then require("LuaEx.load")(); end
 local D = require("examples.support.tutorial").new("Set","Uniqueness, union/intersection/difference, identity and mixed-type membership.")
 
 D.section("Your two sets", "Comma-separated strings make it easy to compare overlapping groups.")
@@ -28,18 +28,17 @@ for value in left() do D.check("Union contains every left member",union.contains
 for value in common() do D.check("Intersection member exists in both",left.contains(value) and right.contains(value)) end
 local difference=Set();for value in left() do if not right.contains(value) then difference.add(value) end end
 show("Left minus right",difference)
-D.observe("Current purgeSet implementation",function()local copy=Set();copy.importSet(left);copy.purgeSet(right);return copy.size() end)
-D.note("purgeSet currently calls a missing global helper; the explicit membership loop above gives the intended difference.")
+local purged=Set();purged.importSet(left).purgeSet(right)
+D.check("purgeSet matches explicit difference",purged==difference)
 D.section("Mixed types are distinct", "The number 1 differs from string '1'; table identity matters more than equal contents.")
-local a,b={x=1},{x=1};local point=Point(2,3)
-local mixed=Set({1,"1",false,true,a,b,point,null})
+local a,b={x=1},{x=1};local _oPoint=point(2,3)
+local mixed=Set({1,"1",false,true,a,b,_oPoint,null})
 D.equal("Eight distinct members",mixed.size(),8)
 D.check("First table identity",mixed.contains(a));D.check("Equivalent fresh table is not a member",not mixed.contains({x=1}))
 show("Mixed members",mixed)
 D.section("Remove, subset and clear", "Removing absent membership is harmless; an empty set is a subset of another set.")
-D.observe("Remove absent member",function() unique.remove("absent");return unique.size() end)
-D.observe("Remove present member",function() unique.remove("same");return unique.size() end)
-D.note("remove currently shares the missing helper used by purgeSet. A new empty set demonstrates subset behavior independently.")
+unique.remove("absent");D.equal("Missing removal retains size",unique.size(),1)
+unique.remove("same");D.equal("Present removal empties set",unique.size(),0)
 D.check("Empty is a subset",Set().isSubSet(left))
 mixed.clear();D.equal("Cleared mixed set",mixed.size(),0)
 D.section("Invalid values", "nil has no membership identity in this API.")

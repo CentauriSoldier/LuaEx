@@ -3,18 +3,18 @@ local sExampleSource = debug.getinfo(1, "S").source:gsub("^@", "")
 local sSourcePath = sExampleSource:match("^(.*)[/\\]") or "."
 local sRepositoryPath = sSourcePath
 for _ = 1, 8 do
-    local file = io.open(sRepositoryPath .. "/LuaEx/init.lua", "r")
+    local file = io.open(sRepositoryPath .. "/LuaEx/load.lua", "r")
     if file then file:close(); break end
     sRepositoryPath = sRepositoryPath .. "/.."
 end
 package.path = sRepositoryPath .. "/?.lua;" .. package.path
-if not LUAEX_INIT then require("LuaEx.init") end
+if not LUAEX_INIT then require("LuaEx.load")(); end
 local D = require("examples.support.tutorial").new("SortedDictionary","String keys, mixed values, ordered iteration, comparators and independent clones.")
 
 D.section("Your dictionary entry", "Keys must be strings; values may have different types.")
 local key=D.input("key","home");local value=D.input("value","Oregon");local reverse=D.input("reverse",false)
 local dictionary=SortedDictionary();dictionary.add(key,value)
-dictionary.add("count",7).add("enabled",false).add("position",Point(1,2)).add("record",{score=2})
+dictionary.add("count",7).add("enabled",false).add("position",point(1,2)).add("record",{score=2})
 local function show(label) D.note(label);for name,item in dictionary() do D.show("Key "..name,item) end end
 show("Lexicographic string-key order")
 D.equal("Custom entry",dictionary.get(key),value)
@@ -35,10 +35,11 @@ D.section("Cloning nested values", "The clone has its own record contents and or
 local copy=clone(dictionary);copy.get("record").score=99
 D.equal("Original nested value retained",dictionary.get("record").score,2)
 copy.add("copy-only",true);D.check("Original has no copy-only key",not dictionary.containsKey("copy-only"))
-D.section("Validation and current limits", "Use dictionary() for ordered traversal; the current pairs metamethod references obsolete class data.")
+D.section("Validation and value search", "Both dictionary() and pairs(dictionary) traverse in comparator order.")
 D.reject("Numeric key rejected",function()dictionary.add(12,"bad") end)
 D.reject("Missing get rejected",function()dictionary.get("missing") end)
 D.reject("Invalid comparator rejected",function()dictionary.setSortFunction("descending") end)
-D.observe("Current pairs implementation",function()for _ in pairs(dictionary) do break end;return "supported" end)
-D.note("containsValue is currently unfinished. This tutorial uses explicit ordered iteration for value searches.")
+local pairCount=0;for _ in pairs(dictionary) do pairCount=pairCount+1 end
+D.equal("pairs visits each key",pairCount,dictionary.size())
+D.check("containsValue finds the updated entry",dictionary.containsValue("updated"))
 D.finish()

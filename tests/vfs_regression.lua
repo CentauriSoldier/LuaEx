@@ -4,7 +4,7 @@
     and portable device names. All file operations use the example's in-memory io
     implementation. Run with node tests/vfs_regression.cjs from the repository root.
 !]]
-if (not LUAEX_INIT) then require("LuaEx.load")(0, 4); end
+if (not LUAEX_INIT) then require("LuaEx.load")(4); end
 
 local _nChecks = 0;
 
@@ -21,7 +21,7 @@ local function check(sLabel, bCondition)
 end
 
 check("Documented utility module resolves to the loaded VFS class",
-      require("LuaEx.inc.classes.util.VFS") == VFS);
+      require("LuaEx.classes.util.VFS") == VFS);
 
 require("examples.support.VFSMemory").run(function(tExpectedFiles)
     local fOriginalList  = io.list;
@@ -192,7 +192,7 @@ require("examples.support.VFSMemory").run(function(tExpectedFiles)
     assert(oVFS.registerDirectory("/mod/Artwork"));
     local sSnapshot = serialize(oVFS);
     local oRestored = deserialize(sSnapshot);
-    check("Restored VFS has the correct class", class.of(oRestored) == VFS);
+    check("Restored VFS has the correct class", class.getname(oRestored) == class.getname(VFS));
     check("Restored VFS is independent", oRestored ~= oVFS);
     check("Private aliases survive automatic serialization", oRestored.getAlias("MOD") == "/mod");
     check("Mount paths survive automatic serialization", oRestored.resolve("/mod/CON") == "/demo/mod/CON");
@@ -214,7 +214,7 @@ require("examples.support.VFSMemory").run(function(tExpectedFiles)
     local oEmptyAccess = oEmpty.createAccess({{path = "/", permissions = {listDirectories = true}}});
     check("Restored empty root can grant access before io is used", #oEmptyAccess.ls("/", nil, VFS.DIR) == 0);
     check("Restored empty VFS can subsequently mount", oEmpty.mount("/new", "/demo/mod"));
-    check("Restored namespace can be serialized again", class.of(deserialize(serialize(oRestored))) == VFS);
+    check("Restored namespace can be serialized again", class.getname(deserialize(serialize(oRestored))) == class.getname(VFS));
 
     -- Custom callbacks use the normal serializer's function support. These
     -- callbacks deliberately have no captured host resources or mutable upvalues.

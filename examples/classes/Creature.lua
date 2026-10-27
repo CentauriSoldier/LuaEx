@@ -18,7 +18,7 @@ local name=D.input("name","Mira");local capacity=D.input("health",80);local dama
 local constructor=family.Creature
 local object=constructor(name,capacity,family.Rank.SERGEANT)
 D.check("Class instance",class.isinstance(object))
-D.show("Class",class.getname(class.of(object)))
+D.show("Class",class.getname(object))
 D.section("Composition", "The instance owns a real Pool, whose current and maximum are separate values.")
 D.equal("Full starting health",object.getHealthPool().get(),capacity)
 D.equal("Health capacity",object.getHealthPool().get(Pool.ASPECT.MAX),capacity)
@@ -40,7 +40,7 @@ D.equal("Original not healed",object.getHealthPool().get(),math.max(0,capacity-d
 D.section("Serialized state", "Text snapshots restore the concrete class and nested component state.")
 local text=serialize(object);local restored=deserialize(text)
 D.show("Snapshot bytes",#text)
-D.check("Concrete class restored",class.of(restored)==constructor)
+D.check("Concrete class restored",class.getname(restored)==class.getname(constructor))
 D.equal("Restored health",restored.getHealthPool().get(),object.getHealthPool().get())
 
 D.finish()

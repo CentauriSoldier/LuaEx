@@ -3,28 +3,95 @@
   <h1>🅲🅷🅰🅽🅶🅴🅻🅾🅶</h1>
 </div>
 
-## [**v0.61**] (*in progress*)
+## [**v0.62**] (*in progress*)
+
+### Added
+- Native **lua tests/run.lua** core regression runner with isolated processes, loader-level checks, collection models, formatting corpus, explicit unavailable legacy coverage, and nonzero failure status.
+- **eventrix** serialization and **eventrix.deserialize** with versioned state, callback order and activation preservation, empty-event restoration, independent runtime containers, and named external environment bindings. Shared callbacks and captured state use the existing graph serializer.
+- **XML** class for parsing UTF-8 XML documents, including elements, attributes, text, CDATA, comments, and processing instructions.
+- XML source preservation, independent document-tree snapshots, element searches, cloning, and class serialization support.
+- **VFS** class providing virtual mounts, registered directories, aliases, restricted access objects, permission checks, and access revocation.
+- VFS file reading, writing, listing, directory creation, removal, copying, and moving through native or custom backends.
+- **textcatalog** library providing structured text templates, persistent variables, active-node selection, scoped searches, and editable text.
+- Independent cloning and serialization of text catalogs, including their variables and active scope.
+- **prettyLua** source formatter supporting Lua chunks, standalone expressions, Lua 5.3 syntax, and Lua 5.4 local attributes. Formatting preserves tokens without executing the source.
+- Private class snapshot hooks **prepareSnapshot** and **validateSnapshot** for customizing generated serialization without replacing the class serializer.
+- Browser-based example workbench with source editing, execution output, isolated Lua sessions, and an offline bundled runtime.
+- Interactive examples for enums, Potentiometer, Protean, Stack, and text catalogs.
+- Regression tests and supporting verification scripts for core libraries, classes, and utilities.
+- Standalone public-boolean class reproduction in **EDITED/BUG TEST/class.lua**.
+
+### Changed
+- Aligned the runtime and README version with **v0.62**. Corrected the current one-argument loader documentation and separated verified Lua 5.4 configurations from unverified versions and hosts.
+- Updated collection tutorials to verify repaired behavior and documented the supported global serialization path and remaining 1.0 readiness blockers.
+- Replaced public **class.getparent**, **getbase**, and **getchildren** with **getparentname**, **getbasename**, and **getchildnames**, returning names instead of class objects. Child-name lists are independent and alphabetically sorted.
+- **class.getbyname(name, environment)** now returns only registered class objects directly present in the supplied table, using **rawget**. Missing or non-table environments use a private empty table; registry lookup and metatable fallback cannot supply a class object.
+- **class.getname** now accepts registered instances as well as class objects and names. Removed public **class.of**, retaining only a private internal lookup for framework validation.
+- Removed the ineffective **isInScope** mechanism. Name-based metadata queries remain available without granting access to class objects; updated affected callers and regression coverage.
+- Replaced automatic initialization through **LuaEx.init** with explicit initialization through **LuaEx.load**.
+- Simplified initialization to one optional class-load level, from **0** through **5**, defaulting to **5**.
+- Loading **LuaEx.load** returns the initializer without initializing the framework.
+- Initialization enables required dependencies, restores **package.path**, and publishes **LUAEX_INIT** only after successful loading.
+- Moved classes, interfaces, enums, and primitives out of **LuaEx/inc** into directories directly beneath **LuaEx**.
+- Reworked **strata** into validated, immutable identifier hierarchies with case-insensitive lookup, sorted iteration, parent navigation, identity-preserving cloning, and registered restoration.
+- Class snapshot hooks run from base to derived; restoration validates the complete hierarchy before constructing instances.
+- Snapshot copying preserves shared references and cycles among plain tables while retaining decoded typed-object identities.
+- Clone traversals now maintain separate coroutine contexts and clean up traversal state after failures.
+- Reorganized examples into topic folders, separate editable tutorials, shared support modules, and visual examples.
+- Added documentation and example resources for XML, VFS, and text catalogs.
+- Corrected the earlier changelog claim that class scope checking was fixed; class-object access is now governed by explicit environment bindings rather than the captured-reference scope check.
+
+### Fixed
+- **Stack.peek** and **Queue.peek** discarded stored **false** values; **Stack.pop** leaked a global return variable and reused stale values when empty.
+- **Set.remove** and **purgeSet** called a missing global helper. Removal now uses the protected method and matches member identity consistently; empty Sets print as **{}**.
+- Set cloning built membership keys from original table objects while iterating copied objects. Membership now follows copied members, with circular clone references registered before descent.
+- **SortedDictionary** iteration referenced nonexistent class data and exposed private iterator state. Both call and **pairs** traversal now use the ordered iterator without exposing storage; **containsValue** now searches ordered entries.
+- SortedDictionary removal could discard custom ordering. Comparator changes and insertions now sort temporary key lists so errors preserve existing state and do not leave ghost keys.
+- **eventrix.removeEvent** passed an undefined variable to its validation error helper. Invalid event IDs now report their actual input type instead of leaving an unresolved template placeholder.
+- **eventrix.fire** created or overwrote an unrelated global **bFired** through an unused assignment. Dispatch no longer modifies that global.
+- Eventrix snapshots and construction now work during dispatch under restricted environment bindings; nil callback results retain the **EVENTRIX_NIL** sentinel in those environments.
+- **eventrix.addHook** returned an undefined variable after registering a callback. It now returns its eventrix object, restoring method chaining for both new and already-registered callbacks.
+- **type.mathchesonlyleft**, **mathchesonlyright**, and **mathchesboth** compared the left type against an undefined variable. Both sides now compare against the supplied type name; existing helper names are retained for compatibility.
+- Callable class instances received a duplicate instance argument before their user arguments. The **__call** wrapper now consumes Lua's implicit instance while preserving user argument counts, nil values, and return values.
+- Preserved serializer factory-reference restoration independently of public class lookup restrictions, including saved class references whose external bindings are later removed or replaced.
+- Class public fields containing **false** incorrectly returned **nil**. Instance lookup now returns **tClassData.pub[k]** directly.
+- **class.isbaseof** looked up its first argument twice, failing to recognize valid root-base relationships. It now resolves both arguments and consistently returns a boolean, retaining name-based metadata queries.
+- Assignments through subclass methods could bypass an inherited field's established class constraint. Validation now uses the field owner's constraint, preserving polymorphism and first-assignment typing for uninitialized **null** fields.
+- Assigning **null** to an unset read-only class field prematurely locked it. The field now remains available until its first non-null assignment.
+- Parent and subclass methods could independently lock the same inherited read-only field, allowing one access path to replace a value chosen through the other. All access paths now use the field owner's read-only lock.
+- Constant creation incorrectly checked whether a name already existed in the LuaEx environment.
+- Metatable sealing failed for tables with missing or existing metatables.
+- Metatable guard detection used incorrect variables and type checks.
+- Guarded metatable inspection now returns copied identity metadata instead of exposing implementation members.
+- Metatable wrappers preserve native protection sentinels and reject replacement of registered guarded objects.
+- Directory-listing failures could appear as successful empty results.
+- Directory-listing pipes now close after iteration or callback failures, with failures returned as **nil** and a reason.
+- Windows file enumeration now distinguishes successful empty file lists from listing-process failures.
+
+### Removed
+- The **LuaEx.init** entry point and the former framework configuration file.
+- The **LuaEx/inc** directory layout.
+- Legacy class-based geometry modules and obsolete primitive implementations.
+- Deprecated event implementations, backup files, and several unfinished library experiments.
+- Superseded example locations and old editor-completion configuration files.
+
+### Known Issues
+- The README still documents the previous three-argument initializer and class-load level **6**.
+- Several regression tests and examples still reference removed modules, old paths, or the previous initializer signature.
+
+---
+
+## [**v0.61**]
 
 ### Added
 - **class.haspublicmember**
 
-- **Dox.setBlockTagOrder** for per-document section ordering, with stable repeated items and default-order restoration.
-- **Dox.THEME** and **setTheme** with 20 page palettes, including Midnight Blue (default), Synthwave Protocol, and Zenburn.
-- **Dox.PRISM** and **setPrismTheme** with eight independent code-highlighting palettes; Okaidia remains the default.
-- **Dox.setBanner** for optional image banners, with an unavailable-image notice and usable default header on load failure.
-- Project-named Pulsar package ZIP export through **Dox.BUILDER.PULSAR_LUA** and the normal **export** method.
-- Pulsar completion metadata for documented functions, parameters, returns, fields, enums, callable classes, and object members.
-- **DoxBuilder.eachColumnWrapper** and selective wrapper-group clearing.
-- Correctly spelled **DoxSyntax.getEscapeCharacter**, retaining the existing getter for compatibility.
 
 - QR-code generation support and a QR example.
 - **table.readonly** for independent recursive snapshots preserving shared references and cycles.
 - **cloner.registerCopy**, **cloneIndependent**, and **registerFactory** for typed-object cloning and independent default-copy traversals.
 - Graph-based serialization/restoration of shared tables, cyclic table graphs, Lua closures, and captured upvalue cells, plus registered typed-object restoration.
-- Expanded AStar map origins/stagger configuration, port connections, rover movement-point pools, and layer/map movement APIs.
-- **Pool.withDeferredEvents**, value adjustment, and configurable high/low thresholds.
 - Protean callback replacement/toggle locks, link-state queries, and a compatible correctly spelled final-value calculation method.
-- Per-module COG configuration files, including application, AStar, Pool, Rarity, StatusSystem, and object/mod/vehicle settings.
 
 - **Tree** class with parent/child access, insertion/removal, traversal, and printable hierarchy output.
 - String helpers **collapse**, **makefilesafe**, and **tosid**; expanded **string.totable** delimiter handling.
@@ -32,21 +99,8 @@
 - ISO timestamp-to-minute conversion utility.
 
 ### Changed
-- Updated *Prism* in **Dox** to *1.30.0*.
 
-- Redesigned Dox HTML output with responsive navigation, selected-item markers, breadcrumbs, and readable content sections.
-- Example tags use the active parser's Prism language; explicitly authored code-language markup remains supported.
-- Expanded verified Pulsar code-name tags across LuaEx hooks, libraries, classes, primitives, and game-system APIs.
-- Localized Dox module dependencies, completed API comments, corrected built-in tag documentation, and removed obsolete scaffolding.
-- Updated the documentation example to demonstrate page themes, Prism themes, and Pulsar package generation; regenerated documentation output.
 
-- Reworked **AStar** map/layer/node/rover behavior, aspect lookup, passability, ownership, movement costs, and committed-move callbacks.
-- Reworked **Pool** capacity, reservations, modifiers, regeneration, threshold status, event ordering, arithmetic, and independent cloning.
-- Updated **RNG** to use the shared random stream with caller-controlled seeding, explicit argument validation, and nil-only defaults.
-- Moved rarity settings into dedicated configuration and validated rarity/affix limits.
-- Reworked **TagSystem** around unique normalized tags, alphabetical iteration, enabled-state preservation, and independent restoration.
-- Reworked **Targetor** category/group management, wildcard matching, immunity/interdictor precedence, validated batch updates, and independent clone/serialization state.
-- Reworked **XPSystem** cumulative level thresholds, progression curves, remaining-XP queries, explicit refresh, and modifier-aware level assignment.
 - Reworked **Protean** linking, modifiers, bounds, recalculation, callback state, and independent snapshots.
 - Reworked **Potentiometer** clamping, revolving and alternating reflection, direction tracking, bounds/rates, and cloning.
 - Reworked **enum** definitions, nested collections, immutable metadata, private/public registration, snapshots, restoration, and factory behavior.
@@ -59,32 +113,15 @@
 
 - Expanded **Ini** construction from text, tables, or files; ordered section/value access, deletion, typed reads, and inheritance-aware reads/writes.
 - Reworked **Grid** delimiter/column handling, named/indexed row access, iteration, and file import validation.
-- Updated **io** path and filesystem helpers, COG date/version helpers, and environment-repository default update reporting.
+- Updated **io** path and filesystem helpers, and environment-repository default update reporting.
 - **BaseLog** constructor now includes an on-log callback slot before the auto-write option; updated timestamp/level formatting and independent per-instance entry storage.
 
 ### Fixed
-- Private **IsinScope** function used by **class** helper functions not properly checking scope.
-- ***DoxBuilderHTML*** **LoadDoxAsset** function not working in all cases.
-- Dox file-extension selection and MIME iteration/registration using incorrect or undeclared variables.
-- Public block-tag iteration skipping the last tag and the protected iterator failing to advance.
-- Required-tag detection with multiple required tags, invalid block-item indexes, and malformed-item error reporting.
-- Empty, sparse, or duplicate tag-alias lists; block-tag equality now includes column count.
-- MIME preprocessor replacement, extension normalization/validation, and invalid preprocessor handling.
-- Wrapper clearing crashes, rejected replacement indexes, silently ignored new groups, and inconsistent empty-wrapper validation.
-- Fortran documentation extraction with both LF and Windows CRLF line endings.
-- Lua extraction treating documentation markers inside quoted strings, long strings, or ordinary comments as real Dox blocks.
-- HTML Back/Forward history loops, internal/external fragment routing, and encoded documentation names.
-- Inherited documentation chain resolution, missing-target diagnostics, and circular-reference detection in HTML and Pulsar output.
-- HTML template-marker errors, documentation serialization handling, and combined-section identifiers.
-- Export failures now report file-open, write, and close errors; package ZIP output uses binary mode.
-- Pulsar code-name overrides, callable-class member visibility, and documented object-member resolution while preserving existing provider completions.
 
 - Windows path splitting losing drive prefixes and directory-existence checks using the wrong suffix.
 - Class snapshot restoration accepting unknown fields, replacing methods, mismatched field types, or changed immutable scalar declarations.
 - Shared-reference/cycle handling in clone and serialization traversals; independent copied defaults for separate class and struct instances.
-- COG numeric validation and state handling across Pool, RNG, XPSystem, Protean, and Potentiometer.
-- AStar case-insensitive aspect/type lookup and movement state/callback consistency.
-- TagSystem normalization and saved enabled-state handling; Targetor validation before category mutations.
+- Numeric validation and state handling across Protean and Potentiometer.
 - Geometry input validation and polygon boundary/derived-geometry handling.
 
 - **BaseLog** per-level entry indexing incorrectly using the outer entries-table length.
@@ -122,14 +159,6 @@
     - **class.isstaticconstructorrunning**
     - **class.of**    
 - Classes now have an *optional* static constructor using the class name as the static method name.
-- **Dox** comment blocks can now use internal anchor links (***#***) to other FQXNs.
-- **Dox** output back navigation.
-- **Dox** now uses **prism.js** for displaying code blocks with syntax highlighting for all available **prism.js** languages.
-- "**Copy**" (*to clipboard*) button to all user-created code blocks in **Dox** HTML output.
-- **Code** ***BlockTag*** to Dox, permitting code examples with any user-specified **prism.js** language.
-- **Example** ***BlockTag*** now automatically detects the **prism.js** language based on the **Dox** subclass being used.
-- Relevant **prism.js** scripts are automatically added to **Dox's** finalized HTML output based on the languages used in the documentation.
-- **Dox** **Parsers** (subclasses) for several new languages.
 
 ### Changed
 - Modifed all type assertion functions in **typehook.lua** to accept an optional, custom error message and an error level modifier value.
@@ -145,22 +174,12 @@
 - The **class** module now interally handles all serialization and deserialization via the serializer system.
 - **class** static constructor must now accept a string (*authenitication code*) as its second argument to be used with the ***class.isstaticconstructorrunning*** helper function. This can now determine whether the static constructor is currently running (to prevent constructor spoofing where needed inside **class** methods).
 - **enum** items now have ***\_\_eq*** and ***\_\_lt*** metamethods.
-- **Dox** now auto-combines certain multiple built-in ***BlockTag*** items such as **Param**, **Return**, etc. into a single section.
-- ***DoxBlockTags*** can now be set to *combined* which places all items using that tag into one section.
-- **Dox** now has an ***@inheritdoc*** tag that allows inheritance of docs from one **fqxn** to another.
-- **Dox** Fully Qualified Dox Names (**fqxn**) may now contain spaces.
-- **Dox** now allows custom intro page message.
 - Subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.
-- **DoxBuilderHTML** now places all output into a single HTML file instead of using a separate *.js* file.
-- **Dox** CSS redesigned to be more functional, readable and aesthetically pleasing.
-- **DoxBlockTag** column wrappers are now defined by each **DoxBuilder** subclass rather than globally.
 
 ### Fixed
 - Bug in ***math.longtorgb*** (now ***math.inttorgb***) causing it to return incorrect values.
 - The **class** static constructor not executing correctly.
 - The **class** system not permitting **Lua/LuaEx** keywords to be used as member names when using directives.
-- **CoG** not allowing recursive access to *config* table.
-- **Dox** displaying parameters, returns and other combined tags out of order.
 - **class** kits not adopting parents' protected and public read-only values.
 - **Structfactory** not properly cloning itself.
 - **Structs** not properly cloning internal objects.
@@ -171,9 +190,6 @@
 ## [**v0.50**]
 
 ### Added
-- **CoG** (*Code of Gaming*) framework.
-- Support for code html tags using **prism.js** in **Dox** module.
-- Several new features to **Dox** and prepped it for major updates in future releases.
 - ***type.assert.function***
 
 ### Changed
@@ -193,7 +209,6 @@
 - Added a static initializer to classes (uses a method of the class name in the static public table).
 
 ### Changed
-- Integrated and rewrote **Dox** documentation module and added support for other languages.
 - Subclassing can now be controlled with whitelists or blacklists.
 - Updated type setting permissions to honor child class instances.
 - Reorganized and added sections and examples to README.

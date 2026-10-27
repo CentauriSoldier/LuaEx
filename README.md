@@ -10,6 +10,36 @@ Simply put, **LuaEx** is a lightweight overhaul of Lua that extends its function
 Below are some of the [🅵🅴🅰🆃🆄🆁🅴🆂](#features)
 in **LuaEx** (*See documentation for full details*).
 
+### Class references and metadata (v0.62)
+
+Relationship queries accept registered class objects or names without exposing
+class objects. `class.getparentname`, `class.getbasename`, and
+`class.getchildnames` replace the former object-returning helpers. They return
+the immediate parent name, root base name, or a fresh alphabetically sorted list
+of direct child names; unavailable results are `nil`.
+
+`class.getname` accepts a registered class object, instance, or class name and
+returns its exact class name, or `nil` for unregistered input. Public `class.of`
+has been removed; use name comparisons or `class.isinstanceof` for exact-class
+checks instead.
+
+`class.getbyname(name, environment)` returns only a registered class object
+directly bound to `name` in the supplied table. Lookup uses `rawget`, so it does
+not invoke `__index`, search parent environments, or fall back to the internal
+registry. Omitted and non-table environments behave as an empty table. This is
+explicit reference lookup, not automatic detection of Lua lexical scope.
+Serialization retains its independent internal factory references so existing
+saved class references can restore even after an external binding is removed.
+Those references are not exposed through the public class metadata helpers.
+
+```lua
+local tClasses = {Player = Player};
+class.getbyname("Player", tClasses); -- the supplied Player class reference
+class.getbyname("Player");           -- nil, even if Player is registered
+class.getname(oPlayer);              -- "Player", without exposing its class
+class.getparentname("Player");       -- parent name, or nil
+```
+
 
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
 To push **LuaEx** into the global environment, place the **LuaEx** folder into your package path and add the following line of code to your project:
@@ -18,17 +48,21 @@ local init = require("LuaEx.load");
 init();
 ```
 
-The loader accepts `init(classLoadLevel)`. Omitted or `nil` uses level `5`.
-Class-load levels must be whole numbers from `0` through `5`:
+The loader accepts `init(classLoadLevel)`. Omitted or `nil` uses level **5**.
+The level must be a whole number from **0** through **5**. The former
+three-argument configuration API is not part of the current core.
 
 | Level | Includes previous levels, plus |
 | --- | --- |
 | 0 | Core hooks, factories, cloning and serialization |
 | 1 | Class system and interfaces |
-| 2 | Basic primitives and collections |
-| 3 | Components |
-| 4 | Utilities |
-| 5 | Geometry |
+| 2 | Geometry primitives, collections, XML and ClassRegistry |
+| 3 | Potentiometer and Protean components |
+| 4 | Ini, BaseLog and VFS utilities |
+| 5 | Reserved geometry-class group; currently no additional classes |
+
+CoG and Dox implementation modules are absent from this checkout. Their
+historical changelog entries and legacy examples are retained for reference.
 
 Requiring `LuaEx.load` does not initialize the framework. After initialization,
 further calls return the existing `luaex` environment without changing its settings.
@@ -36,8 +70,23 @@ From here on out, all modules of **LuaEx** will be available in the global envir
 
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗s
-#### Current Version: Beta v0.61
+#### Current Version: Beta v0.62 (in progress)
 View Changelog at [https://github.com/CentauriSoldier/LuaEx/blob/main/CHANGELOG.md](https://github.com/CentauriSoldier/LuaEx/blob/main/CHANGELOG.md).
+
+### Running the current core tests
+
+From the repository root, run:
+
+```text
+lua tests/run.lua
+```
+
+Every configured case runs in a fresh native Lua process. Failures produce a
+nonzero exit status. CoG/Dox coverage is explicitly excluded rather than counted
+as passing. Use `lua tests/run.lua --list` to inspect the suite and
+`lua tests/run.lua --suite collections` to run one case. See
+[tests/README.md](tests/README.md) for fixtures and persistence guarantees.
+
 
 ## 🅻🅸🅲🅴🅽🆂🅴 ©
 
@@ -166,9 +215,11 @@ While I develop **LuaEx** for my own projects, it's also designed to be used by 
 For their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
 
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
-**LuaEx** is designed for **Lua 5.3**; however, I will make every possible effort to make it backward compatible with the latest version of **Lua 5.1**.  
-To that end, if you're using **Lua 5.1** and come across a bug that appears specific to that version, please submit a issue and I'll address it.  
-Please keep in mind, if there is ever an intractable conflict between **Lua 5.1** and **Lua 5.3**, **Lua 5.3** will ***always*** take precedence.
+The source uses **Lua 5.3+ syntax**. Native **Lua 5.4.2** on Windows and the
+bundled **Lua 5.4 / Wasmoon 1.16.0** runtime are the verified configurations.
+Lua 5.3 has not completed the current suite; Lua 5.1 and LuaJIT compatibility
+is not claimed. Platform-specific filesystem behavior also requires testing
+on its actual host; simulated path tests are not equivalent to Linux/macOS validation.
 
 
 <br>
@@ -273,7 +324,7 @@ print(k)            --> null
 
 ##### Constants ♾️
 While **Lua 5.4** offers constants natively, previous versions don't.  
-As **LueEx** is not built for **5.4**, constants are provided. They may be of any non-nil type (*though ***null*** [or ***NULL***] should **never** be set as a constant, as it already is*).  
+LuaEx provides its own constant bindings alongside Lua 5.4's local constant attributes. They may be of any non-nil type (*though ***null*** [or ***NULL***] should **never** be set as a constant, as it already is*).
 
 <details>
 <summary>🆅🅸🅴🆆 🅴🆇🅰🅼🅿🅻🅴</summary>

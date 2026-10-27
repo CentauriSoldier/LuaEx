@@ -304,7 +304,7 @@ return class("ClassRegistry",
         @ret string|nil sReason Optional explanation for denial.
     !]]
     allows = function(this, cdat, oObject, ...)
-        local cObject = class.of(oObject);
+        local sObjectClass = class.getname(oObject);
 
         if (not class.isinstance(oObject)) then
             return false, "Object must be a LuaEx class instance.";
@@ -314,7 +314,7 @@ return class("ClassRegistry",
 
         for _, vAllowed in ipairs(cdat.pri.entries) do
 
-            if ((class.is(vAllowed) and class.ischildorself(cObject, vAllowed)) or rawequal(oObject, vAllowed)) then
+            if ((class.is(vAllowed) and class.ischildorself(sObjectClass, vAllowed)) or rawequal(oObject, vAllowed)) then
                 bMatch = true;
                 break;
             end

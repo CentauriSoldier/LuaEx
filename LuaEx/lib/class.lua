@@ -47,6 +47,9 @@ To facilitate a class's instances accessing and mutating each other (as is commo
 
 --LOCALIZATION
 
+-- Missing or invalid lookup environments never fall back to the class registry.
+local _tEmptyEnvironment = {};
+
 local function classError(sMessage, nLevel)
     error("Error in class.\n"..sMessage, nLevel + 1);
 end
@@ -304,7 +307,7 @@ _fAutoPlaceHolder = function() end;
 --[[!
 @fqxn LuaEx.Class System.class.Functions
 @desc While there are many local functions in this list, there also several global class helper functions that provide essential utilities for querying and managing class relationships, inheritance structures, and object identification.
-<br>They enable checking class existence (exists), retrieving class hierarchy details (getbase, getparent, getchildren), determining relationships (isbaseof, ischild, isparent, etc.), verifying object types (isinstance, of), and ensuring proper class instantiation (isstaticconstructorrunning).
+<br>They enable checking class existence (exists), retrieving hierarchy names (getbasename, getparentname, getchildnames), determining relationships (isbaseof, ischild, isparent, etc.), identifying classes and instances (getname, isinstance), and ensuring proper class instantiation (isstaticconstructorrunning). Only getbyname returns an existing class object, and only from an explicit environment binding.
 <br>Collectively, these functions support robust type checking, hierarchy traversal, and validation of inheritance and instance properties.
 !]]
 
@@ -337,37 +340,43 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Functions.getbase
-@pulsarlua function class.getbase
-@desc Gets a class's base class object (if both exist and the base is in scope).
+@fqxn LuaEx.Class System.class.Functions.getbasename
+@pulsarlua function class.getbasename
+@desc Gets the root base class name without exposing its class object.
 @param class|string vClass The class or name of the class.
-@ret class|nil cClass The class's base class object <i>(if both exist, the base is in scope and the class has a base)</i>, or nil otherwise.
+@ret string|nil sName The root base name, or nil for an unknown class or a root class itself.
 !]]
-local function getbase(vClass)
-    local cRet;
+local function getbasename(vClass)
+    local sRet;
     local tKit = getKit(vClass);
 
-    if tKit and tKit.base and tKit.base.isInScope() then
-        cRet = class.repo.byKit[tKit.base];
+    if (tKit and tKit.base) then
+        sRet = tKit.base.name;
     end
 
-    return cRet;
+    return sRet;
 end
 
 
 --[[!
 @fqxn LuaEx.Class System.class.Functions.getbyname
 @pulsarlua function class.getbyname
-@desc Gets a class object given the class name (if it's in scope).
-@param string sClass The name of the class object.
-@ret class|nil cClass The class object (if it's in scope), or nil otherwise.
+@desc Returns a registered class directly bound to a name in the supplied environment. Uses rawget, never __index or an internal registry fallback. Missing or non-table environments act as an empty table.
+@param string sClass The binding name to look up.
+@param table|nil tEnvironment Explicit class bindings available to the caller.
+@ret class|nil cClass The registered class at that binding, or nil if absent, invalid or not a class.
 !]]
-local function getbyname(sClass)
+local function getbyname(sClass, tEnvironment)
     local cRet;
-    local tKit = getKit(sClass);
 
-    if (tKit and tKit.isInScope()) then
-        cRet = class.repo.byKit[tKit];
+    -- Registry membership validates the supplied value; it never supplies a value.
+    if (rawtype(sClass) == "string") then
+        local tLookup = rawtype(tEnvironment) == "table" and tEnvironment or _tEmptyEnvironment;
+        local vClass = rawget(tLookup, sClass);
+
+        if (class.repo.byObject[vClass]) then
+            cRet = vClass;
+        end
     end
 
     return cRet;
@@ -389,36 +398,28 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Functions.getchildren
-@pulsarlua function class.getchildren
-@desc Gets all the direct children of a class (those that are in scope).
-@param class|string vClass The class or name of the class.
-@ret table|nil tChildren A numerically-indexed table whose values are class objects who are direct children of the input class. If the input is bad, the class doesn't exist or there are no direct children of the class that are in scope, nil is returned.
+@fqxn LuaEx.Class System.class.Functions.getchildnames
+@pulsarlua function class.getchildnames
+@desc Gets a fresh, alphabetically sorted list of direct child class names. No class objects or internal registry tables are returned.
+@param class|string vClass The class or registered class name.
+@ret table|nil tNames Direct child names, or nil for an unknown class or a class without children.
 !]]
-local function getchildren(vClass)
-    local vRet;
+local function getchildnames(vClass)
+    local tNames;
     local tKit = getKit(vClass);
 
     if (tKit and tKit.children.count > 0) then
+        tNames = {};
 
-        for cChild, tChildKit in pairs(tKit.children.direct.byObject) do
-
-            if tChildKit.isInScope() then
-
-                if not (vRet) then
-                    vRet = {}; --[[ must be created here (as opposed to
-                                    being created before the loop) in case
-                                    there are no in-scope children]]
-                end
-
-                vRet[#vRet + 1] = cChild;
-            end
-
+        -- Copy only names so callers cannot obtain objects or mutate the registry.
+        for sName in pairs(tKit.children.direct.byName) do
+            tNames[#tNames + 1] = sName;
         end
 
+        table.sort(tNames);
     end
 
-    return vRet;
+    return tNames;
 end
 
 
@@ -444,36 +445,39 @@ end
 --[[!
 @fqxn LuaEx.Class System.class.Functions.getname
 @pulsarlua function class.getname
-@desc Gets the class name of a class.
-@param class cClass The class for which to get the name.
-@ret string|nil sClass The name of class or nil if the input is invalid or the class doesn't exist.
+@desc Gets the registered class name of a class object, instance or class name. Instance identity is verified through the private registry rather than public type tags.
+@param class|instance|string vClass The class, instance or registered class name.
+@ret string|nil sName The exact class name, or nil if the input is not registered.
 !]]
 local function getname(vClass)
     local tKit = getKit(vClass);
+
+    -- Resolve instances internally without exposing the corresponding class object.
+    if (not tKit) then
+        local tInstance = instance.repo.byObject[vClass];
+        tKit = tInstance and getKit(tInstance.class) or nil;
+    end
+
     return tKit and tKit.name or nil;
 end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Functions.getparent
-@pulsarlua function class.getparent
-@desc Gets the parent class object of the input class.
-@param class|string vClass The class or name of the class for which to get the parent.
-@ret class|nil cClass The parent class or nil if the input is invalid or either class doesn't exist or isn't in scope.
+@fqxn LuaEx.Class System.class.Functions.getparentname
+@pulsarlua function class.getparentname
+@desc Gets the immediate parent class name without exposing its class object.
+@param class|string vClass The class or registered class name.
+@ret string|nil sName The immediate parent name, or nil for an unknown class or a root class.
 !]]
-local function getparent(vClass)
-    local vRet;
+local function getparentname(vClass)
+    local sRet;
     local tKit = getKit(vClass);
 
-    if tKit and tKit.parent then
-
-        if (tKit.isInScope() and tKit.parent.isInScope()) then
-            vRet = class.repo.byKit[tKit.parent];
-        end
-
+    if (tKit and tKit.parent) then
+        sRet = tKit.parent.name;
     end
 
-    return vRet;
+    return sRet;
 end
 
 
@@ -511,7 +515,7 @@ local function haspublicmember(vClass, sMember)
     if (tKit and rawtype(sMember) == "string") then
         local tClass = class.repo.tablesByKit[tKit];
 
-        if (tClass and tKit.isInScope()) then
+        if (tClass) then
 
             while (tKit) do
                 zRet = rawtype(tKit.pub[sMember]);
@@ -560,18 +564,23 @@ end
 --[[!
 @fqxn LuaEx.Class System.class.Functions.isbaseof
 @pulsarlua function class.isbaseof
-@desc Determines if class A is the base class of class B.
+@desc Determines if class A is the root base class of class B, excluding itself. Accepts class objects or names for this metadata query.
 @param class|string vClassA The potential base class.
 @param class|string vClassB The potential non-base class.
-@ret boolean bIsChild True if it's a child, false otherwise.
+@ret boolean bIsBaseOf True if A is B's root base, false otherwise.
 !]]
 local function isbaseof(vClassA, vClassB)
     local tKitA = getKit(vClassA);
-    local tKitB = getKit(vClassA);
+    local tKitB = getKit(vClassB);
 
-    return (    tKitA and tKitB and
-                not tKitA.base and tKitB.base and
-                (tKitA.children.all.byName[tKitB.name]) ~= nil);
+    local bIsBaseOf = false;
+
+    -- Query registered relationships without exposing either class object.
+    if (tKitA and tKitB and not tKitA.base and tKitB.base) then
+        bIsBaseOf = tKitA.children.all.byName[tKitB.name] ~= nil;
+    end
+
+    return bIsBaseOf;
 end
 
 
@@ -801,27 +810,15 @@ end
 
 
 --[[!
-@fqxn LuaEx.Class System.class.Functions.of
-@pulsarlua function class.of
-@desc Gets the class object of an instance object.
-@param instance oInstance The instance object for which to find the class.
-@ret class|nil cClass The class object that produced the instance object or nil if the input is invalid or the class is not in scope.
+@fqxn LuaEx.Class System.class.Helpers.getInstanceClass
+@scope local
+@desc Resolves a registered instance's class object for internal type validation only. This helper is not exported through the public class API.
+@param instance oInstance The instance to resolve.
+@ret class|nil cClass The internal class reference, or nil for an unregistered value.
 !]]
-local function of(vInstance)
-    local vRet;
+local function getInstanceClass(vInstance)
     local tInstance = instance.repo.byObject[vInstance];
-
-    if (tInstance) then
-        local cClass    = tInstance.class;
-        local tKit      = kit.repo.byObject[cClass];
-
-        if (tKit and tKit.isInScope()) then
-            vRet = cClass;
-        end
-
-    end
-
-    return vRet;
+    return tInstance and tInstance.class or nil;
 end
 
 
@@ -895,8 +892,8 @@ local function validateClassSnapshot(tKit, tState)
             assert(rawtype(vDefault) ~= "function",
                    "Class snapshots cannot replace declared methods: "..tostring(sField));
             local bCompatible = vDefault == null or type(vField) == type(vDefault);
-            local cExpected = of(vDefault);
-            local cActual = of(vField);
+            local cExpected = getInstanceClass(vDefault);
+            local cActual = getInstanceClass(vField);
 
             if (not bCompatible and cExpected and cActual) then
                 bCompatible = ischildorself(cActual, cExpected);
@@ -1272,7 +1269,7 @@ function instance.build(oInstance, tData, tKit, tParentActual, sType)
 
                 if (not tInstance.isAChecks[sVisibility][sField] and isinstance(vField)) then
                     tInstance.isAChecks[sVisibility][sField] = {
-                        class = of(vField), type = type(vField), value = vField,
+                        class = getInstanceClass(vField), type = type(vField), value = vField,
                     };
                 end
             end
@@ -1572,14 +1569,17 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                 return vRet;
             end,
             __newindex = function(t, k, v)
-                local tTarget       = tInstance[sCAI];
+                local tFieldOwner   = tInstance;
+                local tTarget       = tFieldOwner[sCAI];
                 local vVal          = rawget(tTarget, k);
                 local zVal          = rawtype(vVal);
                 local tNextParent   = tInstance.parent or nil;
 
                 --if there's no such public key in the instance, check each parent
                 while (bAllowUpSearch and zVal == "nil" and tNextParent) do
-                    tTarget     = tNextParent[sCAI];
+                    -- Keep the field's storage and class constraint on the same owner.
+                    tFieldOwner = tNextParent;
+                    tTarget     = tFieldOwner[sCAI];
                     vVal        = rawget(tTarget, k);
                     zVal        = rawtype(vVal);
 
@@ -1588,8 +1588,9 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 --TODO DIRECTIVE TEST FINISH LEFT OFF HERE
                --ensure this isn't a read-only field
-                local tROField      = tInstance.readOnlyFields[sCAI] and
-                                      tInstance.readOnlyFields[sCAI][k];
+                -- All inherited access paths share the field owner's read-only lock.
+                local tROField      = tFieldOwner.readOnlyFields[sCAI] and
+                                      tFieldOwner.readOnlyFields[sCAI][k];
                 local bSetROFixed   = tROField and not tROField.fixed;
 
                 if (tROField) then
@@ -1621,10 +1622,10 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                         name = sName, visibility = _tCAINames[sCAI], member = tostring(k)}, 3);
                 end
 
-                --update the isAChecks (if needed) if the initial value was null
-                if (not tInstance.isAChecks[sCAI][k] and isinstance(v)) then
-                    tInstance.isAChecks[sCAI][k] = {
-                        class   = of(v),
+                -- Establish the owner's class constraint on its first instance assignment.
+                if (not tFieldOwner.isAChecks[sCAI][k] and isinstance(v)) then
+                    tFieldOwner.isAChecks[sCAI][k] = {
+                        class   = getInstanceClass(v),
                         type    = sTypeNew,
                         value   = v,
                     };
@@ -1634,11 +1635,11 @@ function instance.setClassDataMetatable(tInstance, tClassData)
                     local bAllow = false;
                     --TODO QUESTION Should I allow interfaces too? Check POLA on C#
                     --allow type->type setting as well as polymorphism, otherwise throw an error
-                    if (tInstance.isAChecks[sCAI][k]) then
-                        local sNewClass = of(v);
+                    if (tFieldOwner.isAChecks[sCAI][k]) then
+                        local sNewClass = getInstanceClass(v);
 
                         if (sNewClass) then
-                            local sOriginalClass = tInstance.isAChecks[sCAI][k].class;
+                            local sOriginalClass = tFieldOwner.isAChecks[sCAI][k].class;
 
                             --allow if the class type is the same as the original
                             bAllow = kit.repo.byObject[sOriginalClass].name ==
@@ -1660,8 +1661,8 @@ function instance.setClassDataMetatable(tInstance, tClassData)
 
                 end
 
-                --mark the read-only field as now being fixed
-                if (bSetROFixed) then
+                -- Keep an unset read-only field available until its first non-null assignment.
+                if (bSetROFixed and sTypeNew ~= "null") then
                     tROField.fixed = true;
                 end
 
@@ -1721,7 +1722,7 @@ function instance.setMetatable(tInstance, tClassData)--, sType)
     --[[leave these for last to ensure overwright if they exist
         (if they weren't filtered out already)]]
     tMeta.__index     = function(t, k)
-        return tClassData.pub[k] or nil;
+        return tClassData.pub[k];
     end;
 
     tMeta.__newindex  = function(t, k, v)
@@ -1765,7 +1766,14 @@ function instance.wrapMetamethods(tInstance, tClassData)--TODO double check thes
                 return fMetamethod(a, tClassData);
             end);
 
-        elseif (   sMetamethod == "__call"      or sMetamethod == "__name"--TODO [XSE]..to here
+        elseif (sMetamethod == "__call") then
+
+            -- Consume Lua's implicit instance before forwarding user arguments.
+            rawset(tInstance.met, sMetamethod, function(_, ...)
+                return fMetamethod(oInstance, tClassData, ...);
+            end);
+
+        elseif (   sMetamethod == "__name"--TODO [XSE]..to here
                 --or sMetamethod == "__serialize" or sMetamethod == "__clone"
                 or sMetamethod == "__clone"
                 or sMetamethod == "__ipairs"    or sMetamethod == "__pairs") then
@@ -1966,7 +1974,6 @@ function kit.build(_IGNORE_, sName, tMetamethods, tStaticPublic, tPrivate, tProt
             pub = {},
         },
         isFinal			= false, --whether the classis final (processed below)
-        isInScope       = function() return oClass ~= nil end,--load("return "..sName..' ~= nil;'), --this gets run when checking if the final class object is visible within a given scope.
         --hasBlacklist    = false, --whether the class has a blacklist (processed below)
         --hasWhitelist    = false, --whether the class has a whitelist (processed below)
         blacklist       = nil,   --which class(es) may NOT subclass this one (processed below)
@@ -2494,7 +2501,7 @@ function kit.processInitialIsAChecks(tKit)
 
             if (isinstance(vValue)) then
                 tKit.isAChecks[sCAI][sKey] = {
-                    class   = of(vValue),
+                    class   = getInstanceClass(vValue),
                     type    = type(vValue),
                     value   = vValue,
                 };
@@ -2722,13 +2729,13 @@ end
 
 local tClassActual = {
     exists                      = exists,
-    getbase                     = getbase,
+    getbasename                 = getbasename,
     getbyname                   = getbyname,
     getchildcount               = getchildcount,
-    getchildren                 = getchildren,
+    getchildnames               = getchildnames,
     getconstructorvisibility    = getconstructorvisibility,
     getname                     = getname,
-    getparent                   = getparent,
+    getparentname               = getparentname,
     haschildren                 = haschildren,
     haspublicmember             = haspublicmember,
     is                          = is,
@@ -2744,7 +2751,6 @@ local tClassActual = {
     isparent                    = isparent,
     isparentorself              = isparentorself,
     isstaticconstructorrunning  = isstaticconstructorrunning,
-    of                          = of,
 };
 
 

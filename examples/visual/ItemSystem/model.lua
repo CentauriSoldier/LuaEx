@@ -11,7 +11,7 @@ local storageModes = {"Anywhere", "Player storage", "Ground only", "Shop only", 
 local defaults = {name = "New item", description = "An editable item.", kind = "Tool", owner = "none", rarity = 1,
     durabilityMax = 100, durability = 100, value = 10, weight = 1, size = 1, level = 1, strength = 0,
     race = "Any", storage = "Anywhere", exclusive = "None", group = "", pattern = "0,0",
-    consumable = false, equipable = false, damageable = true, repairable = true, removable = true,
+    consumable = false, equippable = false, damageable = true, repairable = true, removable = true,
     tradableBy = true, tradableTo = true, upgradeable = false, downgradable = false, detachable = true, inimitable = false};
 
 local Actor = class("ItemLabActor", {}, {}, {}, {
@@ -86,7 +86,7 @@ local function config(tInput)
 end
 
 local function actorRegistry(bAllowed, fRule)
-    return bAllowed and ObjectRegistry({Actor}, fRule) or ObjectRegistry();
+    return bAllowed and CoGRegistry({Actor}, fRule) or CoGRegistry();
 end
 
 local function owns(oActor, oItem)
@@ -98,18 +98,18 @@ local function fields(tInput)
     local oStorage;
 
     if (c.storage == "Anywhere") then
-        oStorage = CoGRegistry({ItemSystem, ItemSlotSystem, ItemStashSystem});
+        oStorage = ClassRegistry({ItemSystem, ItemSlotSystem, ItemStashSystem});
     elseif (c.storage == "Player storage") then
-        oStorage = CoGRegistry({World.inventory, World.stash});
+        oStorage = ClassRegistry({World.inventory, World.stash});
     elseif (c.storage == "Ground only") then
-        oStorage = CoGRegistry({World.ground});
+        oStorage = ClassRegistry({World.ground});
     elseif (c.storage == "Shop only") then
-        oStorage = CoGRegistry({World.shop});
+        oStorage = ClassRegistry({World.shop});
     else
-        oStorage = CoGRegistry();
+        oStorage = ClassRegistry();
     end
 
-    local oScope = CoGRegistry();
+    local oScope = ClassRegistry();
 
     if (c.exclusive == "Stash") then
         oScope.add(World.stash);
@@ -118,16 +118,16 @@ local function fields(tInput)
     elseif (c.exclusive == "Shop") then
         oScope.add(World.shop);
     elseif (c.exclusive == "Everywhere") then
-        oScope = CoGRegistry({ItemSystem, ItemSlotSystem, ItemStashSystem});
+        oScope = ClassRegistry({ItemSystem, ItemSlotSystem, ItemStashSystem});
     end
 
-    local oConflict = c.group ~= "" and CoGRegistry({Item}, function(oOther, oRuleOwner)
+    local oConflict = c.group ~= "" and ClassRegistry({Item}, function(oOther, oRuleOwner)
         return oOther.getTrait("group") == oRuleOwner.getTrait("group");
-    end) or CoGRegistry();
-    local oAttach = c.kind == "Gem" and ObjectRegistry({Item}, function(oHost)
+    end) or ClassRegistry();
+    local oAttach = c.kind == "Gem" and CoGRegistry({Item}, function(oHost)
         return oHost.getTrait("kind") == "Weapon";
-    end) or ObjectRegistry();
-    local oEquip = actorRegistry(c.equipable, function(oActor, oItem)
+    end) or CoGRegistry();
+    local oEquip = actorRegistry(c.equippable, function(oActor, oItem)
         return owns(oActor, oItem) and oActor.getLevel() >= oItem.getTrait("level") and
                oActor.getStrength() >= oItem.getTrait("strength") and
                (oItem.getTrait("race") == "Any" or oItem.getTrait("race") == oActor.getRace()),
@@ -141,7 +141,7 @@ local function fields(tInput)
         Inimitable = c.inimitable, Removable_By = actorRegistry(c.removable, owns),
         Repairable_By = actorRegistry(c.repairable), Storable_In = oStorage,
         Tradable_By = actorRegistry(c.tradableBy, owns), Tradable_To = actorRegistry(c.tradableTo),
-        Unequippable_By = actorRegistry(c.equipable, owns),
+        Unequippable_By = actorRegistry(c.equippable, owns),
         Upgradeable_By = actorRegistry(c.upgradeable, owns), Downgradable_By = actorRegistry(c.downgradable, owns),
         Durability = Pool(c.durabilityMax, c.durability), Size = Pool(math.max(1, c.size), c.size),
         Value = Pool(math.max(1, c.value), c.value), Weight = Pool(math.max(1, c.weight), c.weight), Slot_Pattern = oPattern,
@@ -170,7 +170,7 @@ Item = class("ItemLabItem", {
 
     getConfig = function(this, cdat)
         local c = clone(cdat.pri.config);
-        c.durability, c.durabilityMax = this.getDurability().get(), this.getDurability().get(Pool.ASPECT.MAX);
+        c.durability, c.durabilityMax = this.getDurabilityPool().get(), this.getDurabilityPool().get(Pool.ASPECT.MAX);
         return c;
     end,
 
@@ -230,7 +230,7 @@ Item = class("ItemLabItem", {
     -- Deletion is a lab-management operation, distinct from gameplay detach.
     detachForLab = function(this, cdat, oActor)
         local oPrevious = cdat.pro.Detachable_By;
-        cdat.pro.Detachable_By = ObjectRegistry({oActor});
+        cdat.pro.Detachable_By = CoGRegistry({oActor});
         local _, bOK, sReason = this.detach(oActor);
         cdat.pro.Detachable_By = oPrevious;
         return bOK, sReason;
@@ -313,10 +313,10 @@ local function move(oItem, oDestination, bReplace)
     if (oSource == null) then
         assert(oItem.getAttached_To() == null, "Detach the item before moving it.");
 
-        if (class.of(oDestination) == ItemSlot) then
+        if (class.getname(oDestination) == class.getname(ItemSlot)) then
             _, bOK, oRemoved, sReason = oDestination.set(oItem, bReplace);
         else
-            bOK, _, sReason = oDestination.addItem(oItem);
+            _, bOK, _, sReason = oDestination.addItem(oItem);
         end
 
     else
@@ -360,9 +360,9 @@ end
 
 local seeds = {
     {name = "Iron longsword", kind = "Weapon", owner = "player", value = 45, weight = 3, size = 2, durability = 80,
-     equipable = true, strength = 6, upgradeable = true, downgradable = true, pattern = "0,0;1,0", dest = "character", slot = 9},
+     equippable = true, strength = 6, upgradeable = true, downgradable = true, pattern = "0,0;1,0", dest = "character", slot = 9},
     {name = "Oak hunting bow", kind = "Weapon", owner = "player", value = 60, weight = 2, size = 3, durability = 65,
-     equipable = true, level = 4, pattern = "0,0;0,1;0,2", dest = "character", slot = 4},
+     equippable = true, level = 4, pattern = "0,0;0,1;0,2", dest = "character", slot = 4},
     {name = "Greater health potion", kind = "Potion", owner = "player", value = 12, weight = 0.2, consumable = true,
      durabilityMax = 1, durability = 1, damageable = false, repairable = false, dest = "character", slot = 3},
     {name = "Lesser health potion", kind = "Potion", value = 5, weight = 0.1, consumable = true,
@@ -370,12 +370,12 @@ local seeds = {
     {name = "Mana draught", kind = "Potion", owner = "player", value = 15, weight = 0.2, consumable = true,
      durabilityMax = 1, durability = 1, dest = "character", slot = 7},
     {name = "Round oak shield", kind = "Armor", owner = "player", value = 35, weight = 4, size = 4,
-     equipable = true, strength = 5, pattern = "0,0;1,0;0,1;1,1", dest = "character", slot = 1},
-    {name = "Leather trail boots", kind = "Armor", owner = "player", value = 20, equipable = true, dest = "stash", tab = 1},
-    {name = "Traveler's cloak", kind = "Armor", owner = "player", value = 18, durability = 40, equipable = true, dest = "stash", tab = 1},
+     equippable = true, strength = 5, pattern = "0,0;1,0;0,1;1,1", dest = "character", slot = 1},
+    {name = "Leather trail boots", kind = "Armor", owner = "player", value = 20, equippable = true, dest = "stash", tab = 1},
+    {name = "Traveler's cloak", kind = "Armor", owner = "player", value = 18, durability = 40, equippable = true, dest = "stash", tab = 1},
     {name = "Wind kite", kind = "Relic", owner = "player", value = 40, group = "kite", exclusive = "Stash", dest = "stash", tab = 1},
     {name = "Festival kite", kind = "Relic", owner = "merchant", value = 70, group = "kite", exclusive = "Stash", dest = "shop"},
-    {name = "Bound signet", kind = "Relic", owner = "player", value = 100, equipable = true,
+    {name = "Bound signet", kind = "Relic", owner = "player", value = 100, equippable = true,
      tradableBy = false, tradableTo = false, inimitable = true, storage = "Player storage", dest = "character", slot = 11},
     {name = "Crypt quest key", kind = "Quest", owner = "player", value = 0, storage = "Player storage", removable = false,
      tradableBy = false, tradableTo = false, inimitable = true, damageable = false, dest = "stash", tab = 2},
@@ -383,7 +383,7 @@ local seeds = {
     {name = "Silver moon gem", kind = "Gem", owner = "merchant", value = 35, weight = 0.1, rarity = 2, dest = "shop"},
     {name = "Rough iron ore", kind = "Material", value = 3, weight = 5, size = 2, pattern = "0,0;1,0", dest = "ground"},
     {name = "Refined iron ingot", kind = "Material", owner = "merchant", value = 9, weight = 2, dest = "shop"},
-    {name = "Elven sentinel helm", kind = "Armor", owner = "merchant", value = 80, equipable = true, race = "Elf",
+    {name = "Elven sentinel helm", kind = "Armor", owner = "merchant", value = 80, equippable = true, race = "Elf",
      level = 10, strength = 8, rarity = 2, dest = "shop"},
     {name = "Tainted talisman", kind = "Relic", value = 5, durability = 5, repairable = false,
      group = "talisman", exclusive = "Everywhere", dest = "ground"},
@@ -431,8 +431,8 @@ local function itemView(tRecord)
 
     return {id = tRecord.id, name = oItem.getName(), kind = c.kind, owner = c.owner, ownerName = c.owner == "none" and "Unowned" or World.actors[c.owner].getName(),
         where = sWhere, location = sLocation, index = nIndex or 0, config = c, rarity = tostring(oItem.getRarity()),
-        health = c.durability, maximum = c.durabilityMax, value = oItem.getValue().get(), weight = oItem.getWeight().get(),
-        footprint = oItem.getSlot_Pattern().getSlotCount(), attachments = tAttachments,
+        health = c.durability, maximum = c.durabilityMax, value = oItem.getValuePool().get(), weight = oItem.getWeightPool().get(),
+        footprint = oItem.getSlotPattern().getSlotCount(), attachments = tAttachments,
         canEquip = oItem.canEquipBy(actor()), canConsume = oItem.canConsumeBy(actor()), canRepair = oItem.canRepairBy(actor()),
         canDamage = oItem.canDamageBy(actor()), canRemove = oItem.canRemoveBy(actor()), canTradeBy = oItem.canTradeBy(actor()),
         canTradeTo = oItem.canTradeTo(actor()), canUpgrade = oItem.canUpgradeBy(actor()), canDowngrade = oItem.canDowngradeBy(actor()),
@@ -591,18 +591,18 @@ local function action(sAction, tData)
             log("Added stash tab "..World.tab..". Stash exclusivity still checks every tab.");
             return;
         elseif (sAction == "removeTab") then
-            local _, bRemoved, sFailure = World.stash.removeTab(World.tab);
+            local _, bRemoved, _, sFailure = World.stash.removeTab(World.tab);
             assert(bRemoved, sFailure);
             World.tab = math.min(World.tab, World.stash.getTabCount());
             log("Removed an empty stash tab.");
             return;
         elseif (sAction == "grid") then
-            local _, bChanged, sFailure;
+            local _, bChanged, _, sFailure;
 
             if (tData.enabled) then
-                _, bChanged, sFailure = World.inventory.configureGrid(4, 4);
+                _, bChanged, _, sFailure = World.inventory.configureGrid(4, 4);
             else
-                _, bChanged, sFailure = World.inventory.disableGrid();
+                _, bChanged, _, sFailure = World.inventory.disableGrid();
             end
 
             assert(bChanged, sFailure);
@@ -619,12 +619,12 @@ local function action(sAction, tData)
         elseif (sAction == "capacity") then
             local nCapacity = number(tData.capacity, 1, 80, true);
             local oTarget = destination(tData.key, tData.slot);
-            local _, bChanged, sFailure;
+            local _, bChanged, _, sFailure;
 
             if (tData.key == "character") then
-                _, bChanged, sFailure = oTarget.setCapacity(nCapacity);
+                _, bChanged, _, sFailure = oTarget.setCapacity(nCapacity);
             else
-                _, bChanged, sFailure = oTarget.setMaxItems(nCapacity);
+                _, bChanged, _, sFailure = oTarget.setMaxItems(nCapacity);
             end
 
             assert(bChanged, sFailure);
@@ -669,7 +669,7 @@ local function action(sAction, tData)
             assert(oSource ~= null, "Item is already unplaced or attached.");
             local _, bRemoved, _, sFailure;
 
-            if (class.of(oSource) == ItemSlot) then
+            if (class.getname(oSource) == class.getname(ItemSlot)) then
                 _, bRemoved, _, sFailure = oSource.remove(oItem);
             else
                 _, bRemoved, _, sFailure = oSource.removeItem(oItem);
@@ -680,7 +680,7 @@ local function action(sAction, tData)
         elseif (sAction == "swap") then
             local bFound, nSourceSlot = World.inventory.containsItem(oItem);
             assert(bFound, "Select an item in the character inventory.");
-            local _, bSwapped, sFailure = World.inventory.swapItems(nSourceSlot, number(tData.slot, 1, 16, true));
+            local _, bSwapped, _, sFailure = World.inventory.swapItems(nSourceSlot, number(tData.slot, 1, 16, true));
             assert(bSwapped, sFailure);
             log("Swapped complete slot contents after validating both destinations.");
         elseif (sAction == "move") then
@@ -722,7 +722,7 @@ local function action(sAction, tData)
                 oTrader, oRecipient, oTarget = actor(), World.actors.merchant, World.shop;
             end
 
-            local nPrice = oItem.getValue().get();
+            local nPrice = oItem.getValuePool().get();
             assert(World.coins[oRecipient.getKey()] >= nPrice, "Buyer cannot afford "..nPrice.." coins.");
             local bStored = false;
             local Rules = require("LuaEx.inc.cog.Objects.ItemSystem.ItemRules");
@@ -756,9 +756,9 @@ local function action(sAction, tData)
         elseif (sAction == "damage" or sAction == "repair") then
             local nAmount = number(tData.amount, 0, 10000);
             assert(sAction == "damage" and oItem.canDamageBy(actor()) or sAction == "repair" and oItem.canRepairBy(actor()), "Actor is not permitted to do this.");
-            local nBefore = oItem.getDurability().get();
-            oItem.getDurability().adjust(sAction == "damage" and -nAmount or nAmount);
-            log(oItem.getName()..": durability "..nBefore.." → "..oItem.getDurability().get()..". Zero does not destroy the item.");
+            local nBefore = oItem.getDurabilityPool().get();
+            oItem.getDurabilityPool().adjust(sAction == "damage" and -nAmount or nAmount);
+            log(oItem.getName()..": durability "..nBefore.." → "..oItem.getDurabilityPool().get()..". Zero does not destroy the item.");
         elseif (sAction == "upgrade" or sAction == "downgrade") then
             assert(sAction == "upgrade" and oItem.canUpgradeBy(actor()) or sAction == "downgrade" and oItem.canDowngradeBy(actor()), "Actor is not permitted to do this.");
             local c = oItem.getConfig();
@@ -798,7 +798,7 @@ local function action(sAction, tData)
             if (oLocation ~= null) then
                 local _, bRemoved, _, sFailure;
 
-                if (class.of(oLocation) == ItemSlot) then
+                if (class.getname(oLocation) == class.getname(ItemSlot)) then
                     _, bRemoved, _, sFailure = oLocation.remove(oItem);
                 else
                     _, bRemoved, _, sFailure = oLocation.removeItem(oItem);

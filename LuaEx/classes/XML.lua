@@ -524,7 +524,7 @@ return class("XML",
     !]]
     __clone = function(this, cdat)
 
-        assert(class.of(this) == XML, "XML subclasses must implement their own clone.");
+        assert(class.getname(this) == class.getname(XML), "XML subclasses must implement their own clone.");
         local oCopy = XML();
 
         if (cdat.pri.source ~= "") then

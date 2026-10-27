@@ -70,6 +70,7 @@ local function lookup(sPath)
     end
 
     assert(vValue ~= nil, "Serialized reference is not available: "..sPath);
+
     return vValue;
 end
 

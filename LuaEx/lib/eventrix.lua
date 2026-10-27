@@ -41,14 +41,171 @@ An Event ID (eEventID) is a unique identifier used to distinguish individual eve
 An event ID must be of type enumitem.
 !]]
 
-local envrepo   = envrepo;
-local rawtype   = rawtype;
-local subtype   = subtype;
-local table     = table;
-local type      = type;
+local envrepo       = envrepo;
+local rawtype       = rawtype;
+local subtype       = subtype;
+local table         = table;
+local type          = type;
+local assert        = assert;
+local error         = error;
+local ipairs        = ipairs;
+local next          = next;
+local pairs         = pairs;
+local pcall         = pcall;
+local rawequal      = rawequal;
+local rawget        = rawget;
+local getmetatable  = getmetatable;
+local setmetatable  = setmetatable;
 
 local unpack    = table.unpack;
 local remove    = table.remove;
+local _tGlobalEnvironment = _ENV;
+local _sDefaultEnvironment = envrepo.getDefaultName();
+-- Constants are in luaex before the loader installs the global lookup fallback.
+local _sNilResult = luaex.EVENTRIX_NIL;
+
+--[[!
+    @fqxn LuaEx.Libraries.eventrix.Helpers.environmentName
+    @scope local
+    @desc Encodes an external environment by its registered name without copying
+    its contents. The module's original global environment uses false. A stable
+    non-default alias is preferred over the mutable default alias.
+    @param table tEnvironment Runtime environment to identify.
+    @ret string|boolean vName Registered name, or false for the global environment.
+!]]
+local function environmentName(tEnvironment)
+    if (rawequal(tEnvironment, _tGlobalEnvironment)) then
+        return false;
+    end
+
+    local sName;
+    local bDefault = false;
+
+    for sCandidate, tCandidate in pairs(envrepo) do
+        if (rawequal(tCandidate, tEnvironment)) then
+            if (sCandidate == _sDefaultEnvironment) then
+                bDefault = true;
+            elseif (not sName or sCandidate < sName) then
+                sName = sCandidate;
+            end
+        end
+    end
+
+    assert(sName or bDefault, "Eventrix environment has no registered name.");
+    return sName or _sDefaultEnvironment;
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.eventrix.Helpers.resolveEnvironment
+    @scope local
+    @desc Reconnects a saved environment marker to an existing runtime binding.
+    Repository methods are not environment names. Missing bindings reject loading.
+    @param string|boolean vName Registered environment name, or false for global.
+    @ret table tEnvironment Existing environment table.
+!]]
+local function resolveEnvironment(vName)
+    if (vName == false) then
+        return _tGlobalEnvironment;
+    end
+
+    assert(rawtype(vName) == "string", "Invalid Eventrix environment marker.");
+
+    for sName, tEnvironment in pairs(envrepo) do
+        if (sName == vName and rawtype(tEnvironment) == "table") then
+            return tEnvironment;
+        end
+    end
+
+    error("Eventrix environment is unavailable: "..vName, 2);
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.eventrix.Helpers.validateRecord
+    @scope local
+    @desc Rejects non-plain state containers and unknown fields without invoking
+    caller-provided iteration or indexing metamethods.
+    @param table tRecord Saved state container.
+    @param table tAllowed Allowed field names.
+!]]
+local function validateRecord(tRecord, tAllowed)
+    assert(rawtype(tRecord) == "table" and getmetatable(tRecord) == nil, "Eventrix state containers must be plain tables.");
+
+    for vKey in next, tRecord do
+        assert(tAllowed[vKey], "Unknown Eventrix state field.");
+    end
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.eventrix.Helpers.listLength
+    @scope local
+    @desc Validates a dense, plain saved-state list before its entries are read.
+    @param table tList Saved event or hook list.
+    @ret number nCount Number of consecutive entries starting at one.
+!]]
+local function listLength(tList)
+    assert(rawtype(tList) == "table" and getmetatable(tList) == nil, "Eventrix state lists must be plain tables.");
+    local nCount = 0;
+
+    for vKey in next, tList do
+        assert(rawtype(vKey) == "number" and vKey >= 1 and vKey % 1 == 0, "Eventrix state lists must be dense.");
+        nCount = nCount + 1;
+    end
+
+    for nIndex = 1, nCount do
+        assert(rawget(tList, nIndex) ~= nil, "Eventrix state lists must be dense.");
+    end
+
+    return nCount;
+end
+
+local _tStateFields = {version = true, environment = true, events = true};
+local _tEventFields = {id = true, active = true, hooks = true};
+local _tHookFields = {callback = true, active = true, environment = true};
+
+--[[!
+    @fqxn LuaEx.Libraries.eventrix.Helpers.restoreState
+    @scope local
+    @desc Validates version-one state and builds independent runtime containers.
+    Callback and enum identities are retained as supplied by graph restoration.
+    Environments remain external references. No callbacks are executed.
+    @param table tState Saved Eventrix state.
+    @ret table tRuntime Validated default environment and reconstructed events.
+!]]
+local function restoreState(tState)
+    validateRecord(tState, _tStateFields);
+    assert(tState.version == 1, "Unsupported Eventrix state version.");
+    local tRuntime = {environment = resolveEnvironment(tState.environment), events = {}};
+    local nEvents = listLength(tState.events);
+
+    for nEvent = 1, nEvents do
+        local tSavedEvent = tState.events[nEvent];
+        validateRecord(tSavedEvent, _tEventFields);
+        local eID = tSavedEvent.id;
+        assert(subtype(eID) == "enumitem", "Invalid saved Eventrix event ID.");
+        assert(rawtype(tSavedEvent.active) == "boolean", "Invalid saved Eventrix event activation.");
+        assert(tRuntime.events[eID] == nil, "Duplicate saved Eventrix event ID.");
+
+        local tEvent = {isActive = tSavedEvent.active, hooks = {}, hookOrder = {}, hookOrdinals = {}};
+        local nHooks = listLength(tSavedEvent.hooks);
+
+        for nHook = 1, nHooks do
+            local tSavedHook = tSavedEvent.hooks[nHook];
+            validateRecord(tSavedHook, _tHookFields);
+            local fHook = tSavedHook.callback;
+            assert(rawtype(fHook) == "function", "Invalid saved Eventrix callback.");
+            assert(rawtype(tSavedHook.active) == "boolean", "Invalid saved Eventrix hook activation.");
+            assert(tEvent.hooks[fHook] == nil, "Duplicate saved Eventrix callback.");
+
+            tEvent.hooks[fHook] = {isActive = tSavedHook.active, env = resolveEnvironment(tSavedHook.environment)};
+            tEvent.hookOrder[nHook] = fHook;
+            tEvent.hookOrdinals[fHook] = nHook;
+        end
+
+        tRuntime.events[eID] = tEvent;
+    end
+
+    return tRuntime;
+end
 
 
 local tArgDummy = {}; --used when no input args exist in the fire method
@@ -62,13 +219,13 @@ local function eventError(sMethod, yEvent)
 end
 
 --Docs for this function are above the __call metamethod found below
-local function eventrix(sEnv)
+local function eventrix(sEnv, tRestoredState)
     local tEventrixDecoy    = {};
     local wEnv              = envrepo[sEnv];
-    local wDefault          = wEnv and wEnv or _ENV;
+    local wDefault          = tRestoredState and tRestoredState.environment or wEnv or _ENV;
 
     --create the eventrix's fields
-    local tEvents = {};
+    local tEvents = tRestoredState and tRestoredState.events or {};
 
     --setup the eventrix's actual table
     local tEventrix        = {
@@ -113,7 +270,8 @@ local function eventrix(sEnv)
 
             end
 
-            return tEventDecoy;
+            -- Return this eventrix so registration can chain further configuration.
+            return tEventrixDecoy;
         end,
 
 
@@ -213,7 +371,6 @@ local function eventrix(sEnv)
                     local tHook = tHooks[fHook];
 
                     if (tHook.isActive) then --fire the hook only if it's active
-                        bFired = true;
                         --localize the old environment
                         local tOldEnv = _ENV;
                         --localize pcall so it can be used
@@ -226,7 +383,7 @@ local function eventrix(sEnv)
 
                         --record the return value
                         if (bSuccess and vMsgOrRet == nil) then
-                            vMsgOrRet = EVENTRIX_NIL;
+                            vMsgOrRet = _sNilResult;
                         end
 
                         tRet[nIndex] = vMsgOrRet;
@@ -303,7 +460,7 @@ local function eventrix(sEnv)
             local yID = subtype(eEventID);
 
             if not (yID == "enumitem") then--or zID == "string") then
-                eventError("removeEvent", zHook);
+                eventError("removeEvent", yID);
             end
 
             if (tEvents[eEventID] ~= nil) then
@@ -416,6 +573,34 @@ local function eventrix(sEnv)
 
     --setup the eventrix's metatable
     local tEventrixMeta    = {
+        --[[!
+            @fqxn LuaEx.Libraries.eventrix.__serialize
+            @desc Copies event and hook state into version-one containers while
+            retaining callback and enum references for the general graph serializer.
+            Environment contents are never copied and callbacks are never fired.
+            @ret table tState Independent saved-state containers.
+        !]]
+        __serialize = function()
+            local tState = {version = 1, environment = environmentName(wDefault), events = {}};
+
+            for eID, tEvent in pairs(tEvents) do
+                local tSavedEvent = {id = eID, active = tEvent.isActive, hooks = {}};
+
+                -- Callback order is observable; preserve disabled entries and empty events.
+                for nIndex, fHook in ipairs(tEvent.hookOrder) do
+                    local tHook = tEvent.hooks[fHook];
+                    tSavedEvent.hooks[nIndex] = {
+                        callback = fHook,
+                        active = tHook.isActive,
+                        environment = environmentName(tHook.env),
+                    };
+                end
+
+                tState.events[#tState.events + 1] = tSavedEvent;
+            end
+
+            return tState;
+        end,
         --__call = function(t, ...)
 
         --end,
@@ -432,8 +617,21 @@ end
 
 
 
---TODO FINISH clone and de/serialize
-local tEventrixFactory        = {};
+--TODO FINISH clone
+local tEventrixFactory        = {
+    --[[!
+        @fqxn LuaEx.Libraries.eventrix.deserialize
+        @pulsarlua function eventrix.deserialize
+        @desc Restores validated version-one state into an independent dispatcher.
+        Rebuilds indexes without firing hooks or mutating the supplied containers.
+        Required environment names must already be registered in this runtime.
+        @param table tState Saved state supplied by the Eventrix serialization hook.
+        @ret eventrix kRestored Independent restored dispatcher.
+    !]]
+    deserialize = function(tState)
+        return eventrix(nil, restoreState(tState));
+    end,
+};
 local tEventrixFactoryDecoy   = {};
 local tEventrixFactoryMeta    = {
     --[[!
@@ -444,15 +642,18 @@ local tEventrixFactoryMeta    = {
     This is the main constructor for the eventrix system. It initializes and configures the event management system based on the provided environment as an entrix can function in different environments.
     @param string|nil sEnv The name of the environment in which the event system operates. If provided, it customizes the behavior and scope of the event handling to fit the specific needs of the given environment (e.g., global or local scope). If not provided, the default environment will be used.
     !]]
-    __call = function(t, ...)
-        return eventrix(...);
+    __call = function(t, sEnv)
+        -- Restored runtime state can only enter through the validating deserialize method.
+        return eventrix(sEnv);
     end,
     __index = function(t, k)
-        return tEventrix[k] or nil;
+        return tEventrixFactory[k] or nil;
     end,
     __newindex = function(t, k, v) end,
     __type = "eventrixfactory",
 };
 setmetatable(tEventrixFactoryDecoy, tEventrixFactoryMeta);
+
+require("LuaEx.lib.serializer").registerFactory(tEventrixFactoryDecoy, {name = "eventrix", types = {"eventrix"}});
 
 return tEventrixFactoryDecoy;

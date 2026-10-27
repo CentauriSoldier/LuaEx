@@ -141,7 +141,8 @@ return class("Stack",
     @ret any The next-in-line element in the Stack, or nil if the Stack is empty.
     !]]
     peek = function(this, cdat)
-        return cdat.pri.values[1] or nil;
+        -- An occupied slot may contain false; only an absent slot returns nil.
+        return cdat.pri.values[1];
     end,
 
 
@@ -153,6 +154,8 @@ return class("Stack",
     @ret any The removed element from the Stack.
     !]]
     pop = function(this, cdat)
+        -- Keep empty-pop results independent of other stacks and global variables.
+        local vRet;
 
         if (rawtype(cdat.pri.values[1]) ~= "nil") then
             vRet = table.remove(cdat.pri.values, 1);

@@ -4,7 +4,7 @@
     success, open/read/callback/close failures, legacy exit statuses and io.list
     propagation. The original io API and module state are restored on completion.
 !]]
-if (not LUAEX_INIT) then require("LuaEx.load")(0, 4); end
+if (not LUAEX_INIT) then require("LuaEx.load")(4); end
 
 local _nChecks = 0;
 

@@ -5,35 +5,47 @@ local function defaultSorter(a, b)
     return a < b;
 end
 
-local function addOLD(this, cdat, vKey, vValue)
-    local pri           = cdat.pri;
-    local fSorter       = pri.sorter;
-    local tActual       = pri.actual;
-    local tKeys         = pri.keys;
-    local sTypeKey      = type(vKey);
-
-    if (sTypeKey ~= "string") then
-        error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
+--[[!
+    @fqxn LuaEx.Classes.SortedDictionary.Helpers.storeItem
+    @scope local
+    @desc Adds or replaces a string-keyed entry. New keys are sorted in temporary
+    storage so a comparator error cannot leave a ghost key or corrupt key order.
+    Explicit nil values retain their key until remove is called.
+    @param SortedDictionary this Dictionary receiving the entry.
+    @param table cdat Instance class data.
+    @param string sKey Entry key.
+    @param any vValue Entry value, including nil.
+    @ret SortedDictionary this The same dictionary for chaining.
+!]]
+local function storeItem(this, cdat, sKey, vValue)
+    if (type(sKey) ~= "string") then
+        error("Error adding item to SortedDictionary. Key must be a string.", 3);
     end
-    --TODO check for self-reference so we don't trigger a death loop
 
-    local bAddToKeys = true;
-    for _, sExistingKey in ipairs(tKeys) do
+    local pri = cdat.pri;
+    local bExists = false;
 
-        if (vKey == sExistingKey) then
-            bAddToKeys = false;
+    for _, sExisting in ipairs(pri.keys) do
+        if (sExisting == sKey) then
+            bExists = true;
             break;
         end
-
     end
 
-    if (bAddToKeys) then
-        tKeys[#tKeys + 1] = vKey;
+    if (not bExists) then
+        local tKeys = {};
+
+        -- Commit the new ordered list only after the comparator succeeds.
+        for nIndex, sExisting in ipairs(pri.keys) do
+            tKeys[nIndex] = sExisting;
+        end
+
+        tKeys[#tKeys + 1] = sKey;
+        table.sort(tKeys, pri.sorter);
+        pri.keys = tKeys;
     end
 
-    table.sort(tKeys, fSorter);
-    tActual[vKey] = vValue;
-
+    pri.actual[sKey] = vValue;
     return this;
 end
 
@@ -45,6 +57,7 @@ return class("SortedDictionary",
         local newcdat = cdat.ins[oNew];
         local newpri  = newcdat.pri;
 
+        cloner.registerCopy(this, oNew);
         newpri.actual  = clone(pri.actual);
         newpri.keys    = clone(pri.keys);
         newpri.sorter  = pri.sorter; --don't clone the sorter function
@@ -56,7 +69,7 @@ return class("SortedDictionary",
         local tActual   = cdat.pri.actual;
         local tKeys     = cdat.pri.keys;
 
-        local function iterator()
+        local function fIterator()
             nIndex = nIndex + 1
 
             if tKeys[nIndex] then
@@ -65,10 +78,12 @@ return class("SortedDictionary",
 
         end
 
-        return iterator, tActual, nil;
+        -- The iterator state is the public object, never its private storage.
+        return fIterator, this, nil;
     end,
     __pairs = function(this, cdat)
-        return cdat.met.__call();
+        -- Use the same ordered iterator as direct calls.
+        return this();
     end,
 },
 {--STATIC PUBLIC
@@ -86,37 +101,15 @@ return class("SortedDictionary",
     SortedDictionary = function(this, cdat)--TODO allow initial input
         cdat.pri.sorter = defaultSorter;
     end,
-    add = function(this, cdat, vKey, vValue)
-        local pri           = cdat.pri;
-        local fSorter       = pri.sorter;
-        local tActual       = pri.actual;
-        local tKeys         = pri.keys;
-        local sTypeKey      = type(vKey);
-        local sValueType    = type(vValue);
-
-        if (sTypeKey ~= "string") then
-            error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
-        end
-        --TODO check for self-reference so we don't trigger a death loop
-
-        local bAddToKeys = true;
-        for _, sExistingKey in ipairs(tKeys) do
-
-            if (vKey == sExistingKey) then
-                bAddToKeys = false;
-                break;
-            end
-
-        end
-
-        if (bAddToKeys) then
-            tKeys[#tKeys + 1] = vKey;
-        end
-
-        table.sort(tKeys, fSorter);
-        tActual[vKey] = vValue;
-
-        return this;
+    --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.Methods.add
+        @desc Adds or replaces a string-keyed entry without duplicating its key.
+        @param string sKey Entry key.
+        @param any vValue Entry value.
+        @ret SortedDictionary this The same dictionary.
+    !]]
+    add = function(this, cdat, sKey, vValue)
+        return storeItem(this, cdat, sKey, vValue);
     end,
     containsKey = function(this, cdat, vKey)
         local bRet = false;
@@ -138,8 +131,21 @@ return class("SortedDictionary",
 
         return bRet;
     end,
-    containsValue = function()
-        --TODO FINISH
+    --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.Methods.containsValue
+        @desc Tests stored entries with Lua equality. Explicit nil-valued entries
+        count as present; an empty dictionary contains no values.
+        @param any vValue Value to find.
+        @ret boolean bContains Whether an ordered entry has this value.
+    !]]
+    containsValue = function(this, cdat, vValue)
+        for _, sKey in ipairs(cdat.pri.keys) do
+            if (cdat.pri.actual[sKey] == vValue) then
+                return true;
+            end
+        end
+
+        return false;
     end,
     get = function(this, cdat, vKey)
         local sTypeKey = type(vKey);
@@ -190,68 +196,42 @@ return class("SortedDictionary",
         end
 
         table.remove(tKeys, nIndex);
-        table.sort(tKeys, fSorter);
+        -- Removing one key preserves the order established by the current comparator.
         pri.actual[vKey] = nil;
     end,
-    set = function(this, cdat, vKey, vValue)
-        local pri           = cdat.pri;
-        local fSorter       = pri.sorter;
-        local tActual       = pri.actual;
-        local tKeys         = pri.keys;
-        local sTypeKey      = type(vKey);
-        local sValueType    = type(vValue);
-
-        if (sTypeKey ~= "string") then
-            error("Error adding item to SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
-        end
-        --TODO check for self-reference so we don't trigger a death loop
-
-        local bAddToKeys = true;
-        for _, sExistingKey in ipairs(tKeys) do
-
-            if (vKey == sExistingKey) then
-                bAddToKeys = false;
-                break;
-            end
-
-        end
-
-        if (bAddToKeys) then
-            tKeys[#tKeys + 1] = vKey;
-        end
-
-        table.sort(tKeys, fSorter);
-        tActual[vKey] = vValue;
-
-        return this;
+    --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.Methods.set
+        @desc Replaces an entry or inserts a new string key in sorted order.
+        @param string sKey Entry key.
+        @param any vValue Entry value.
+        @ret SortedDictionary this The same dictionary.
+    !]]
+    set = function(this, cdat, sKey, vValue)
+        return storeItem(this, cdat, sKey, vValue);
     end,
+    --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.Methods.setSortFunction
+        @desc Sorts a temporary key list before committing the comparator and
+        order. Nil restores ascending order; failed comparators preserve state.
+        @param function|nil fSorter Comparator receiving two string keys.
+        @ret SortedDictionary this The same dictionary.
+    !]]
     setSortFunction = function(this, cdat, fSorter)
-        local sSorterType = type(fSorter);
-
-        if (sSorterType == "function") then
-            --set the new sorter function
-            cdat.pri.sorter = fSorter;
-        else
-
-            if (sSorterType == "nil") then
-                --set the sorter back to default
-                cdat.pri.sorter = defaultSorter;
-            else
-                error("Error setting sort method for SortedDictionary. Type given: "..type(fSorter)..'.', 2);
-            end
-
+        if (fSorter ~= nil and type(fSorter) ~= "function") then
+            error("Error setting sort method for SortedDictionary. Expected a function or nil.", 2);
         end
 
-        --sort the object
-        local bSuccess, sError = pcall(
-            function()
-                table.sort(cdat.pri.keys, fSorter)
-            end
-        );
+        local fNextSorter = fSorter or defaultSorter;
+        local tKeys = {};
 
-        if not (bSuccess) then
-            error("Error setting sort method for SortedDictionary.\n"..sError, 2);
+        for nIndex, sKey in ipairs(cdat.pri.keys) do
+            tKeys[nIndex] = sKey;
         end
+
+        -- An error leaves both the existing order and its comparator untouched.
+        table.sort(tKeys, fNextSorter);
+        cdat.pri.keys = tKeys;
+        cdat.pri.sorter = fNextSorter;
 
         return this;
     end,

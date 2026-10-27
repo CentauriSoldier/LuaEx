@@ -70,7 +70,7 @@ end
 
 -- External resources, typed properties, group inheritance and template remapping.
 local oTiled = Tiled("maps/world.tmx", readResource);
-assert(class.ischildorself(class.of(oTiled), CoG) and nReads == 3);
+assert(class.ischildorself(class.getname(oTiled), CoG) and nReads == 3);
 assert(oTiled.getMap().attributes.custom == "preserve");
 assert(#oTiled.getLayers() == 4 and #oTiled.getObjects() == 1);
 local tGround = oTiled.getLayer("Ground");
@@ -196,7 +196,7 @@ assert(type(tNavigation.map) == "AStarMap" and type(tNavigation.system) == "ASta
 local oRover = tNavigation.rovers[nActor];
 assert(oRover.getAffinity("mud").getValue() == 0.5 and oRover.getAversion("mud").getValue() == 1);
 assert(oRover.abhors("sand") and oRover.isType("scout") and oRover.getDeniedTypes()[1] == "ENEMY");
-assert(oRover.getMovePoints() == 100 and not oRover.getRetainsPointsOverCycle());
+assert(oRover.getMovePoints() == 100 and not oRover.retainsPointsOverCycle());
 local oMud = tNavigation.map.getNode("Ground", 1, 0);
 assert(oMud.getAspectImpact("mud") == 0.75 and oMud.getEntryCost(oRover) == 13.75);
 assert(tNavigation.map.getNode("Ground", 0, 1).getEntryCost(oRover) == 10);

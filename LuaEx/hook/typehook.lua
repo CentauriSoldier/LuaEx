@@ -406,14 +406,41 @@ local type = {
             end
         end,
     },
-    mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)--TODO check these...do they work and for what?
-        return (sLeftType == sObjType and sRightType ~= sTypeInQuestion);
+    --[[!
+        @fqxn LuaEx.Lua Hooks.type.mathchesonlyleft
+        @desc Tests whether only the left type name matches the requested type.
+        @param string sLeftType Left type name.
+        @param string sRightType Right type name.
+        @param string sTypeInQuestion Type name to match.
+        @ret boolean bMatches Whether exactly the left side matches.
+    !]]
+    mathchesonlyleft = function(sLeftType, sRightType, sTypeInQuestion)
+        -- Compare both sides against the supplied type, not external state.
+        return (sLeftType == sTypeInQuestion and sRightType ~= sTypeInQuestion);
     end,
+    --[[!
+        @fqxn LuaEx.Lua Hooks.type.mathchesonlyright
+        @desc Tests whether only the right type name matches the requested type.
+        @param string sLeftType Left type name.
+        @param string sRightType Right type name.
+        @param string sTypeInQuestion Type name to match.
+        @ret boolean bMatches Whether exactly the right side matches.
+    !]]
     mathchesonlyright = function(sLeftType, sRightType, sTypeInQuestion)
-        return (sLeftType ~= sObjType and sRightType == sTypeInQuestion);
+        -- A matching left side rules out a right-only match.
+        return (sLeftType ~= sTypeInQuestion and sRightType == sTypeInQuestion);
     end,
+    --[[!
+        @fqxn LuaEx.Lua Hooks.type.mathchesboth
+        @desc Tests whether both type names match the requested type.
+        @param string sLeftType Left type name.
+        @param string sRightType Right type name.
+        @param string sTypeInQuestion Type name to match.
+        @ret boolean bMatches Whether both sides match.
+    !]]
     mathchesboth = function(sLeftType, sRightType, sTypeInQuestion)
-        return (sLeftType == sObjType and sRightType == sTypeInQuestion);
+        -- Both comparisons use the same requested type name.
+        return (sLeftType == sTypeInQuestion and sRightType == sTypeInQuestion);
     end,
     ex = function(vObject)
         local sType = __type__(vObject);

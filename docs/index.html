@@ -4143,10 +4143,6 @@ init();
 <li>Bugfix:  <strong>Structfactory</strong> not properly cloning itself.</li>
 <li>Bugfix:  <strong>Structs</strong> not properly cloning internal objects.</li>
 <li>Bugfix:  Instance returns in parent class were not properly returning child instance when subclassed.</li>
-<li>Bugfix:  Dox &quot;Copy&quot; button not working.</li>
-<li>Change:  Dox now places all output into a single HTML file instead of using a separate <em>.js</em> file.</li>
-<li>Change:  Dox CSS redesigned to be more functional and aesthetically pleasing.</li>
-<li>Feature: Dox now allows custom intro page message.</li>
 <li>Feature: Subclassing is now able to be limited to certain subclass types by providing either a blacklist or whitelist.</li>
 <li>Feature Added several class-level checks:<ul>
 <li><strong>class.of</strong></li>
@@ -4168,14 +4164,6 @@ init();
 <li>Feature: Classes now fully respect polymorphism in assignment operation type checking.</li>
 <li>Feature: The class constructor may now be either private, protected or public.</li>
 <li>Feature: Classes now have an <em>optional</em> static constructor using the class name as the static method name.</li>
-<li>Feature: Dox comment blocks can now use anchor links (<em>#</em>) to other FQXNs.</li>
-<li>Feature: added Dox output back navigation.</li>
-<li>Feature: Dox now uses <strong>prism.js</strong> for displaying code blocks with syntax highlighting for all available <strong>prism.js</strong> languages.</li>
-<li>Feature: added a &quot;Copy&quot; (to clipboard) button to all user-created code blocks.</li>
-<li>Feature: added a <strong>Code</strong> <em><strong>BlockTag</strong></em> to Dox, permitting code examples with any user-specified <strong>prism.js</strong> language.</li>
-<li>Feature: <strong>Example</strong> <em><strong>BlockTag</strong></em> now automatically detects the <strong>prism.js</strong> language based on the Dox subclass being used.</li>
-<li>Feature: <strong>prism.js</strong> scripts are automatically added to Dox&#39;s finalized HTML output based on the languages used in the documentation.</li>
-<li>Feature: added Dox parsers (subclasses) for several new languages.</li>
 </ul>
 <p><strong>v0.90</strong></p>
 <ul>
@@ -4183,8 +4171,6 @@ init();
 <li>Bugfix:  error in <strong>SortedDictionary</strong> causing malformed returns.</li>
 <li>Bugfix:  fatal bug in cloner preventing the cloning of items.</li>
 <li>Change:  rewrote and completed the interface system for classes.</li>
-<li>Feature: added support for code html tags using <strong>prism.js</strong> in <strong>Dox</strong> module.</li>
-<li>Feature: added several new features to <strong>Dox</strong> and prepped it for major updates in future releases.</li>
 <li>Feature: added <em><strong>type.assert.function</strong></em>.</li>
 <li>Feature: all items in tables are now properly cloned.</li>
 <li>Feature: class tables are now cloned so class instances may now start with clonable objects as default properties.</li>
@@ -4194,7 +4180,6 @@ init();
 <li>Bugfix:   various, minor bugs.</li>
 <li>Bugfix:   major bug in class auto directive causing malformed classes.</li>
 <li>Feature:  reorganized and added sections and examples to README.</li>
-<li>Feature:  integrated and rewrote Dox documentation module and added support for other languages.</li>
 <li>Refactor: restructured module layout and added more examples to the <strong>examples</strong> directory.</li>
 </ul>
 <p><strong>v0.82</strong></p>

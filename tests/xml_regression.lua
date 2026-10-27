@@ -9,7 +9,7 @@ local sSource = [=[<?xml version="1.0" encoding="UTF-8"?>
     <layer><data encoding="csv">1,2</data></layer>
 </map>]=];
 local oXML = XML(sSource);
-assert(class.of(oXML) == XML and oXML.getRoot().name == "map");
+assert(class.getname(oXML) == class.getname(XML) and oXML.getRoot().name == "map");
 assert(oXML.getSource() == sSource and tostring(oXML) == sSource);
 local tProperties = oXML.getElements("property");
 assert(#tProperties == 3);
@@ -55,7 +55,7 @@ local oCopy = clone(oXML);
 oCopy.parse("<changed/>");
 assert(oXML.getRoot().name == "map");
 local oRestored = deserialize(serialize(oXML));
-assert(class.of(oRestored) == XML and oRestored.getSource() == sSource);
+assert(class.getname(oRestored) == class.getname(XML) and oRestored.getSource() == sSource);
 assert(oRestored.getElements("property")[1].attributes.type == "int");
 assert(XML().getRoot() == nil);
 assert(clone(XML()).getRoot() == nil);

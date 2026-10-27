@@ -22,13 +22,13 @@ local oBody     = Pool(100, 100);
 local oOwner    = Pool(); -- Any class instance can supply an owner identity.
 local sSlot     = _cBase.COMPONENT[1].name;
 
-D.section("Defaults", "Omitted values allocate independent fuel and slot storage. Tradeable defaults true; the other flags default false.");
+D.section("Defaults", "Omitted values allocate independent fuel and slot storage. Tradable defaults true; the other flags default false.");
 local oDefault = _cBase();
 D.equal("Default name",       oDefault.getName(), "Vehicle");
 D.equal("Default efficiency", oDefault.getDistancePerFuelUnit(), 0);
-D.check("Default tradeable",  oDefault.getTradeable());
+D.check("Default tradable",  oDefault.isTradable());
 D.check("Default owner null", type.isnull(oDefault.getOwner()));
-D.check("Fuel independent",   not rawequal(oDefault.getFuel(), _cBase().getFuel()));
+D.check("Fuel independent",   not rawequal(oDefault.getFuelPool(), _cBase().getFuelPool()));
 
 D.section("Concrete construction", "The example subclass translates named settings into CoGVehicle's positional constructor. Owner, component and fuel references are retained.");
 local oVehicle = _cVehicle({
@@ -41,7 +41,7 @@ local oVehicle = _cVehicle({
     speed       = 72,
     value       = 18000,
     unmanned    = false,
-    tradeable   = false,
+    tradable   = false,
     quest       = true,
     exclusive   = true,
     inimitable  = true,
@@ -51,18 +51,18 @@ D.equal("Name",        oVehicle.getName(), "Trailwarden");
 D.equal("Description", oVehicle.getDescription(), "An expedition rover.");
 D.equal("Speed",       oVehicle.getMaxSpeed(), 72);
 D.equal("Value",       oVehicle.getValue(), 18000);
-D.check("Fuel identity",  rawequal(oFuel,  oVehicle.getFuel()));
+D.check("Fuel identity",  rawequal(oFuel,  oVehicle.getFuelPool()));
 D.check("Owner identity", rawequal(oOwner, oVehicle.getOwner()));
-D.check("Explicit false preserved", not oVehicle.getTradeable() and not oVehicle.getUnmanned());
-D.check("Other flags preserved", oVehicle.getQuest() and oVehicle.getExclusive() and oVehicle.getInimitable());
-D.check("Vehicle inheritance", class.ischildorself(class.of(oVehicle), _cBase));
+D.check("Explicit false preserved", not oVehicle.isTradable() and not oVehicle.isUnmanned());
+D.check("Other flags preserved", oVehicle.isQuest() and oVehicle.isExclusive() and oVehicle.isInimitable());
+D.check("Vehicle inheritance", class.ischildorself(class.getname(oVehicle), _cBase));
 
 D.section("Movement is application policy", "For a 40 km journey at 4 km/unit, the example spends 10 units after checking fuel. CoGVehicle does not perform this calculation.");
 local nDistance = 40;
 local nCost     = nDistance / oVehicle.getDistancePerFuelUnit();
 assert(nCost <= oFuel.get(), "Not enough fuel for the trip.");
 oFuel.adjust(-nCost);
-D.equal("Remaining fuel", oVehicle.getFuel().get(), 50);
+D.equal("Remaining fuel", oVehicle.getFuelPool().get(), 50);
 oFuel.set(1000);
 D.equal("Pool clamps to capacity", oFuel.get(), 80);
 oFuel.set(10, Pool.ASPECT.RESERVED_FLAT);
@@ -94,11 +94,11 @@ D.section("Explicit clone policy", "The base rejects copying. This concrete subc
 D.reject("Base clone requires subclass", function() clone(_cBase()); end);
 local oCopy = clone(oVehicle);
 D.check("Fresh instance", not rawequal(oCopy, oVehicle));
-D.check("Fuel independent", not rawequal(oCopy.getFuel(), oFuel));
+D.check("Fuel independent", not rawequal(oCopy.getFuelPool(), oFuel));
 D.check("Body independent", not rawequal(oCopy.getComponent(sSlot), oBody));
 D.check("Owner shared", rawequal(oCopy.getOwner(), oOwner));
 D.equal("Fresh inspection count", oCopy.getInspectionCount(), 0);
-oCopy.getFuel().adjust(-5);
+oCopy.getFuelPool().adjust(-5);
 oCopy.getComponent(sSlot).adjust(-10);
 oCopy.getTagSystem().add("copy only");
 D.equal("Original condition retained", oBody.get(), 75);
@@ -108,7 +108,7 @@ D.check("Original tags independent", not oVehicle.getTagSystem().contains("COPY 
 D.section("Contract failures", "Invalid input is rejected. Unknown slots and plain tables never become component bindings.");
 D.reject("Negative speed",    function() _cVehicle({speed = -1}); end);
 D.reject("Nonfinite value",   function() _cVehicle({value = math.huge}); end);
-D.reject("Wrong flag",        function() _cVehicle({tradeable = "yes"}); end);
+D.reject("Wrong flag",        function() _cVehicle({tradable = "yes"}); end);
 D.reject("Wrong fuel",        function() _cVehicle({fuel = {}}); end);
 D.reject("Wrong owner",       function() _cVehicle({owner = {}}); end);
 D.reject("Unknown slot",      function() oVehicle.setComponent("UNKNOWN", oBody); end);

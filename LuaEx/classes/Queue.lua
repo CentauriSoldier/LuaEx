@@ -165,7 +165,8 @@ return class("Queue",
     @ret any The next-in-line element in the Queue, or nil if the Queue is empty.
     !]]
     peek = function(this, cdat)
-        return cdat.pri.values[1] or nil;
+        -- Preserve false as a queued value instead of treating it as an empty slot.
+        return cdat.pri.values[1];
     end,
 
 

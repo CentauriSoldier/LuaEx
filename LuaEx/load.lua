@@ -110,7 +110,7 @@ local nClassLoadLevel = 5;
     <h3 class="mb-3">Simplicity & Compatibility</h3>
     <ul>
       <li>Designed for Lua 5.3</li>
-      <li>Backwards-compatible with Lua 5.1 (where possible)</li>
+      <li>Native Lua 5.4.2 and the bundled Lua 5.4 runtime are tested; Lua 5.3 remains unverified.</li>
       <li>Minimal learning curve with intuitive APIs</li>
       <li>Effortlessly extendable</li>
     </ul>
@@ -204,7 +204,7 @@ local function init(...)
                     __metatable = false,
                 }),
                 __keywords__count__ = #tKeyWords,
-                _VERSION = "LuaEx 0.90",
+                _VERSION = "LuaEx 0.62",
         };
 
         _G.luaex = setmetatable({},

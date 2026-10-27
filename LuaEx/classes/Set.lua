@@ -2,6 +2,7 @@ local assert        = assert;
 local class         = class;
 local pairs         = pairs;
 local rawtype       = rawtype;
+local rawequal      = rawequal;
 local table         = table;
 
 return class("Set",
@@ -60,14 +61,25 @@ return class("Set",
 
    end,
 
-   --TODO docs
+   --[[!
+   @fqxn LuaEx.Classes.Set.Metamethods.__clone
+   @desc Copies members while preserving shared references and reconnecting membership
+   to the copied members. Registers the new Set before descent for circular clones.
+   @ret Set oRet Independent Set with internally consistent membership.
+   !]]
    __clone = function(this, cdat)
        local oRet   = Set();
        local pro    = cdat.pro;
        local newpro = cdat.ins[oRet].pro;
 
+       cloner.registerCopy(this, oRet);
        newpro.indexed   = clone(pro.indexed);
-       newpro.set		= clone(pro.set);
+       newpro.set       = {};
+
+       -- Table keys retain identity in clone(), so rebuild keys from copied members.
+       for _, vItem in ipairs(newpro.indexed) do
+           newpro.set[vItem] = true;
+       end
        newpro.size 	    = pro.size;
 
        return oRet;
@@ -153,6 +165,10 @@ return class("Set",
     @ret string A string representation of the Set.
     !]]
     __tostring = function(this, cdat)--TODO allow table serialization
+        if (cdat.pro.size == 0) then
+            return "{}";
+        end
+
         local sRet = "{";
 
         for nIndex, vItem in pairs(cdat.pro.indexed) do
@@ -226,7 +242,8 @@ return class("Set",
 
             for x = 1, cdat.pro.size do
 
-                if (cdat.pro.indexed[x] == vItem) then
+                -- Membership uses table-key identity, even when __eq says two objects match.
+                if (rawequal(cdat.pro.indexed[x], vItem)) then
                     table.remove(cdat.pro.indexed, x);
                     break;
                 end
@@ -401,7 +418,7 @@ return class("Set",
     @ret Set Returns the Set object after removing the item.
     !]]
     remove = function(this, cdat, vItem)
-        removeItem(cdat, vItem);
+        cdat.pro.removeItem(vItem);
         return this;
     end,
 
@@ -423,7 +440,7 @@ return class("Set",
         for nIndex, vItem in pairs(indexedCopy) do
 
             if (othercdat.pro.set[vItem]) then
-                removeItem(cdat, vItem);
+                cdat.pro.removeItem(vItem);
             end
 
         end
