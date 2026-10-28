@@ -1,0 +1,30 @@
+namespace Demo.Characters
+{
+    class Player : Creature
+    {
+        private inventory = {};
+        Label = "Player";
+
+        public Player(sName)
+        {
+            base(sName);
+            this.inventory = {"Map", "Torch"};
+        }
+
+        public getItemCount()
+        {
+            local nCount = 0;
+
+            for _, sItem in ipairs(this.inventory) do
+                nCount = nCount + 1;
+            end
+
+            return nCount;
+        }
+
+        public describe()
+        {
+            return this.Name..": "..this.energy;
+        }
+    }
+}

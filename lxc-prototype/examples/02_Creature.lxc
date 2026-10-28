@@ -1,0 +1,37 @@
+namespace Demo.Characters
+{
+    class Creature
+    {
+        Name = "Unknown";
+        protected energy = 100;
+        private secret = "Creature secret";
+
+        public Creature(sName)
+        {
+            this.Name = sName;
+        }
+
+        public final getName()
+        {
+            return this.Name;
+        }
+
+        public describe()
+        {
+            return this.Name;
+        }
+
+        public getSecret()
+        {
+            return this.secret;
+        }
+
+        public getLiteral()
+        {
+            -- Braces in Lua strings/comments must not close a method: }
+            local tValues = {Text = "}", Long = [=[ { } ]=]};
+            --[=[ Another } ignored by the declaration parser. ]=]
+            return tValues.Text..tValues.Long;
+        }
+    }
+}
