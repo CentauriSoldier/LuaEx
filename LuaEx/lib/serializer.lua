@@ -7,12 +7,14 @@
     Object hooks define saved state; their matching factories restore it. Plain
     table metatables are omitted. Data is executable Lua and must be trusted.
     Bytecode requires a compatible Lua runtime. Threads/userdata and cycles through
-    object hooks are rejected explicitly; objects need a staged restoration API
-    before their cyclic private state can be reconstructed safely.
+    eager object hooks are rejected explicitly. An optional host adapter allocates
+    staged identities before existing object factories restore their state.
 !]]
 local _tRegistrations = {};
 local _tSessions = setmetatable({}, {__mode = "k"});
 local _tReadEnvironments = setmetatable({}, {__mode = "k"});
+local _tReadAdapters = setmetatable({}, {__mode = "k"});
+local _tWriteAdapters = setmetatable({}, {__mode = "k"});
 local _tNamedFactories = {};
 local _tFactoryReferences = setmetatable({}, {__mode = "k"});
 
@@ -102,6 +104,7 @@ local function descriptorExpression(tValue)
 end
 
 local function encodeFunction(fValue, tSession, tNode)
+    if (tSession.adapter) then tSession.adapter.checkFunction(fValue); end
     local bOK, sBytecode = pcall(string.dump, fValue);
     assert(bOK, "Native C functions cannot be serialized as Lua bytecode.");
     tNode.kind = "function";
@@ -182,7 +185,8 @@ encodeValue = function(vValue, tSession)
         local nID = tSession.seen[vValue];
 
         if (nID) then
-            assert(not tSession.active[vValue], "Circular state through a serialization hook for type '"..sType.."' is not supported.");
+            -- Validate eager object cycles after encoding the whole graph.
+            -- A staged identity can break an otherwise cyclic dependency path.
         else
             nID = #tSession.nodes + 1;
             local tNode = {};
@@ -190,7 +194,18 @@ encodeValue = function(vValue, tSession)
             tSession.sources[nID] = vValue;
             tSession.seen[vValue] = nID;
 
-            if (sRawType == "function") then
+            local tAdapter = tSession.adapter;
+            local tHeader, tValues;
+            if (tAdapter) then tHeader, tValues = tAdapter.project(vValue); end
+            if (tHeader) then
+                -- Staged identities have no eager object hook. Their values join
+                -- this graph, including aliases and callbacks through foreign types.
+                tNode.kind, tNode.header, tNode.values = "staged", tHeader, {};
+                tSession.staged = true;
+                for nIndex, vItem in ipairs(tValues) do
+                    tNode.values[nIndex] = encodeValue(vItem, tSession);
+                end
+            elseif (sRawType == "function") then
                 encodeFunction(vValue, tSession, tNode);
             else
                 local sReference = _tFactoryReferences[vValue];
@@ -255,9 +270,9 @@ end
 -- A strongly connected component may contain tables/closures, but object hooks
 -- cannot allocate shells before validation. Reject mixed cycles before emitting
 -- a save, including back-edges hidden behind an already-seen plain table.
-local function validateGraph(tGraph)
+local function validateGraph(tGraph, tAdapter, tSources)
     type.assert.table(tGraph);
-    assert(tGraph.version == 1 and rawtype(tGraph.nodes) == "table" and rawtype(tGraph.root) == "table", "Unsupported or malformed serialized graph.");
+    assert((tGraph.version == 1 or (tGraph.version == 2 and tAdapter)) and rawtype(tGraph.nodes) == "table" and rawtype(tGraph.root) == "table", "Unsupported or malformed serialized graph.");
     local nCount = 0;
 
     for k, tNode in pairs(tGraph.nodes) do
@@ -322,6 +337,12 @@ local function validateGraph(tGraph)
                 assert(tUpvalue.index == nIndex and rawtype(tUpvalue.cell) == "number" and tUpvalue.cell >= 1 and tUpvalue.cell % 1 == 0, "Malformed captured upvalue.");
                 addValue(tUpvalue.value, tList);
             end
+        elseif (tNode.kind == "staged") then
+            assert(tGraph.version == 2 and tAdapter and rawtype(tNode.header) == "table", "Staged graph requires its restoration adapter.");
+            listLength(tNode.values);
+            for _, tValue in ipairs(tNode.values) do addValue(tValue, {}); end
+            -- Outgoing state edges are filled only after ordinary restoration.
+            -- They do not impose eager factory dependencies on allocated shells.
         elseif (tNode.kind == "object" or tNode.kind == "expression") then
             if (tNode.state) then addValue(tNode.state, tList); end
             if (tNode.expression) then assert(rawtype(tNode.expression) == "string", "Malformed object state expression."); end
@@ -331,6 +352,8 @@ local function validateGraph(tGraph)
             assert(tNode.kind == "reference", "Unknown serialized node kind.");
         end
     end
+
+    if (tAdapter) then tAdapter.checkGraph(tGraph, tSources); end
 
     local tIndices, tLow, tStack, tOnStack = {}, {}, {}, {};
     local nNext = 0;
@@ -504,7 +527,8 @@ end;
     @ex local bValue = serializer.restoreGraph({version = 1, root = {value = false}, nodes = {}});
 !]]
 local function restoreGraph(tGraph)
-    validateGraph(tGraph);
+    local tAdapter = _tReadAdapters[coroutine.running()];
+    validateGraph(tGraph, tAdapter);
     local tValues, tStatus, tCells = {}, {}, {};
     local tOwnership = {};
     local resolve;
@@ -512,7 +536,9 @@ local function restoreGraph(tGraph)
     local tEnvironment = setmetatable({__lx = tValues}, {__index = _G});
 
     for nID, tNode in ipairs(tGraph.nodes) do
-        if (tNode.kind == "table") then tValues[nID] = {};
+        if (tNode.kind == "staged") then
+            tValues[nID] = tAdapter.allocate(tNode.header);
+        elseif (tNode.kind == "table") then tValues[nID] = {};
         elseif (tNode.kind == "function") then
             tValues[nID] = loadFunction(tNode.bytecode);
             assert(debug.getinfo(tValues[nID], "u").nups == #tNode.upvalues, "Saved upvalues do not match bytecode.");
@@ -544,7 +570,10 @@ local function restoreGraph(tGraph)
             else
                 tStatus[nID] = "active";
 
-                if (tNode.kind == "table") then
+                if (tNode.kind == "staged") then
+                    -- The adapter fills and validates these shells after every
+                    -- ordinary table, callback and foreign object has restored.
+                elseif (tNode.kind == "table") then
                     for _, tEntry in ipairs(tNode.entries) do
                         local vKey = resolve(tEntry.key);
                         local vValue = resolve(tEntry.value);
@@ -605,6 +634,8 @@ local function restoreGraph(tGraph)
     -- closures. Finish every emitted node so all captured cells are initialized.
     for nID in ipairs(tGraph.nodes) do restoreNode(nID); end
 
+    if (tAdapter and tGraph.version == 2) then tAdapter.finish(tGraph, tValues); end
+
     return vResult;
 end
 
@@ -632,12 +663,14 @@ serialize = function(vValue)
     local bRoot = tSession == nil;
 
     if (bRoot) then
-        tSession = {nodes = {}, sources = {}, seen = {}, active = {}, cells = {}, cellCount = 0};
+        tSession = {nodes = {}, sources = {}, seen = {}, active = {}, cells = {}, cellCount = 0,
+            adapter = _tWriteAdapters[oThread]};
         _tSessions[oThread] = tSession;
     end
 
     local nCheckpoint = #tSession.nodes;
     local nCellCheckpoint = tSession.cellCount;
+    local bStagedCheckpoint = tSession.staged;
     local tPreviousHook = tSession.hook;
     local bOK, tRoot = pcall(encodeValue, vValue, tSession);
     local sResult;
@@ -657,6 +690,7 @@ serialize = function(vValue)
         end
 
         tSession.cellCount = nCellCheckpoint;
+        tSession.staged = bStagedCheckpoint;
         tSession.hook = tPreviousHook;
         error(tRoot, 0);
     end
@@ -669,13 +703,61 @@ serialize = function(vValue)
     elseif (#tSession.nodes == 0) then
         sResult = tRoot.reference or primitiveLiteral(tRoot.value);
     else
-        local tGraph = {version = 1, root = tRoot, nodes = tSession.nodes};
-        validateGraph(tGraph);
+        local tGraph = {version = tSession.staged and 2 or 1, root = tRoot, nodes = tSession.nodes};
+        validateGraph(tGraph, tSession.adapter, tSession.sources);
         sResult = "serializer.restoreGraph("..formatData(tGraph, 0)..")";
     end
 
     return sResult;
 end;
+
+--[[!
+    @fqxn LuaEx.Libraries.serializer.withAdapter
+    @scope local
+    @desc Runs one explicit staged transaction. Nested hook calls inherit the
+    current graph; ordinary serialize/deserialize retain their existing signatures.
+    The adapter projects headers/value lists, checks functions and the complete
+    graph, allocates shells, and finishes their state after eager factories restore.
+    Header data must be acyclic native literal metadata. The host owns rollback
+    of allocated shells when restoration or final validation raises an error.
+!]]
+local function withAdapter(fOperation, vValue, tAdapter, tAdapters)
+    assert(rawtype(tAdapter) == "table", "Expected a staged graph adapter.");
+    for _, sMethod in ipairs({"project", "checkFunction", "checkGraph", "allocate", "finish"}) do
+        assert(rawtype(tAdapter[sMethod]) == "function", "Missing staged adapter callback: "..sMethod);
+    end
+    local oThread = coroutine.running();
+    local tPrevious = tAdapters[oThread];
+    tAdapters[oThread] = tAdapter;
+    local bOK, vResult = pcall(fOperation, vValue);
+    tAdapters[oThread] = tPrevious;
+    if (not bOK) then error(vResult, 0); end
+    return vResult;
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.serializer.serializeStaged
+    @desc Serializes with an explicit host adapter; ordinary values keep version
+    one, while adapter-owned identities use version two. Nested hooks share cells.
+    @param any vValue Root value.
+    @param table tAdapter Trusted host graph callbacks described by withAdapter.
+    @ret string Trusted serialized Lua expression.
+!]]
+local function serializeStaged(vValue, tAdapter)
+    return withAdapter(serialize, vValue, tAdapter, _tWriteAdapters);
+end
+
+--[[!
+    @fqxn LuaEx.Libraries.serializer.deserializeStaged
+    @desc Restores version-one or staged version-two expressions under a trusted
+    adapter. Every graph is checked before allocation; finish runs before return.
+    @param string sData Trusted serialized expression.
+    @param table tAdapter Trusted host graph callbacks described by withAdapter.
+    @ret any Validated root value.
+!]]
+local function deserializeStaged(sData, tAdapter)
+    return withAdapter(deserialize, sData, tAdapter, _tReadAdapters);
+end
 
 --[[!
     @fqxn LuaEx.Libraries.serializer.unpackData
@@ -701,6 +783,8 @@ local SerializerActual = {
     registerType = registerType,
     restoreGraph = restoreGraph,
     serialize = serialize,
+    serializeStaged = serializeStaged,
+    deserializeStaged = deserializeStaged,
     unpackData = unpackData,
 };
 local SerializerDecoy = {};

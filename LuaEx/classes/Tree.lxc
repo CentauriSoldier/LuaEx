@@ -1,0 +1,201 @@
+--[[!
+@fqxn LuaEx.Classes.Tree
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class Tree
+    {
+        --[[!
+        @fqxn LuaEx.Classes.Tree.helperAssertIndex
+        @desc Private class helper migrated from _AssertIndex.
+        !]]
+        private static helperAssertIndex(nIndex, nMin, nMax, sName)
+        {
+            if type(nIndex) ~= "number" then
+                error((sName or "Index").." must be a number", 3)
+            end
+            if nIndex % 1 ~= 0 then
+                error((sName or "Index").." must be an integer", 3)
+            end
+            if nIndex < nMin or nIndex > nMax then
+                error((sName or "Index").." out of range ("..nMin..".."..nMax..")", 3)
+            end
+        }
+
+        private _Value = {};
+
+        private _Children = {};
+
+        private _Parent = {};
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Tree
+        @desc Retains the existing Tree operation.
+        !]]
+        public Tree(vValue)
+        {
+            local pri = this
+            pri._Value    = { vValue }
+            pri._Children = {}  -- ordered
+            pri._Parent   = {}  -- optional; set when added
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.GetValue
+        @desc Retains the existing Tree operation.
+        !]]
+        public GetValue()
+        {
+            return this._Value[1]
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.SetValue
+        @desc Retains the existing Tree operation.
+        !]]
+        public SetValue(vValue)
+        {
+            this._Value[1] = vValue
+            return this
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.GetParent
+        @desc Retains the existing Tree operation.
+        !]]
+        public GetParent()
+        {
+            return this._Parent[1]
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Count
+        @desc Retains the existing Tree operation.
+        !]]
+        public Count()
+        {
+            return #this._Children
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Child
+        @desc Retains the existing Tree operation.
+        !]]
+        public Child(nIndex)
+        {
+            local t = this._Children
+            Tree.helperAssertIndex(nIndex, 1, #t, "Child index")
+            return t[nIndex]
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.GetChildren
+        @desc Retains the existing Tree operation.
+        !]]
+        public GetChildren()
+        {
+            local t = this._Children
+            local out = {}
+            for i = 1, #t do out[i] = t[i] end
+            return out
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Add
+        @desc Retains the existing Tree operation.
+        !]]
+        public Add(vValue)
+        {
+            local t = this._Children
+            local child = Tree(vValue)
+            child._Parent[1] = this
+            t[#t + 1] = child
+            return child
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Insert
+        @desc Retains the existing Tree operation.
+        !]]
+        public Insert(nIndex, vValue)
+        {
+            local t = this._Children
+            Tree.helperAssertIndex(nIndex, 1, #t + 1, "Insert index")
+            local child = Tree(vValue)
+            child._Parent[1] = this
+            table.insert(t, nIndex, child)
+            return child
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Print
+        @desc Retains the existing Tree operation.
+        !]]
+        public Print(node, depth, tOut)
+        {
+            node  = node  or this
+            depth = depth or 0
+            tOut  = tOut  or {}
+
+            local indent = string.rep("  ", depth)
+            tOut[#tOut + 1] = indent .. tostring(node.GetValue())
+
+            local children = node.GetChildren()
+            for i = 1, #children do
+                this.Print(children[i], depth + 1, tOut)
+            end
+
+            return table.concat(tOut, "\n")
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.RemoveAt
+        @desc Retains the existing Tree operation.
+        !]]
+        public RemoveAt(nIndex)
+        {
+            local t = this._Children
+            Tree.helperAssertIndex(nIndex, 1, #t, "Remove index")
+            local child = table.remove(t, nIndex)
+            child._Parent[1] = nil
+            return child
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Clear
+        @desc Retains the existing Tree operation.
+        !]]
+        public Clear()
+        {
+            local t = this._Children
+            for i = 1, #t do
+                t[i]._Parent[1] = nil
+            end
+            this._Children = {}
+            return this
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Tree.Walk
+        @desc Retains the existing Tree operation.
+        !]]
+        public Walk(fn)
+        {
+            if type(fn) ~= "function" then
+                error("Walk requires a function", 3)
+            end
+
+            fn(this)
+
+            local t = this._Children
+            for i = 1, #t do
+                -- dot-call style; each child receives its own cdat internally via your class system
+                t[i].Walk(fn)
+            end
+
+            return this
+        }
+
+    }
+}

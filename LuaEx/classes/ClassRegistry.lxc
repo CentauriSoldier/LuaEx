@@ -1,0 +1,373 @@
+--[[!
+@fqxn LuaEx.Classes.ClassRegistry
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class ClassRegistry
+    {
+        --[[!
+        @fqxn LuaEx.Classes.ClassRegistry.helperPrerequisiteTrue
+        @desc Private class helper migrated from prerequisiteTrue.
+        !]]
+        private static helperPrerequisiteTrue = function()
+            return true;
+        end;
+
+        --[[!
+        @fqxn LuaEx.Classes.ClassRegistry.helperPrerequisiteFalse
+        @desc Private class helper migrated from prerequisiteFalse.
+        !]]
+        private static helperPrerequisiteFalse = function()
+            return false;
+        end;
+
+        --[[!
+        @fqxn LuaEx.Classes.ClassRegistry.helperValidateEntry
+        @desc Private class helper migrated from validateEntry.
+        !]]
+        private static helperValidateEntry(vEntry)
+        {
+            assert(class.is(vEntry) or class.isinstance(vEntry),
+                   "Registry entries must be LuaEx classes or class instances.");
+        }
+
+        --METAMETHODS
+            -- Own the entry list independently; class/instance identities and the callback
+            -- reference are shared intentionally. The callback's captured state is not cloned.
+            --[[!
+                @fqxn Classes.ClassRegistry.Methods.__clone
+                @desc Copies the entry array while retaining class/instance identities and the callback reference. Captured callback state is shared.
+                @ret ClassRegistry oCopy Independent registry.
+            !]]
+        public __clone()
+        {
+            local pri = this;
+            local tEntries = {};
+
+            for nIndex, vEntry in ipairs(pri.entries) do
+                tEntries[nIndex] = vEntry;
+            end
+
+            return ClassRegistry(tEntries, pri.prerequisite[1], pri.defaultPrerequisite);
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.__len
+            @desc Returns the number of stored entries.
+            @ret number nCount Entry count.
+        !]]
+        public __len()
+        {
+            return #this.entries;
+        }
+
+        private entries = {};
+
+        private prerequisite = {ClassRegistry.helperPrerequisiteTrue};
+
+        private defaultPrerequisite = true;
+
+        --[[!
+        @fqxn LuaEx.Classes.ClassRegistry.__serialize
+        @desc Reconstructs built-in dummy callbacks without exporting a class scope.
+            Custom application callbacks use the host serializer's normal support.
+        !]]
+        public __serialize(state)
+        {
+            local fCallback = this.prerequisite[1];
+            if (rawequal(fCallback, ClassRegistry.helperPrerequisiteTrue) or
+                rawequal(fCallback, ClassRegistry.helperPrerequisiteFalse)) then
+                state.pri.prerequisite = {};
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.ClassRegistry.__deserialize
+        @desc Reinstalls the selected default only when no custom callback was saved.
+        !]]
+        public __deserialize(state)
+        {
+            if (state.pri.prerequisite[1] == nil) then
+                state.pri.prerequisite = {state.pri.defaultPrerequisite and
+                    ClassRegistry.helperPrerequisiteTrue or ClassRegistry.helperPrerequisiteFalse};
+            end
+        }
+
+        --PUBLIC
+            --[[!
+                @fqxn Classes.ClassRegistry.Methods.ClassRegistry
+                @param table|nil tEntries An optional dense list of LuaEx classes or instances.
+                @param function|nil fPrerequisite An optional additional eligibility check.
+                @param boolean|nil bDefaultPrerequisite Dummy result; defaults to true.
+                @desc A supplied callback takes precedence over the default dummy.
+                @pulsarlua function ClassRegistry
+            !]]
+        public ClassRegistry(tEntries, fPrerequisite, bDefaultPrerequisite)
+        {
+            assert(bDefaultPrerequisite == nil or rawtype(bDefaultPrerequisite) == "boolean",
+                   "Default prerequisite must be a boolean or nil.");
+            this.defaultPrerequisite = bDefaultPrerequisite ~= false;
+            this.setPrerequisite(fPrerequisite);
+
+            if (tEntries ~= nil) then
+                assert(rawtype(tEntries) == "table", "Registry entries must be a table.");
+                local nCount = 0;
+
+                for nIndex, vEntry in pairs(tEntries) do
+                    assert(rawtype(nIndex) == "number" and nIndex >= 1 and nIndex % 1 == 0,
+                           "Registry entries must use positive integer indices.");
+                    ClassRegistry.helperValidateEntry(vEntry);
+                    nCount = nCount + 1;
+                end
+
+                for nIndex = 1, nCount do
+                    assert(tEntries[nIndex] ~= nil, "Registry entry lists cannot contain holes.");
+                    this.add(tEntries[nIndex]);
+                end
+
+            end
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.add
+            @pulsarlua function ClassRegistry.add
+            @desc Adds a LuaEx class or instance unless the exact entry already exists.
+            @param class|instance vEntry Entry to register.
+            @ret ClassRegistry this This registry.
+            @ret boolean bAdded Whether a new entry was inserted.
+        !]]
+        public add(vEntry)
+        {
+            ClassRegistry.helperValidateEntry(vEntry);
+            local tEntries = this.entries;
+
+            for _, vExisting in ipairs(tEntries) do
+
+                if (rawequal(vExisting, vEntry)) then
+                    return this, false;
+                end
+
+            end
+
+            tEntries[#tEntries + 1] = vEntry;
+            return this, true;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.remove
+            @pulsarlua function ClassRegistry.remove
+            @desc Removes only the exact class/instance entry, not its descendants.
+            @param class|instance vEntry Entry to remove.
+            @ret ClassRegistry this This registry.
+            @ret boolean bRemoved Whether an entry was removed.
+        !]]
+        public remove(vEntry)
+        {
+            ClassRegistry.helperValidateEntry(vEntry);
+            local tEntries = this.entries;
+
+            for nIndex, vExisting in ipairs(tEntries) do
+
+                if (rawequal(vExisting, vEntry)) then
+                    table.remove(tEntries, nIndex);
+                    return this, true;
+                end
+
+            end
+
+            return this, false;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.clear
+            @pulsarlua function ClassRegistry.clear
+            @desc Clears entries, retaining prerequisite settings. An empty registry denies all objects.
+            @ret ClassRegistry this This registry.
+        !]]
+        public clear()
+        {
+            this.entries = {};
+            return this;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.contains
+            @pulsarlua function ClassRegistry.contains
+            @desc Checks exact entry identity, without inheritance matching or invoking prerequisites.
+            @param class|instance vEntry Valid LuaEx class or instance.
+            @ret boolean bFound Whether that exact entry is stored.
+        !]]
+        public contains(vEntry)
+        {
+            ClassRegistry.helperValidateEntry(vEntry);
+
+            for _, vExisting in ipairs(this.entries) do
+
+                if (rawequal(vExisting, vEntry)) then
+                    return true;
+                end
+
+            end
+
+            return false;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.getCount
+            @pulsarlua function ClassRegistry.getCount
+            @desc Returns stored entry count.
+            @ret number nCount Entry count.
+        !]]
+        public getCount()
+        {
+            return #this.entries;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.eachEntry
+            @pulsarlua function ClassRegistry.eachEntry
+            @desc Returns an iterator over a copied entry array. Later registry edits do not alter its order.
+            @ret function fIterator Yields one-based index and class/instance entry.
+        !]]
+        public eachEntry()
+        {
+            local tEntries = {};
+
+            for nIndex, vEntry in ipairs(this.entries) do
+                tEntries[nIndex] = vEntry;
+            end
+
+            local nIndex = 0;
+            return function()
+                nIndex = nIndex + 1;
+
+                if (tEntries[nIndex]) then
+                    return nIndex, tEntries[nIndex];
+                end
+
+            end;
+        }
+
+        -- Compatibility with the original class-only registry API.
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.eachClass
+            @pulsarlua function ClassRegistry.eachClass
+            @desc Compatibility alias of eachEntry; includes instance entries as well as classes.
+            @ret function fIterator Yields one-based index and stored entry.
+        !]]
+        public eachClass()
+        {
+            return this.eachEntry();
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.setPrerequisite
+            @pulsarlua function ClassRegistry.setPrerequisite
+            @desc Replaces the eligibility callback. Nil selects the current default dummy. Callback receives (oObject, ...) after entry matching and must return boolean plus optional string reason.
+            @param function|nil fPrerequisite Callback or nil to restore the dummy.
+            @ret ClassRegistry this This registry.
+        !]]
+        public setPrerequisite(fPrerequisite)
+        {
+            assert(fPrerequisite == nil or rawtype(fPrerequisite) == "function",
+                   "Prerequisite must be a function or nil.");
+            local pri = this;
+            pri.prerequisite[1] = fPrerequisite or (pri.defaultPrerequisite and ClassRegistry.helperPrerequisiteTrue or ClassRegistry.helperPrerequisiteFalse);
+            return this;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.getPrerequisite
+            @pulsarlua function ClassRegistry.getPrerequisite
+            @desc Returns the current callback, including the selected default dummy.
+            @ret function fPrerequisite Current eligibility function.
+        !]]
+        public getPrerequisite()
+        {
+            return this.prerequisite[1];
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.setDefaultPrerequisite
+            @pulsarlua function ClassRegistry.setDefaultPrerequisite
+            @desc Changes the dummy result and updates an active dummy immediately; a custom callback remains unchanged.
+            @param boolean bDefault Dummy eligibility result.
+            @ret ClassRegistry this This registry.
+        !]]
+        public setDefaultPrerequisite(bDefault)
+        {
+            assert(rawtype(bDefault) == "boolean", "Default prerequisite must be a boolean.");
+            local pri = this;
+            local bDummy = pri.prerequisite[1] == ClassRegistry.helperPrerequisiteTrue or pri.prerequisite[1] == ClassRegistry.helperPrerequisiteFalse;
+            pri.defaultPrerequisite = bDefault;
+
+            if (bDummy) then
+                this.setPrerequisite();
+            end
+
+            return this;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.getDefaultPrerequisite
+            @pulsarlua function ClassRegistry.getDefaultPrerequisite
+            @desc Returns the selected default dummy result.
+            @ret boolean bDefault Default eligibility result.
+        !]]
+        public getDefaultPrerequisite()
+        {
+            return this.defaultPrerequisite;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.isDefaultPrerequisiteAllowed
+            @pulsarlua function ClassRegistry.isDefaultPrerequisiteAllowed
+            @desc Returns the selected default dummy result.
+            @ret boolean bDefault Default eligibility result.
+        !]]
+        public isDefaultPrerequisiteAllowed()
+        {
+            return this.defaultPrerequisite;
+        }
+
+        --[[!
+            @fqxn Classes.ClassRegistry.Methods.allows
+            @desc Class entries use child-or-self checks (isa semantics); instance
+            entries use exact identity, ignoring overloaded equality operators.
+            A match invokes the prerequisite once, not once per matching entry.
+            @pulsarlua function ClassRegistry.allows
+            @param instance oObject Candidate LuaEx class instance; other inputs return false and a reason.
+            @param varargs ... Extra prerequisite context.
+            @ret boolean bAllowed Eligibility result.
+            @ret string|nil sReason Optional explanation for denial.
+        !]]
+        public allows(oObject, ...)
+        {
+            if (not class.isinstance(oObject)) then
+                return false, "Object must be a LuaEx class instance.";
+            end
+
+            local bMatch = false;
+
+            for _, vAllowed in ipairs(this.entries) do
+
+                if ((class.is(vAllowed) and class.isa(oObject, vAllowed)) or rawequal(oObject, vAllowed)) then
+                    bMatch = true;
+                    break;
+                end
+
+            end
+
+            if (not bMatch) then
+                return false, "Object does not match a registered entry.";
+            end
+
+            local bAllowed, sReason = this.prerequisite[1](oObject, ...);
+            assert(rawtype(bAllowed) == "boolean", "Prerequisite must return a boolean.");
+            assert(sReason == nil or rawtype(sReason) == "string", "Prerequisite reason must be a string or nil.");
+            return bAllowed, not bAllowed and (sReason or "Prerequisite not met.") or nil;
+        }
+
+    }
+}

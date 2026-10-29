@@ -1,0 +1,488 @@
+--[[!
+@fqxn LuaEx.Classes.Set
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class Set
+    {
+        --metamethods
+
+
+            --[[!
+            @fqxn LuaEx.Classes.Set.Metamethods.__add
+            @scope public
+            @desc Returns the union of this Set with another Set (A + B).
+            @param Set other The other Set with which to form the union.
+            @ret Set A new Set containing items that are the union of this Set and the other.
+            !]]
+        public __add(other)
+        {
+            local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
+            assert(type(this)   == "Set", sOtherError % {method = "__add"}..type(this)..'.');
+            assert(type(other)  == "Set", sOtherError % {method = "__add"}..type(other)..'.');--TODO these should be isa assertions so subclasses can use them
+
+            local oRet      = Set();--TODO also this...?
+            local newcdat   = oRet;
+            local leftcdat  = this;
+            local rightcdat = other;
+
+            --add this Set's items to the new Set
+            for nIndex, vItem in pairs(leftcdat.indexed) do
+                newcdat.addItem(vItem);
+            end
+
+            --add the other Set items to the new Set
+            for nIndex, vItem in pairs(rightcdat.indexed) do
+                newcdat.addItem(vItem);
+            end
+
+            return oRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Metamethods.__call
+        @scope global
+        @desc Creates an iterator function to iterate over the elements of the Set.
+        @ret function An iterator function that returns each element of the Set.
+        !]]
+        public __call()
+        {
+            local nIndex = 0;
+               local nMax = this._size;
+
+            return function()
+                nIndex = nIndex + 1;
+
+                if (nIndex <= nMax) then
+                    return this.indexed[nIndex];
+                end
+
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Metamethods.__clone
+        @desc Copies members while preserving shared references and reconnecting membership
+        to the copied members. Registers the new Set before descent for circular clones.
+        @ret Set oRet Independent Set with internally consistent membership.
+        !]]
+        public __clone()
+        {
+            local oRet   = Set();
+            local pro    = this;
+            local newpro = oRet;
+
+            cloner.registerCopy(this, oRet);
+            newpro.indexed   = clone(pro.indexed);
+            newpro.set       = {};
+
+            -- Table keys retain identity in clone(), so rebuild keys from copied members.
+            for _, vItem in ipairs(newpro.indexed) do
+                newpro.set[vItem] = true;
+            end
+            newpro._size 	    = pro._size;
+
+            return oRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Metamethods.__eq
+        @scope global
+        @desc Determines of the two Sets are equal.
+        @ret boolean True if the two Sets are equal, false otherwise.
+        !]]
+        public equals(other)
+        {
+            local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
+            assert(type(this)   == "Set", sOtherError % {method = "__eq"}..type(this)..'.');
+            assert(type(other)  == "Set", sOtherError % {method = "__eq"}..type(other)..'.');
+            local leftcdat  = this;
+            local rightcdat = other;
+
+            --start by checking their size
+            local bRet = leftcdat._size == rightcdat._size;
+
+            --check each value for existence in the other Set
+            for nIndex, vItem in pairs(leftcdat.indexed) do
+
+                if (rawtype(rightcdat.set[vItem]) == "nil") then
+                    bRet = false;
+                    break;
+                end
+
+            end
+
+            return bRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.__eq
+        @desc Native equality uses the existing content comparison.
+        !]]
+        public __eq(other)
+        {
+            return this.equals(other);
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Metamethods.__len
+        @scope global
+        @desc Returns the number of elements currently in the Set.
+        @ret number The number of elements in the Set.
+        !]]
+        public __len()
+        {
+            return this._size;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Metamethods.__sub
+        @scope public
+        @desc Returns the relative complement of this Set with repeect to another Set (A - B).
+        @param Set other The other Set with which to find the relative complement.
+        @ret Set A new Set containting values that are in this Set but not in the other Set.
+        !]]
+        public __sub(other)
+        {
+            local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
+            assert(type(this)    == "Set", sOtherError % {method = "__sub"}..type(this)..'.');
+            assert(type(other)   == "Set", sOtherError % {method = "__sub"}..type(other)..'.');
+
+            local oRet      = Set();
+            local newcdat   = oRet;
+            local leftcdat  = this;
+            local rightcdat = other;
+
+            --iterate over the left Set
+            for nIndex, vItem in pairs(leftcdat.indexed) do
+
+                if not (rightcdat.set[vItem]) then
+                    newcdat.addItem(vItem);
+                end
+
+            end
+
+            return oRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.__serialize
+        @desc Retains the existing Set operation.
+        !]]
+        public __serialize(state)
+        {
+            -- LXC projects indexed members, membership keys and count together;
+            -- its graph codec preserves their aliases, including cyclic Sets.
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Metamethods.__tostring
+        @scope global
+        @desc Converts the Set into a string representation.
+        @ret string A string representation of the Set.
+        !]]
+        public __tostring()
+        {
+            --TODO allow table serialization
+                    if (this._size == 0) then
+                        return "{}";
+                    end
+
+                    local sRet = "{";
+
+                    for nIndex, vItem in pairs(this.indexed) do
+                        sRet = sRet..tostring(vItem)..", ";
+                    end
+
+                    return sRet:sub(1, #sRet - 2).."}";
+        }
+
+        --static public
+            --[[!
+            @fqxn LuaEx.Classes.Set.Static Methods.deserialize
+            @pulsarlua function Set.deserialize
+            @scope static public
+            @desc Deserializes the Set object from a string.
+            !]]
+        public static deserialize()
+        {
+            return "ERROR: Set.deserialize method still in development.";
+        }
+
+        protected indexed = {};
+
+        protected set = {};
+
+        protected _size = 0;
+
+        --TODO figure out whether there can be private/public methods of the same name...if so, the fqxns need to be rethought
+            --[[!
+                @fqxn LuaEx.Classes.Set.Methods.addItem
+                @scope protected
+                @desc Adds an item to the Set.
+                @param Set oSet The Set upon which to operate.
+                @param any vItem The item to add to the Set.
+                @ret boolean True if the item was added successfully, false otherwise.
+            !]]
+        protected addItem(vItem)
+        {
+            local bRet = false;
+
+            if (rawtype(vItem) == "nil") then
+                error("Error adding item to Set. Nil value given.", 3);
+            end
+
+            if (not this.set[vItem]) then
+                this.set[vItem] 		    = true;
+                this._size 				    = this._size + 1;
+                this.indexed[this._size] = vItem;
+
+                bRet = true;
+            end
+
+
+            return bRet;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Set.Methods.removeItem
+            @scope protected
+            @desc Removes an item from the Set.
+            @param Set oSet The Set upon which to operate.
+            @param any vItem The item to remove from the Set.
+            @ret boolean True if the item was removed successfully, false otherwise.
+        !]]
+        protected removeItem(vItem)
+        {
+            local bRet = false;
+
+            if (rawtype(vItem) == "nil") then
+                error("Error removing item from Set. Nil value given.", 3);
+            end
+
+            if (this.set[vItem] ~= nil) then
+                this.set[vItem] = nil;
+
+                for x = 1, this._size do
+
+                    -- Membership uses table-key identity, even when __eq says two objects match.
+                    if (rawequal(this.indexed[x], vItem)) then
+                        table.remove(this.indexed, x);
+                        break;
+                    end
+
+                end
+
+                this._size = this._size - 1;
+
+                bRet = true;
+            end
+
+            return bRet;
+        }
+
+        --public
+            --[[!
+            @fqxn LuaEx.Classes.Set.Methods.Set
+            @pulsarlua function Set
+            @scope public
+            @param table|nil A table of items to add to the Set (optional).
+            @desc Constructs a new Set object.
+            !]]
+        public Set(tItems)
+        {
+            if (type(tItems) == "table") then
+
+                for _, vItem in pairs(tItems) do
+                    this.addItem(vItem);
+                end
+
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.add
+        @pulsarlua function Set.add
+        @scope public
+        @desc Adds an item to the Set.
+        @param any vItem The item to add to the Set.
+        @ret Set The Set object after adding the item.
+        !]]
+        public add(vItem)
+        {
+            this.addItem(vItem);
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.clear
+        @pulsarlua function Set.clear
+        @scope public
+        @desc Removes all items from the Set.
+        @ret Set The Set object after adding the item.
+        !]]
+        public clear()
+        {
+            this.indexed = {};
+            this.set 	 = {};
+            this._size 	 = 0;
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.contains
+        @pulsarlua function Set.contains
+        @scope public
+        @desc Checks if the Set contains a specific item.
+        @param any vItem The item to check for.
+        @ret boolean Returns true if the Set contains the item, false otherwise.
+        !]]
+        public contains(vItem)
+        {
+            return this.set[vItem] ~= nil;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.importSet
+        @pulsarlua function Set.importSet
+        @scope public
+        @desc Adds all items from another Set to this Set.
+        @param Set oOther The other Set containing items to add.
+        @ret Set This Set object after adding the items found in the other Set.
+        !]]
+        public importSet(other)
+        {
+            local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
+            assert(type(other) == "Set", sOtherError % {method = "addSet"}..type(other)..'.');
+            local othercdat = other;
+
+            for nIndex, vItem in ipairs(othercdat.indexed) do
+                this.addItem(vItem);
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.intersection
+        @pulsarlua function Set.intersection
+        @scope public
+        @desc Returns the intersection of this Set with another Set.
+        @param Set other The other Set with which to find the intersection.
+        @ret Set A new Set containting values that intersect with this Set and the other Set.
+        !]]
+        public intersection(other)
+        {
+            local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
+            assert(type(other) == "Set", sOtherError % {method = "intersection"}..type(other)..'.');
+            local oRet      = Set();
+            local newcdat   = oRet;
+            local othercdat = other;
+
+            for nIndex, vItem in pairs(this.indexed) do
+
+                if (rawtype(othercdat.set[vItem]) ~= "nil") then
+                    newcdat.addItem(vItem);
+                end
+
+            end
+
+            return oRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.isEmpty
+        @pulsarlua function Set.isEmpty
+        @scope public
+        @desc Checks if the Set is empty.
+        @ret boolean Returns true if the Set is empty, false otherwise.
+        !]]
+        public isEmpty()
+        {
+            return this._size < 1;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.isSubset
+        @pulsarlua function Set.isSubSet
+        @scope public
+        @desc Checks if the input Set a subset of this Set.
+        @param Set other The other Set to detemine subsetness.
+        @ret boolean Returns true if the other Set is a subset of this Set, false otherwise.
+        !]]
+        public isSubSet(other)
+        {
+            --TODO use cdat
+                    local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
+                    assert(type(other) == "Set", sOtherError % {method = "isSubset"}..type(other)..'.');--TODO make this work children
+                    local bRet = true;
+                    local othercdat = other;
+
+                    for nIndex, vItem in pairs(this.indexed) do
+
+                        if (rawtype(othercdat.set[vItem]) == "nil") then
+                            bRet = false;
+                            break;
+                        end
+
+                    end
+
+                    return bRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.remove
+        @pulsarlua function Set.remove
+        @scope public
+        @desc Removes an item from the Set if it exists.
+        @param any vItem The item to remove from the Set.
+        @ret Set Returns the Set object after removing the item.
+        !]]
+        public remove(vItem)
+        {
+            this.removeItem(vItem);
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.purgeSet
+        @pulsarlua function Set.purgeSet
+        @scope public
+        @desc Removes all items from this Set that are present in another Set.
+        @param Set other The other Set containing items to remove.
+        @ret Set This Set object after removing items found in the other Set.
+        !]]
+        public purgeSet(other)
+        {
+            local sOtherError   = "Error in Set class, method, ${method}. Attempt to operate on non-Set value of type ";
+            assert(type(other) == "Set", sOtherError % {method = "removeSet"}..type(other)..'.');
+            local othercdat = other;
+            local indexedCopy = {table.unpack(this.indexed)}
+
+            for nIndex, vItem in pairs(indexedCopy) do
+
+                if (othercdat.set[vItem]) then
+                    this.removeItem(vItem);
+                end
+
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Set.Methods.size
+        @pulsarlua function Set.size
+        @scope public
+        @desc Returns the number of items in the Set (Same as #MySet).
+        @ret number The number of items in the Set.
+        !]]
+        public size()
+        {
+            return this._size;
+        }
+
+    }
+}

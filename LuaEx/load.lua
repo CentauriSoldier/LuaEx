@@ -32,7 +32,7 @@ local nClassLoadLevel = 5;
 <div class="container py-4">
   <div class="text-center">
     <img src="https://raw.githubusercontent.com/CentauriSoldier/LuaEx/main/logo.png" alt="LuaEx Logo" class="img-fluid mb-4" style="max-height: 150px;">
-    <p class="lead">A powerful, lightweight extension of Lua 5.3+</p>
+    <p class="lead">A lightweight extension of Lua with a Lua 5.4 class runtime</p>
   </div>
 
   <div class="my-5">
@@ -58,8 +58,8 @@ local nClassLoadLevel = 5;
     <ul>
       <li>Static initializers and constructors</li>
       <li>Final classes and final methods</li>
-      <li>Optional interface declarations</li>
-      <li>Auto-accessor properties via <code>__AUTO</code> directive</li>
+      <li>Scoped LXC class declarations discovered from .lxc files</li>
+      <li>Automatic and custom property accessors</li>
       <li>Support for encapsulation (private/protected/public)</li>
     </ul>
   </div>
@@ -109,8 +109,8 @@ local nClassLoadLevel = 5;
   <div class="my-5">
     <h3 class="mb-3">Simplicity & Compatibility</h3>
     <ul>
-      <li>Designed for Lua 5.3</li>
-      <li>Native Lua 5.4.2 and the bundled Lua 5.4 runtime are tested; Lua 5.3 remains unverified.</li>
+      <li>LXC requires Lua 5.4</li>
+      <li>The bundled Windows Lua 5.4 runtime is tested; other hosts remain unverified.</li>
       <li>Minimal learning curve with intuitive APIs</li>
       <li>Effortlessly extendable</li>
     </ul>
@@ -329,12 +329,6 @@ local function init(...)
         cloner.registerFactory(struct);
         cloner.registerFactory(structfactory);
 
-        if (_tClassLoadValues[_nClassSystem]) then
-            interface = require("LuaEx.lib.interface");
-            class = require("LuaEx.lib.class");
-
-            cloner.registerFactory(class);
-        end
 
         --import serialization
         serializer  = require("LuaEx.lib.serializer");
@@ -351,98 +345,59 @@ local function init(...)
             ╚██████╗███████╗██║  ██║███████║███████║███████╗███████║
              ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚══════╝
         ]]
-        -- CLASS GROUPS: dependencies are enabled before entering these blocks.
-
+        -- LXC owns class loading; baseline primitives remain ordinary Lua modules.
         if (_tClassLoadValues[_nClassSystem]) then
-
-            -- Interfaces must exist before classes implementing them.
-            iCloneable 		= require("LuaEx.interfaces.iCloneable");
-            iSerializable 	= require("LuaEx.interfaces.iSerializable");
-            iShape 	        = require("LuaEx.interfaces.iShape");
-
-            -- Basic primitives and collections.
+            local LXC = require("LuaEx.lxc.init");
+            LXC.bindHost(_G);
 
             if (_tClassLoadValues[_nBasicClasses]) then
-                --primitive
-                local pPrimitives   = "LuaEx.primitives";
-                point               = require(pPrimitives..".point");
-                line                = require(pPrimitives..".line");
-                circle              = require(pPrimitives..".circle");
-                circlearc           = require(pPrimitives..".circlearc");
-                ellipse             = require(pPrimitives..".ellipse");
-                polygon             = require(pPrimitives..".polygon");
-
-                --actual classes
-                local pClasses = "LuaEx.classes";
-
-                --dependency class
-                Queue               = require(pClasses..".Queue");
-                ClassRegistry       = require(pClasses..".ClassRegistry");
-                XML                 = require(pClasses..".XML");
-                Stack               = require(pClasses..".Stack");
-                Tree                = require(pClasses..".Tree");
-                Set                 = require(pClasses..".Set");
-                SortedDictionary    = require(pClasses..".SortedDictionary");
-
-                --[[
-                     ██████╗ ██████╗ ███╗   ███╗██████╗  ██████╗ ███╗   ██╗███████╗███╗   ██╗████████╗███████╗
-                    ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██╔═══██╗████╗  ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
-                    ██║     ██║   ██║██╔████╔██║██████╔╝██║   ██║██╔██╗ ██║█████╗  ██╔██╗ ██║   ██║   ███████╗
-                    ██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║   ██║██║╚██╗██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
-                    ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ╚██████╔╝██║ ╚████║███████╗██║ ╚████║   ██║   ███████║
-                     ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
-                ]]
-                -- COMPONENTS
-
-                if (_tClassLoadValues[_nComponentClasses]) then
-                    --component classes
-                    Potentiometer   = require(pClasses..".component.Potentiometer");
-                    Protean         = require(pClasses..".component.Protean");
-
-                    --[[
-                         ██████╗ ███████╗ ██████╗ ███╗   ███╗███████╗████████╗██████╗ ██╗   ██╗
-                        ██╔════╝ ██╔════╝██╔═══██╗████╗ ████║██╔════╝╚══██╔══╝██╔══██╗╚██╗ ██╔╝
-                        ██║  ███╗█████╗  ██║   ██║██╔████╔██║█████╗     ██║   ██████╔╝ ╚████╔╝
-                        ██║   ██║██╔══╝  ██║   ██║██║╚██╔╝██║██╔══╝     ██║   ██╔══██╗  ╚██╔╝
-                        ╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║███████╗   ██║   ██║  ██║   ██║
-                         ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝
-                    ]]
-                    -- GEOMETRY
-
-                    if (_tClassLoadValues[_nGeometryClasses]) then
-                        --geometry classes
-                        --Point   = require(pClasses..".geometry.Point");
-                        --Line    = require(pClasses..".geometry.Line");
-                        --shapes
-                        --Shape   = require(pClasses..".geometry.shapes.Shape");
-                        --Circle  = require(pClasses..".geometry.shapes.Circle");
-                        --Polygon = require(pClasses..".geometry.shapes.Polygon");
-                        --solids
-                        --Solid   = require(pClasses..".geometry.solids.Solid");
-
-                    end
-
-                    --[[
-                        ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗███████╗███████╗
-                        ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝██║██╔════╝██╔════╝
-                        ██║   ██║   ██║   ██║██║     ██║   ██║   ██║█████╗  ███████╗
-                        ██║   ██║   ██║   ██║██║     ██║   ██║   ██║██╔══╝  ╚════██║
-                        ╚██████╔╝   ██║   ██║███████╗██║   ██║   ██║███████╗███████║
-                         ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝   ╚═╝╚══════╝╚══════╝
-                    ]]
-                    -- UTILITIES
-
-                    if (_tClassLoadValues[_nUtilClasses]) then
-                        --ini
-                        Ini     = require(pClasses..".util.Ini");
-                        BaseLog = require(pClasses..".util.BaseLog");
-                        VFS     = require(pClasses..".util.VFS");
-                    end
-
-                end
-
+                point     = require("LuaEx.primitives.point");
+                line      = require("LuaEx.primitives.line");
+                circle    = require("LuaEx.primitives.circle");
+                circlearc = require("LuaEx.primitives.circlearc");
+                ellipse   = require("LuaEx.primitives.ellipse");
+                polygon   = require("LuaEx.primitives.polygon");
             end
 
+            local tFramework, tPaths, tSeen = {}, {}, {};
+            local function fPathKey(pFile)
+                local pKey = pFile:gsub("\\", "/");
+                return package.config:sub(1, 1) == "\\" and pKey:lower() or pKey;
+            end
+
+            -- Identify bundled source groups before merging application discovery.
+            -- Disabled framework groups must not enter through an overlapping root.
+            for _, pFile in ipairs(LXC.discover(pSourceDirectory.."/classes/?.lua")) do
+                local pKey = fPathKey(pFile);
+                local nGroup = pKey:find("/component/", 1, true) and _nComponentClasses or
+                    (pKey:find("/util/", 1, true) and _nUtilClasses or _nBasicClasses);
+                tFramework[pKey] = {Path = pFile, Group = nGroup};
+            end
+
+            local function fInclude(pFile)
+                local pKey = fPathKey(pFile);
+                local tFrameworkFile = tFramework[pKey];
+                if (not tSeen[pKey] and (not tFrameworkFile or _tClassLoadValues[tFrameworkFile.Group])) then
+                    tSeen[pKey] = true;
+                    tPaths[#tPaths + 1] = pFile;
+                end
+            end
+
+            for _, tFile in pairs(tFramework) do fInclude(tFile.Path); end
+            for _, pFile in ipairs(LXC.discover(sOriginalPackagePath)) do fInclude(pFile); end
+            table.sort(tPaths);
+            local tNames = LXC.loadFiles(tPaths, _G);
+            LXC.publishFrameworkAliases(tNames, _G);
+
+            -- Preserve documented require paths without executing legacy .lua
+            -- class declarations against LXC's scoped helper API.
+            for _, pFile in ipairs(tPaths) do
+                local sRelative = pFile:gsub("\\", "/"):match("/LuaEx/classes/(.*)%.lxc$");
+                if (sRelative) then
+                    local sName = sRelative:match("([^/]+)$");
+                    package.loaded["LuaEx.classes."..sRelative:gsub("/", ".")] = rawget(_G, sName);
+                end
+            end
         end
 
         --[[

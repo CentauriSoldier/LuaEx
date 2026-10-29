@@ -1,0 +1,778 @@
+--[[!
+@fqxn LuaEx.Classes.Protean
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class Protean
+    {
+        private static _nValueBase = 1;
+
+        private static _nValueFinal = 2;
+
+        private static _nBaseBonus = 3;
+
+        private static _nBasePenalty = 4;
+
+        private static _nMultBonus = 5;
+
+        private static _nMultPenalty = 6;
+
+        private static _nAddBonus = 7;
+
+        private static _nAddPenalty = 8;
+
+        private static _nLimitMin = 9;
+
+        private static _nLimitMax = 10;
+
+        private static _nIndexMin = Protean._nValueBase;
+
+        private static _nIndexMax = Protean._nLimitMax;
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperOnChangePlaceHolder
+        @desc Private class helper migrated from onChangePlaceHolder.
+        !]]
+        private static helperOnChangePlaceHolder()
+        {
+
+        }
+
+        private static _tLinkers = {};
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperLinkerIDIsValid
+        @desc Private class helper migrated from linkerIDIsValid.
+        !]]
+        private static helperLinkerIDIsValid(nLinkerID)
+        {
+            return rawtype(nLinkerID) == "number" and math.floor(nLinkerID) == nLinkerID and nLinkerID > 0 and Protean._tLinkers[nLinkerID];
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperUnlink
+        @desc Private class helper migrated from unlink.
+        !]]
+        private static helperUnlink(other)
+        {
+            local pri = other;
+            local nLinkerID = pri.linkerID;
+
+            if (pri._isLinked and Protean.helperLinkerIDIsValid(nLinkerID) and Protean._tLinkers[nLinkerID].Proteans[other]) then
+
+                --set the object's base value to it's original value or the linker's base value
+                pri.values[Protean._nValueBase] = Protean._tLinkers[nLinkerID].baseValue;
+
+                --update its linked status and linkerID
+                pri._isLinked = false;
+                pri.linkerID = -1;
+
+                --remove the object from the linker
+                Protean._tLinkers[nLinkerID].Proteans[other] = nil;
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperLink
+        @desc Private class helper migrated from link.
+        !]]
+        private static helperLink(other, nLinkerID)
+        {
+            local pri = other;
+            nLinkerID = Protean.helperLinkerIDIsValid(nLinkerID) and nLinkerID or #Protean._tLinkers + 1;
+
+            --make sure it's not trying to be linked to its current linker
+            if not (pri.linkerID == nLinkerID) then
+
+                --create the linker if it doesn't exist
+                if not (Protean._tLinkers[nLinkerID]) then
+                    Protean._tLinkers[nLinkerID] = {
+                        --the new linker will start with the creating object's base value
+                        baseValue   = pri.values[Protean._nValueBase],
+                        --byObject    = {},
+                        Proteans    = {},
+                    };
+                end
+
+                --unlink if currently linked
+                if (pri._isLinked) then
+                    Protean.helperUnlink(other);
+                end
+
+                local tLinker = Protean._tLinkers[nLinkerID];
+
+                --link it only if it's not already linked
+                if not (tLinker.Proteans[other]) then
+                    local tValues = pri.values;
+
+
+                    --set the object's base value to be the same as the linker's
+                    tValues[Protean._nValueBase] = tLinker.baseValue;
+
+                    --link the Protean and update its settings
+                    pri._isLinked = true;
+                    pri.linkerID = nLinkerID;
+
+                    --update the hub to reflect the new addition and store the object's original value
+                    --tLinker.byObject[this] = nOriginalValue;
+                    --tLinker.Proteans[#tLinker.Proteans + 1] = this;
+                    tLinker.Proteans[other] = other;
+                end
+
+                --NOTE: DO NOT REMOVE LINKERS OR ELSE THE LINKER IDs WILL REFERENCE THE WRONG TABLE INDEX
+
+                --recalculate the final value
+                if (pri.autoCalculate) then
+                    Protean.helperCalculateFinalValue(other);
+                end
+
+                --update the linked count
+                --tLinker.totalLinked = #tLinker.Proteans;
+
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperCalculateFinalValue
+        @desc Private class helper migrated from calculateFinalValue.
+        !]]
+        private static helperCalculateFinalValue(other)
+        {
+            local pri       = other;
+            local tValues   = pri.values;
+            local nBase     = pri._isLinked and Protean._tLinkers[pri.linkerID].baseValue or tValues[Protean._nValueBase];
+
+            local nBaseBonus    = tValues[Protean._nBaseBonus];
+            local nBasePenalty  = tValues[Protean._nBasePenalty];
+            local nMultBonus    = tValues[Protean._nMultBonus];
+            local nMultPenalty  = tValues[Protean._nMultPenalty];
+            local nAddBonus     = tValues[Protean._nAddBonus];
+            local nAddPenalty   = tValues[Protean._nAddPenalty];
+            local nFinal        = ((nBase + nBaseBonus - nBasePenalty) * (1 + nMultBonus - nMultPenalty)) + nAddBonus - nAddPenalty;
+
+            --clamp the value if it has been limited
+            if (pri.limitMin) then
+                local nMin = tValues[Protean._nLimitMin];
+                nFinal = nFinal > nMin and nFinal or nMin;
+            end
+
+            if (pri.limitMax) then
+                local nMax = tValues[Protean._nLimitMax];
+                nFinal = nFinal <= nMax and nFinal or nMax;
+            end
+
+            tValues[Protean._nValueFinal] = nFinal;
+            return nFinal;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperSetValue
+        @desc Private class helper migrated from setValue.
+        !]]
+        private static helperSetValue(other, nType, nValue)
+        {
+            local pri = other;
+            local tValues = pri.values;
+            local nOldValue = other.getValue(nType);
+
+            tValues[nType] = nValue;
+
+            if (nType == Protean._nLimitMin or nType == Protean._nLimitMax) then
+                if (tValues[Protean._nLimitMin] > tValues[Protean._nLimitMax]) then
+                    tValues[Protean._nLimitMin] = tValues[Protean._nLimitMax];
+                end
+            end
+
+            local tNotifications = {};
+
+            local function update(oProtean, tCDat)
+                local pri = tCDat;
+
+                if (pri.autoCalculate) then
+                    Protean.helperCalculateFinalValue(oProtean);
+                end
+
+                if (pri._isCallbackActive) then
+                    tNotifications[#tNotifications + 1] = {
+                        callback = pri.onChange[1],
+                        object = oProtean,
+                        final = pri.values[Protean._nValueFinal],
+                    };
+                end
+            end
+
+            if (pri._isLinked and nType == Protean._nValueBase) then
+                local tLinker = Protean._tLinkers[pri.linkerID];
+                tLinker.baseValue = nValue;
+
+                for oProtean, tCDat in pairs(tLinker.Proteans) do
+                    update(oProtean, tCDat);
+                end
+            else
+                update(other, other);
+            end
+
+            --Refresh every member before callbacks can inspect or change the group.
+            for _, tNotification in ipairs(tNotifications) do
+                tNotification.callback(tNotification.object, nType, nOldValue, nValue, tNotification.final);
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperGetAvailableLinkerID
+        @desc Private class helper migrated from getAvailableLinkerID.
+        !]]
+        private static helperGetAvailableLinkerID()
+        {
+            return #Protean._tLinkers + 1;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperCategoryIsValid
+        @desc Private class helper migrated from categoryIsValid.
+        !]]
+        private static helperCategoryIsValid(nType)
+        {
+            return rawtype(nType) == "number" and nType == math.floor(nType) and
+                   nType >= Protean._nIndexMin and nType <= Protean._nIndexMax;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.helperValidateValue
+        @desc Private class helper migrated from validateValue.
+        !]]
+        private static helperValidateValue(nValue)
+        {
+            assert(rawtype(nValue) == "number" and nValue == nValue, "Protean value must be a number other than NaN.");
+        }
+
+        --METAMETHODS
+            --[[!
+            @fqxn LuaEx.Classes.Protean.Metamethods.__clone
+            @desc Creates an independent, unlinked snapshot. Copies modifiers, bounds, calculation mode, cached final value and callback locks. Retains the callback reference and active state. Does not invoke callbacks.
+            @ret Protean oClone A new snapshot instance.
+            @ex
+            local oCopy = clone(oProtean);
+            !]]
+        public __clone()
+        {
+            local oClone       = Protean();
+            local pri          = this;
+            local tCopyPrivate = oClone;
+
+            -- Class-data visibility tables are decoys, so copy declared flags
+            -- explicitly instead of relying on pairs to expose private storage.
+            for _, sField in ipairs({"limitMin", "limitMax", "autoCalculate",
+                    "_isCallbackActive", "_isCallbackLocked", "_isCallbackToggleLocked"}) do
+                tCopyPrivate[sField] = pri[sField];
+            end
+
+            for nType = Protean._nIndexMin, Protean._nIndexMax do
+                tCopyPrivate.values[nType] = this.getValue(nType);
+            end
+
+            tCopyPrivate.onChange = {pri.onChange[1]};
+            return oClone;
+        }
+
+        public static getAvailableLinkerID()
+        {
+            return Protean.helperGetAvailableLinkerID();
+        }
+
+        public static const VALUE_BASE = Protean._nValueBase;
+
+        public static const VALUE_FINAL = Protean._nValueFinal;
+
+        public static const BASE_BONUS = Protean._nBaseBonus;
+
+        public static const BASE_PENALTY = Protean._nBasePenalty;
+
+        public static const MULTIPLICATIVE_BONUS = Protean._nMultBonus;
+
+        public static const MULTIPLICATIVE_PENALTY = Protean._nMultPenalty;
+
+        public static const ADDATIVE_BONUS = Protean._nAddBonus;
+
+        public static const ADDATIVE_PENALTY = Protean._nAddPenalty;
+
+        public static const LIMIT_MIN = Protean._nLimitMin;
+
+        public static const LIMIT_MAX = Protean._nLimitMax;
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.prepareSnapshot
+        @desc Retains the existing Protean operation.
+        !]]
+        private prepareSnapshot(tState)
+        {
+            local pri = tState.pri;
+            local tValues = {};
+
+            for x = Protean._nIndexMin, Protean._nIndexMax do
+                tValues[x] = pri.values[x];
+            end
+
+            if (pri._isLinked) then
+                tValues[Protean._nValueBase] = Protean._tLinkers[pri.linkerID].baseValue;
+            end
+
+            -- Persist values and locks, but detach runtime link/callback ownership.
+            pri.values = tValues;
+            pri._isLinked = false;
+            pri.linkerID = -1;
+            pri._isCallbackActive = false;
+            pri.onChange = {};
+
+            -- Encode unbounded limits as data; restore their numeric meaning
+            -- only in this class's validated projection, never as wire code.
+            if (tValues[Protean._nLimitMin] == -math.huge) then tValues[Protean._nLimitMin] = "-infinity"; end
+            if (tValues[Protean._nLimitMax] == math.huge) then tValues[Protean._nLimitMax] = "infinity"; end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.validateSnapshot
+        @desc Retains the existing Protean operation.
+        !]]
+        private validateSnapshot(tState)
+        {
+            local pri = tState.pri;
+            type.assert.table(pri);
+            type.assert.table(pri.values);
+
+            if (pri.values[Protean._nLimitMin] == "-infinity") then pri.values[Protean._nLimitMin] = -math.huge; end
+            if (pri.values[Protean._nLimitMax] == "infinity") then pri.values[Protean._nLimitMax] = math.huge; end
+
+            for x = Protean._nIndexMin, Protean._nIndexMax do
+                local nValue = pri.values[x];
+                assert(rawtype(nValue) == "number" and nValue == nValue, "Invalid Protean snapshot value.");
+            end
+
+            for _, sField in ipairs({"limitMin", "limitMax", "autoCalculate", "_isLinked",
+                    "_isCallbackActive", "_isCallbackLocked", "_isCallbackToggleLocked"}) do
+                assert(rawtype(pri[sField]) == "boolean", "Invalid Protean snapshot flag: "..sField);
+            end
+
+            assert(pri.values[Protean._nLimitMin] <= pri.values[Protean._nLimitMax], "Invalid Protean snapshot bounds.");
+            assert(pri._isLinked == false and pri.linkerID == -1,
+                   "Protean snapshots must not retain runtime links.");
+            assert(rawtype(pri.onChange) == "table",
+                   "Invalid Protean snapshot callback.");
+
+            -- Older autogenerated states retained activation (and sometimes a
+            -- closure). Migrate them to the current runtime-ownership policy.
+            pri._isCallbackActive = false;
+            pri.onChange = {};
+        }
+
+        private limitMin = false;
+
+        private limitMax = false;
+
+        private linkerID = -1;
+
+        private _isLinked = false;
+
+        private autoCalculate = true;
+
+        private onChange = {};
+
+        private _isCallbackActive = false;
+
+        private _isCallbackLocked = false;
+
+        private _isCallbackToggleLocked = false;
+
+        private values = {
+        [Protean._nValueBase]       = 0,
+        [Protean._nValueFinal]      = 0, --this is (re)calcualted whenever another item is changed
+        [Protean._nBaseBonus]       = 0,
+        [Protean._nBasePenalty]     = 0,
+        [Protean._nMultBonus]       = 0,
+        [Protean._nMultPenalty]     = 0,
+        [Protean._nAddBonus]        = 0,
+        [Protean._nAddPenalty]      = 0,
+        [Protean._nLimitMin]        = 0,
+        [Protean._nLimitMax]        = 0,
+    };
+
+        --PUBLIC
+            --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.Protean
+            @pulsarlua function Protean
+            @desc The constructor for the Protean class.
+            @param nBaseValue number This value is <code>Vb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap</code> and where Vf is the calculated, final value. If set to nil, it will default to 0.
+            @param nBaseBonus number/nil This value is Bb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+            @param nBasePenalty number/nil This value is Bp where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+            @param nMultiplicativeBonus number/nil This value is Mb where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+            @param nMultiplicativePenalty number/nil This value is Mp where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+            @param nAddativeBonus number/nil This value is Ab where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+            @param nAddativePenalty number/nil This value is Ap where Vf = [(Vb + Bb - Bp) * (1 + Mb - Mp)] + Ab - Ap and where Vf is the calculated, final value. If set to nil, it will default to 0.
+            @param nMinLimit number/nil This is the minimum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no minimum value.
+            @param nMaxLimit number/nil This is the maximum value that the calculated, final value will return. If set to nil, it will be ignored and there will be no maximum value.
+            @param fonChange function/nil Called with instance, category, old value, new value and cached final value. In manual mode the final value is not refreshed.
+            <br>Note: the callback function must accept the following paramters:
+            <ol>
+                <li>The Protean object. <em>(Protean)</em>.</li>
+                <li>The value type. <em>(number)</em></li>
+                <li>The previous value. <em>(number)</em></li>
+                <li>The changed value. <em>(number)</em></li>
+                <li>The final value. <em>(number)</em></li>
+            </ol>
+            @param bDontAutoCalculate boolean|nil Set true to disable automatic recalculation. Initial construction always calculates once.
+            @return oProtean Protean A Protean object.
+            !]]
+        public Protean(nBaseValue, nBaseBonus, nBasePenalty, nMultiplicativeBonus, nMultiplicativePenalty, nAddativeBonus, nAddativePenalty, nMinLimit, nMaxLimit, fonChange, bDontAutoCalculate)
+        {
+                    local pri       = this;
+                    local tValues   = pri.values;
+            for _, nValue in pairs({nBaseValue, nBaseBonus, nBasePenalty, nMultiplicativeBonus, nMultiplicativePenalty,
+                                           nAddativeBonus, nAddativePenalty, nMinLimit, nMaxLimit}) do
+                        if (rawtype(nValue) == "number") then
+                            Protean.helperValidateValue(nValue);
+                        end
+                    end
+
+                    local bHasCallbackFunction  = rawtype(fonChange) == "function";
+                    pri.limitMin = rawtype(nMinLimit) == "number";
+                    pri.limitMax = rawtype(nMaxLimit) == "number";
+
+                    --local eLimit    = Protean.LIMIT;
+                    --local eMod      = Protean.MOD;
+                    --local eValue    = Protean.VALUE;
+
+                    tValues[Protean._nValueBase]    = rawtype(nBaseValue)               == "number"     and nBaseValue              or 0;
+                    tValues[Protean._nBaseBonus]    = rawtype(nBaseBonus)               == "number"     and nBaseBonus              or 0;
+                    tValues[Protean._nBasePenalty]  = rawtype(nBasePenalty)             == "number"     and nBasePenalty            or 0;
+                    tValues[Protean._nMultBonus]    = rawtype(nMultiplicativeBonus)     == "number"     and nMultiplicativeBonus    or 0;
+                    tValues[Protean._nMultPenalty]  = rawtype(nMultiplicativePenalty)   == "number"     and nMultiplicativePenalty  or 0;
+                    tValues[Protean._nAddBonus]     = rawtype(nAddativeBonus)           == "number"     and nAddativeBonus          or 0;
+                    tValues[Protean._nAddPenalty]   = rawtype(nAddativePenalty)         == "number"     and nAddativePenalty        or 0;
+                    tValues[Protean._nLimitMin]     = pri.limitMin                                      and nMinLimit               or -math.huge;
+                    tValues[Protean._nLimitMax]     = pri.limitMax                                      and nMaxLimit               or math.huge;
+                    tValues[Protean._nValueFinal]   = 0; --this is (re)calcualted whenever another item is changed
+                    pri.autoCalculate       = not (rawtype(bDontAutoCalculate) == "boolean"     and bDontAutoCalculate      or false);
+                    pri.onChange[1]         = bHasCallbackFunction and fonChange or nil;
+                    pri._isCallbackActive    = bHasCallbackFunction;
+
+                    if (tValues[Protean._nLimitMin] > tValues[Protean._nLimitMax]) then
+                        tValues[Protean._nLimitMin] = tValues[Protean._nLimitMax];
+                    end
+
+                    --calculate the final value for the first time
+                    Protean.helperCalculateFinalValue(this);
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.Methods.adjust
+        @pulsarlua function Protean.adjustValue
+        @desc Adjusts a value by the amount input. Adjusting a linked base updates every member of that linker.
+        @note If only one parameter is given, it is assumed that the base value is intended to be adjusted using the value input.
+        @param nType number The type of value to adjust.
+        @param nValue number The value by which to adjust the given value.
+        @return oProtean Protean This Protean object.
+        !]]
+        public adjustValue(nType, nValue)
+        {
+            if (nValue == nil) then
+                nValue = nType;
+                nType = Protean._nValueBase;
+            end
+
+            assert(Protean.helperCategoryIsValid(nType) and nType ~= Protean._nValueFinal, "Protean value category out of range.");
+            Protean.helperValidateValue(nValue);
+            local nAdjusted = this.getValue(nType) + nValue;
+            Protean.helperValidateValue(nAdjusted);
+            Protean.helperSetValue(this, nType, nAdjusted);
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.calculateFinalValue
+            @pulsarlua function Protean.calculateFinalValue
+            @desc Calculates the final value of the Protean. This is done on-change by default so that the final value (when requested) is always up-to-date and accurate. There is no need to call this unless auto-calculate has been disabled. In that case, this serves an external utility function to perform the normally-internal operation of calculating and updating the final value.
+            @return nValue number The calculated final value.
+        !]]
+        public calculateFinalValue()
+        {
+            Protean.helperCalculateFinalValue(this);
+            return this;
+        }
+
+        --Compatibility alias for the original spelling.
+        --[[!
+        @fqxn LuaEx.Classes.Protean.Methods.calulateFinalValue
+        @pulsarlua function Protean.calulateFinalValue
+        @desc Compatibility alias for calculateFinalValue(), retaining its original spelling and behavior.
+        @ret Protean oProtean This instance, for chaining.
+        !]]
+        public calulateFinalValue()
+        {
+            Protean.helperCalculateFinalValue(this);
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.get
+            @pulsarlua function Protean.getValue
+            @desc Gets the value of the given value type. Note: if the type provided is ProteanValue.Final and MIN or MAX limits have been set, the returned value will fall within the confines of those paramter(s).
+            @note If no parameter is given, the final value is returned.
+            @param nType number The type of value to adjust.
+            @return nValue number The value of the given type.
+        !]]
+        public getValue(nType)
+        {
+            nType = nType == nil and Protean._nValueFinal or nType;
+            assert(Protean.helperCategoryIsValid(nType), "Protean value category out of range.");
+            local pri = this;
+
+            if (nType == Protean._nValueBase and pri._isLinked) then
+                return Protean._tLinkers[pri.linkerID].baseValue;
+            end
+
+            return pri.values[nType];
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.getLinkerID
+            @pulsarlua function Protean.getLinkerID
+            @desc Gets this Protean's linkerID.
+            @return nID number The ID of the linker;
+        !]]
+        public getLinkerID()
+        {
+            return this.linkerID;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.isAutoCalculated
+            @pulsarlua function Protean.isAutoCalculated
+            @desc Determines whether or not auto-calculate is active.
+            @return bActive boolean Whether or not auto-calculate occurs on value change.
+        !]]
+        public isAutoCalculated()
+        {
+            return this.autoCalculate;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.isCallbackActive
+            @pulsarlua function Protean.isCallbackActive
+            @desc Determines whether or not the callback is called on change.
+            @return bActive boolean Whether or not the callback is called on value change.
+        !]]
+        public isCallbackActive()
+        {
+            return this._isCallbackActive;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.isCallbackLocked
+        @desc Retains the existing Protean operation.
+        !]]
+        public isCallbackLocked()
+        {
+            return this._isCallbackLocked;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.isCallbackToggleLocked
+        @desc Retains the existing Protean operation.
+        !]]
+        public isCallbackToggleLocked()
+        {
+            return this._isCallbackToggleLocked;
+        }
+
+        --@fqxn LuaEx.Classes.Protean
+        public isLinked()
+        {
+            return this._isLinked;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.Methods.lockCallback
+        @pulsarlua function Protean.lockCallback
+        @desc Permanently prevents setCallback() from replacing or clearing this instance's callback. Activation remains independently controlled by the toggle lock.
+        @ret nil No return value.
+        !]]
+        public lockCallback()
+        {
+            this._isCallbackLocked = true;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.Methods.lockCallbackToggle
+        @pulsarlua function Protean.lockCallbackToggle
+        @desc Permanently prevents setCallbackActive() calls and prevents setCallback() from changing the active state. Callback replacement with unchanged activation remains possible unless the callback itself is locked.
+        @ret nil No return value.
+        !]]
+        public lockCallbackToggle()
+        {
+            this._isCallbackToggleLocked = true;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.setAutoCalculate
+            @pulsarlua function Protean.setAutoCalculate
+            @desc By default, the final value is calculated whenever a change is made to a value; however, this method gives the power of that choice to the client. If disabled, the client will need to call calculateFinalValue to update the final value.
+            @param bAutoCalculate boolean Whether or not the objects should auto-calculate the final value.
+            @return oProtean Protean This Protean object.
+        !]]
+        public setAutoCalculate(bFlag)
+        {
+            local pri = this;
+            pri.autoCalculate = rawtype(bFlag) == "boolean" and bFlag or false;
+
+            if (pri.autoCalculate) then
+                Protean.helperCalculateFinalValue(this);
+            end
+
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.setCallback
+            @pulsarlua function Protean.setCallback
+            @desc Set the given function as this objects's onChange callback which is called whenever a change occurs (if active).
+            @param fCallback function The callback function (which must accept the Protean object as its first parameter)
+            @param bDoNotSetActive boolean If true, the function is not set to active, otherwise (even with nil value) the function is set to active.
+            @return oProtean Protean This Protean object.
+        !]]
+        public setCallback(fCallback, bDoNotSetActive)
+        {
+            local pri = this;
+
+            if (pri._isCallbackLocked) then
+                error("Error setting Protean callback function.\nCallback is locked.");
+            end
+
+            local bActive = rawtype(fCallback) == "function" and bDoNotSetActive ~= true;
+            assert(not pri._isCallbackToggleLocked or bActive == pri._isCallbackActive, "Protean callback toggling is locked.");
+
+            if (rawtype(fCallback) == "function") then
+                pri.onChange[1]         = fCallback;
+                pri._isCallbackActive    = not (rawtype(bDoNotSetActive) == "boolean" and bDoNotSetActive or false);
+
+            else
+                pri.onChange[1]         = nil;
+                pri._isCallbackActive    = false;
+            end
+
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.setCallbackActive
+            @pulsarlua function Protean.setCallbackActive
+            @desc Set the object's callback function (if any) to active/inactive. If active, it will fire whenever a change is made while nothing will occur if it is inactive.
+            @param bActive boolean A boolean value indicating whether or no the callback function should be called.
+            @return oProtean Protean This Protean object.
+        !]]
+        public setCallbackActive(bFlag)
+        {
+            local pri = this;
+
+            if (pri._isCallbackToggleLocked) then
+                error("Error enabling/disabling Protean callback function.\nCallback toggling is locked.");
+            end
+
+            if (rawtype(bFlag) == "boolean") then
+
+                if (rawtype(pri.onChange[1]) == "function") then
+                    pri._isCallbackActive = bFlag;
+                end
+
+            else
+                pri._isCallbackActive = false;
+            end
+
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.setLimitMax
+            @pulsarlua function Protean.setLimitMax
+            @desc Tells the Protean whether to enable the maximum limiter.
+            @param bLimit boolean|nil If true, will enable the limiter, if not, it will disable it.
+            @return oProtean Protean This Protean object.
+        !]]
+        public setLimitMax(bFlag)
+        {
+            local pri = this;
+            pri.limitMax = rawtype(bFlag) == "boolean" and bFlag or false;
+
+            if (pri.autoCalculate) then
+                Protean.helperCalculateFinalValue(this);
+            end
+
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.setLimitMin
+            @pulsarlua function Protean.setLimitMin
+            @desc Tells the Protean whether to enable the minimum limiter.
+            @param bLimit boolean|nil If true, will enable the limiter, if not, it will disable it.
+            @return oProtean Protean This Protean object.
+        !]]
+        public setLimitMin(bFlag)
+        {
+            local pri = this;
+            pri.limitMin = rawtype(bFlag) == "boolean" and bFlag or false;
+
+            if (pri.autoCalculate) then
+                Protean.helperCalculateFinalValue(this);
+            end
+
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.setLinker
+            @pulsarlua function Protean.setLinker
+            @desc Links or unlinks this object based on the input.
+            @param vLinkerID number If this is a number, the object will be linked to the provided linerkID (if valid). If the input linkerID is invalid, a proper one will be created. If the linkerID is nil, the object will be unlinked (if already linked).
+            @return oProtean Protean This Protean object.
+        !]]
+        public setLinker(nLinkerID)
+        {
+            local sLinkerIDType = rawtype(nLinkerID);
+
+            if (sLinkerIDType == "number") then
+                Protean.helperLink(this, nLinkerID);
+
+            elseif (sLinkerIDType == "nil") then
+                Protean.helperUnlink(this);
+            else
+                error("Error setting Protean linker.\nLinker ID must of type number (or nil). Type given: "..type(sLinkerIDType));
+            end
+
+            return this;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.Protean.Methods.set
+            @pulsarlua function Protean.setValue
+            @desc Set the given value type to the value input. Note: if this object is linked, and the type provided is ProteanValue.Base, this linker's base value will also change, affecting every other linked object's base value.
+            @note If only one parameter is given, it is assumed that the base value is intended to be set using the value input.
+            @param nType number The type of value to adjust.
+            @param nValue number The value which to set given value type.
+            @return oProtean Protean This Protean object.
+        !]]
+        public setValue(nType, nValue)
+        {
+            if (nValue == nil) then
+                nValue = nType;
+                nType = Protean._nValueBase;
+            end
+
+            assert(Protean.helperCategoryIsValid(nType) and nType ~= Protean._nValueFinal, "Protean value category out of range.");
+            Protean.helperValidateValue(nValue);
+            Protean.helperSetValue(this, nType, nValue);
+            return this;
+        }
+
+    }
+}

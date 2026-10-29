@@ -1,0 +1,217 @@
+--[[!
+@fqxn LuaEx.Classes.EventSystem
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class EventSystem
+    {
+        --[[!
+        @fqxn LuaEx.Classes.EventSystem.helperValidateEvent
+        @desc Private class helper migrated from validateEvent.
+        !]]
+        private static helperValidateEvent(tEvents, vOwner, sEvent, sMethod)
+        {
+            local bExists = tEvents[vOwner]         ~= nil and
+                            tEvents[vOwner][sEvent] ~= nil;
+
+            if not (bExists) then
+                error("Error caling EventSystem method, '${method}'. Invalid event." % {method = sMethod});
+            end
+        }
+
+        private events = {};
+
+        private defaultEnv = {};
+
+        --PUBLIC
+            --[[!
+            @fqxn CoG.EventSystem.Methods.EventSystem
+            @desc The constructor for the EventSystem.
+            @param table|nil tEnv The default <a href="https://www.lua.org/manual/5.3/manual.html#2.2" target="_blank">environment</a> in which to fire event callbacks (if one is not specified during event registration). If nil, the current environment will be used as the default.
+            @ex
+            local tRestrictedEnv = {print = print, type = type, string = string};
+            local oRestrictedEventSystem = EventSystem(tRestrictedEnv); -- creates an EventSystem with a restricted default env
+
+            local oEventSystem = EventSystem(); --creates an EventSystem using the current environment as the default
+            !]]
+        public EventSystem(tEnv)
+        {
+            this.defaultEnv = type(tEnv) == "table" and tEnv or _G;
+        }
+
+        --[[!
+        @fqxn CoG.EventSystem.Methods.isActive
+        @desc Determines if the event callback is active.
+        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param string sEvent The name of the event.
+        @param function fCallback The callback function to check.
+        @ret boolean bIsActive True if the event callback is active, false otherwise.
+        @ex TODO
+        ]]
+        public isActive(vOwner, sEvent, fCallback)
+        {
+            local pri       = this;
+            local tEvents   = pri.events;
+
+            EventSystem.helperValidateEvent(tEvents, vOwner, sEvent, "isActive");
+
+            local tCallbacks = tEvents[vOwner][sEvent];
+
+            if (tCallbacks[fCallback] == nil) then
+                error("Unknown event callback.");
+            end
+
+            return tCallbacks[fCallback].isActive;
+        }
+
+        --[[!
+        @fqxn CoG.EventSystem.Methods.register
+        @desc Registers a callback function with an owner and event.
+        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param string sEvent The name of the event.
+        @param function fCallback The callback function to check.
+        @param table|nil tEnv The environment in which the callback will be fired. If nil, it will be set to the <b>EventSystem's</b> default environment.
+        @ret EventSystem oEventSystem The EventSystem.
+        @ex TODO
+        ]]
+        public register(vOwner, sEvent, fCallback, tEnv)
+        {
+            local pri     = this;
+            local tEvents = pri.events;
+
+            assert(vOwner ~= nil, "Error regsitering event, '${event}'. Event owner cannot be nil.");
+            type.assert.string(sEvent, "%S+");
+            type.assert["function"](fCallback);
+
+            --create the owner's event table if it doesn't exist
+            if (tEvents[vOwner] == nil) then
+                tEvents[vOwner] = {};
+            end
+
+            --create the event's callback table if it doesn't exist
+            if (tEvents[vOwner][sEvent] == nil) then
+                tEvents[vOwner][sEvent] = {};
+            end
+
+            local tCallbacks = tEvents[vOwner][sEvent];
+
+            --setup the function env
+            local tEnv = type(tEnv) == "table" and tEnv or pri.defaultEnv;
+
+            --register the event with the owner (and set it active by default)
+            if (tCallbacks[fCallback] == nil) then
+                tCallbacks[fCallback] = {
+                    isActive = true,
+                    env      = tEnv;
+                };
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn CoG.EventSystem.Methods.setActive
+        @desc Sets event callback(s) to active/inactive.
+        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param string sEvent The name of the event.
+        @param function|nil fCallback The callback function to set active/inactive. If this is nil, all callback functions for the event will be set active/inactive.
+        @param boolean bSetActive Whether to activate or deactivate the event callback.
+        @ret EventSystem oEventSystem The EventSystem.
+        @ex TODO
+        ]]
+        public setActive(vOwner, sEvent, fCallback, bFlag)
+        {
+            local pri       = this;
+            local tEvents   = pri.events;
+
+            EventSystem.helperValidateEvent(tEvents, vOwner, sEvent, "setActive");
+
+            local tCallbacks = tEvents[vOwner][sEvent];
+            local bActive = type(bFlag) == "boolean" and bFlag or false;
+
+            if (fCallback == nil) then
+
+                for fCallback, tCallback in pairs(tCallbacks) do
+                    tCallback.isActive = bActive;
+                end
+
+            else
+
+                if (tCallbacks[fCallback] == nil) then
+                    error("Unknown event callback.");
+                end
+
+                tCallbacks[fCallback].isActive = bActive;
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn CoG.EventSystem.Methods.toggleActive
+        @desc Sets event callback(s) to active/inactive.
+        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param string sEvent The name of the event.
+        @param function|nil fCallback The callback function to set active/inactive. If this is nil, all callback functions for the event will be set active/inactive.
+        @ret EventSystem oEventSystem The EventSystem.
+        @ex TODO
+        ]]
+        public toggleActive(vOwner, sEvent, fCallback)
+        {
+            local pri       = this;
+            local tEvents   = pri.events;
+
+            EventSystem.helperValidateEvent(tEvents, vOwner, sEvent, "setActive");
+
+            local tCallbacks = tEvents[vOwner][sEvent];
+            if (fCallback == nil) then
+
+                for fCallback, tCallback in pairs(tCallbacks) do
+                    tCallback.isActive = not tCallback.isActive;
+                end
+
+            else
+
+                if (tCallbacks[fCallback] == nil) then
+                    error("Unknown event callback.");
+                end
+
+                local tCallback = tCallbacks[fCallback];
+                tCallback.isActive = not tCallback.isActive;
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn CoG.EventSystem.Methods.
+        @desc
+        @ex
+        ]]
+        public unregister(vOwner, sEvent, fCallback)
+        {
+            --TODO FINISH
+                    local pri     = this;
+                    local tEvents = pri.events;
+
+                    assert(vOwner ~= nil, "Error regsitering event, '${event}'. Event owner cannot be nil.");
+                    type.assert.string(sEvent, "%S+");
+                    type.assert["function"](fCallback);
+
+                    EventSystem.helperValidateEvent(tEvents, vOwner, sEvent, "unregister");
+
+                    local tCallbacks = tEvents[vOwner][sEvent];
+
+                    if (tCallbacks[fCallback] == nil) then
+                        error("Unknown event callback.");
+                    end
+
+                    --unregister the event
+                    tCallbacks[fCallback] = nil;
+
+                    return this;
+        }
+
+    }
+}

@@ -1,0 +1,68 @@
+namespace Playground {
+    -- Shared identity and health. Derived classes cannot read name directly.
+    class Creature {
+        private     name                = "Unnamed";
+        protected   maximumHitPoints    = 100;
+        public      species             = "Creature";
+
+        public HitPoints {
+            get;
+            protected set { field = math.min(this.maximumHitPoints, math.max(0, value)); }
+        } = 100;
+
+        public Creature(sName, nMaximumHitPoints) {
+            if (sName == nil) then sName = "Unnamed"; end
+            if (nMaximumHitPoints == nil) then nMaximumHitPoints = 100; end
+
+            this.validateAmount(nMaximumHitPoints, "Maximum hit points");
+            assert(nMaximumHitPoints > 0, "Maximum hit points must be positive.");
+            this.setName(sName);
+            this.maximumHitPoints = nMaximumHitPoints;
+            this.HitPoints = nMaximumHitPoints;
+        }
+
+        -- Protected methods are available to descendants, but not their callers.
+        protected final validateAmount(nAmount, sLabel) {
+            assert(type(nAmount) == "number" and math.isfinite(nAmount) and nAmount >= 0,
+                sLabel.." must be a finite, nonnegative number.");
+        }
+
+        protected final requireAlive() {
+            assert(this.isAlive(), "This creature is not alive.");
+        }
+
+        public final getName() { return this.name; }
+
+        public setName(sName) {
+            assert(type(sName) == "string" and sName:find("%S"), "Name must contain text.");
+            this.name = sName;
+            return this;
+        }
+
+        public getMaximumHitPoints() { return this.maximumHitPoints; }
+        public isAlive() { return this.HitPoints > 0; }
+
+        -- Damage/healing return the actual change after clamping. Healing can
+        -- restore a creature whose hit points have reached zero.
+        public takeDamage(nDamage) {
+            this.validateAmount(nDamage, "Damage");
+            local nBefore = this.HitPoints;
+            this.HitPoints = nBefore - nDamage;
+            return nBefore - this.HitPoints;
+        }
+
+        public heal(nHealing) {
+            this.validateAmount(nHealing, "Healing");
+            local nBefore = this.HitPoints;
+            this.HitPoints = nBefore + nHealing;
+            return this.HitPoints - nBefore;
+        }
+
+        public describe() {
+            return string.format("%s (%s): %g/%g HP", this.name, this.species,
+                this.HitPoints, this.maximumHitPoints);
+        }
+
+        public __tostring() { return this.describe(); }
+    }
+}

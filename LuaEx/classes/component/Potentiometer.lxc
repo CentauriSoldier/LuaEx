@@ -1,0 +1,546 @@
+--[[!
+@fqxn LuaEx.Classes.Potentiometer
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class Potentiometer
+    {
+        private static _nMinDefault = 0;
+
+        private static _nMaxDefault = 99;
+
+        private static _nRateDefault = 1;
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.helperContinuityIsValid
+        @desc Private class helper migrated from continuityIsValid.
+        !]]
+        private static helperContinuityIsValid(nValue)
+        {
+            return rawtype(nValue) == "number" and
+                (nValue == POT_CONTINUITY_NONE or nValue == POT_CONTINUITY_REVOLVE or nValue == POT_CONTINUITY_ALT);
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.helperValidateNumber
+        @desc Private class helper migrated from validateNumber.
+        !]]
+        private static helperValidateNumber(nValue)
+        {
+            type.assert.number(nValue);
+            assert(nValue == nValue and nValue ~= math.huge and nValue ~= -math.huge, "Potentiometer values must be finite.");
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.helperUpdateStatus
+        @desc Private class helper migrated from updateStatus.
+        !]]
+        private static helperUpdateStatus(pri)
+        {
+            pri._isAtStart = pri.pos == pri.min;
+            pri._isAtEnd   = pri.pos == pri.max;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.helperNormalizePosition
+        @desc Private class helper migrated from normalizePosition.
+        !]]
+        private static helperNormalizePosition(pri, nPosition)
+        {
+            Potentiometer.helperValidateNumber(nPosition);
+            local nSpan          = pri.max - pri.min;
+            local nPositionFinal = nPosition;
+
+            if (pri.continuity == POT_CONTINUITY_REVOLVE) then
+                if (nPosition < pri.min or nPosition > pri.max) then
+                    --Inclusive revolution: 0..100 has a period of 101, so 120 becomes 19.
+                    local nPeriod = nSpan + 1;
+                    nPositionFinal = pri.min + ((nPosition % nPeriod - pri.min % nPeriod) % nPeriod);
+                    --Fractional values in the inclusive one-unit seam stay at the upper endpoint.
+                    nPositionFinal = math.min(pri.max, nPositionFinal);
+                end
+            elseif (pri.continuity == POT_CONTINUITY_ALT) then
+                if (nPosition < pri.min or nPosition > pri.max) then
+                    local nPeriod = 2 * nSpan;
+                    local nPhase  = (nPosition % nPeriod - pri.min % nPeriod) % nPeriod;
+                    local nCrossings;
+
+                    if (nPosition > pri.max) then
+                        nCrossings = math.ceil((nPosition - pri.max) / nSpan);
+                    else
+                        nCrossings = math.ceil((pri.min - nPosition) / nSpan);
+                    end
+
+                    nPositionFinal = pri.min + (nPhase <= nSpan and nPhase or nPeriod - nPhase);
+
+                    if (nCrossings % 2 == 1) then
+                        pri.alternator = -pri.alternator;
+                    end
+                end
+            else
+                nPositionFinal = math.max(pri.min, math.min(pri.max, nPosition));
+            end
+
+            pri.pos = nPositionFinal;
+            Potentiometer.helperUpdateStatus(pri);
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.helperValidateBounds
+        @desc Private class helper migrated from validateBounds.
+        !]]
+        private static helperValidateBounds(nMin, nMax)
+        {
+            Potentiometer.helperValidateNumber(nMin);
+            Potentiometer.helperValidateNumber(nMax);
+            local nSpan = nMax - nMin;
+            assert(nSpan > 0 and nSpan < math.huge and nSpan * 2 < math.huge and nSpan + 1 > nSpan,
+                "Potentiometer bounds must have a finite, positive representable span.");
+        }
+
+        static Potentiometer()
+        {
+            constant("POT_CONTINUITY_NONE", 0)
+            constant("POT_CONTINUITY_REVOLVE", 1)
+            constant("POT_CONTINUITY_ALT", 2)
+        }
+
+        --METAMETHODS
+            --[[!
+            @fqxn LuaEx.Classes.Potentiometer.__clone
+            @desc Creates an independent copy preserving bounds, rate, position, continuity and direction.
+            @ret Potentiometer oCopy The copy.
+            @ex
+            local oPot  = Potentiometer(0, 10, 11, 1, POT_CONTINUITY_ALT);
+            local oCopy = clone(oPot);
+            assert(oCopy.isDescending() and oCopy.getPos() == 9);
+            !]]
+        public __clone()
+        {
+            local pri          = this;
+            local oCopy        = Potentiometer(pri.min, pri.max, pri.pos, pri.rate, pri.continuity);
+            local tCopyPrivate = oCopy;
+            tCopyPrivate.alternator = pri.alternator;
+            Potentiometer.helperUpdateStatus(tCopyPrivate);
+            return oCopy;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.validateSnapshot
+        @desc Retains the existing Potentiometer operation.
+        !]]
+        private validateSnapshot(tState)
+        {
+            local pri = tState.pri;
+            type.assert.table(pri);
+
+            for _, sField in ipairs({"min", "max", "pos", "rate", "alternator"}) do
+                Potentiometer.helperValidateNumber(pri[sField]);
+            end
+
+            assert(pri.min < pri.max and math.isfinite(pri.max - pri.min), "Invalid Potentiometer snapshot bounds.");
+            assert(pri.pos >= pri.min and pri.pos <= pri.max, "Invalid Potentiometer snapshot position.");
+            assert(pri.rate >= 0 and pri.rate <= pri.max - pri.min, "Invalid Potentiometer snapshot rate.");
+            assert(Potentiometer.helperContinuityIsValid(pri.continuity), "Invalid Potentiometer snapshot continuity.");
+            assert(pri.alternator == 1 or pri.alternator == -1, "Invalid Potentiometer snapshot direction.");
+            assert(rawtype(pri._isAtStart) == "boolean" and rawtype(pri._isAtEnd) == "boolean",
+                   "Invalid Potentiometer snapshot status.");
+            Potentiometer.helperUpdateStatus(pri);
+        }
+
+        private alternator = 1;
+
+        private continuity = POT_CONTINUITY_NONE;
+
+        private _isAtStart = false;
+
+        private _isAtEnd = false;
+
+        private min = 0;
+
+        private max = 99;
+
+        private pos = 0;
+
+        private rate = 1;
+
+        --PUBLIC
+            --[[!
+            @fqxn LuaEx.Classes.Potentiometer.Potentiometer
+            @pulsarlua function Potentiometer
+            @desc Creates a bounded position. Nonnumeric or omitted arguments retain the original defaults. Invalid numeric bounds raise MAX to MIN + 1; rate is a nonnegative magnitude capped to the span. Nonfinite values are rejected.
+            @param number|nil nMin Minimum; defaults to 0.
+            @param number|nil nMax Maximum; defaults to 99.
+            @param number|nil nPos Starting position; defaults to 0 and is normalized to the selected mode.
+            @param number|nil nRate Rate magnitude; defaults to 1.
+            @param number|nil nContinuity NONE, REVOLVE or ALT; defaults to NONE.
+            @ret Potentiometer oPot The new object.
+            @ex
+            local oPot = Potentiometer(0, 10, 5, 2);
+            assert(oPot.getPos() == 5 and oPot.getRate() == 2);
+            !]]
+        public Potentiometer(nMin, nMax, nPos, nRate, nContinuity)
+        {
+            nMin = rawtype(nMin) == "number" and nMin or Potentiometer._nMinDefault;
+            nMax = rawtype(nMax) == "number" and nMax or Potentiometer._nMaxDefault;
+            nPos = rawtype(nPos) == "number" and nPos or Potentiometer._nMinDefault;
+            nRate = rawtype(nRate) == "number" and nRate or Potentiometer._nRateDefault;
+            Potentiometer.helperValidateNumber(nMin);
+            Potentiometer.helperValidateNumber(nMax);
+            Potentiometer.helperValidateNumber(nPos);
+            Potentiometer.helperValidateNumber(nRate);
+
+            if (nMax <= nMin) then
+                nMax = nMin + 1;
+            end
+
+            Potentiometer.helperValidateBounds(nMin, nMax);
+            local pri      = this;
+            pri.min        = nMin;
+            pri.max        = nMax;
+            pri.rate       = math.min(math.abs(nRate), nMax - nMin);
+            pri.continuity = Potentiometer.helperContinuityIsValid(nContinuity) and nContinuity or POT_CONTINUITY_NONE;
+            Potentiometer.helperNormalizePosition(pri, nPos);
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.adjust
+        @pulsarlua function Potentiometer.adjust
+        @desc Adds an absolute signed amount to position, independently of the alternating direction, then normalizes bounds.
+        @param number|nil nValue Amount; defaults to the rate.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.adjust(-2);
+        assert(oPot.getPos() == 3);
+        !]]
+        public adjust(nValue)
+        {
+            local pri     = this;
+            local nAmount = rawtype(nValue) == "number" and nValue or pri.rate;
+            Potentiometer.helperValidateNumber(nAmount);
+            Potentiometer.helperNormalizePosition(pri, pri.pos + nAmount);
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.decrease
+        @pulsarlua function Potentiometer.decrease
+        @desc Moves backward by rate times the multiplier relative to the current logical direction.
+        @param number|nil nTimes Rate multiplier; defaults to 1.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.decrease(2);
+        assert(oPot.getPos() == 1);
+        !]]
+        public decrease(nTimes)
+        {
+            local pri    = this;
+            local nCount = rawtype(nTimes) == "number" and nTimes or 1;
+            Potentiometer.helperValidateNumber(nCount);
+            Potentiometer.helperNormalizePosition(pri, pri.pos - pri.rate * nCount * pri.alternator);
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.getMax
+        @pulsarlua function Potentiometer.getMax
+        @desc Gets the current max.
+        @ret number nValue The max.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        assert(oPot.getMax() == 10);
+        !]]
+        public getMax()
+        {
+            return this.max;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.getMin
+        @pulsarlua function Potentiometer.getMin
+        @desc Gets the current min.
+        @ret number nValue The min.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        assert(oPot.getMin() == 0);
+        !]]
+        public getMin()
+        {
+            return this.min;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.getPos
+        @pulsarlua function Potentiometer.getPos
+        @desc Gets the current pos.
+        @ret number nValue The pos.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        assert(oPot.getPos() == 5);
+        !]]
+        public getPos()
+        {
+            return this.pos;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.getRate
+        @pulsarlua function Potentiometer.getRate
+        @desc Gets the current rate.
+        @ret number nValue The rate.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        assert(oPot.getRate() == 2);
+        !]]
+        public getRate()
+        {
+            return this.rate;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.getContinuity
+        @pulsarlua function Potentiometer.getContinuity
+        @desc Gets the current continuity.
+        @ret number nValue The continuity.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        assert(oPot.getContinuity() == POT_CONTINUITY_NONE);
+        !]]
+        public getContinuity()
+        {
+            return this.continuity;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.increase
+        @pulsarlua function Potentiometer.increase
+        @desc Moves forward by rate times the multiplier in the current logical direction. Alternating mode reflects overshoot and reverses direction once per boundary crossed.
+        @param number|nil nTimes Rate multiplier; defaults to 1.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.increase(2);
+        assert(oPot.getPos() == 9);
+        !]]
+        public increase(nTimes)
+        {
+            local pri    = this;
+            local nCount = rawtype(nTimes) == "number" and nTimes or 1;
+            Potentiometer.helperValidateNumber(nCount);
+            Potentiometer.helperNormalizePosition(pri, pri.pos + pri.rate * nCount * pri.alternator);
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.isAlternating
+        @pulsarlua function Potentiometer.isAlternating
+        @desc Checks whether alternating reflection is enabled.
+        @ret boolean bResult The result.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 1, POT_CONTINUITY_ALT);
+        assert(oPot.isAlternating());
+        !]]
+        public isAlternating()
+        {
+            return this.continuity == POT_CONTINUITY_ALT;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.isAscending
+        @pulsarlua function Potentiometer.isAscending
+        @desc Checks whether a continuous mode currently advances toward maximum. Returns false in clamped mode.
+        @ret boolean bResult The result.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 1, POT_CONTINUITY_ALT);
+        assert(oPot.isAscending());
+        !]]
+        public isAscending()
+        {
+            local pri = this;
+            return pri.continuity ~= POT_CONTINUITY_NONE and pri.alternator == 1;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.isAtStart
+        @pulsarlua function Potentiometer.isAtStart
+        @desc Checks whether position equals minimum. This refers to the absolute endpoint, independently of direction.
+        @ret boolean bResult The result.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.setPos(0);
+        assert(oPot.isAtStart());
+        !]]
+        public isAtStart()
+        {
+            return this._isAtStart;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.isAtEnd
+        @pulsarlua function Potentiometer.isAtEnd
+        @desc Checks whether position equals maximum. This refers to the absolute endpoint, independently of direction.
+        @ret boolean bResult The result.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.setPos(10);
+        assert(oPot.isAtEnd());
+        !]]
+        public isAtEnd()
+        {
+            return this._isAtEnd;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.isDescending
+        @pulsarlua function Potentiometer.isDescending
+        @desc Checks whether alternating mode currently advances toward minimum.
+        @ret boolean bResult The result.
+        @ex
+        local oPot = Potentiometer(0, 10, 11, 1, POT_CONTINUITY_ALT);
+        assert(oPot.isDescending());
+        !]]
+        public isDescending()
+        {
+            local pri = this;
+            return pri.continuity == POT_CONTINUITY_ALT and pri.alternator == -1;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.isRevolving
+        @pulsarlua function Potentiometer.isRevolving
+        @desc Checks whether inclusive revolution is enabled.
+        @ret boolean bResult The result.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 1, POT_CONTINUITY_REVOLVE);
+        assert(oPot.isRevolving());
+        !]]
+        public isRevolving()
+        {
+            return this.continuity == POT_CONTINUITY_REVOLVE;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.setMax
+        @pulsarlua function Potentiometer.setMax
+        @desc Sets maximum and normalizes position and rate. Values at or below minimum become minimum + 1. Nonnumeric input leaves state unchanged.
+        @param number nValue The requested maximum.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.setMax(4);
+        assert(oPot.getPos() == 4 and oPot.isAtEnd());
+        !]]
+        public setMax(nValue)
+        {
+            if (rawtype(nValue) == "number") then
+                Potentiometer.helperValidateNumber(nValue);
+                local pri  = this;
+                local nMax = nValue > pri.min and nValue or pri.min + 1;
+                Potentiometer.helperValidateBounds(pri.min, nMax);
+                pri.max  = nMax;
+                pri.rate = math.min(pri.rate, pri.max - pri.min);
+                Potentiometer.helperNormalizePosition(pri, pri.pos);
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.setMin
+        @pulsarlua function Potentiometer.setMin
+        @desc Sets minimum and normalizes position and rate. Values at or above maximum become maximum - 1. Nonnumeric input leaves state unchanged.
+        @param number nValue The requested minimum.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.setMin(6);
+        assert(oPot.getPos() == 6 and oPot.isAtStart());
+        !]]
+        public setMin(nValue)
+        {
+            if (rawtype(nValue) == "number") then
+                Potentiometer.helperValidateNumber(nValue);
+                local pri  = this;
+                local nMin = nValue < pri.max and nValue or pri.max - 1;
+                Potentiometer.helperValidateBounds(nMin, pri.max);
+                pri.min  = nMin;
+                pri.rate = math.min(pri.rate, pri.max - pri.min);
+                Potentiometer.helperNormalizePosition(pri, pri.pos);
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.setPos
+        @pulsarlua function Potentiometer.setPos
+        @desc Sets absolute position and applies the selected boundary behavior. Exact alternating endpoints retain direction until a boundary is crossed. Nonnumeric input leaves state unchanged.
+        @param number nValue The requested position.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.setPos(12);
+        assert(oPot.getPos() == 10);
+        !]]
+        public setPos(nValue)
+        {
+            if (rawtype(nValue) == "number") then
+                Potentiometer.helperNormalizePosition(this, nValue);
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.setRate
+        @pulsarlua function Potentiometer.setRate
+        @desc Sets a nonnegative rate magnitude, capped to maximum minus minimum. Nonnumeric input leaves state unchanged.
+        @param number nValue The requested rate.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.setRate(-3);
+        assert(oPot.getRate() == 3);
+        !]]
+        public setRate(nValue)
+        {
+            if (rawtype(nValue) == "number") then
+                Potentiometer.helperValidateNumber(nValue);
+                local pri = this;
+                pri.rate  = math.min(math.abs(nValue), pri.max - pri.min);
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Potentiometer.setContinuity
+        @pulsarlua function Potentiometer.setContinuity
+        @desc Sets a supported boundary mode. Unsupported values are ignored. Leaving alternating mode resets direction to ascending; no debugging output is emitted.
+        @param number nContinuity A POT_CONTINUITY constant.
+        @ret Potentiometer oPot This object.
+        @ex
+        local oPot = Potentiometer(0, 10, 5, 2);
+        oPot.setContinuity(POT_CONTINUITY_REVOLVE);
+        assert(oPot.isRevolving());
+        !]]
+        public setContinuity(nContinuity)
+        {
+            local pri = this;
+
+            if (Potentiometer.helperContinuityIsValid(nContinuity)) then
+                pri.continuity = nContinuity;
+
+                if (nContinuity ~= POT_CONTINUITY_ALT) then
+                    pri.alternator = 1;
+                end
+            end
+
+            return this;
+        }
+
+    }
+}

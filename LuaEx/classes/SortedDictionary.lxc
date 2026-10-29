@@ -1,0 +1,319 @@
+--[[!
+@fqxn LuaEx.Classes.SortedDictionary
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class SortedDictionary
+    {
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.helperDefaultSorter
+        @desc Private class helper migrated from defaultSorter.
+        !]]
+        private static helperDefaultSorter(a, b)
+        {
+            return a < b;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.helperStoreItem
+        @desc Private class helper migrated from storeItem.
+        !]]
+        private static helperStoreItem(other, sKey, vValue)
+        {
+            if (type(sKey) ~= "string") then
+                error("Error adding item to SortedDictionary. Key must be a string.", 3);
+            end
+
+            local pri = other;
+            local bExists = false;
+
+            for _, sExisting in ipairs(pri.keys) do
+                if (sExisting == sKey) then
+                    bExists = true;
+                    break;
+                end
+            end
+
+            if (not bExists) then
+                local tKeys = {};
+
+                -- Commit the new ordered list only after the comparator succeeds.
+                for nIndex, sExisting in ipairs(pri.keys) do
+                    tKeys[nIndex] = sExisting;
+                end
+
+                tKeys[#tKeys + 1] = sKey;
+                table.sort(tKeys, pri.sorter[1]);
+                pri.keys = tKeys;
+            end
+
+            pri.actual[sKey] = vValue;
+            return other;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.__clone
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public __clone()
+        {
+            local pri     = this;
+            local oNew    = SortedDictionary();
+            local newcdat = oNew;
+            local newpri  = newcdat;
+
+            cloner.registerCopy(this, oNew);
+            newpri.actual  = clone(pri.actual);
+            newpri.keys    = clone(pri.keys);
+            newpri.sorter  = {pri.sorter[1]}; --retain the comparator function's identity
+
+            return oNew;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.__call
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public __call()
+        {
+            --NOTE: 5.1 compat
+                   local nIndex    = 0;
+                   local tActual   = this.actual;
+                   local tKeys     = this.keys;
+
+                   local function fIterator()
+                       nIndex = nIndex + 1
+
+                       if tKeys[nIndex] then
+                           return tKeys[nIndex], tActual[tKeys[nIndex]];
+                       end
+
+                   end
+
+                   -- The iterator state is the public object, never its private storage.
+                   return fIterator, this, nil;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.__pairs
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public __pairs()
+        {
+            -- Use the same ordered iterator as direct calls.
+            return this();
+        }
+
+        private actual = {};
+
+        private keys = {};
+
+        private sorter = {};
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.__serialize
+        @desc Reconstructs the internal default comparator without exporting its
+            class environment. Host serialization retains custom application comparators.
+        !]]
+        public __serialize(state)
+        {
+            if (rawequal(this.sorter[1], SortedDictionary.helperDefaultSorter)) then
+                state.pri.sorter = {};
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.__deserialize
+        @desc Restores the default comparator after the data graph is complete.
+        !]]
+        public __deserialize(state)
+        {
+            if (state.pri.sorter[1] == nil) then
+                state.pri.sorter = {SortedDictionary.helperDefaultSorter};
+            else
+                assert(rawtype(state.pri.sorter[1]) == "function", "Invalid saved comparator.");
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.SortedDictionary
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public SortedDictionary()
+        {
+            --TODO allow initial input
+                    this.sorter = {SortedDictionary.helperDefaultSorter};
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.SortedDictionary.Methods.add
+            @desc Adds or replaces a string-keyed entry without duplicating its key.
+            @param string sKey Entry key.
+            @param any vValue Entry value.
+            @ret SortedDictionary this The same dictionary.
+        !]]
+        public add(sKey, vValue)
+        {
+            return SortedDictionary.helperStoreItem(this, sKey, vValue);
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.containsKey
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public containsKey(vKey)
+        {
+            local bRet = false;
+
+            local sTypeKey = type(vKey);
+
+            if (sTypeKey ~= "string") then
+                error("Error ascertaining existence of key in SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
+            end
+
+            for _, sExistingKey in ipairs(this.keys) do
+
+                if (vKey == sExistingKey) then
+                    bRet = true;
+                    break;
+                end
+
+            end
+
+            return bRet;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.SortedDictionary.Methods.containsValue
+            @desc Tests stored entries with Lua equality. Explicit nil-valued entries
+            count as present; an empty dictionary contains no values.
+            @param any vValue Value to find.
+            @ret boolean bContains Whether an ordered entry has this value.
+        !]]
+        public containsValue(vValue)
+        {
+            for _, sKey in ipairs(this.keys) do
+                if (this.actual[sKey] == vValue) then
+                    return true;
+                end
+            end
+
+            return false;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.get
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public get(vKey)
+        {
+            local sTypeKey = type(vKey);
+
+            if (sTypeKey ~= "string") then
+                error("Error getting value from SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
+            end
+
+            local bKeyExists = false;
+            for k, v in ipairs(this.keys) do
+
+                if (v == vKey) then
+                    bKeyExists = true;
+                    break;
+                end
+
+            end
+
+            if not (bKeyExists) then
+                error("Error getting value from SortedDictionary.\nNo such key exists: '"..vKey.."'.", 2);
+            end
+
+            return this.actual[vKey];
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.remove
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public remove(vKey)
+        {
+            local pri       = this;
+            local tKeys     = pri.keys;
+            local sTypeKey  = type(vKey);
+
+            if (sTypeKey ~= "string") then
+                error("Error removing item from SortedDictionary.\nKey type expected: string. Type given: "..sTypeKey..'.', 2);
+            end
+
+            local bKeyExists = false;
+            local nIndex = -1;
+            for _, v in ipairs(tKeys) do
+
+                if (v == vKey) then
+                    bKeyExists = true;
+                    nIndex = _;
+                    break;
+                end
+
+            end
+
+            if not (bKeyExists) then
+                error("Error removing item from SortedDictionary.\nNo such key exists: '"..vKey.."'.", 2);
+            end
+
+            table.remove(tKeys, nIndex);
+            -- Removing one key preserves the order established by the current comparator.
+            pri.actual[vKey] = nil;
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.SortedDictionary.Methods.set
+            @desc Replaces an entry or inserts a new string key in sorted order.
+            @param string sKey Entry key.
+            @param any vValue Entry value.
+            @ret SortedDictionary this The same dictionary.
+        !]]
+        public set(sKey, vValue)
+        {
+            return SortedDictionary.helperStoreItem(this, sKey, vValue);
+        }
+
+        --[[!
+            @fqxn LuaEx.Classes.SortedDictionary.Methods.setSortFunction
+            @desc Sorts a temporary key list before committing the comparator and
+            order. Nil restores ascending order; failed comparators preserve state.
+            @param function|nil fSorter Comparator receiving two string keys.
+            @ret SortedDictionary this The same dictionary.
+        !]]
+        public setSortFunction(fSorter)
+        {
+            if (fSorter ~= nil and type(fSorter) ~= "function") then
+                error("Error setting sort method for SortedDictionary. Expected a function or nil.", 2);
+            end
+
+            local fNextSorter = fSorter or SortedDictionary.helperDefaultSorter;
+            local tKeys = {};
+
+            for nIndex, sKey in ipairs(this.keys) do
+                tKeys[nIndex] = sKey;
+            end
+
+            -- An error leaves both the existing order and its comparator untouched.
+            table.sort(tKeys, fNextSorter);
+            this.keys = tKeys;
+            this.sorter[1] = fNextSorter;
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.SortedDictionary.size
+        @desc Retains the existing SortedDictionary operation.
+        !]]
+        public size()
+        {
+            return #this.keys;
+        }
+
+    }
+}

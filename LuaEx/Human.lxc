@@ -1,0 +1,48 @@
+namespace Playground
+{
+    -- Human adds age and stamina while retaining Creature's health methods.
+    class Human : Creature
+    {
+        private age = 18;
+        protected stamina = 100;
+        public profession = "Unassigned";
+
+        public Human(sName, nMaximumHitPoints, nAge)
+        {
+            base(sName, nMaximumHitPoints);
+            if (nAge == nil) then nAge = 18; end
+
+            this.validateAmount(nAge, "Age");
+            assert(nAge % 1 == 0, "Age must be a whole number.");
+            this.age = nAge;
+            this.species = "Human";
+        }
+
+        public getAge() { return this.age; }
+        public getStamina() { return this.stamina; }
+        public birthday() { this.age = this.age + 1; return this.age; }
+
+        public exert(nCost)
+        {
+            this.requireAlive();
+            this.validateAmount(nCost, "Stamina cost");
+            assert(nCost <= this.stamina, "Not enough stamina.");
+            this.stamina = this.stamina - nCost;
+            return this.stamina;
+        }
+
+        public rest(nRecovery)
+        {
+            this.requireAlive();
+            this.validateAmount(nRecovery, "Recovery");
+            this.stamina = math.min(100, this.stamina + nRecovery);
+            return this.stamina;
+        }
+
+        public override describe()
+        {
+            return base.describe()..string.format("; age %d, %s, %g stamina",
+                this.age, this.profession, this.stamina);
+        }
+    }
+}

@@ -1,135 +1,197 @@
-# Standalone .lxc experiment
+# LXC prototype
 
-This is an isolated language/runtime prototype. It does not load LuaEx, replace
-`class.lua`, change framework initialization, or migrate existing classes.
-All prototype files live in this directory. The format and API are experimental.
+A standalone Lua 5.4 class language/runtime with C#-guided access, inheritance and
+polymorphism. Production code lives in `LuaEx/lxc`; this directory supplies its
+forwarding loader, examples, tests, tools and documentation. Normal
+`require('LuaEx.load')()` now installs LXC and discovers bundled/application
+`.lxc` classes; old `class(...)` declarations are not compatible with its API.
 
-## Run it
+Read DESIGN.md for behavior, KEYWORDS.md for vocabulary, ARCHITECTURE.md for the
+file map/internal flow, and RULES.md before changing the project.
 
-From this directory, using Lua 5.3 or 5.4:
+## Run
 
-```text
-lua test.lua
-```
-
-On this Windows checkout, PowerShell can use the existing Lua 5.4 DLL directly:
+From the LuaEx repository root:
 
 ```powershell
-./Run.ps1
-./Run.ps1 -Integration
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lxc-prototype\Run.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lxc-prototype\Run.ps1 -Integration
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lxc-prototype\Run.ps1 -Framework
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\lxc-prototype\Run.ps1 -Benchmark
 ```
 
-The runner borrows only `wxLuma-main/Win/Bin/lua54.dll`; it does not initialize
-wxLua, open windows, or run wxLuma tests. `-Integration` initializes LuaEx core in
-a fresh Lua state to test real filesystem discovery. The equivalent CLI command
-is `lua integration.lua`. Use `-LuaDll` to select another compatible
-Windows Lua 5.4 DLL. Lua 5.4 is tested here; Lua 5.3 compatibility is unverified.
+The runner supports built-in Windows PowerShell and PowerShell 7 (`pwsh`).
+It creates a fresh Lua state using an existing Lua 5.4 DLL. It does not
+initialize wxLua or open windows. Supply -LuaDll to choose another compatible
+DLL. With a working Lua 5.4 executable, run `lua test.lua` from this directory.
+The current Windows runner also searches the CS machine's GitHub/wxLuma DLL path.
+Lua 5.3 is unsupported: lexical-context protection uses Lua 5.4 frame-retention
+syntax. -Integration initializes the existing LuaEx core for filesystem discovery.
 
-The test intentionally supplies Player before its parent Creature. Expected output
-includes the corrected parent-first load order and a constructed player example.
-Negative fixtures test access errors, invalid declarations, inheritance cycles,
-missing parents, final-method overrides, and namespace collisions.
+## Load classes
 
-## The syntax
+For a guided introduction, run `Run.ps1 -Walkthrough` with the same PowerShell
+invocation shown above. Read `walkthrough.lua` alongside its labeled OK/DENIED
+output. It demonstrates constructor chaining (constructors do not override),
+inheritance, visibility, method/property overrides, typed and const/final fields,
+statics, equality, operators, iteration, cloning, save/load graphs and raw shadows.
+It checks the displayed outcomes and writes no saved files.
 
-```csharp
-namespace Game.Characters
-{
-    class Player
-    {
-        Name = "Unknown";
-        private items = {};
+```lua
+local LXC = assert(loadfile('lxc-prototype/lxc.lua'))();
+local environment = setmetatable({}, {__index = _G});
 
-        public Player(sName)
-        {
-            this.Name = sName;
+LXC.loadSources({['player.lxc'] = [[
+namespace Game {
+    class Player {
+        private name = "Unknown";
+
+        public Player(sName) {
+            this.name = sName;
         }
 
-        public final getName()
-        {
-            return this.Name;
+        public getName() {
+            return this.name;
         }
     }
 }
+]]}, environment);
+
+local player = environment.Game.Player('Ada');
+assert(player.getName() == 'Ada');
 ```
 
-Declarations use braces and modifiers; method bodies and field initializers use
-Lua. Use Lua comments (`--`), operators, loops, tables, strings, and `nil`.
-Fields need an initializer and terminating semicolon. Methods omit `function`
-and use braces instead of the outer function's `end`. Inner Lua blocks still
-use their normal `end`. No type annotations are implemented.
+The example exposes normal host globals for convenience. For restricted scripts,
+supply the intended bindings and withhold debug facilities. The runtime itself
+boots with trusted standard libraries and captures its private dependencies.
 
-Unmarked classes and members are public. `private` members are accessible only
-from methods declared in their own class; `protected` members also allow methods
-declared in descendants. Access uses `this.Member` for all three visibilities.
-Member access is explicit: bare names are Lua variables, namespace class names,
-or environment globals. Calls use dots, as in current LuaEx: `oPlayer.getName()`.
-Do not pass `this` explicitly to declared methods.
+Declarations use braces; method bodies and initializer expressions use Lua.
+Methods omit Lua's outer function/end. Inner Lua blocks keep their normal syntax.
+Methods are bound dot calls. Fields initialize with `= expression;`; an omitted
+initializer leaves null. Namespace classes default to public; nested classes and
+members default to private. Explicit constructors default to private. An omitted
+constructor is generated with class visibility and an implied parameterless parent call.
 
-Use `class Player : Creature` for one parent in the same namespace, or give a
-fully qualified parent. Methods dispatch to overrides; final methods reject
-overrides. Overrides preserve method/field kind and visibility. Constructors are
-public, named after their class, and optional. A child constructor calls
-`base(arguments)` explicitly; parent constructors are never called implicitly.
-`base()` currently calls only a parent's explicit constructor, not parent methods.
-Field initializers execute parent-first and alphabetically within each class,
-separately for each instance. They cannot access `this`.
+## Implemented behavior
 
-## Load application classes
+- Private/protected/public classes and members, nested types, same-class access to
+  other instances, protected receiver restrictions and scope-aware helpers.
+- Single inheritance, required compatible override, final classes/methods,
+  abstract classes/methods, direct-child permits/excludes lists and ancestor calls.
+- One constructor, base-first construction, field source order, one static
+  constructor, dependency ordering and shared inherited static state.
+- Runtime field types with descendant assignments, null placeholders, const
+  bindings and final bindings locked on first non-null initialization.
+- Automatic/custom properties, direct/named accessors, accessor visibility,
+  configurable prefixes and shared original storage across property overrides.
+- Using imports, requires dependencies, Lua lexical scoping, compile-time import
+  ambiguity errors and declaration-aware source diagnostics.
+- Versioned graph persistence, constructor-free restoration, cloning, separate
+  static saves, transactional load publication and failed-reference invalidation.
 
-```lua
-local LXC = assert(loadfile("lxc.lua"))();
-local tPublic = setmetatable({}, {__index = _G});
+Const/final protect table bindings; table contents remain mutable. Properties do
+not add construction privileges or implicit locks. `base.method(...)` starts at
+the declaring class's immediate parent. Explicit `base(...)` must be the first
+constructor statement; omission implies a parameterless parent call.
 
-local tOrder = LXC.loadFiles({
-    "examples/01_Player.lxc",
-    "examples/02_Creature.lxc",
-}, tPublic);
+## Public API
 
-local oPlayer = tPublic.Demo.Characters.Player("James");
-print(oPlayer.describe());
-print(oPlayer.getItemCount());
-```
+| API | Contract |
+| --- | --- |
+| loadSources(sources, environment) | Plain filename-to-source map; validate, initialize and publish a batch. Returns dependency-first qualified class names. |
+| loadFiles(paths, environment) | Read explicit source paths and load a batch. |
+| discover(packagePath) | Find .lxc sources through the optional LuaEx io.listfiles adapter; returns sorted paths. |
+| class | Read-only scoped metadata/reference helpers listed below. |
+| null | Placeholder distinct from nil; first non-null assignment establishes type. |
+| serialize(value), deserialize(text) | Save/restore a supported graph without running constructors. |
+| clone(value) | Independent mutable graph with concrete class identities preserved. |
+| saveStatic(class), loadStatic(class, text) | Save/restore caller-accessible mutable static fields. |
 
-Classes publish through namespace tables in the supplied environment. Bare class
-references inside a method resolve in its namespace first, then the supplied
-environment. Existing plain namespace tables are reused; occupied class bindings
-and non-table namespace bindings fail. All sources, parents, Lua bodies and
-publication destinations are checked before any namespace is published.
-Field initializer expressions execute later during construction, so their runtime
-errors can still occur after publication.
+| Class helper | Result |
+| --- | --- |
+| getname(value) | Qualified type name, including the exact type of a held instance; never a factory. |
+| is(value), isinstance(value) | Whether a value is a class/instance identity. |
+| exists(value) | Whether its resolved live class is accessible in the caller's scope. |
+| getbyname(name) | Visible registered class reference, otherwise nil; nonstring input returns nil. |
+| isinstanceof(object, classOrName) | Exact visible-class match. |
+| isa(object, classOrName) | Visible base-or-descendant match. |
+| ischild(child, parent) | Strict ancestry between visible classes; excludes self. |
+| getparentname(value), getbasename(value) | Visible immediate-parent/root-ancestor name, otherwise nil. |
+| getchildnames(value) | Fresh sorted names of visible direct children. |
 
-If LuaEx is already initialized, discovery uses its existing file listing API:
+Class bodies receive scoped class helpers and null. Persistence is deliberate host
+authority and is not automatically injected. Instance snapshots contain private
+state; supply codec access only to its intended recipients. Restoring a private-
+class instance exposes permitted public behavior without yielding its class factory.
+Saved class references still require using-scope visibility. Snapshots validate
+storage contracts and locks; they are not authenticated proof of original values.
 
-```lua
-local tPaths = LXC.discover(package.path);
-local tOrder = LXC.loadFiles(tPaths, tPublic);
-```
+The standalone `LXC.serialize` codec rejects functions, resources, metatable-bearing/foreign typed tables and
+nonfinite numbers fail explicitly. Snapshot input is limited to 16 MiB, fewer
+than 256 literal nesting levels and 100,000 graph nodes. Constructors/initializers
+are not rerun during restoration. Failed batches publish no new classes; external
+side effects deliberately performed by initialization callbacks cannot be rolled back.
 
-Discovery scans directory prefixes before the `?` in package.path templates,
-recursively, with `io.listfiles(root, true, nil, "lxc")`. Prefer a narrow path such
-as `./MyClasses/?.lua` when experimenting. Listing failures are reported, rather
-than silently skipping roots. The standalone tests use an adapter stub; the
-integration test exercises real LuaEx filesystem discovery. Path deduplication
-does not resolve symlinks or every relative/absolute alias.
+Normal LuaEx `serialize`/`deserialize` and `serializer.serialize`/`deserialize`
+automatically use the existing trusted Lua-code serializer for LXC graphs
+(`--LXC:3` tag). Application Lua callbacks retain bytecode, captured values, shared
+upvalue cells and current `_ENV == _G` binding. Restored captures reconnect to
+restored LXC identities. Private compiler/runtime closures remain rejected.
+These host saves execute trusted Lua; they are not the standalone data-only format.
+C functions, threads and userdata remain unsupported. Its additive staged API
+allocates LXC shells before typed containers restore; arrays/LXC cycles and aliases
+are covered. Cycles requiring other object factories to allocate shells still
+reject. Older `--LXC:1`/`--LXC:2` saves remain readable. See COVERAGE.md for limits.
 
-## Deliberate limits
+## Validation and measured performance
 
-This prototype implements public namespaced classes, public/private/protected
-members, single inheritance, constructors and final methods. It does not yet
-implement nested/private/protected classes, static members, interfaces, imports,
-properties/accessor directives, serialization, LuaEx type integration, or explicit
-initializer dependency declarations. One namespace block is required per file;
-multiple classes may appear inside it. Parents must be part of the same load batch.
+The native Lua 5.4 suite includes declaration contracts, persistence, loading,
+access contexts, language behavior, operators, equality, stress/adversarial cases,
+examples and independent-runtime isolation. Integration runs real LuaEx discovery
+and the existing core's clone/codec/type bridge. See COVERAGE.md for requirement
+mapping, current counts, stress dimensions and explicit limits. Debug intrusion
+is excluded; the suite supplies evidence rather than exhaustive assurance.
 
-Only inheritance determines loading order. References inside method bodies resolve
-later. Arbitrary Lua code is not analyzed to infer dependencies. The tokenizer
-understands Lua strings/comments and balanced braces; it is not a full Lua parser.
-Lua's compiler validates method bodies. Source filenames and method line numbers
-are preserved for method errors; field initializer line mapping remains incomplete.
+A measured table-decoy run on the CS host produced approximately (CPU time):
 
-This is trusted application code, not a security sandbox. Instance access views
-demonstrate normal visibility checks, but raw/debug operations and deliberately
-leaked internal views (for example, inside returned tables) need further design
-before a production runtime could promise strict encapsulation. Direct `return
-this` is converted to the public instance view.
+| Operation | CPU microseconds per operation |
+| --- | ---: |
+| Cached method with typed state | 9.06 |
+| Method lookup plus invocation | 9.72 |
+| Public property read | 2.42 |
+| Public property write | 3.42 |
+| Construction | 22.00 |
+| Clone | 13.00 |
+| Serialization | 52.00 |
+| Identity equality | 0.02 |
+| Declared equality | 5.70 |
+
+Results depend on host/workload. The benchmark uses 50,000 operations for hot paths
+and 2,000 for construction/clone/serialization. Public access avoids caller inspection
+only when lexical private-name lookup cannot affect the result; restricted paths
+retain checks. Method argument/return types are not automatically checked at call time.
+
+## Scope and host interaction
+
+References are empty Lua table decoys backed by hidden state. A protected shared
+metatable dispatches operations across independent LXC registries; foreign threads
+are untouched. Native rawset can insert entries and shadow public lookup. Existing
+raw keys also receive ordinary writes directly. Those entries do not read or
+replace hidden slots, and clone/save use registered backing state. Removing a raw
+entry restores checked lookup. API/helper/class decoys have the same raw-shadow
+consequence. See DESIGN.md and tests/context.lua, equality.lua and stress.lua.
+This is not a blanket raw-operation exemption. Runtime state and compiler views
+remain private; unrestricted debug authority is outside enforcement.
+
+Interfaces, automatic method argument/return checking,
+abstract property contracts and Lua 5.3 compatibility are outside this build.
+The separate future recursive table-lock utility is not implemented here. Existing
+LuaEx framework integration is implemented and behavior-tested as recorded in COVERAGE.md.
+
+Operator declarations support arithmetic, bitwise operations, ordering, indexing,
+calls, tostring, pairs, close and gc. The clone, serialize and deserialize hooks
+are tested; see DESIGN.md for their projection contract. Native == supports both
+binary forms, inherited/overridden/final contracts and identity fallback. Lua
+controls dispatch eligibility: identical tables skip __eq, and table-versus-number
+equality does not call it. ~= negates equality. No native runtime dependency was
+added. The C# host in Run.ps1 remains test infrastructure only.

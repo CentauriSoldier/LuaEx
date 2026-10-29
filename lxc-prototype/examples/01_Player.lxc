@@ -3,7 +3,7 @@ namespace Demo.Characters
     class Player : Creature
     {
         private inventory = {};
-        Label = "Player";
+        public Label = "Player";
 
         public Player(sName)
         {
@@ -22,7 +22,7 @@ namespace Demo.Characters
             return nCount;
         }
 
-        public describe()
+        public override describe()
         {
             return this.Name..": "..this.energy;
         }

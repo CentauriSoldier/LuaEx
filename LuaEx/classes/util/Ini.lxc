@@ -1,0 +1,590 @@
+--[[!
+@fqxn LuaEx.Classes.Ini
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    final class Ini
+    {
+        private static istable = type.istable;
+
+        private static isstring = type.isstring;
+
+        private static isnumber = type.isnumber;
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.helperBuildLineTable
+        @desc Private class helper migrated from buildLineTable.
+        !]]
+        private static helperBuildLineTable(nIndex, sLine)
+        {
+            local tRet = {
+                prefix      = "",
+                coupler     = "",
+                suffix      = "",
+                rawIndex    = nIndex,
+            };
+
+            local bFound = false;
+
+            if (sLine:match("^%s*#")) then -- comment #
+                tRet.prefix     = "#";
+                tRet.coupler    = " ";
+                tRet.suffix     = sLine:gsub("^%s*#%s*", "");
+                bFound = true;
+            end
+
+            if (not bFound and sLine:match("^%s*;")) then -- comment ;
+                tRet.prefix     = ";";
+                tRet.coupler    = " ";
+                tRet.suffix     = sLine:gsub("^%s*;%s*", "");
+                bFound = true;
+            end
+
+            if (not bFound and sLine:match("^%s*$")) then -- blank line
+                tRet.prefix     = "";
+                tRet.coupler    = "";
+                tRet.suffix     = "";
+                bFound = true;
+            end
+
+            if (not bFound) then
+                local sValue, sData = sLine:match("^%s*(.-)%s*=%s*(.-)%s*$");
+
+                if (sValue and sData) then
+                    tRet.prefix     = sValue;
+                    tRet.coupler    = " = ";
+                    tRet.suffix     = sData;
+                    bFound = true;
+                end
+            end
+
+            if (not bFound) then
+                error("Error deserializing ini.\nMalformed ini line at index "..nIndex..".\n'"..sLine.."'", 3);
+            end
+
+            return tRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.helperImportString
+        @desc Private class helper migrated from importString.
+        !]]
+        private static helperImportString(sInput)
+        {
+            local tRawData          = sInput:totable("\n", true);
+            local tSections         = {};
+            local sActiveSection    = nil;
+            local tSectionOrder     = {};
+            local tTop              = {};
+            local bEndingLine       = sInput:match("\n$") ~= nil;
+
+            -- start by creating the sections and inserting their lines
+            for nIndex, sLine in ipairs(tRawData) do
+                local sSection = sLine:match("^%s*%[(.-)%]%s*$");
+
+                -- if this is a section, create it (or throw a duplicate error)
+                if (sSection) then
+
+                    if (rawtype(tSections[sSection]) ~= "nil") then
+                        error("Error deserializing ini.\nDuplicate section in ini string at index "..nIndex..".\n'"..sSection.."'", 3);
+                    end
+
+                    -- log the section order for later encoding
+                    table.insert(tSectionOrder, sSection);
+
+                    tSections[sSection] = {
+                        ordinal = #tSectionOrder,
+                        lines   = {},
+                    };
+
+                    sActiveSection = sSection;
+                else
+                    -- create the line and store it in the proper section (or the top)
+                    local tLine = Ini.helperBuildLineTable(nIndex, sLine);
+
+                    if (sActiveSection) then
+                        table.insert(tSections[sActiveSection].lines, tLine);
+                    else
+                        table.insert(tTop, tLine);
+                    end
+                end
+            end
+
+            -- validate the value names
+            for _, sSection in ipairs(tSectionOrder) do
+                local tValueNames = {};
+
+                for __, tLine in ipairs(tSections[sSection].lines) do
+                    local sPrefix = tLine.prefix;
+
+                    if (sPrefix ~= "" and sPrefix ~= "#" and sPrefix ~= ";" and tValueNames[sPrefix]) then
+                        error("Error deserializing ini.\nDuplicate value name in ini string at index "..tLine.rawIndex..".\n'"..sPrefix.."'", 3);
+                    end
+
+                    -- log the value name for duplicate test
+                    tValueNames[sPrefix] = true;
+                end
+            end
+
+            return tTop, tSections, tSectionOrder, bEndingLine;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.helperGetRawValue
+        @desc Private class helper migrated from GetRawValue.
+        !]]
+        private static helperGetRawValue(pri, sSection, sValue)
+        {
+            local tSection = nil;
+            local sRet = nil;
+
+            if (rawtype(sSection) == "string" and sSection ~= "" and rawtype(sValue) == "string" and sValue ~= "") then
+                tSection = pri.sections[sSection];
+
+                if (rawtype(tSection) == "table") then
+
+                    for _, tLine in ipairs(tSection.lines) do
+                        if (tLine.prefix == sValue and tLine.prefix ~= "#" and tLine.prefix ~= ";" and tLine.prefix ~= "") then
+                            sRet = tLine.suffix;
+                            break;
+                        end
+                    end
+
+                end
+
+            end
+
+            return sRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.helperResolveWriteSection
+        @desc Private class helper migrated from ResolveWriteSection.
+        !]]
+        private static helperResolveWriteSection(pri, sSectionName, sValName, tVisited)
+        {
+            local sRet = tostring(sSectionName or "");
+            local sCurSection = tostring(sSectionName or "");
+            local sKeyName = tostring(sValName or "");
+            local bDone = false;
+            local sVisitKey;
+            local sRaw;
+            local sTrimmed;
+            local bIsRef;
+            local sRefSection;
+
+            tVisited = Ini.istable(tVisited) and tVisited or {};
+
+            while (not bDone and sCurSection ~= "" and sKeyName ~= "") do
+                sVisitKey = sCurSection..":"..sKeyName;
+
+                if (tVisited[sVisitKey]) then
+                    sRet = sCurSection;
+                    bDone = true;
+                else
+                    tVisited[sVisitKey] = true;
+
+                    sRaw = Ini.helperGetRawValue(pri, sCurSection, sKeyName);
+                    sRaw = Ini.isstring(sRaw) and sRaw or "";
+                    sTrimmed = sRaw:trim();
+
+                    bIsRef = (not sTrimmed:isempty())
+                         and (sTrimmed:sub(1, 1) == "<")
+                         and (sTrimmed:sub(-1) == ">");
+
+                    if not (bIsRef) then
+                        sRet = sCurSection;
+                        bDone = true;
+                    else
+                        sRefSection = sTrimmed:sub(2, -2):trim();
+
+                        if (sRefSection:isempty()) then
+                            sRet = sCurSection;
+                            bDone = true;
+                        else
+                            sCurSection = sRefSection;
+                            sRet = sCurSection;
+                        end
+
+                    end
+
+                end
+
+            end
+
+            return sRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.__serialize
+        @desc Retains the existing Ini operation.
+        !]]
+        public __serialize(state)
+        {
+            -- The declaring projection already contains all four Ini fields.
+            -- LXC saves that graph directly; operator return values are unused.
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.__tostring
+        @desc Retains the existing Ini operation.
+        !]]
+        public __tostring()
+        {
+            local sRet = "";
+            local pri = this;
+
+            for _, tLine in ipairs(pri.top) do
+                sRet = sRet..tLine.prefix..tLine.coupler..tLine.suffix.."\n";
+            end
+
+            for _, sSection in ipairs(pri.sectionOrder) do
+                sRet = sRet.."["..sSection.."]\n";
+
+                for __, tLine in ipairs(pri.sections[sSection].lines) do
+                    sRet = sRet..tLine.prefix..tLine.coupler..tLine.suffix.."\n";
+                end
+            end
+
+            if (not pri.endingLine) then
+                sRet = sRet:gsub("\n$", "");
+            end
+
+            return sRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.deserialize
+        @desc Retains the existing Ini operation.
+        !]]
+        public static deserialize(tData)
+        {
+            return Ini(tData);
+        }
+
+        private sectionOrder = {};
+
+        private sections = {};
+
+        private top = {};
+
+        private endingLine = false;
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.Ini
+        @desc Retains the existing Ini operation.
+        !]]
+        public Ini(vInput, bFromFile)
+        {
+            local pri = this;
+            local sType = rawtype(vInput);
+
+            if (bFromFile) then
+                if (sType ~= "string") then
+                    error("Ini constructor: file mode requires string path.", 2);
+                end
+
+                local hFile, sErr = io.open(vInput, "rb");
+
+                if not (hFile) then
+                    error("Ini constructor: failed to open file '"..vInput.."'. "..tostring(sErr), 2);
+                end
+
+                local sText = hFile:read("*a");
+                hFile:close();
+
+                if not (rawtype(sText) == "string") then
+                    error("Ini constructor: failed to read file '"..vInput.."'.", 2);
+                end
+
+                pri.top, pri.sections, pri.sectionOrder, pri.endingLine = Ini.helperImportString(sText);
+
+            elseif (sType == "string") then
+                pri.top, pri.sections, pri.sectionOrder, pri.endingLine = Ini.helperImportString(vInput);
+
+            elseif (sType == "table") then
+                pri.sectionOrder = rawtype(vInput.sectionOrder) == "table" and clone(vInput.sectionOrder) or {};
+                pri.sections     = rawtype(vInput.sections) == "table" and clone(vInput.sections) or {};
+                pri.top          = rawtype(vInput.top) == "table" and clone(vInput.top) or {};
+                pri.endingLine   = vInput.endingLine and true or false;
+
+            else
+                error("Ini constructor: expected string, table, or file path. Got "..sType..".", 2);
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.DeleteSection
+        @desc Retains the existing Ini operation.
+        !]]
+        public DeleteSection(sSection)
+        {
+            local pri = this;
+            local bRet = false;
+
+            if (rawtype(sSection) == "string" and sSection ~= "") then
+
+                if (rawtype(pri.sections[sSection]) ~= "nil") then
+                    pri.sections[sSection] = nil;
+
+                    for nIndex, sName in ipairs(pri.sectionOrder) do
+                        if (sName == sSection) then
+                            table.remove(pri.sectionOrder, nIndex);
+                            break;
+                        end
+                    end
+
+                    bRet = true;
+                end
+
+            end
+
+            return bRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.DeleteValue
+        @desc Retains the existing Ini operation.
+        !]]
+        public DeleteValue(sSection, sValue)
+        {
+            local pri = this;
+            local tSection = nil;
+            local bRet = false;
+
+            if (rawtype(sSection) == "string" and sSection ~= "" and rawtype(sValue) == "string" and sValue ~= "") then
+                tSection = pri.sections[sSection];
+
+                if (rawtype(tSection) == "table") then
+
+                    for nIndex, tLine in ipairs(tSection.lines) do
+                        if (tLine.prefix == sValue and tLine.prefix ~= "#" and tLine.prefix ~= ";" and tLine.prefix ~= "") then
+                            table.remove(tSection.lines, nIndex);
+                            bRet = true;
+                            break;
+                        end
+                    end
+
+                end
+
+            end
+
+            return bRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.GetSectionNames
+        @desc Retains the existing Ini operation.
+        !]]
+        public GetSectionNames()
+        {
+            local pri = this;
+            local tRet = {};
+
+            for _, sSection in ipairs(pri.sectionOrder) do
+                table.insert(tRet, sSection);
+            end
+
+            table.sort(tRet);
+
+            return tRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.GetValue
+        @desc Retains the existing Ini operation.
+        !]]
+        public GetValue(sSection, sValue, bInherit, tVisited, tChain)
+        {
+            local pri           = this;
+            local sRet          = "";
+            local sRaw          = nil;
+            local sTrimmed      = "";
+            local bIsRef        = false;
+            local sRefSection   = "";
+            local sVisitKey     = "";
+            local tOutChain     = nil;
+
+            if (rawtype(sSection) == "string" and sSection ~= "" and rawtype(sValue) == "string" and sValue ~= "") then
+
+                if not (bInherit == true) then
+                    sRet = Ini.helperGetRawValue(pri, sSection, sValue);
+                    sRet = Ini.isstring(sRet) and sRet or "";
+                else
+                    tVisited = Ini.istable(tVisited) and tVisited or {};
+                    sVisitKey = tostring(sSection)..":"..tostring(sValue);
+
+                    if (tVisited[sVisitKey]) then
+                        sRet = "";
+                        tOutChain = Ini.istable(tChain) and tChain or nil;
+                    else
+                        tVisited[sVisitKey] = true;
+
+                        sRaw = Ini.helperGetRawValue(pri, sSection, sValue);
+                        sRaw = Ini.isstring(sRaw) and sRaw or "";
+                        sTrimmed = sRaw:trim();
+
+                        bIsRef = (not sTrimmed:isempty())
+                             and (sTrimmed:sub(1, 1) == "<")
+                             and (sTrimmed:sub(-1) == ">");
+
+                        if (bIsRef) then
+                            sRefSection = sTrimmed:sub(2, -2):trim();
+
+                            if not (sRefSection:isempty()) then
+                                tChain = Ini.istable(tChain) and tChain or {};
+                                tChain[#tChain + 1] = sRefSection;
+                                sRet, tOutChain = this.GetValue(sRefSection, sValue, true, tVisited, tChain);
+                                sRet = Ini.isstring(sRet) and sRet or "";
+                            else
+                                sRet = "";
+                                tOutChain = Ini.istable(tChain) and tChain or nil;
+                            end
+                        else
+                            sRet = sRaw;
+                            tOutChain = Ini.istable(tChain) and tChain or nil;
+                        end
+
+                        tVisited[sVisitKey] = nil;
+                    end
+
+                end
+
+            end
+
+            sRet = Ini.isstring(sRet) and sRet or "";
+            return sRet, tOutChain;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.GetValueBoolean
+        @desc Retains the existing Ini operation.
+        !]]
+        public GetValueBoolean(sSection, sValue, bInherit)
+        {
+            local sRaw = nil;
+            local bRet = false;
+
+            sRaw = this.GetValue(sSection, sValue, bInherit);
+
+            if (Ini.isstring(sRaw)) then
+                bRet = sRaw:lower() == "true" and true or false;
+            end
+
+            return bRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.GetValueNumber
+        @desc Retains the existing Ini operation.
+        !]]
+        public GetValueNumber(sSection, sValue, nDefault, bInherit)
+        {
+            local sRaw = nil;
+            local nValue = nil;
+            local nRet = rawtype(nDefault) == "number" and nDefault or 0;
+
+            sRaw = this.GetValue(sSection, sValue, bInherit);
+
+            if (Ini.isstring(sRaw)) then
+                nValue = tonumber(sRaw);
+
+                if (Ini.isnumber(nValue)) then
+                    nRet = nValue;
+                end
+
+            end
+
+            return nRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.GetValueNames
+        @desc Retains the existing Ini operation.
+        !]]
+        public GetValueNames(sSection)
+        {
+            local pri = this;
+            local tRet = {};
+            local tSection = nil;
+
+            if (rawtype(sSection) == "string" and sSection ~= "") then
+                tSection = pri.sections[sSection];
+
+                if (rawtype(tSection) == "table") then
+
+                    for _, tLine in ipairs(tSection.lines) do
+                        if (tLine.prefix ~= "" and tLine.prefix ~= "#" and tLine.prefix ~= ";") then
+                            table.insert(tRet, tLine.prefix);
+                        end
+                    end
+
+                    table.sort(tRet);
+                end
+
+            end
+
+            return tRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Ini.SetValue
+        @desc Retains the existing Ini operation.
+        !]]
+        public SetValue(sSection, sValue, sData, bRespectChain)
+        {
+            local pri = this;
+            local tSection = nil;
+            local sDataType = rawtype(sData);
+            local bRet = false;
+            local sTargetSection = sSection;
+
+            if (rawtype(sSection) == "string" and sSection ~= "" and rawtype(sValue) == "string" and sValue ~= "" and sValue ~= "#" and sValue ~= ";") then
+
+                if (sDataType == "string" or sDataType == "number" or sDataType == "boolean") then
+
+                    if (bRespectChain == true) then
+                        sTargetSection = Ini.helperResolveWriteSection(pri, sSection, sValue, {});
+                    end
+
+                    tSection = pri.sections[sTargetSection];
+
+                    if (rawtype(tSection) ~= "table") then
+                        table.insert(pri.sectionOrder, sTargetSection);
+                        pri.sections[sTargetSection] = {
+                            ordinal = #pri.sectionOrder,
+                            lines   = {},
+                        };
+                        tSection = pri.sections[sTargetSection];
+                    end
+
+                    sData = tostring(sData);
+
+                    for _, tLine in ipairs(tSection.lines) do
+                        if (tLine.prefix == sValue and tLine.prefix ~= "#" and tLine.prefix ~= ";" and tLine.prefix ~= "") then
+                            tLine.suffix = sData;
+                            bRet = true;
+                            break;
+                        end
+                    end
+
+                    if not (bRet) then
+                        table.insert(tSection.lines, {
+                            prefix      = sValue,
+                            coupler     = " = ",
+                            suffix      = sData,
+                            rawIndex    = 0,
+                        });
+                        bRet = true;
+                    end
+
+                end
+
+            end
+
+            return bRet;
+        }
+
+    }
+}

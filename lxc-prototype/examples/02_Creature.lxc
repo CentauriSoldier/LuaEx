@@ -2,7 +2,7 @@ namespace Demo.Characters
 {
     class Creature
     {
-        Name = "Unknown";
+        public Name = "Unknown";
         protected energy = 100;
         private secret = "Creature secret";
 

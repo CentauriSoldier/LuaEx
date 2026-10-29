@@ -1,0 +1,299 @@
+{
+  "name": "LXC",
+  "scopeName": "source.lxc",
+  "fileTypes": [
+    "lxc"
+  ],
+  "patterns": [
+    {
+      "include": "#namespace"
+    },
+    {
+      "include": "#classes"
+    },
+    {
+      "begin": "\\b(get|set)\\b(?:\\s*\\(\\s*[\"'][A-Za-z_]\\w*[\"']\\s*\\))?\\s*(\\{)",
+      "end": "(\\})",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.accessor.lxc"
+        },
+        "2": {
+          "name": "punctuation.section.block.begin.lxc"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#accessorBody"
+        }
+      ],
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.block.end.lxc"
+        }
+      }
+    },
+    {
+      "match": "\\b(get|set)\\b(?=\\s*(?:;|\\(\\s*[\"']))",
+      "name": "storage.type.accessor.lxc"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "source.lua"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(public|private|protected)\\b",
+          "name": "storage.modifier.visibility.lxc"
+        },
+        {
+          "match": "\\bstatic\\b",
+          "name": "storage.modifier.static.lxc"
+        },
+        {
+          "match": "\\b(const|final|abstract|override)\\b",
+          "name": "storage.modifier.other.lxc"
+        },
+        {
+          "match": "\\b(this|base)\\b",
+          "name": "variable.language.receiver.lxc"
+        },
+        {
+          "match": "\\b(using|requires|permits|excludes)\\b",
+          "name": "keyword.other.dependency.lxc"
+        },
+        {
+          "match": "\\boperator\\b",
+          "name": "storage.type.operator.lxc"
+        },
+        {
+          "match": "\\bnull\\b",
+          "name": "constant.language.null.lxc"
+        },
+        {
+          "match": "<<|>>|//|[&|~]",
+          "name": "keyword.operator.lxc"
+        }
+      ]
+    },
+    "accessorBody": {
+      "patterns": [
+        {
+          "match": "\\b(field|value)\\b",
+          "name": "variable.language.accessor.lxc"
+        },
+        {
+          "include": "#luaBrace"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "source.lua"
+        }
+      ]
+    },
+    "namespace": {
+      "begin": "\\b(namespace)\\s+([A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)*)",
+      "end": "(?<=\\})",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.declaration.lxc"
+        },
+        "2": {
+          "name": "entity.name.namespace.declaration.lxc"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(\\{)",
+          "end": "(\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.section.declaration.begin.lxc"
+            }
+          },
+          "endCaptures": {
+            "1": {
+              "name": "punctuation.section.declaration.end.lxc"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#namespace"
+            },
+            {
+              "include": "#classes"
+            },
+            {
+              "include": "#keywords"
+            },
+            {
+              "include": "source.lua"
+            }
+          ]
+        },
+        {
+          "include": "source.lua"
+        }
+      ]
+    },
+    "classes": {
+      "patterns": [
+        {
+          "begin": "\\b(class)\\s+([A-Za-z_]\\w*)",
+          "end": "(?<=\\})",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.declaration.lxc"
+            },
+            "2": {
+              "name": "entity.name.type.declaration.lxc"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "(\\{)",
+              "end": "(\\})",
+              "beginCaptures": {
+                "1": {
+                  "name": "punctuation.section.declaration.begin.lxc"
+                }
+              },
+              "endCaptures": {
+                "1": {
+                  "name": "punctuation.section.declaration.end.lxc"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "#members"
+                }
+              ]
+            },
+            {
+              "include": "#keywords"
+            },
+            {
+              "include": "source.lua"
+            }
+          ]
+        }
+      ]
+    },
+    "members": {
+      "patterns": [
+        {
+          "include": "#classes"
+        },
+        {
+          "begin": "=",
+          "end": ";",
+          "patterns": [
+            {
+              "include": "#luaBrace"
+            },
+            {
+              "include": "#keywords"
+            },
+            {
+              "include": "source.lua"
+            }
+          ]
+        },
+        {
+          "begin": "\\b([A-Za-z_]\\w*)(?=\\s*\\()",
+          "end": "(?<=\\})|;",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.function.method.lxc"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#luaBrace"
+            },
+            {
+              "include": "source.lua"
+            }
+          ]
+        },
+        {
+          "begin": "\\b([A-Za-z_]\\w*)\\s*(\\{)",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.property.lxc"
+            }
+          },
+          "patterns": [
+            {
+              "begin": "\\b(get|set)\\b(?:\\s*\\(\\s*[\"'][A-Za-z_]\\w*[\"']\\s*\\))?\\s*(\\{)",
+              "end": "(\\})",
+              "beginCaptures": {
+                "1": {
+                  "name": "storage.type.accessor.lxc"
+                },
+                "2": {
+                  "name": "punctuation.section.block.begin.lxc"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "#accessorBody"
+                }
+              ],
+              "endCaptures": {
+                "1": {
+                  "name": "punctuation.section.block.end.lxc"
+                }
+              }
+            },
+            {
+              "match": "\\b(get|set)\\b(?=\\s*(?:;|\\(\\s*[\"']))",
+              "name": "storage.type.accessor.lxc"
+            },
+            {
+              "include": "#keywords"
+            },
+            {
+              "include": "#luaBrace"
+            },
+            {
+              "include": "source.lua"
+            }
+          ]
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#luaBrace"
+        },
+        {
+          "include": "source.lua"
+        }
+      ]
+    },
+    "luaBrace": {
+      "begin": "\\{",
+      "end": "\\}",
+      "patterns": [
+        {
+          "include": "#luaBrace"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "source.lua"
+        }
+      ]
+    }
+  }
+}

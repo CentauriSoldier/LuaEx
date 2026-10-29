@@ -1,0 +1,22 @@
+// Package-owned palette, restricted to LXC editors. Ordinary Lua control-flow,
+// strings/comments and every other grammar keep their existing theme colors.
+atom-text-editor[data-grammar="source lxc"] {
+    .syntax--storage.syntax--type.syntax--declaration.syntax--lxc {
+        color: #cda5ff !important;
+    }
+    .syntax--entity.syntax--name.syntax--namespace.syntax--declaration.syntax--lxc { color: #c9a65b !important; }
+    .syntax--keyword.syntax--operator { color: #85d7ff !important; }
+    .syntax--entity.syntax--name.syntax--type.syntax--declaration.syntax--lxc { color: #ffdf99 !important; }
+    .syntax--entity.syntax--name.syntax--function.syntax--constructor.syntax--lxc { color: #ffdf99 !important; }
+    .syntax--punctuation.syntax--section.syntax--declaration.syntax--begin.syntax--lxc,
+    .syntax--punctuation.syntax--section.syntax--declaration.syntax--end.syntax--lxc { color: #b7ff4a !important; }
+    .syntax--storage.syntax--modifier.syntax--visibility.syntax--lxc { color: #ffad46 !important; }
+    .syntax--storage.syntax--modifier.syntax--static.syntax--lxc { color: #ff4fe1 !important; }
+    .syntax--storage.syntax--modifier.syntax--other.syntax--lxc { color: #d6a431 !important; }
+    .syntax--variable.syntax--language.syntax--receiver.syntax--lxc { color: #45f0ff !important; }
+    .syntax--keyword.syntax--other.syntax--dependency.syntax--lxc { color: #83ff83 !important; }
+    .syntax--storage.syntax--type.syntax--accessor.syntax--lxc,
+    .syntax--variable.syntax--language.syntax--accessor.syntax--lxc { color: #ff8080 !important; }
+    .syntax--storage.syntax--type.syntax--operator.syntax--lxc { color: #f8f8f2 !important; }
+    .syntax--constant.syntax--language.syntax--null.syntax--lxc { color: #a8bfff !important; }
+}

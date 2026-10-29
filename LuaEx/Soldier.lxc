@@ -1,0 +1,65 @@
+namespace Playground
+{
+    -- Soldier chains through Human to Creature. Armor changes incoming damage;
+    -- attacks spend ten stamina and return the target's actual HP loss.
+    class Soldier : Human
+    {
+        private rank = "Recruit";
+        protected attackPower = 20;
+        protected armor = 5;
+        public unit = "Unassigned";
+
+        public Soldier(sName, nMaximumHitPoints, nAge, sRank)
+        {
+            base(sName, nMaximumHitPoints, nAge);
+            if (sRank == nil) then sRank = "Recruit"; end
+            this.setRank(sRank);
+            this.profession = "Soldier";
+        }
+
+        public getRank() { return this.rank; }
+        public getArmor() { return this.armor; }
+        public getAttackPower() { return this.attackPower; }
+
+        public setRank(sRank)
+        {
+            assert(type(sRank) == "string" and sRank:find("%S"), "Rank must contain text.");
+            this.rank = sRank;
+            return this;
+        }
+
+        public setArmor(nArmor)
+        {
+            this.validateAmount(nArmor, "Armor");
+            this.armor = nArmor;
+            return this;
+        }
+
+        public setAttackPower(nPower)
+        {
+            this.validateAmount(nPower, "Attack power");
+            this.attackPower = nPower;
+            return this;
+        }
+
+        public attack(other)
+        {
+            assert(class.isa(other, Creature), "Target must be a Creature.");
+            assert(other.isAlive(), "Target is not alive.");
+            this.exert(10);
+            return other.takeDamage(this.attackPower);
+        }
+
+        public override takeDamage(nDamage)
+        {
+            this.validateAmount(nDamage, "Damage");
+            return base.takeDamage(math.max(0, nDamage - this.armor));
+        }
+
+        public override describe()
+        {
+            return base.describe()..string.format("; %s, unit %s, %g armor",
+                this.rank, this.unit, this.armor);
+        }
+    }
+}

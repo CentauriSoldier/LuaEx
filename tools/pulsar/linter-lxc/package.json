@@ -1,0 +1,11 @@
+{
+  "name": "linter-lxc",
+  "version": "0.1.0",
+  "description": "Non-executing Lua 5.4 and LuaEx LXC diagnostics for Pulsar.",
+  "main": "./lib/main.js",
+  "license": "Unlicense",
+  "keywords": ["linter", "lua", "luaex", "lxc"],
+  "engines": {"atom": ">=1.60.0 <3.0.0"},
+  "providedServices": {"linter": {"versions": {"2.0.0": "provideLinter"}}},
+  "scripts": {"test": "node test/run.js"}
+}
