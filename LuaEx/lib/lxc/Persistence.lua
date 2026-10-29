@@ -1,18 +1,42 @@
 --[[!
-@fqxn LXC.Persistence
-@desc Versioned graph snapshots and independent cloning. Decoder reads only a
-    restricted literal grammar for standalone calls. The private host adapter
-    delegates supported functions/foreign values to LuaEx's existing serializer.
-    Class definitions must already be registered.
+@fqxn LuaEx.LXC.Persistence
+@desc <h3>Persistence — responsibility and connections</h3><p>Projects class identities and private instance
+    storage into graphs and restores them without constructors. Each field keeps its declaring owner, type and
+    const/final binding locks. Literal handles standalone text, SnapshotSchema checks shape, GraphAccess checks
+    access and SnapshotHooks prepares/validates state. Host adapters extend graphs with foreign values and
+    functions.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Persistence.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Model Private injected dependency; its role is described in the module map.
+@param table Context Private injected dependency; its role is described in the module map.
+@param table Runtime Private injected dependency; its role is described in the module map.
+@param table Literal Private injected dependency; its role is described in the module map.
+@param table Schema Private injected dependency; its role is described in the module map.
+@param table GraphAccess Private injected dependency; its role is described in the module map.
+@param table Hooks Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
     local __lxc_guard <close> = nil;
     local Codec = {};
     local tClasses, tObjects, fWrite, fAllocate, oNull = Runtime.services();
 
+    
     --[[!
-    @fqxn LXC.Persistence.fields
-    @desc Collects original instance or static storage declarations across an inheritance chain.
+    @fqxn LuaEx.LXC.Persistence.fields
+    @desc Collects actual storage declarations across ancestors for instance/static state; skips
+        methods/overrides because overriding properties share original slots.
+    @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+    @param boolean bStatic True for class storage/qualification, false for instance state.
+    @ret table tMembers Storage-owning declarations, selected class first.
+    @vis internal
     !]]
     local function fFields(tClass, bStatic)
         local __lxc_guard <close> = nil;
@@ -28,19 +52,28 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         return tResult;
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.fieldKey
-    @desc Builds a qualified storage identity so reused private names remain distinct in snapshots.
+    @fqxn LuaEx.LXC.Persistence.fieldKey
+    @desc Builds qualified-owner:member keys to distinguish same-name private storage at different inheritance
+        levels.
+    @param table tMember Member definition with Owner, Flags and source metadata.
+    @ret string sKey Stable storage key.
+    @vis internal
     !]]
     local function fFieldKey(tMember)
         local __lxc_guard <close> = nil;
         return tMember.Owner.FullName..':'..tMember.Name;
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.project
-    @desc Supplies one class-owned state projection to the host's staged graph.
-        Values retain source identities; the existing serializer owns graph encoding.
+    @fqxn LuaEx.LXC.Persistence.project
+    @desc Projects LXC class/instance state for host adapters; foreign values yield nil. Instance preparation
+        runs hooks, retains types/locks and rejects failed/incomplete state.
+    @param any vValue Value to inspect, assign, copy or serialize.
+    @ret table|nil tNode Projection with live field values, or nil.
+    @vis internal
     !]]
     function Codec.project(vValue)
         local __lxc_guard <close> = nil;
@@ -65,9 +98,14 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         return tNode;
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.checkGraph
-    @desc Preflights host graph structure and class-reference authority before allocation.
+    @fqxn LuaEx.LXC.Persistence.checkGraph
+    @desc Checks host-enabled schema then caller visibility without allocating or executing constructors.
+    @param table tGraph Decoded Root/Nodes descriptor graph, not live instance state.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @ret nil No return value; raises on invalid shape/access.
+    @vis internal
     !]]
     function Codec.checkGraph(tGraph, tCaller)
         local __lxc_guard <close> = nil;
@@ -75,9 +113,14 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         GraphAccess.validate(tGraph, tCaller);
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.stage
-    @desc Allocates an unpublished class identity without constructors or initializers.
+    @fqxn LuaEx.LXC.Persistence.stage
+    @desc Retrieves a class or allocates a concrete instance shell from a header. Constructors do not run; later
+        restore fills/validates storage.
+    @param table tNode One graph/publication-tree node as described by this operation.
+    @ret table vValue Class/instance reference.
+    @vis internal
     !]]
     function Codec.stage(tNode)
         local __lxc_guard <close> = nil;
@@ -87,14 +130,28 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         return fAllocate(tClass).Object;
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.snapshot
-    @desc Encodes values by graph identity, including cycles through class state.
+    @fqxn LuaEx.LXC.Persistence.snapshot
+    @desc Interns identities and fills graph records iteratively, preserving cycles, shared keys, null and
+        instance storage. Host callbacks add foreign values/captures. Checks access and caps nodes at 100000.
+    @param any vRoot Application graph root to export.
+    @param table|nil tHost Optional host graph adapter; nil selects standalone graph handling.
+    @ret table tGraph Version-one Root/Nodes graph.
+    @vis internal
     !]]
     function Codec.snapshot(vRoot, tHost)
         local __lxc_guard <close> = nil;
         local tGraph, tSeen, tDefinitions, tPending = {Version = 1, Nodes = {}}, {}, {}, {};
         local fEncode;
+        --[[!
+        @fqxn LuaEx.LXC.Persistence.encode
+        @desc Builds scalar/null/reference descriptors. Assigns complex IDs before visiting edges, preserving
+            cycles; standalone numbers must be finite.
+        @param any vValue Value to inspect, assign, copy or serialize.
+        @ret table tDescriptor Encoded value.
+        @vis internal
+        !]]
         fEncode = function(vValue)
             local __lxc_guard <close> = nil;
             if (rawequal(vValue, oNull)) then return {Null = true}; end
@@ -151,10 +208,15 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         return tGraph;
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.restore
-    @desc Allocates graph shells, then validates typed storage without constructors.
-        Unpublished shells are never returned when any validation step fails.
+    @fqxn LuaEx.LXC.Persistence.restore
+    @desc Validates schema/access, allocates identities before filling edges, restores exact fields/types/locks
+        and reconnects host captures. Parent-first validation precedes Ready. Constructors never run.
+    @param table tGraph Decoded Root/Nodes descriptor graph, not live instance state.
+    @param table|nil tHost Optional host graph adapter; nil selects standalone graph handling.
+    @ret any vRoot Restored root.
+    @vis internal
     !]]
     function Codec.restore(tGraph, tHost)
         local __lxc_guard <close> = nil;
@@ -177,6 +239,14 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
                 end
             end
         end
+        --[[!
+        @fqxn LuaEx.LXC.Persistence.decode
+        @desc Resolves scalar/null/reference descriptors against allocated identities, returning exactly one
+            value even when an assertion supplies a diagnostic.
+        @param table tValue One encoded descriptor/metadata record to validate or translate.
+        @ret any vValue Decoded value.
+        @vis internal
+        !]]
         local function fDecode(tValue)
             local __lxc_guard <close> = nil;
             assert(type(tValue) == 'table', 'Invalid graph value.');
@@ -229,10 +299,14 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         return fDecode(tGraph.Root);
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.serialize
-    @param any vValue Supported application value or instance graph.
-    @ret string Versioned state data; private field contents remain sensitive.
+    @fqxn LuaEx.LXC.Persistence.serialize
+    @desc Snapshots standalone finite scalars/null/plain tables/classes/instances. Foreign functions/metatable
+        values need host serialization. Rejects encoded text above 16 MiB.
+    @param any vValue Value to inspect, assign, copy or serialize.
+    @ret string sSource Restricted snapshot literal.
+    @vis internal
     !]]
     function Codec.serialize(vValue)
 
@@ -242,19 +316,29 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         return sSource;
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.deserialize
-    @param string sSource Restricted literal snapshot text.
-    @ret any Validated restored graph, without constructor execution.
+    @fqxn LuaEx.LXC.Persistence.deserialize
+    @desc Reads a restricted literal then restores against current registered definitions; does not evaluate
+        arbitrary input chunks.
+    @param string sSource Source text; the operation description specifies whether this is LXC, Lua or snapshot
+        data.
+    @ret any vRoot Restored standalone root.
+    @vis internal
     !]]
     function Codec.deserialize(sSource)
 
            local __lxc_guard <close> = nil;
         return Codec.restore(Literal.decode(sSource));
     end
+    
     --[[!
-    @fqxn LXC.Persistence.clone
-    @desc Copies a supported graph through validated shells, preserving concrete classes and internal aliases.
+    @fqxn LuaEx.LXC.Persistence.clone
+    @desc Internal standalone snapshot round trip. Public LXC.clone instead uses GraphClone with live custom
+        copying/foreign delegation.
+    @param any vValue Value to inspect, assign, copy or serialize.
+    @ret any vCopy In-memory round-trip copy.
+    @vis internal
     !]]
     function Codec.clone(vValue)
         local __lxc_guard <close> = nil;
@@ -262,9 +346,14 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
     end
 
     -- Static snapshots intentionally include only fields accessible at the use site.
+    
     --[[!
-    @fqxn LXC.Persistence.saveStatic
-    @desc Exports only caller-accessible mutable static fields; readonly fields remain declaration-owned.
+    @fqxn LuaEx.LXC.Persistence.saveStatic
+    @desc Saves caller-accessible mutable static storage across ancestry, omitting const/final. Saved class
+        identities alone do not include static state.
+    @param table oClass LXC class object selecting static state.
+    @ret string sSource Qualified-field snapshot.
+    @vis internal
     !]]
     function Codec.saveStatic(oClass)
         local __lxc_guard <close> = nil;
@@ -280,9 +369,16 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         return Codec.serialize(tValues);
     end
 
+    
     --[[!
-    @fqxn LXC.Persistence.loadStatic
-    @desc Validates all supplied static updates against access/types/locks before committing any write.
+    @fqxn LuaEx.LXC.Persistence.loadStatic
+    @desc Checks every supplied qualified-field update using trial slots before committing any. Rejects
+        access/type/lock/unknown-field failures; omitted fields keep current values.
+    @param table oClass LXC class object selecting static state.
+    @param string sSource Source text; the operation description specifies whether this is LXC, Lua or snapshot
+        data.
+    @ret nil No return value; commits checked assignments.
+    @vis internal
     !]]
     function Codec.loadStatic(oClass, sSource)
         local __lxc_guard <close> = nil;

@@ -1,23 +1,37 @@
 --[[!
-@fqxn LXC.Tokens
-@desc Declaration lexer. Preserves byte positions and treats Lua strings/comments
-    as opaque tokens. No source is executed here.
+@fqxn LuaEx.LXC.Tokens
+@desc <h3>Tokens — responsibility and connections</h3><p>Scans source into exact tokens with one-based byte
+    offsets and lines. Parser reads declarations; LuaScope analyzes Lua; Compiler edits original source by
+    offsets; Literal reads snapshot data. Whitespace/comments disappear; quoted and long strings remain whole so
+    internal braces/keywords cannot change the outer grammar.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
+
 local Tokens = {};
 
+
 --[[!
-@fqxn LXC.Tokens.scan
-@param string sSource Source text.
-@param string pFile Diagnostic filename.
-@ret table Ordered {Text, Start, Stop, Line} tokens, ending with <eof>.
+@fqxn LuaEx.LXC.Tokens.scan
+@desc Skips whitespace/comments, preserving string/numeric/operator tokens and an end-of-file record. Start/Stop
+    are inclusive original byte offsets and Line is the starting source line.
+@param string sSource Source text; the operation description specifies whether this is LXC, Lua or snapshot
+    data.
+@param string pFile Diagnostic source filename; source-map loads do not require a physical file.
+@ret table tTokens Records with Text/Start/Stop/Line and optional Kind.
+@vis internal
 !]]
 function Tokens.scan(sSource, pFile)
     local tTokens, nPosition, nLine = {}, 1, 1;
 
+    
     --[[!
-    @fqxn LXC.Tokens.scan.longEnd
-    @desc Finds a matching Lua long-bracket delimiter, including its equals count.
-    @ret number|nil First byte after the delimiter, or nil when not a long literal.
+    @fqxn LuaEx.LXC.Tokens.scan.longEnd
+    @desc Finds a long-bracket close with matching equal-sign count. Ordinary brackets return nil; unterminated
+        strings/comments raise filename/line diagnostics.
+    @param number nStart One-based byte position of a possible long-bracket opener.
+    @ret number|nil nAfter Position after the matching close.
+    @vis internal
     !]]
     local function fLong(nStart)
         local sEquals = string.match(sSource, '^%[(=*)%[', nStart);

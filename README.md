@@ -42,6 +42,8 @@ class.getparentname("Player");       -- parent name, or nil
 
 
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
+**LuaEx requires Lua 5.4.** Its LXC class runtime uses Lua 5.4 syntax.
+
 To push **LuaEx** into the global environment, place the **LuaEx** folder into your package path and add the following line of code to your project:
 ```lua
 local init = require("LuaEx.load");
@@ -215,10 +217,10 @@ While I develop **LuaEx** for my own projects, it's also designed to be used by 
 For their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
 
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
-The source uses **Lua 5.3+ syntax**. Native **Lua 5.4.2** on Windows and the
+**LuaEx requires Lua 5.4**, including its LXC class runtime. Native **Lua 5.4.2** on Windows and the
 bundled **Lua 5.4 / Wasmoon 1.16.0** runtime are the verified configurations.
-Lua 5.3 has not completed the current suite; Lua 5.1 and LuaJIT compatibility
-is not claimed. Platform-specific filesystem behavior also requires testing
+Lua 5.3 and earlier are not supported; LuaJIT compatibility is not claimed.
+Platform-specific filesystem behavior also requires testing
 on its actual host; simulated path tests are not equivalent to Linux/macOS validation.
 
 

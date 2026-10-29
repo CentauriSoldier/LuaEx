@@ -1,17 +1,32 @@
 --[[!
-@fqxn LXC.Literal
-@desc Restricted snapshot wire syntax. Encodes plain schema records and parses
-    only tables, primitive literals and explicit keys. It never executes a saved
-    program. Lua's loader is used solely to decode an already-tokenized quoted
-    string literal in an empty environment. Graph validation belongs to Schema.
+@fqxn LuaEx.LXC.Literal
+@desc <h3>Literal — responsibility and connections</h3><p>Writes and reads the restricted table-literal
+    representation of standalone snapshots. Persistence supplies acyclic descriptor records, even when the
+    represented application graph has cycles. Tokens scans strings safely; SnapshotSchema validates decoded
+    structure. Decoding reads a data grammar rather than evaluating the whole input as Lua code.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Literal.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Tokens Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Tokens)
     local Literal = {};
 
+    
     --[[!
-    @fqxn LXC.Literal.encode
-    @param any vValue Internal schema value; not an application object graph.
-    @ret string Text containing only the supported literal grammar.
+    @fqxn LuaEx.LXC.Literal.encode
+    @desc Writes internal descriptor records as explicit [key]=value literals, quoting strings with %q. Pass the
+        acyclic records from Persistence, not a cyclic application graph.
+    @param any vValue Value to inspect, assign, copy or serialize.
+    @ret string sSource Restricted literal text.
+    @vis internal
     !]]
     function Literal.encode(vValue)
         if (type(vValue) == 'table') then
@@ -26,17 +41,30 @@ return function(Tokens)
         return tostring(vValue);
     end
 
+    
     --[[!
-    @fqxn LXC.Literal.decode
-    @param string sSource Snapshot text, at most 16 MiB and 255 nested literals.
-    @ret any Parsed schema data, still requiring SnapshotSchema validation.
-    @desc Rejects duplicate entries, executable expressions and trailing source.
+    @fqxn LuaEx.LXC.Literal.decode
+    @desc Reads explicit table entries, strings, booleans and numbers; requires commas and rejects duplicate/nil
+        keys and trailing code. Limits text to 16 MiB and nested depth below 256. Never evaluates the entire
+        input chunk.
+    @param string sSource Source text; the operation description specifies whether this is LXC, Lua or snapshot
+        data.
+    @ret any vValue Literal data before schema validation.
+    @vis internal
     !]]
     function Literal.decode(sSource)
         assert(type(sSource) == 'string' and #sSource <= 16 * 1024 * 1024, 'Invalid snapshot text.');
         local tTokens, nIndex = Tokens.scan(sSource, 'LXC snapshot'), 1;
         local fRead;
 
+        --[[!
+        @fqxn LuaEx.LXC.Literal.decode.read
+        @desc Consumes one scalar or nested table. Only individual string tokens are evaluated in an empty
+            environment to interpret escapes; numeric text uses tonumber.
+        @param number nDepth Current recursive literal depth for the decoder limit.
+        @ret any vValue Decoded value.
+        @vis internal
+        !]]
         fRead = function(nDepth)
             assert(nDepth < 256, 'Snapshot nesting limit exceeded.');
             local tToken = tTokens[nIndex];

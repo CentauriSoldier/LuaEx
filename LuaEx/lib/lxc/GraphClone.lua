@@ -1,9 +1,24 @@
 --[[!
-@fqxn LXC.GraphClone
-@desc Constructor-free object/table copying with one coroutine-local graph map.
-    Explicit clone hooks own their copy policy and register shells before cycles.
-    Callback functions retain identity, matching LuaEx's existing clone contract;
-    cloning does not serialize code or inspect captured function environments.
+@fqxn LuaEx.LXC.GraphClone
+@desc <h3>GraphClone — responsibility and connections</h3><p>Copies live graphs while preserving shared
+    references and cycles. Runtime supplies allocation without constructors; SnapshotHooks validates automatic
+    copies. Unlike a text round trip, live copies can retain function identities, invoke a clone operator and
+    delegate foreign values to the host cloner. Nested calls share one coroutine-local session.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+@field function Fallback Original host cloner injected by Host.install for unsupported foreign values.
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.GraphClone.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Model Private injected dependency; its role is described in the module map.
+@param table Context Private injected dependency; its role is described in the module map.
+@param table Runtime Private injected dependency; its role is described in the module map.
+@param table Hooks Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Model, Context, Runtime, Hooks)
     local Copy = {};
@@ -11,10 +26,17 @@ return function(Model, Context, Runtime, Hooks)
     local tSessions = setmetatable({}, {__mode = 'k'});
     local fCopy;
 
+    
     --[[!
-    @fqxn LXC.GraphClone.remember
-    @desc Records graph shells so a caught nested failure can discard its own
-        entries without invalidating an enclosing clone traversal.
+    @fqxn LuaEx.LXC.GraphClone.remember
+    @desc Stores source-to-copy identity before recursion and records automatically allocated states for failure
+        invalidation. Repeated references reuse this copy.
+    @param table tSession Active graph copy/export identity and rollback bookkeeping.
+    @param any vSource Original identity being copied.
+    @param any vCopy Copy identity associated with a source.
+    @param table|nil tOwnedState Automatic copy state to invalidate on rollback, if any.
+    @ret nil No return value; updates session identity records.
+    @vis internal
     !]]
     local function fRemember(tSession, vSource, vCopy, tOwnedState)
         if (not tSession.Seen[vSource]) then
@@ -23,10 +45,17 @@ return function(Model, Context, Runtime, Hooks)
         tSession.Seen[vSource] = vCopy;
     end
 
+    
     --[[!
-    @fqxn LXC.GraphClone.rollback
-    @desc Invalidates engine-allocated incomplete instances and removes graph
-        records created after the failed call's checkpoint.
+    @fqxn LuaEx.LXC.GraphClone.rollback
+    @desc Removes identities, active hooks and pending validators added after the call checkpoints; marks new
+        automatic instances failed. Application side effects inside custom hooks cannot be undone.
+    @param table tSession Active graph copy/export identity and rollback bookkeeping.
+    @param number nRecords Identity-record checkpoint at copy-call entry.
+    @param number nActive Active-hook checkpoint at copy-call entry.
+    @param number nValidators Pending-validator checkpoint at copy-call entry.
+    @ret nil No return value; rolls back session bookkeeping.
+    @vis internal
     !]]
     local function fRollback(tSession, nRecords, nActive, nValidators)
         for n = #tSession.Records, nRecords + 1, -1 do
@@ -40,10 +69,16 @@ return function(Model, Context, Runtime, Hooks)
         for n = #tSession.Validate, nValidators + 1, -1 do tSession.Validate[n] = nil; end
     end
 
+    
     --[[!
-    @fqxn LXC.GraphClone.registerCopy
-    @desc Lets the executing declaring-class clone hook register its own shell.
-        External callbacks cannot register a replacement into a privileged copy.
+    @fqxn LuaEx.LXC.GraphClone.registerCopy
+    @desc Registers a distinct same-concrete-class copy from the source's active clone hook. Register before
+        recursively cloning contents that lead back to the source. Only the hook's declaring class scope may
+        register.
+    @param table oSource Source LXC instance with an active custom clone hook.
+    @param table oCopy Distinct same-concrete-class copy of the source.
+    @ret nil No return value; stores source/copy identity.
+    @vis internal
     !]]
     function Copy.registerCopy(oSource, oCopy)
         local __lxc_guard <close> = nil;
@@ -57,10 +92,18 @@ return function(Model, Context, Runtime, Hooks)
     end
     Context.internal(Copy.registerCopy);
 
+    
     --[[!
-    @fqxn LXC.GraphClone.instance
-    @desc Uses an explicit class hook, or allocates/copies typed slots directly.
-        Generic copies run snapshot validators after the complete graph is built.
+    @fqxn LuaEx.LXC.GraphClone.instance
+    @desc Runs the selected clone operator or allocates storage without constructors. Custom copies must be
+        distinct and preserve concrete class. Automatic copies retain slot types/locks and defer validation
+        until the root graph is complete.
+    @param table oSource Source LXC instance with an active custom clone hook.
+    @param table tState Private live state containing Class, Object and storage maps.
+    @param table tSession Active graph copy/export identity and rollback bookkeeping.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @ret table oCopy Copied instance reference.
+    @vis internal
     !]]
     local function fInstance(oSource, tState, tSession, tCaller)
         assert(not tState.Failed and not tState.Class.Discarded and not tState.Constructing, 'Cannot clone incomplete or failed state.');
@@ -88,6 +131,17 @@ return function(Model, Context, Runtime, Hooks)
         return tCopy.Object;
     end
 
+    --[[!
+    @fqxn LuaEx.LXC.GraphClone.copy
+    @desc Preserves null/scalars/function identities, retains accessible class references, reuses known copies,
+        copies instances/plain tables, then delegates foreign values to the host fallback. Keys and cycles
+        participate in the same identity map.
+    @param any vValue Value to inspect, assign, copy or serialize.
+    @param table tSession Active graph copy/export identity and rollback bookkeeping.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @ret any vCopy Copied value or shared immutable/class identity.
+    @vis internal
+    !]]
     fCopy = function(vValue, tSession, tCaller)
         if (rawequal(vValue, oNull)) then return oNull; end
         local tClass = tClasses[vValue];
@@ -112,10 +166,15 @@ return function(Model, Context, Runtime, Hooks)
         return vCopy;
     end;
 
+    
     --[[!
-    @fqxn LXC.GraphClone.clone
-    @desc Starts or joins a copy graph. Each entry determines its actual caller;
-        a nested external callback never borrows the outer caller's scope.
+    @fqxn LuaEx.LXC.GraphClone.clone
+    @desc Copies a root in a coroutine-local session shared by nested calls. Root completion validates automatic
+        copies and marks them ready; failures roll back work added by the failing call.
+    @param any vValue Value to inspect, assign, copy or serialize.
+    @param boolean|nil bIgnoreMetatable Optional copy flag; true treats eligible foreign tables as plain data.
+    @ret any vCopy Copied root.
+    @vis internal
     !]]
     function Copy.clone(vValue, bIgnoreMetatable)
         local __lxc_guard <close> = nil;
@@ -147,9 +206,13 @@ return function(Model, Context, Runtime, Hooks)
     end
     Context.internal(Copy.clone);
 
+    
     --[[!
-    @fqxn LXC.GraphClone.active
-    @desc Reports whether registerCopy belongs to this runtime's copy traversal.
+    @fqxn LuaEx.LXC.GraphClone.active
+    @desc Checks whether this coroutine already has an LXC copy session. Host uses it to retain nested graph
+        identity.
+    @ret boolean bActive Whether a session exists.
+    @vis internal
     !]]
     function Copy.active() return tSessions[coroutine.running()] ~= nil; end
     return Copy;

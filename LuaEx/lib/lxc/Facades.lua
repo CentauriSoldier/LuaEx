@@ -1,9 +1,13 @@
 --[[!
-@fqxn LXC.Facades
-@desc Opaque references with Lua-compatible operand lookup. Private handler maps
-    remain inaccessible through raw operations or the protected decoy metatable.
-    Foreign metamethods execute behind an external caller boundary.
+@fqxn LuaEx.LXC.Facades
+@desc <h3>Facades — responsibility and connections</h3><p>Creates the empty public tables used as classes,
+    instances, namespace views and read-only APIs. State lives in private handler maps; a shared protected
+    metatable forwards operations to the owning service. This supports encapsulation through ordinary Lua
+    operations, not a security sandbox against privileged debug/raw access.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
+
 local _tHandlers = setmetatable({}, {__mode = 'k'});
 local _getMeta = debug.getmetatable;
 -- Share trusted dispatch frames across loads without changing foreign threads.
@@ -19,20 +23,30 @@ for _, sName in ipairs({'__add', '__sub', '__mul', '__div', '__idiv', '__mod', '
     _tBinary[sName] = true;
 end
 
+
 --[[!
-@fqxn LXC.Facades.invokeExternal
-@desc Intentionally NOT registered as a runtime frame. An application-supplied
-    metamethod cannot borrow the class scope which triggered its invocation.
+@fqxn LuaEx.LXC.Facades.invokeExternal
+@desc Invokes a foreign operand metamethod through a deliberately non-internal frame, preserving the application
+    callback's access boundary.
+@param function vMethod Foreign operand metamethod selected for invocation.
+@param any ... Additional arguments forwarded in order.
+@ret any ... Foreign metamethod results.
+@vis internal
 !]]
 local function invokeExternal(vMethod, ...)
     local __lxc_guard <close> = nil;
     return vMethod(...);
 end
 
+
 --[[!
-@fqxn LXC.Facades.findBinary
-@desc Finds the operation actually declared by this operand. A missing class
-    operation permits right-operand fallback despite the shared decoy metatable.
+@fqxn LuaEx.LXC.Facades.findBinary
+@desc Selects an operand implementation without invoking it. LXC handlers advertise support; foreign operands
+    use their actual metatable.
+@param any vValue Value to inspect, assign, copy or serialize.
+@param string sOperation Canonical Lua metamethod operation name.
+@ret function|nil vMethod Selected method, followed by boolean bClass for LXC dispatch.
+@vis internal
 !]]
 local function findBinary(vValue, sOperation)
     local tHandler = _tHandlers[vValue];
@@ -46,10 +60,16 @@ local function findBinary(vValue, sOperation)
     if (type(tMeta) == 'table') then return rawget(tMeta, sOperation), false; end
 end
 
+
 --[[!
-@fqxn LXC.Facades.binary
-@desc Preserves original operand order, left-before-right lookup and Lua's
-    reversed __lt fallback for <=. Foreign operations receive ordinary operands.
+@fqxn LuaEx.LXC.Facades.binary
+@desc Tries left then right operand support. LXC receives both operands; foreign methods run through
+    invokeExternal. Missing &lt;= falls back to reversed <, and missing equality to raw identity.
+@param string sOperation Canonical Lua metamethod operation name.
+@param any vLeft Original left operand.
+@param any vRight Original right operand.
+@ret any ... Operator results or an unsupported-operation error.
+@vis internal
 !]]
 local function binary(sOperation, vLeft, vRight)
     local __lxc_guard <close> = nil;
@@ -64,10 +84,16 @@ local function binary(sOperation, vLeft, vRight)
     error('No operand implements '..sOperation..'.', 2);
 end
 
+
 --[[!
-@fqxn LXC.Facades.dispatch
-@desc Routes nonbinary operations to their private handlers. This frame must
-    remain visible so external tail calls cannot acquire a class caller's rights.
+@fqxn LuaEx.LXC.Facades.dispatch
+@desc Routes facade operations to private handlers. Binary operators share operand selection; other operations
+    use an explicit or generic operator callback. Unknown references and unsupported operations fail.
+@param string sOperation Canonical Lua metamethod operation name.
+@param table oReference Opaque public facade reference.
+@param any ... Additional arguments forwarded in order.
+@ret any ... Selected handler results.
+@vis internal
 !]]
 local function dispatch(sOperation, oReference, ...)
     local __lxc_guard <close> = nil;
@@ -82,11 +108,14 @@ local function dispatch(sOperation, oReference, ...)
     error('Unknown LXC reference.', 2);
 end
 
+
 --[[!
-@fqxn LXC.Facades.finalize
-@desc A private finalizable sidecar supplies exactly one __gc for each instance.
-    Reinstates dispatch during finalization so legitimate private reads and Lua
-    resurrection work even if weak-key cleanup has already removed the entry.
+@fqxn LuaEx.LXC.Facades.finalize
+@desc Reestablishes the reference/handler association while finalizing its handler, then invokes __finalize.
+    Runtime's callback decides whether the instance is ready and permitted to run gc.
+@param table tHandler Private facade operation record.
+@ret nil No return value.
+@vis internal
 !]]
 local function finalize(tHandler)
     local __lxc_guard <close> = nil;
@@ -108,18 +137,26 @@ end
 
 local Facades = {};
 
+
 --[[!
-@fqxn LXC.Facades.owns
-@desc Private bootstrap query. A later runtime must retain existing decoys by
-    identity instead of enumerating them while capturing host dependencies.
+@fqxn LuaEx.LXC.Facades.owns
+@desc Checks the private handler map without exposing or enumerating state.
+@param any vValue Value to inspect, assign, copy or serialize.
+@ret boolean bOwned Whether this value is a known facade.
+@vis internal
 !]]
 function Facades.owns(vValue)
     return _tHandlers[vValue] ~= nil;
 end
 
+
 --[[!
-@fqxn LXC.Facades.register
-@desc Registers only trusted dispatch frames; invokeExternal remains a boundary.
+@fqxn LuaEx.LXC.Facades.register
+@desc Registers shared dispatch/metamethod frames with a Context service. invokeExternal intentionally remains a
+    visible application boundary.
+@param table Context Caller-ownership service receiving trusted dispatch registrations.
+@ret nil No return value; registers trusted identities.
+@vis internal
 !]]
 function Facades.register(Context)
     Context.internal(dispatch);
@@ -131,10 +168,16 @@ function Facades.register(Context)
     end
 end
 
+
 --[[!
-@fqxn LXC.Facades.create
-@param table tOperations Private operations; never returned to application code.
-@ret table Empty decoy, independent of other instances' hidden handlers.
+@fqxn LuaEx.LXC.Facades.create
+@desc Returns an empty protected table dispatching through the supplied handler record. Optional __finalize
+    arranges handler finalization. Reads/writes/operators use callbacks; raw table enumeration cannot reveal
+    private state.
+@param table tOperations Callbacks keyed by metamethod, with optional __supports/__operator/__finalize
+    extensions.
+@ret table oReference New opaque public reference.
+@vis internal
 !]]
 function Facades.create(tOperations)
     local oReference = setmetatable({}, _tMeta);

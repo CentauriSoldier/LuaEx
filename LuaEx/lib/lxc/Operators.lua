@@ -1,9 +1,15 @@
 --[[!
-@fqxn LXC.Operators
-@desc Operator spellings and load-time contracts. Binary methods accept either
-    one other operand or both original operands, preserving noncommutative order.
-    Native equality uses the same contracts, with identity fallback when absent.
+@fqxn LuaEx.LXC.Operators
+@desc <h3>Operators — responsibility and connections</h3><p>Defines supported instance operators, parameter
+    contracts and spelling-to-metamethod mappings. Parser resolves spellings, Validation checks public instance
+    visibility and arity, Runtime supplies receiver-aware invocation, and Facades supplies Lua dispatch. Clone
+    and snapshot operators also connect to dedicated graph services.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+@prifield table _tBinary Private local sequence: arithmetic/comparison/bitwise contracts take one or two
+    explicit parameters; unary contracts take none.
 !]]
+
 local Operators = {};
 local _tBinary = {'__add', '__sub', '__mul', '__div', '__idiv', '__mod', '__pow',
     '__concat', '__eq', '__lt', '__le', '__band', '__bor', '__bxor', '__shl', '__shr'};
@@ -29,11 +35,15 @@ local _tSpellings = {
     clone = '__clone', serialize = '__serialize', deserialize = '__deserialize',
 };
 
+
 --[[!
-@fqxn LXC.Operators.resolve
-@desc Resolves spelling after parsing parameters. Minus/tilde choose the unary
-    or binary Lua operation from the declared operand count.
-@ret string|nil Canonical metamethod name, or nil for an unsupported spelling.
+@fqxn LuaEx.LXC.Operators.resolve
+@desc Maps symbols/aliases/supported metamethod names to canonical keys. Zero-parameter -/~ select unary
+    operations, otherwise subtraction/xor. Validation separately enforces arity.
+@param string sSpelling Source operator symbol, named alias or direct metamethod name.
+@param number nParameters Explicit parameter count excluding hidden runtime arguments.
+@ret string|nil sName Canonical supported key or nil.
+@vis internal
 !]]
 function Operators.resolve(sSpelling, nParameters)
     if (sSpelling == '-') then return nParameters == 0 and '__unm' or '__sub'; end

@@ -1,19 +1,36 @@
 --[[!
-@fqxn LXC.HostGraph
-@desc Adapts staged LXC state graphs to the existing LuaEx serializer. LuaEx
-    owns bytecode, captured variables, shared cells and foreign-type restoration.
-    Private identity markers reconnect captured class/table references only after
-    all LXC shells exist; compiler environments are never exported.
+@fqxn LuaEx.LXC.HostGraph
+@desc <h3>HostGraph — responsibility and connections</h3><p>Implements the older identity-envelope bridge
+    between LuaEx serialization and LXC snapshots. Markers stand in for class identities while the host handles
+    foreign values and application closures. Persistence restores LXC storage, then this service reconnects
+    captured values. Host uses this for version-two imports; current exports use HostStaged.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.HostGraph.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Context Private injected dependency; its role is described in the module map.
+@param table Runtime Private injected dependency; its role is described in the module map.
+@param table Codec Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Context, Runtime, Codec)
     local HostGraph = {};
     local tClasses, tObjects = Runtime.services();
     local tSessions = setmetatable({}, {__mode = 'k'});
 
+    
     --[[!
-    @fqxn LXC.HostGraph.reference
-    @desc Supplies an identity-only placeholder to LuaEx's existing object hook.
-        It is usable only during this runtime's explicit host export transaction.
+    @fqxn LuaEx.LXC.HostGraph.HostReference
+    @desc Returns a temporary class/instance marker during an active older host export. The identity must
+        already be interned in that export graph.
+    @param any vValue Value to inspect, assign, copy or serialize.
+    @ret table oMarker Shared marker for this identity.
+    @vis internal
     !]]
     Runtime.HostReference = Context.internal(function(vValue)
         local __lxc_guard <close> = nil;
@@ -22,21 +39,44 @@ return function(Context, Runtime, Codec)
         return assert(tSession.Markers[nID], 'Not a registered class identity.');
     end);
 
+    
     --[[!
-    @fqxn LXC.HostGraph.serialize
-    @desc Projects typed class slots, then delegates function/foreign values to
-        the unchanged LuaEx serializer. References retain aliases across both graphs.
+    @fqxn LuaEx.LXC.HostGraph.serialize
+    @desc Snapshots with host callbacks, then serializes Graph/References/Markers together. A coroutine session
+        supplies facade markers and the previous session is restored on success or failure.
+    @param any vRoot Application graph root to export.
+    @param table Serializer Original host serializer before the LXC facade wrapper.
+    @ret string sSource Older envelope without its version prefix.
+    @vis internal
     !]]
     function HostGraph.serialize(vRoot, Serializer)
         local __lxc_guard <close> = nil;
         local tSession = {Seen = {}, References = {}, Markers = {}};
         local tHost = {};
 
+        --[[!
+        @fqxn LuaEx.LXC.HostGraph.serialize.remember
+        @desc Records live value/node identity and creates markers for class/instance nodes before following
+            edges.
+        @param any vValue Value to inspect, assign, copy or serialize.
+        @param number nID Interned graph node identity.
+        @ret nil No return value; updates the export session.
+        @vis internal
+        !]]
         function tHost.remember(vValue, nID)
             tSession.Seen[vValue], tSession.References[nID] = nID, vValue;
             if (tClasses[vValue] or tObjects[vValue]) then tSession.Markers[nID] = {}; end
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.HostGraph.serialize.inspect
+        @desc Encodes non-global captures of foreign functions. Current-global _ENV is skipped; LXC-owned
+            closures are rejected. Non-functions contribute an empty capture list.
+        @param any vValue Value to inspect, assign, copy or serialize.
+        @param function fEncode Graph encoder used to intern captures.
+        @ret table tCaptures Encoded captures.
+        @vis internal
+        !]]
         function tHost.inspect(vValue, fEncode)
             local tCaptures = {};
             if (type(vValue) == 'function') then
@@ -69,10 +109,16 @@ return function(Context, Runtime, Codec)
     end
     Context.internal(HostGraph.serialize);
 
+    
     --[[!
-    @fqxn LXC.HostGraph.deserialize
-    @desc Lets LuaEx rebuild functions/shared captures, then reconnects their
-        identity references to constructor-free LXC shells before class validation.
+    @fqxn LuaEx.LXC.HostGraph.deserialize
+    @desc Verifies envelope identities, markers and capture descriptors, then restores via Persistence.
+        Reconnect replaces temporary identities in function upvalues.
+    @param string sSource Source text; the operation description specifies whether this is LXC, Lua or snapshot
+        data.
+    @param table Serializer Original host serializer before the LXC facade wrapper.
+    @ret any vRoot Restored root graph.
+    @vis internal
     !]]
     function HostGraph.deserialize(sSource, Serializer)
         local __lxc_guard <close> = nil;
@@ -111,6 +157,14 @@ return function(Context, Runtime, Codec)
         end
         local tHost = {};
 
+        --[[!
+        @fqxn LuaEx.LXC.HostGraph.deserialize.reconnect
+        @desc Replaces envelope references in function captures with restored values using setupvalue,
+            preserving already joined upvalue cells. Interned identities also handle recursive closures.
+        @param table tValues Allocated graph identities or storage records used by this operation.
+        @ret nil No return value; reconnects captures.
+        @vis internal
+        !]]
         function tHost.reconnect(tValues)
             local tReplacements = {};
             for nID, vReference in pairs(tEnvelope.References) do

@@ -1,19 +1,36 @@
 --[[!
-@fqxn LXC.SnapshotSchema
-@desc Preflights the literal graph format before allocating any restored object.
-    Rejects extra fields, sparse arrays, unknown references and invalid descriptors.
+@fqxn LuaEx.LXC.SnapshotSchema
+@desc <h3>SnapshotSchema — responsibility and connections</h3><p>Checks decoded snapshot shape before
+    allocation: record keys, dense arrays, descriptor forms, reference IDs and supported version. GraphAccess
+    separately checks visibility; Persistence separately checks actual fields, established types and locks.
+    Structurally valid data is not automatically valid for the current class definitions.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
+
 local Schema = {};
 
+
 --[[!
-@fqxn LXC.SnapshotSchema.record
-@desc Rejects undeclared record fields and metatable-bearing schema containers.
+@fqxn LuaEx.LXC.SnapshotSchema.record
+@desc Requires plain metadata and rejects unknown keys; callers enforce required fields/types.
+@param table tValue One encoded descriptor/metadata record to validate or translate.
+@param table tAllowed Set of allowed metadata field names.
+@ret nil No return value; raises for malformed records.
+@vis internal
 !]]
 local function record(tValue, tAllowed)
     assert(type(tValue) == 'table' and getmetatable(tValue) == nil, 'Expected plain snapshot record.');
     for sKey in pairs(tValue) do assert(tAllowed[sKey], 'Unknown snapshot record field: '..tostring(sKey)); end
 end
 
+--[[!
+@fqxn LuaEx.LXC.SnapshotSchema.dense
+@desc Checks integer keys starting at one, no holes and no keyed extras before indexed traversal.
+@param table tList Candidate dense sequence to validate.
+@ret number nCount Exact list length.
+@vis internal
+!]]
 local function dense(tList)
     assert(type(tList) == 'table' and getmetatable(tList) == nil, 'Expected snapshot list.');
     local nCount = 0;
@@ -24,10 +41,15 @@ local function dense(tList)
     return nCount;
 end
 
+
 --[[!
-@fqxn LXC.SnapshotSchema.validate
-@param table tGraph Version-one decoded wire records, not application objects.
-@desc Validates the entire descriptor graph without following graph cycles.
+@fqxn LuaEx.LXC.SnapshotSchema.validate
+@desc Checks version/node limit/dense arrays/descriptor forms and node-specific fields. Host mode permits host
+    nodes/nonfinite numeric descriptors; standalone mode restricts data accordingly.
+@param table tGraph Decoded Root/Nodes descriptor graph, not live instance state.
+@param boolean bHost Whether host nodes and host numeric allowances are enabled.
+@ret nil No return value; raises for invalid shape.
+@vis internal
 !]]
 function Schema.validate(tGraph, bHost)
     record(tGraph, {Version = true, Root = true, Nodes = true});
@@ -35,6 +57,14 @@ function Schema.validate(tGraph, bHost)
     local nNodes = dense(tGraph.Nodes);
     assert(nNodes <= 100000, 'Snapshot node limit exceeded.');
 
+    --[[!
+    @fqxn LuaEx.LXC.SnapshotSchema.validate.descriptor
+    @desc Checks exclusive Null/Ref/Value forms; a blank record represents nil. Reference IDs must be valid
+        integer node indices and literal values supported scalars.
+    @param table tValue One encoded descriptor/metadata record to validate or translate.
+    @ret nil No return value; validates a descriptor.
+    @vis internal
+    !]]
     local function fDescriptor(tValue)
         record(tValue, {Null = true, Ref = true, Value = true});
         local nKinds = (tValue.Null ~= nil and 1 or 0) + (tValue.Ref ~= nil and 1 or 0) + (tValue.Value ~= nil and 1 or 0);

@@ -1,28 +1,71 @@
 --[[!
-@fqxn LXC.Parser
-@desc Parses declarations into class/member records. Owns grammar, never runtime
-    access or inheritance policy. Ordered Members preserve initialization order.
+@fqxn LuaEx.LXC.Parser
+@desc <h3>Parser — responsibility and connections</h3><p>Reads the LXC declaration language into class/member
+    records without executing application code. Tokens protects strings/comments; Parser recognizes namespaces,
+    imports, modifiers, inheritance clauses, fields, properties, constructors and operators. Bodies remain Lua
+    text for Compiler; Model and Validation enforce semantic contracts afterwards.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+@prifield table tModifiers Private local map: Parser recognizes
+    public/private/protected/static/final/const/abstract/override flags; Validation decides where each is legal.
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Parser.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Tokens Private injected dependency; its role is described in the module map.
+@param table Names Private injected dependency; its role is described in the module map.
+@param table Operators Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Tokens, Names, Operators)
     local Parser = {};
     local tModifiers = {public = true, private = true, protected = true,
         static = true, final = true, const = true, abstract = true, override = true};
 
+    
     --[[!
-    @fqxn LXC.Parser.parse
-    @param string sSource One source file, with imports and namespace blocks.
-    @param string pFile Source filename used by diagnostics.
-    @ret table Flat class list; enclosing classes are linked through Outer.
+    @fqxn LuaEx.LXC.Parser.parse
+    @desc Produces a flat list of linked class/nested definitions. Preserves member order and Lua
+        body/initializer text; imports are copied at declaration time. Does not execute application code or
+        create live classes.
+    @param string sSource Source text; the operation description specifies whether this is LXC, Lua or snapshot
+        data.
+    @param string pFile Diagnostic source filename; source-map loads do not require a physical file.
+    @ret table tClasses Parsed records.
+    @vis internal
     !]]
     function Parser.parse(sSource, pFile)
         local tTokens, nIndex, tClasses, tImports = Tokens.scan(sSource, pFile), 1, {}, {};
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.fail
+        @desc Raises a diagnostic at the current filename/token line.
+        @param string sMessage Grammar failure explanation.
+        @ret nil Never returns; raises a grammar error.
+        @vis internal
+        !]]
         local function fFail(sMessage)
             error(pFile..':'..tTokens[nIndex].Line..': '..sMessage, 0);
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.peek
+        @desc Reads the current token without advancing.
+        @ret string sText Token spelling.
+        @vis internal
+        !]]
         local function fPeek() return tTokens[nIndex].Text; end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.take
+        @desc Consumes a token after an optional exact-spelling requirement.
+        @param string|nil sExpected Optional exact token spelling required at the cursor.
+        @ret string sText Consumed spelling.
+        @vis internal
+        !]]
         local function fTake(sExpected)
             local tToken = tTokens[nIndex];
             if (sExpected and tToken.Text ~= sExpected) then fFail('Expected '..sExpected..', got '..tToken.Text); end
@@ -30,6 +73,12 @@ return function(Tokens, Names, Operators)
             return tToken.Text;
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.name
+        @desc Reads an identifier and applies Names.valid, rejecting reserved/compiler-private names.
+        @ret string sName Valid identifier.
+        @vis internal
+        !]]
         local function fName()
             if (not string.match(fPeek(), '^[%a_][%w_]*$')) then fFail('Expected an identifier.'); end
             local sName = fTake();
@@ -37,12 +86,25 @@ return function(Tokens, Names, Operators)
             return sName;
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.qualified
+        @desc Reads dot-separated valid identifiers for namespaces/imports/parent references/clauses.
+        @ret string sName Dotted path.
+        @vis internal
+        !]]
         local function fQualified()
             local sName = fName();
             while (fPeek() == '.') do fTake(); sName = sName..'.'..fName(); end
             return sName;
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.modifiers
+        @desc Collects flags and rejects duplicates/contradictory visibility. Validation checks their legality
+            for the declaration kind.
+        @ret table tFlags Modifier flags and optional Visibility.
+        @vis internal
+        !]]
         local function fModifiers()
             local tResult = {};
             while (tModifiers[fPeek()]) do
@@ -57,6 +119,13 @@ return function(Tokens, Names, Operators)
             return tResult;
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.body
+        @desc Captures original text inside balanced braces and its first token line; string/comment tokens
+            protect internal braces.
+        @ret string sBody Followed by number nLine for diagnostics.
+        @vis internal
+        !]]
         local function fBody()
             fTake('{');
             local nStart, nLine, nDepth = tTokens[nIndex].Start, tTokens[nIndex].Line, 1;
@@ -71,6 +140,13 @@ return function(Tokens, Names, Operators)
             return sBody, nLine;
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.initializer
+        @desc Captures an expression after = through its required outer semicolon, tracking Lua blocks/brackets
+            so function-valued initializers may contain internal semicolons.
+        @ret string sExpression Text without = or final semicolon.
+        @vis internal
+        !]]
         local function fInitializer()
             fTake('=');
             local nStart, nDepth = tTokens[nIndex].Start, 0;
@@ -101,6 +177,13 @@ return function(Tokens, Names, Operators)
             return sExpression;
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.parameters
+        @desc Reads untyped identifiers and optional final vararg; rejects duplicates and this/base parameters
+            supplied implicitly by LXC.
+        @ret table tParameters Followed by boolean bVariadic.
+        @vis internal
+        !]]
         local function fParameters()
             fTake('(');
             local tParameters, tSeen, bVariadic = {}, {}, false;
@@ -119,6 +202,16 @@ return function(Tokens, Names, Operators)
         end
 
         local fClass;
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.class
+        @desc Parses classes/nested classes, clauses, fields, properties, methods and operators. Recognizes
+            constructors by class name and builds accessor argument metadata.
+        @param string sNamespace Qualified namespace containing the declaration.
+        @param table|nil tOuter Enclosing class for a nested declaration, otherwise nil.
+        @param table tFlags Parsed visibility/modifier flags.
+        @ret table tClass New definition also added to the flat output.
+        @vis internal
+        !]]
         fClass = function(sNamespace, tOuter, tFlags)
             fTake('class');
             local sName = fName();

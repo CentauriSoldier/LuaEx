@@ -347,7 +347,7 @@ local function init(...)
         ]]
         -- LXC owns class loading; baseline primitives remain ordinary Lua modules.
         if (_tClassLoadValues[_nClassSystem]) then
-            local LXC = require("LuaEx.lxc.init");
+            local LXC = require("LuaEx.lib.lxc");
             LXC.bindHost(_G);
 
             if (_tClassLoadValues[_nBasicClasses]) then

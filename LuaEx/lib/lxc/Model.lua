@@ -1,24 +1,54 @@
 --[[!
-@fqxn LXC.Model
-@desc Private definition graph, lexical lookup, visibility, and compile-time
-    validation. A factory instance belongs to one LXC runtime, never package.loaded.
+@fqxn LuaEx.LXC.Model
+@desc <h3>Model — responsibility and connections</h3><p>Stores published class definitions and shared rules for
+    name resolution, ancestry and access. Parser creates records; Model links parents and orders batches;
+    Validation checks contracts. Runtime, Environment, Helpers and graph services reuse these queries so source
+    validation and live access follow the same model.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+@field table Classes Published definitions keyed by exact qualified name; pending batches remain separate until
+    successful publication.
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Model.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param function ValidationFactory Private injected dependency; its role is described in the module map.
+@param table Diagnostics Private injected dependency; its role is described in the module map.
+@param table Names Private injected dependency; its role is described in the module map.
+@param table Operators Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(ValidationFactory, Diagnostics, Names, Operators)
     local Model = {Classes = {}};
 
+    
     --[[!
-    @fqxn LXC.Model.descends
-    @desc Inclusive ancestry check on registered internal class records.
+    @fqxn LuaEx.LXC.Model.descends
+    @desc Follows Parent links including equality. Internal ancestry/type checks treat a class as its own
+        ancestor; Helpers.ischild adds strict inequality.
+    @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+    @param table tBase Ancestor/base class definition for the comparison.
+    @ret boolean bMatch Whether class is or descends from base.
+    @vis internal
     !]]
     function Model.descends(tClass, tBase)
         while (tClass) do if (tClass == tBase) then return true; end; tClass = tClass.Parent; end
         return false;
     end
 
+    
     --[[!
-    @fqxn LXC.Model.allowed
-    @desc Class-owned private rights flow into lexical nested types, never siblings.
-        Protected rights also permit descendant declaring contexts.
+    @fqxn LuaEx.LXC.Model.allowed
+    @desc Checks caller and enclosing lexical classes. Public always permits access; private admits
+        owner/lexical descendants; protected additionally admits inheritance descendants.
+    @param string sVisibility public, protected or private visibility spelling.
+    @param table tOwner Class definition that declares this code or storage.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @ret boolean bAllowed Whether scope satisfies visibility.
+    @vis internal
     !]]
     function Model.allowed(sVisibility, tOwner, tCaller)
         if (sVisibility == 'public') then return true; end
@@ -29,15 +59,17 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
         return false;
     end
 
+    
     --[[!
-    @fqxn LXC.Model.memberAllowed
-    @desc Applies declaring-class rights and the C#-guided protected receiver
-        restriction. A derived scope may use protected instance state through
-        its own type or descendants, never an arbitrary base/sibling instance.
-    @param table tMember Member or accessor definition.
-    @param table tCaller Lexical declaring class, or nil for external code.
-    @param table tReceiver Concrete receiver class.
-    @ret boolean Whether this member operation is permitted.
+    @fqxn LuaEx.LXC.Model.memberAllowed
+    @desc Uses the original override's access contract. Protected instance access also requires a receiver in
+        the derived caller's branch, blocking sibling-instance access. Accessors use the original property's
+        accessor contract.
+    @param table tMember Member definition with Owner, Flags and source metadata.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @param table tReceiver Concrete receiving instance's class definition.
+    @ret boolean bAllowed Whether caller may access this member/receiver.
+    @vis internal
     !]]
     function Model.memberAllowed(tMember, tCaller, tReceiver)
         -- Overrides preserve the original access contract. Dynamic selection
@@ -60,12 +92,15 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
         return false;
     end
 
+    
     --[[!
-    @fqxn LXC.Model.visible
-    @desc Checks every enclosing visibility boundary for a class reference.
-    @param table tClass Candidate internal class record.
-    @param table tCaller Lexical class, or nil for an external caller.
-    @ret boolean Whether the caller can name/use this class.
+    @fqxn LuaEx.LXC.Model.visible
+    @desc Checks every restricted enclosing level; a public nested type cannot escape a private outer
+        declaration.
+    @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @ret boolean bVisible Whether the entire nesting path is accessible.
+    @vis internal
     !]]
     function Model.visible(tClass, tCaller)
         while (tClass) do
@@ -75,9 +110,16 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
         return true;
     end
 
+    
     --[[!
-    @fqxn LXC.Model.member
-    @desc Resolve private storage lexically before dynamic inherited members.
+    @fqxn LuaEx.LXC.Model.member
+    @desc Selects a lexical owner's private declaration on a compatible receiver before ordinary most-derived
+        lookup, preserving distinct same-name parent/child private members.
+    @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @param string sName Name/path to resolve or inspect under the lookup rules described above.
+    @ret table|nil tMember Selected definition or nil.
+    @vis internal
     !]]
     function Model.member(tClass, tCaller, sName)
         local tScope = tCaller;
@@ -92,16 +134,25 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
         end
     end
 
+    
     --[[!
-    @fqxn LXC.Model.resolve
-    @desc Searches lexical types, the current namespace and imports in that order.
-        Reports ambiguous imports. Visibility is checked by the using operation.
-    @param string sName Simple or fully qualified class name.
-    @param table tOwner Declaring class supplying lookup scope/imports.
-    @param table tBatch Definitions in the current load transaction.
-    @ret table|nil Matching class record, never a public reference.
+    @fqxn LuaEx.LXC.Model.resolve
+    @desc Resolves exact qualified paths, lexical/nested/inherited nested names, current namespace, then using
+        namespaces. Conflicting imported matches fail. Callers separately check visibility/usability.
+    @param string sName Name/path to resolve or inspect under the lookup rules described above.
+    @param table tOwner Class definition that declares this code or storage.
+    @param table tBatch Pending class definitions keyed by qualified name.
+    @ret table|nil tClass Matched definition or nil.
+    @vis internal
     !]]
     function Model.resolve(sName, tOwner, tBatch)
+        --[[!
+        @fqxn LuaEx.LXC.Model.resolve.find
+        @desc Looks up an exact qualified name in pending definitions first, then the published registry.
+        @param string sFull Exact fully qualified class name.
+        @ret table|nil tClass Definition or nil.
+        @vis internal
+        !]]
         local function fFind(sFull) return tBatch[sFull] or Model.Classes[sFull]; end
         if (string.find(sName, '.', 1, true)) then
             local tQualified = fFind(sName);
@@ -132,20 +183,27 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
 
     local Validation = ValidationFactory(Model, Diagnostics, Names, Operators);
 
+    
     --[[!
-    @fqxn LXC.Model.validate
-    @desc Resolves the complete dependency graph and validates declarations before
-        application code runs. Returns parent/dependency-first class records.
-    @param table tBatch Qualified-name-to-definition map for this transaction.
-    @ret table Ordered class definitions; already-published definitions are skipped.
+    @fqxn LuaEx.LXC.Model.validate
+    @desc Links parents and deterministically orders dependency-first initialization. Explicit work frames
+        detect inheritance/requires cycles without one recursive C call per ancestor; member validation finishes
+        after prerequisites.
+    @param table tBatch Pending class definitions keyed by qualified name.
+    @ret table tOrder Validated initialization sequence.
+    @vis internal
     !]]
     function Model.validate(tBatch)
         local tOrder, tActive, tDone = {}, {}, {};
 
+        
         --[[!
-        @fqxn LXC.Model.validate.enter
-        @desc Validates the header and resolves the immediate parent. Parent
-            completion precedes dependency-access and member-contract checks.
+        @fqxn LuaEx.LXC.Model.validate.enter
+        @desc Checks class contracts and resolves an optional parent, failing on missing parent before
+            initialization.
+        @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+        @ret nil No return value; sets Parent.
+        @vis internal
         !]]
         local function fEnter(tClass)
             Validation.class(tClass);
@@ -154,10 +212,13 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
             end
         end
 
+        
         --[[!
-        @fqxn LXC.Model.validate.dependencies
-        @desc Validates a completed parent and resolves explicit dependencies
-            under the now-established full ancestry of the using class.
+        @fqxn LuaEx.LXC.Model.validate.dependencies
+        @desc Checks inheritance restrictions and resolves visible qualified requires entries.
+        @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+        @ret table tDependencies Definitions to visit first.
+        @vis internal
         !]]
         local function fDependencies(tClass)
             if (tClass.Parent) then Validation.parent(tClass); end
@@ -170,10 +231,14 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
             return tDependencies;
         end
 
+        
         --[[!
-        @fqxn LXC.Model.validate.finish
-        @desc Checks declarations only after all parent/dependency records are
-            complete. Does not initialize storage or run application code.
+        @fqxn LuaEx.LXC.Model.validate.finish
+        @desc Checks members, constructors and nested classes after prerequisites, preparing runtime
+            override/accessor/operator metadata.
+        @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+        @ret nil No return value; finalizes metadata.
+        @vis internal
         !]]
         local function fFinish(tClass)
             Validation.members(tClass);
@@ -181,10 +246,15 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
             Validation.nested(tClass);
         end
 
+        
         --[[!
-        @fqxn LXC.Model.validate.push
-        @desc Adds an unfinished definition to the iterative DFS work stack;
-            published classes are already complete and active nodes are cycles.
+        @fqxn LuaEx.LXC.Model.validate.push
+        @desc Pushes an unvisited definition, skips completed/published classes and reports an active-class
+            cycle.
+        @param table tPending Explicit dependency frame stack.
+        @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+        @ret nil No return value; updates worklist/sets.
+        @vis internal
         !]]
         local function fPush(tPending, tClass)
             if (tDone[tClass]) then return; end

@@ -1,29 +1,59 @@
 --[[!
-@fqxn LXC.GraphAccess
-@desc Validates class-reference authority through plain graph paths and instance
-    storage. Closed fields use their declaring scope; publicly readable storage
-    also uses the returning caller's scope. Forged snapshots cannot transplant a
-    hidden factory into an unrelated holder or an exposed field.
+@fqxn LuaEx.LXC.GraphAccess
+@desc <h3>GraphAccess — responsibility and connections</h3><p>Checks whether a saved graph would expose an
+    inaccessible class reference. Persistence supplies graph descriptors; Model supplies access rules. Traversal
+    considers the declaring owner of stored private values and recipients who can directly read fields or
+    automatic getters. Custom getter behavior remains authored application behavior.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.GraphAccess.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Model Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Model)
     local GraphAccess = {};
 
+    
     --[[!
-    @fqxn LXC.GraphAccess.validate
-    @param table tGraph Schema-validated or internally generated graph records.
-    @param table tCaller Using-scope class, or nil for external code.
-    @param table tDefinitions Optional snapshot-local qualified class records.
-    @desc Checks storage authority and directly readable graph paths from the
-        root. Tracks each node/scope pair, including aliased public/private paths.
-        Uses a worklist so aliases/cycles never recurse.
+    @fqxn LuaEx.LXC.GraphAccess.validate
+    @desc Traverses reference/scope pairs. Checks storage under its declaration owner and directly readable
+        fields/automatic getters under the recipient. Custom getter policy remains authored code. Visited
+        node/scope pairs terminate cycles without losing distinct checks.
+    @param table tGraph Decoded Root/Nodes descriptor graph, not live instance state.
+    @param table|nil tCaller Calling class definition; nil means external unregistered code.
+    @param table|nil tDefinitions Optional qualified-name definition map for the current snapshot batch.
+    @ret nil No return value; raises for inaccessible class references.
+    @vis internal
     !]]
     function GraphAccess.validate(tGraph, tCaller, tDefinitions)
         local tPending, tSeen = {{Value = tGraph.Root, Scope = tCaller}}, {};
 
+        --[[!
+        @fqxn LuaEx.LXC.GraphAccess.validate.find
+        @desc Resolves a saved qualified class name from supplied snapshot definitions or the published
+            registry; absent definitions fail.
+        @param string sName Name/path to resolve or inspect under the lookup rules described above.
+        @ret table tClass Resolved definition.
+        @vis internal
+        !]]
         local function fFind(sName)
             return assert((tDefinitions and tDefinitions[sName]) or Model.Classes[sName], 'Missing saved class: '..sName);
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.GraphAccess.validate.push
+        @desc Queues a descriptor together with the class scope allowed to receive it.
+        @param table tValue One encoded descriptor/metadata record to validate or translate.
+        @param table tScope Class environment supplied to compilation or registered for lexical ownership.
+        @ret nil No return value; extends the worklist.
+        @vis internal
+        !]]
         local function fPush(tValue, tScope)
             tPending[#tPending + 1] = {Value = tValue, Scope = tScope};
         end
@@ -31,6 +61,15 @@ return function(Model)
         -- Storage is validated under its actual declaration's authority. Also
         -- validate direct fields/automatic getters that the recipient can read.
         -- Custom getters execute their own authored access decisions at runtime.
+        --[[!
+        @fqxn LuaEx.LXC.GraphAccess.validate.instance
+        @desc Visits actual instance storage across ancestors. Queues declaration-owned values and accessible
+            recipient-facing values; overriding automatic getters reuse the original property slot.
+        @param table tNode One graph/publication-tree node as described by this operation.
+        @param table tScope Class environment supplied to compilation or registered for lexical ownership.
+        @ret nil No return value; schedules access checks.
+        @vis internal
+        !]]
         local function fInstance(tNode, tScope)
             local tConcrete = fFind(tNode.Class);
             local tClass = tConcrete;

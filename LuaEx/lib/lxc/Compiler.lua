@@ -1,15 +1,39 @@
 --[[!
-@fqxn LXC.Compiler
-@desc Compiles preserved Lua bodies in private lexical class environments. Keeps
-    nested Lua closures associated with their declaration context. Does not publish.
+@fqxn LuaEx.LXC.Compiler
+@desc <h3>Compiler — responsibility and connections</h3><p>Turns Lua bodies inside declarations into callable
+    Lua 5.4 functions. Parser supplies source text; LuaScope distinguishes local variables from free class
+    references; Model resolves those references. Compiler supplies this/base and accessor backing-field access.
+    Runtime executes the resulting functions.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Compiler.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Tokens Private injected dependency; its role is described in the module map.
+@param table Model Private injected dependency; its role is described in the module map.
+@param table LuaScope Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Tokens, Model, LuaScope)
     local Compiler = {};
 
+    
     --[[!
-    @fqxn LXC.Compiler.rewrite
-    @desc Inserts lexical context retention into nested functions and maps the
-        accessor-only field name to a checked storage reference. Strings are opaque.
+    @fqxn LuaEx.LXC.Compiler.rewrite
+    @desc Resolves free class names before static execution, rewrites accessor field references and wraps member
+        receivers in a lexical view. Edits run backwards by source offset. Nested functions retain their class
+        environment and a Lua 5.4 frame guard.
+    @param string sBody Uncompiled Lua method body or initializer text.
+    @param string pFile Diagnostic source filename; source-map loads do not require a physical file.
+    @param boolean bAccessor Whether field denotes accessor backing storage.
+    @param table tMember Member definition with Owner, Flags and source metadata.
+    @param boolean bExpression True for an expression list; false/nil for a statement body.
+    @ret string sBody Rewritten, unexecuted Lua source.
+    @vis internal
     !]]
     local function fRewrite(sBody, pFile, bAccessor, tMember, bExpression)
         local tParameters = {'this', 'base'};
@@ -56,10 +80,16 @@ return function(Tokens, Model, LuaScope)
         return sBody;
     end
 
+    
     --[[!
-    @fqxn LXC.Compiler.method
-    @desc Creates one method with hidden this/base/storage arguments. Signature
-        compatibility counts only source-declared parameters.
+    @fqxn LuaEx.LXC.Compiler.method
+    @desc Compiles a concrete member into Function with hidden this/base/backing-field arguments before declared
+        parameters. A declaration without a body remains uncompiled; Runtime.invoke supplies hidden arguments
+        later.
+    @param table tMember Member definition with Owner, Flags and source metadata.
+    @param table tScope Class environment supplied to compilation or registered for lexical ownership.
+    @ret nil No return value; updates Function.
+    @vis internal
     !]]
     function Compiler.method(tMember, tScope)
         if (not tMember.Body) then return; end
@@ -74,10 +104,16 @@ return function(Tokens, Model, LuaScope)
         tMember.Function = assert(load(sCode, '@'..tMember.Owner.File, 't', tScope))();
     end
 
+    
     --[[!
-    @fqxn LXC.Compiler.constructor
-    @desc Extracts an explicit first-statement base call into argument evaluation.
-        The runtime performs parent construction before child fields/body.
+    @fqxn LuaEx.LXC.Compiler.constructor
+    @desc Separates a unique first-statement base(...) call into ParentArguments. Parent arguments cannot access
+        an unconstructed this/base. Compiles the remaining constructor body for Runtime's parent-first
+        construction.
+    @param table tMember Member definition with Owner, Flags and source metadata.
+    @param table tScope Class environment supplied to compilation or registered for lexical ownership.
+    @ret nil No return value; updates ParentArguments, Body and Function.
+    @vis internal
     !]]
     function Compiler.constructor(tMember, tScope)
         if (not tMember) then return; end
@@ -117,11 +153,15 @@ return function(Tokens, Model, LuaScope)
         Compiler.method(tMember, tScope);
     end
 
+    
     --[[!
-    @fqxn LXC.Compiler.directInitializerType
-    @desc Infers only complete table literals and direct registered class values
-        or constructor calls. Constructors cannot return replacement objects, so
-        these class constraints are known without executing application code.
+    @fqxn LuaEx.LXC.Compiler.directInitializerType
+    @desc Recognizes a whole table literal, direct class reference or direct class call without execution. More
+        complex expressions defer their type contract until ordinary initialization.
+    @param table tTokens Token records from Tokens.scan including the final end-of-file token.
+    @param table tMember Member definition with Owner, Flags and source metadata.
+    @ret string|table|nil vType Primitive/class marker, instance-class definition, or nil.
+    @vis internal
     !]]
     local function fDirectInitializerType(tTokens, tMember)
         if (tTokens[1].Text == '{') then
@@ -159,13 +199,16 @@ return function(Tokens, Model, LuaScope)
         end
     end
 
+    
     --[[!
-    @fqxn LXC.Compiler.initializer
-    @desc Compiles one initializer without running it. Only complete primitive
-        literals establish static persistence constraints; dynamic values remain
-        per-slot data. Retains lexical context during initializer tail calls.
-    @param table tMember Field/property definition, optionally with Initializer.
-    @param table tScope Private registered compiler environment.
+    @fqxn LuaEx.LXC.Compiler.initializer
+    @desc Compiles Initialize(this), infers literal/direct-construction type contracts without executing
+        application code and remembers scalar const values for restore checks. Dynamic contracts are established
+        on first ordinary initialization.
+    @param table tMember Member definition with Owner, Flags and source metadata.
+    @param table tScope Class environment supplied to compilation or registered for lexical ownership.
+    @ret nil No return value; updates initializer/contract metadata.
+    @vis internal
     !]]
     function Compiler.initializer(tMember, tScope)
         if (tMember.Initializer) then

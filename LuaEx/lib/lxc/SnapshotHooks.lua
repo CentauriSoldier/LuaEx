@@ -1,18 +1,35 @@
 --[[!
-@fqxn LXC.SnapshotHooks
-@desc Class-owned snapshot preparation and validation, without constructors.
-    Hooks receive a projection of their declaring level's fields, never runtime
-    registries. Prepared values must preserve each field's established contract.
+@fqxn LuaEx.LXC.SnapshotHooks
+@desc <h3>SnapshotHooks — responsibility and connections</h3><p>Runs preparation/validation around persistence
+    and automatic copying. Each hook receives pri/pro/pub tables for fields declared at its own inheritance
+    level, including property backing values. Preparation edits outgoing projections; validation may update
+    restored state within type/binding rules. Constructors do not run during automatic restore/copy.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.SnapshotHooks.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param table Runtime Private injected dependency; its role is described in the module map.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(Runtime)
     local Hooks = {};
     local _, _, fWrite, _, _, fInvoke = Runtime.services();
     local tVisibility = {private = 'pri', protected = 'pro', public = 'pub'};
 
+    
     --[[!
-    @fqxn LXC.SnapshotHooks.project
-    @desc Builds a declaration-owned field projection. Hooks replace projected
-        values; they should not mutate referenced input tables during preparation.
+    @fqxn LuaEx.LXC.SnapshotHooks.project
+    @desc Builds pri/pro/pub for exactly one declaring level plus entry-to-slot metadata. Values are shallow
+        references: replace entries instead of mutating referenced source tables during preparation.
+    @param table tState Private live state containing Class, Object and storage maps.
+    @param table tOwner Class definition that declares this code or storage.
+    @ret table tProjection Followed by table tMembers linking entries to slots.
+    @vis internal
     !]]
     local function fProject(tState, tOwner)
         local tProjection, tMembers = {pri = {}, pro = {}, pub = {}}, {};
@@ -27,10 +44,15 @@ return function(Runtime)
         return tProjection, tMembers;
     end
 
+    
     --[[!
-    @fqxn LXC.SnapshotHooks.find
-    @desc Finds a class-owned hook through inheritance. Returns an internal
-        definition only to injected runtime services, never to application code.
+    @fqxn LuaEx.LXC.SnapshotHooks.find
+    @desc Searches the class then parents for a hook/operator, rejecting a matching non-instance-method
+        declaration.
+    @param table tClass Internal class definition with names, flags, members and resolved ancestry.
+    @param string sName Name/path to resolve or inspect under the lookup rules described above.
+    @ret table|nil tHook First internal hook definition or nil.
+    @vis internal
     !]]
     function Hooks.find(tClass, sName)
         while (tClass) do
@@ -43,11 +65,14 @@ return function(Runtime)
         end
     end
 
+    
     --[[!
-    @fqxn LXC.SnapshotHooks.prepare
-    @desc Invokes each declaring class's preparation hook and returns only the
-        replacement values; original slots retain their values, types and locks.
-        The selected serialize operator edits its owner's projection in place.
+    @fqxn LuaEx.LXC.SnapshotHooks.prepare
+    @desc Visits concrete-to-parent levels. Each prepareSnapshot and selected serialize operator edits a
+        projection; trial writes enforce established types. Original slot values/types/locks are not replaced.
+    @param table tState Private live state containing Class, Object and storage maps.
+    @ret table tValues Replacements keyed by storage definition.
+    @vis internal
     !]]
     function Hooks.prepare(tState)
         local tValues, tClass = {}, tState.Class;
@@ -73,12 +98,16 @@ return function(Runtime)
         return tValues;
     end
 
+    
     --[[!
-    @fqxn LXC.SnapshotHooks.validate
-    @desc Runs parent-first validation after all restored graph values exist.
-        Changed cache values still obey typing and readonly binding restrictions.
-    @param boolean bDeserialize Enables the selected deserialize operator only
-        for restoration, never for the generic clone validation path.
+    @fqxn LuaEx.LXC.SnapshotHooks.validate
+    @desc Visits parent-to-concrete levels after graph creation. Runs validateSnapshot and, only for
+        deserialize, the selected deserialize operator. Changed entries use normal writes and cannot replace
+        locked const/final bindings.
+    @param table tState Private live state containing Class, Object and storage maps.
+    @param boolean bDeserialize Whether to include the selected deserialize operator in validation.
+    @ret nil No return value; checks/updates restored state.
+    @vis internal
     !]]
     function Hooks.validate(tState, bDeserialize)
         local tHierarchy, tClass = {}, tState.Class;

@@ -1,7 +1,23 @@
 --[[!
-@fqxn LXC.Loader
-@desc Private module composition and transactional class publication. Receives
-    a relative module loader; never modifies LuaEx or global package.path.
+@fqxn LuaEx.LXC.Loader
+@desc <h3>Loader — responsibility and connections</h3><p>Composes private services and implements the public
+    load API. It parses and validates the entire batch, compiles every definition, runs ordered static
+    initialization, then publishes names and registry entries. Destination collisions are checked before and
+    after application initializers. Model owns definitions; Runtime owns live objects; Host provides optional
+    integration.</p>
+@vis internal
+@see <a href="#LuaEx.LXC.Modules">Module map</a>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Loader.factory
+@desc Creates this private service with explicit dependencies. Loader owns composition order; application code
+    uses the public LXC facade.
+@param function module Private injected dependency; loads a named module from the sibling lxc directory.
+@param table|nil oHostNull Private injected dependency; reuses the initialized host null singleton when
+    provided.
+@ret table Service returned by this module.
+@vis internal
 !]]
 return function(module, oHostNull)
     local __lxc_guard <close> = nil;
@@ -25,29 +41,47 @@ return function(module, oHostNull)
     local API = {};
     Runtime.Helpers = Helpers;
 
+    
     --[[!
-    @fqxn LXC.bindHost
-    @desc Binds initialized LuaEx core services without discovering class files.
+    @fqxn LuaEx.LXC.bindHost
+    @desc Installs LXC into initialized LuaEx core without discovering/loading sources. Exposes class/lxc and
+        graph-aware cloning/serialization; rejects a different installed class system.
+    @param table tEnvironment Destination environment for namespace or host bindings.
+    @ret nil No return value; updates host bindings.
+    @pulsarlua function lxc.bindHost
     !]]
     function API.bindHost(tEnvironment)
         local __lxc_guard <close> = nil;
         return Host.install(Runtime.API, tEnvironment);
     end
 
+    
     --[[!
-    @fqxn LXC.publishFrameworkAliases
-    @desc Publishes short aliases for successfully loaded framework classes.
+    @fqxn LuaEx.LXC.publishFrameworkAliases
+    @desc Adds short aliases for registered top-level LuaEx.Classes types after loading. Application namespaces
+        are not flattened.
+    @param table tNames Ordered qualified-name or restriction entries used by the surrounding operation.
+    @param table tEnvironment Destination environment for namespace or host bindings.
+    @ret nil No return value; publishes framework aliases.
+    @pulsarlua function lxc.publishFrameworkAliases
     !]]
     function API.publishFrameworkAliases(tNames, tEnvironment)
         local __lxc_guard <close> = nil;
         return Host.publishAliases(tNames, tEnvironment);
     end
 
+    
     --[[!
-    @fqxn LXC.loadSources
-    @param table tSources Filename-to-source map; files execute only during staging.
-    @param table tEnvironment Publication destination and final name fallback.
-    @ret table Dependency-first qualified names of newly loaded classes.
+    @fqxn LuaEx.LXC.loadSources
+    @desc Loads a plain filename-to-text map into a destination. Sorts filenames, validates the whole batch,
+        compiles all classes and runs dependency-ordered static initialization before registry/namespace
+        publication. Duplicate classes, reentrant loads and collisions fail. Failed initialization discards the
+        batch but cannot undo application side effects.
+    @param table tSources Plain filename-to-source-text map, or supplied host identity map for adapter
+        callbacks.
+    @param table tEnvironment Destination environment for namespace or host bindings.
+    @ret table tNames Qualified names in initialization order, including nested classes.
+    @pulsarlua function lxc.loadSources
     !]]
     function API.loadSources(tSources, tEnvironment)
         local __lxc_guard <close> = nil;
@@ -80,6 +114,15 @@ return function(module, oHostNull)
                 tNode.Children[tClass.Name] = {Class = tClass, Children = {}};
             end
         end
+        --[[!
+        @fqxn LuaEx.LXC.loadSources.check
+        @desc Checks raw destination bindings: namespace containers must be plain tables and class leaves
+            absent. Runs before initialization and again after application callbacks may change the destination.
+        @param table tNode One graph/publication-tree node as described by this operation.
+        @param table tTarget Plain destination namespace table to check or populate.
+        @ret nil No return value; raises on collisions.
+        @vis internal
+        !]]
         local function fCheck(tNode, tTarget)
             local __lxc_guard <close> = nil;
             for sName, tChild in pairs(tNode.Children) do
@@ -108,6 +151,15 @@ return function(module, oHostNull)
             for _, tClass in pairs(tBatch) do tClass.Discarded = true; end
             error(vError, 0);
         end
+        --[[!
+        @fqxn LuaEx.LXC.loadSources.publish
+        @desc Uses rawset to publish the preflighted tree, reusing plain namespace tables. Nested types are
+            reached through class facades rather than namespace leaves.
+        @param table tNode One graph/publication-tree node as described by this operation.
+        @param table tTarget Plain destination namespace table to check or populate.
+        @ret nil No return value; updates namespace bindings.
+        @vis internal
+        !]]
         local function fPublish(tNode, tTarget)
             local __lxc_guard <close> = nil;
             for sName, tChild in pairs(tNode.Children) do
@@ -129,9 +181,15 @@ return function(module, oHostNull)
         return tNames;
     end
 
+    
     --[[!
-    @fqxn LXC.loadFiles
-    @desc Reads an explicit path list; loadSources owns validation/publication.
+    @fqxn LuaEx.LXC.loadFiles
+    @desc Reads a plain ordered path list in binary mode, closes files and calls loadSources. Read/parse errors
+        abort; repeated identical filenames collapse into one source-map entry.
+    @param table tPaths Plain ordered list of source filenames.
+    @param table tEnvironment Destination environment for namespace or host bindings.
+    @ret table tNames Names returned by loadSources.
+    @pulsarlua function lxc.loadFiles
     !]]
     function API.loadFiles(tPaths, tEnvironment)
         local __lxc_guard <close> = nil;
@@ -146,9 +204,15 @@ return function(module, oHostNull)
         return API.loadSources(tSources, tEnvironment);
     end
 
+    
     --[[!
-    @fqxn LXC.discover
-    @desc Optional LuaEx io.listfiles adapter. Explicit loading is standalone.
+    @fqxn LuaEx.LXC.discover
+    @desc Extracts roots from ? package-path templates, recursively lists .lxc files, deduplicates normalized
+        paths and sorts. Requires io.listfiles; io.isdir skips confirmed missing roots when available. Does not
+        load classes.
+    @param string|nil sPackagePath Semicolon-separated templates; nil uses package.path.
+    @ret table tPaths Sorted unique source paths.
+    @pulsarlua function lxc.discover
     !]]
     function API.discover(sPackagePath)
         local __lxc_guard <close> = nil;
@@ -186,6 +250,12 @@ return function(module, oHostNull)
         local __lxc_guard <close> = nil;
         return API[sName];
     end,
+        --[[!
+        @fqxn LuaEx.LXC.Loader.__newindex
+        @desc Rejects mutation of the public LXC API facade.
+        @ret nil Never returns successfully; raises a read-only/view error.
+        @vis internal
+        !]]
         __newindex = function()
             local __lxc_guard <close> = nil;
             error('LXC API is read-only.');
