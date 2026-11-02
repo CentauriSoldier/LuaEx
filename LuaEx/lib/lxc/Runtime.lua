@@ -32,6 +32,7 @@
 return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHostNull, Operators)
     local __lxc_guard <close> = nil;
     local Runtime = {};
+    local Directives = require('LuaEx.lib.lxc.Directives')(Model, Diagnostics);
     local tClasses, tObjects = setmetatable({}, {__mode = 'k'}), setmetatable({}, {__mode = 'k'});
     local oNull = oHostNull or Facades.create({
         --[[!
@@ -184,7 +185,10 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
             assert(not tSlot.Member.Flags.const, 'Const cannot start null.');
         else
             local tObject = tObjects[vValue];
-            local zType = tObject and tObject.Class or (tClasses[vValue] and 'class' or type(vValue));
+            -- LXE supplies canonical type identity through the private connector.
+            -- This extends the existing slot check without trusting public metadata.
+            local zForeign = Runtime.ForeignType and Runtime.ForeignType(vValue);
+            local zType = tObject and tObject.Class or (tClasses[vValue] and 'class' or zForeign or type(vValue));
             if (tSlot.Type) then
                 assert((type(tSlot.Type) == 'table' and tObject and Model.descends(tObject.Class, tSlot.Type)) or
                     tSlot.Type == zType, 'Field type mismatch: '..tSlot.Member.Owner.FullName..'.'..tSlot.Member.Name);
@@ -762,6 +766,23 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
 
     
     --[[!
+    @fqxn LuaEx.LXC.Runtime.completeConstruction
+    @desc Runs the hierarchy and one final stored-state check inside the existing
+        construction failure boundary. Custom copy sessions defer that final check.
+    @param table tState Allocated instance state.
+    @param table tClass Most-derived class.
+    @param table|nil tCaller Original constructing scope.
+    @param any ... Constructor arguments.
+    !]]
+    local function fCompleteConstruction(tState, tClass, tCaller, ...)
+        fConstruct(tState, tClass, tCaller, ...);
+        if (not Runtime.DeferCompletion or not Runtime.DeferCompletion(tState)) then
+            Directives.check(tState, false, tObjects, tClasses, oNull);
+        end
+    end
+    fInternal(fCompleteConstruction);
+
+    --[[!
     @fqxn LuaEx.LXC.Runtime.instantiate
     @desc Checks visibility/abstract status, allocates and constructs. Failure marks state failed with
         declaration context; success marks Ready.
@@ -777,7 +798,7 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
         assert(not tClass.Flags.abstract, 'Cannot instantiate abstract class: '..tClass.FullName);
 
         local tState = fAllocate(tClass);
-        local bOK, vError = pcall(fConstruct, tState, tClass, tCaller, ...);
+        local bOK, vError = pcall(fCompleteConstruction, tState, tClass, tCaller, ...);
         if (not bOK) then
             tState.Failed = true;
             error(Diagnostics.format(tClass.Constructor or tClass, vError), 0);
@@ -913,6 +934,7 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
     function Runtime.prepare(tOrder, tBatch, tEnvironment)
         for _, tClass in ipairs(tOrder) do fDefineClass(tClass); end
         for _, tClass in ipairs(tOrder) do fCompileClass(tClass, tBatch, tEnvironment); end
+        Directives.prepare(tOrder);
     end
     
     --[[!
@@ -933,12 +955,22 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
             assert(tResult.n == 0, 'Static constructor cannot return values.');
         end
         fCheckFinals(tClass.Static, tClass);
+        Directives.check(tClass.State, true, tObjects, tClasses, oNull);
         tClass.StaticRunning, tClass.Initialized = nil, true;
+    end
+
+    --[[!
+    @fqxn LuaEx.LXC.Runtime.complete
+    @desc Checks constructor-free final storage through private completion metadata.
+    @param table tState Complete instance state owned by clone or restore.
+    !]]
+    function Runtime.complete(tState)
+        Directives.check(tState, false, tObjects, tClasses, oNull);
     end
 
     -- Internal codec/helper integration receives registries by closure injection;
     -- neither these services nor the returned registries become public API.
-    
+
     --[[!
     @fqxn LuaEx.LXC.Runtime.services
     @desc Injects private class/instance registries, slot writer, raw allocator, null and member invoker into
@@ -953,3 +985,4 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
     end
     return Runtime;
 end;
+

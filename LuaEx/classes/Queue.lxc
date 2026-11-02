@@ -140,17 +140,6 @@ namespace LuaEx.Classes
         }
 
         --[[!
-        @fqxn LuaEx.Classes.Queue.Methods.deserialize
-        @pulsarlua function Queue.deserialize
-        @scope public
-        @desc Deserializes the Queue object from a string.
-        !]]
-        public deserialize()
-        {
-            error("ERROR: Queue.deserialize method still in development.");
-        }
-
-        --[[!
         @fqxn LuaEx.Classes.Queue.Methods.peek
         @pulsarlua function Queue.peek
         @scope public

@@ -413,46 +413,62 @@ namespace LuaEx.Classes
         !]]
         public export(pFile, vAppend)
         {
-            local pro               = this;
-            local bAppend           = rawtype(vAppend) == "boolean" and vAppend or false;
-            local sMode             = bAppend and "a+" or "w";
-            local tRows             = pro.rowsRaw;
-            local sDelimiter        = pro.delimiter;
-            local nColumnCount      = pro.columnCount;
-            local sNewLine          = "\n";
-            local sBlank            = "";
-            local sData             = "";
-            local bAppendNewline    = true;
+            local pro       = this;
+            local bAppend   = rawtype(vAppend) == "boolean" and vAppend or false;
+            local sMode     = bAppend and "a+" or "w";
+            local sDelimiter = pro.delimiter;
 
-            local hFile = io.open(pFile, sMode);
+            -- Quote headers and cells identically so exported records parse back.
+            local function fEncode(sValue)
+                if (sValue:find(sDelimiter, 1, true) or sValue:find('["\r\n]')) then
+                    return '"'..sValue:gsub('"', '""')..'"';
+                end
+                return sValue;
+            end
 
+            local hFile, sOpenError = io.open(pFile, sMode);
             if (not hFile) then
-                error("bad file stuff here.");
+                error("Grid Error in 'export': "..tostring(sOpenError or "Could not open output file."), 2);
             end
 
-            if (bAppend) then
-                local sFile = hFile:read("*a");
-                bAppendNewline = sFile:sub(-1) ~= "\n";
-            else
-                for nColumn, sColumn in ipairs(pro.columnNames) do
-                    sData = sData..sColumn..((nColumn < nColumnCount) and sDelimiter or sBlank);
+            -- Always close an opened handle, including read/write errors and throws.
+            local bWritten, sWriteError = pcall(function()
+                local tRecords = {};
+                local bAppendNewline = false;
+
+                if (bAppend) then
+                    local sFile, sReadError = hFile:read("*a");
+                    if (not sFile) then error(sReadError or "Could not read append target.", 0); end
+                    bAppendNewline = sFile:sub(-1) ~= "\n";
+                else
+                    local tHeader = {};
+                    for nColumn, sColumn in ipairs(pro.columnNames) do
+                        tHeader[nColumn] = fEncode(sColumn);
+                    end
+                    tRecords[#tRecords + 1] = table.concat(tHeader, sDelimiter);
                 end
+
+                for _, tRow in ipairs(pro.rowsRaw) do
+                    local tCells = {};
+                    for nColumn, sCellData in ipairs(tRow) do
+                        tCells[nColumn] = fEncode(sCellData);
+                    end
+                    tRecords[#tRecords + 1] = table.concat(tCells, sDelimiter);
+                end
+
+                local sData = (bAppendNewline and #pro.rowsRaw > 0 and "\n" or "")..table.concat(tRecords, "\n").."\n";
+                local vWritten, sReason = hFile:write(sData);
+                if (not vWritten) then error(sReason or "Could not write output file.", 0); end
+            end);
+            local bClosed, vClosed, sCloseError = pcall(hFile.close, hFile);
+
+            if (not bWritten) then
+                error("Grid Error in 'export': "..tostring(sWriteError), 2);
             end
-
-            for nRow, tRow in ipairs(tRows) do
-                if ((nRow == 1 and bAppendNewline) or nRow ~= 1) then
-                    sData = sData..sNewLine;
-                end
-
-                for nColumn, sCellData in ipairs(tRow) do
-                    sData = sData..sCellData..((nColumn < nColumnCount) and sDelimiter or sBlank);
-                end
+            if (not bClosed or not vClosed) then
+                error("Grid Error in 'export': "..tostring(bClosed and
+                    (sCloseError or "Could not close output file.") or vClosed), 2);
             end
-
-            sData = sData..sNewLine;
-
-            hFile:write(sData);
-            hFile:close();
 
             return this;
         }

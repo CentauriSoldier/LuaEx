@@ -1,0 +1,77 @@
+@import "ui-variables";
+// Package-owned palette, restricted to LXC editors. Ordinary Lua control-flow,
+// strings/comments and every other grammar keep their existing theme colors.
+atom-text-editor[data-grammar="source lxc"],
+atom-text-editor[data-grammar="source lxe"] {
+    .syntax--storage.syntax--type.syntax--declaration.syntax--lxc {
+        color: #cda5ff !important;
+    }
+    .syntax--entity.syntax--name.syntax--namespace.syntax--declaration.syntax--lxc { color: #c9a65b !important; }
+    .syntax--keyword.syntax--operator { color: #85d7ff !important; }
+    .syntax--entity.syntax--name.syntax--type.syntax--declaration.syntax--lxc { color: #ffdf99 !important; }
+    .syntax--entity.syntax--name.syntax--function.syntax--constructor.syntax--lxc { color: #ffdf99 !important; }
+    .syntax--punctuation.syntax--section.syntax--declaration.syntax--begin.syntax--lxc,
+    .syntax--punctuation.syntax--section.syntax--declaration.syntax--end.syntax--lxc { color: #b7ff4a !important; }
+    .syntax--storage.syntax--modifier.syntax--visibility.syntax--lxc { color: #ffad46 !important; }
+    .syntax--storage.syntax--modifier.syntax--static.syntax--lxc { color: #ff4fe1 !important; }
+    .syntax--storage.syntax--modifier.syntax--other.syntax--lxc { color: #d6a431 !important; }
+    .syntax--variable.syntax--language.syntax--receiver.syntax--lxc { color: #45f0ff !important; }
+    .syntax--keyword.syntax--other.syntax--dependency.syntax--lxc { color: #83ff83 !important; }
+    .syntax--storage.syntax--type.syntax--accessor.syntax--lxc,
+    .syntax--variable.syntax--language.syntax--accessor.syntax--lxc { color: #ff8080 !important; }
+    .syntax--storage.syntax--type.syntax--operator.syntax--lxc { color: #f8f8f2 !important; }
+    .syntax--constant.syntax--language.syntax--null.syntax--lxc { color: #a8bfff !important; }
+}
+
+// Enum declarations and extension targets share the declaration palette.
+atom-text-editor[data-grammar="source lxc"],
+atom-text-editor[data-grammar="source lxe"] {
+    .syntax--entity.syntax--name.syntax--type.syntax--enum.syntax--lxc,
+    .syntax--entity.syntax--name.syntax--function.syntax--extension.syntax--lxc { color: #ffdf99 !important; }
+    .syntax--keyword.syntax--other.syntax--ownership.syntax--lxc { color: #94d98a !important; }
+    .syntax--support.syntax--variable.syntax--enum.syntax--lxc { color: #8fd9e8 !important; }
+}
+ .luaex-signature {
+    padding: 6px 10px;
+    white-space: pre-wrap;
+    max-width: 640px;
+    background-color: @overlay-background-color;
+    color: @text-color;
+    border: 1px solid @base-border-color;
+    border-radius: 3px;
+ }
+
+// A single compact tooltip surface; reset the browser/theme pre frame.
+.tooltip.luaex-tooltip .tooltip-inner {
+    padding: 2px 3px;
+    max-width: 640px;
+    text-align: left;
+    background-color: @overlay-background-color;
+    color: @text-color;
+    border: 1px solid @base-border-color;
+}
+.tooltip.luaex-tooltip.top .tooltip-arrow { border-top-color: @overlay-background-color; }
+.tooltip.luaex-tooltip.bottom .tooltip-arrow { border-bottom-color: @overlay-background-color; }
+.tooltip.luaex-tooltip.left .tooltip-arrow { border-left-color: @overlay-background-color; }
+.tooltip.luaex-tooltip.right .tooltip-arrow { border-right-color: @overlay-background-color; }
+.tooltip.luaex-tooltip .luaex-hover {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    color: @text-color;
+    font-family: monospace;
+    font-size: 21px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    .luaex-hover-namespace { color: #c9a65b; }
+    .luaex-hover-name { color: #ffdf99; }
+    .luaex-hover-type { color: #cda5ff; }
+    .luaex-hover-parameter { color: #45f0ff; }
+    .luaex-hover-return { color: #94d98a; }
+    .luaex-hover-label { color: @text-color-subtle; }
+    .luaex-hover-description { color: @text-color; }
+}

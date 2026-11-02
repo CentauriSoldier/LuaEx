@@ -19,7 +19,9 @@ geometry primitives, strings, XML, formatting, serialization and VFS.
 `bootstrap.lua` supplies setup for tests originally written for the browser VM.
 It maps repository source reads, supplies the `/xml-test.tmx` fixture in memory,
 and rejects unmocked native filesystem writes. VFS uses its separate in-memory
-backend. This does not validate actual host filesystem permissions or commands.
+backend. The native I/O suite additionally uses its own temporary filesystem tree
+and tests listing, mutations, permission bits and archives with shell APIs disabled.
+Its pre-native process-mocking version is preserved under legacy/LuaEx/tests.
 
 `prettylua_corpus.lua` lists the source corpus used for formatting checks.
 `LuaEx/notes.lua` is excluded because it contains non-executable scratch notes;
@@ -28,7 +30,9 @@ it is not a runtime module. Update the corpus list when adding source files.
 ## Verified compatibility
 
 - Native Lua 5.4.2 on Windows.
-- Bundled Lua 5.4 / Wasmoon 1.16.0 for the browser checks exercised separately.
+- Historical bundled Lua 5.4 / Wasmoon 1.16.0 checks apply to earlier builds.
+- Current native I/O: Windows x64 / Lua 5.4.9; see Native IO/README.md for build requirements.
+- Current browser initialization requires a separate native-I/O strategy and is unverified.
 - Lua 5.3 and Linux/macOS native execution have not completed this suite.
 - Lua 5.1 and LuaJIT compatibility are not claimed: the current source uses Lua
   5.3 syntax and APIs. A passing Windows run does not establish other-host support.

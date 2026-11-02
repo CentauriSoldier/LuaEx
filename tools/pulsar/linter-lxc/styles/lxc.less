@@ -1,6 +1,7 @@
 // Package-owned palette, restricted to LXC editors. Ordinary Lua control-flow,
 // strings/comments and every other grammar keep their existing theme colors.
-atom-text-editor[data-grammar="source lxc"] {
+atom-text-editor[data-grammar="source lxc"],
+atom-text-editor[data-grammar="source lxe"] {
     .syntax--storage.syntax--type.syntax--declaration.syntax--lxc {
         color: #cda5ff !important;
     }
@@ -19,4 +20,13 @@ atom-text-editor[data-grammar="source lxc"] {
     .syntax--variable.syntax--language.syntax--accessor.syntax--lxc { color: #ff8080 !important; }
     .syntax--storage.syntax--type.syntax--operator.syntax--lxc { color: #f8f8f2 !important; }
     .syntax--constant.syntax--language.syntax--null.syntax--lxc { color: #a8bfff !important; }
+}
+
+// Enum declarations and extension targets share the declaration palette.
+atom-text-editor[data-grammar="source lxc"],
+atom-text-editor[data-grammar="source lxe"] {
+    .syntax--entity.syntax--name.syntax--type.syntax--enum.syntax--lxc,
+    .syntax--entity.syntax--name.syntax--function.syntax--extension.syntax--lxc { color: #ffdf99 !important; }
+    .syntax--keyword.syntax--other.syntax--ownership.syntax--lxc { color: #94d98a !important; }
+    .syntax--support.syntax--variable.syntax--enum.syntax--lxc { color: #8fd9e8 !important; }
 }

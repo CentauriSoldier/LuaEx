@@ -8,6 +8,10 @@
 @vis internal
 @see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
+-- Keep runtime string operations independent of application replacements.
+local _sub = string.sub;
+
+
 
 --[[!
 @fqxn LuaEx.LXC.Persistence.factory
@@ -276,12 +280,14 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
                     tKnown[sKey] = true;
                     local vType = tSaved.ClassType and assert(Model.Classes[tSaved.Type], 'Missing saved field class.') or tSaved.Type;
                     assert(not tSaved.ClassType or vType, 'Missing saved class constraint.');
+                    local vDecoded = fDecode(tSaved.Value);
+                    local zForeign = Runtime.ForeignType and Runtime.ForeignType(vDecoded);
                     assert(vType == nil or type(vType) == 'table' or vType == 'number' or vType == 'string' or
                         vType == 'boolean' or vType == 'table' or vType == 'class' or
-                        (tHost and vType == 'function'), 'Unsupported field type.');
+                        (tHost and (vType == 'function' or (zForeign ~= nil and zForeign == vType))), 'Unsupported field type.');
                     if (tMember.DeclaredType) then assert(vType == tMember.DeclaredType, 'Snapshot changes declared field type: '..sKey); end
                     local tSlot = {Member = tMember, Type = vType};
-                    fWrite(tSlot, fDecode(tSaved.Value), true);
+                    fWrite(tSlot, vDecoded, true);
                     assert(tSlot.Type == vType, 'Snapshot value changes its saved type contract.');
                     if (tMember.Flags.const and tMember.ConstValue ~= nil) then assert(tSlot.Value == tMember.ConstValue, 'Snapshot changes const value.'); end
                     assert(not tMember.Flags.final or tSlot.Type, 'Uninitialized saved final.');
@@ -293,8 +299,15 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
                 for sKey in pairs(tNode.Fields) do assert(tKnown[sKey], 'Unknown saved field: '..sKey); end
             end
         end
-        if (tHost) then tHost.reconnect(tValues); end
-        for _, tState in pairs(tStates) do Hooks.validate(tState, true); end
+        local bComplete, vError = pcall(function()
+            if (tHost) then tHost.reconnect(tValues); end
+            for _, tState in pairs(tStates) do Hooks.validate(tState, true); end
+            for _, tState in pairs(tStates) do Runtime.complete(tState); end
+        end);
+        if (not bComplete) then
+            for _, tState in pairs(tStates) do tState.Failed, tState.Ready = true, false; end
+            error(vError, 0);
+        end
         for _, tState in pairs(tStates) do tState.Ready = true; end
         return fDecode(tGraph.Root);
     end
@@ -350,7 +363,7 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
     --[[!
     @fqxn LuaEx.LXC.Persistence.saveStatic
     @desc Saves caller-accessible mutable static storage across ancestry, omitting const/final. Saved class
-        identities alone do not include static state.
+        identities alone do not include static state. Host-bound snapshots use the existing staged graph bridge, including canonical enum references; standalone snapshots retain the restricted codec.
     @param table oClass LXC class object selecting static state.
     @ret string sSource Qualified-field snapshot.
     @vis internal
@@ -366,7 +379,13 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
                 tValues[fFieldKey(tMember)] = tMember.Owner.Static[tMember].Value;
             end
         end
-        return Codec.serialize(tValues);
+        -- Host binding supplies the same graph serializer used for instances.
+        -- Standalone LXC retains its restricted literal codec.
+        local sSource;
+        if (Codec.StaticSerialize) then sSource = Codec.StaticSerialize(tValues);
+        else sSource = Codec.serialize(tValues); end
+        assert(#sSource <= 16 * 1024 * 1024, 'Snapshot text limit exceeded.');
+        return sSource;
     end
 
     
@@ -384,7 +403,13 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
         local __lxc_guard <close> = nil;
         local tClass = assert(tClasses[oClass], 'Expected class.');
         assert(Model.visible(tClass, Context.caller()), 'Inaccessible class.');
-        local tValues, tPlan = Codec.deserialize(sSource), {};
+        local tValues, tPlan;
+        assert(type(sSource) == 'string' and #sSource <= 16 * 1024 * 1024, 'Invalid static snapshot text.');
+        if (_sub(sSource, 1, 8) == '--LXC:3'..'\n') then
+            assert(Codec.StaticDeserialize, 'Bind LuaEx host serialization before restoring this static snapshot.');
+            tValues = Codec.StaticDeserialize(sSource);
+        else tValues = Codec.deserialize(sSource); end
+        tPlan = {};
         assert(type(tValues) == 'table' and getmetatable(tValues) == nil, 'Static snapshot must contain a plain field map.');
         for _, tMember in ipairs(fFields(tClass, true)) do
             local sKey = fFieldKey(tMember);
@@ -403,3 +428,5 @@ return function(Model, Context, Runtime, Literal, Schema, GraphAccess, Hooks)
     for _, fFunction in pairs(Codec) do Context.internal(fFunction); end
     return Codec;
 end;
+
+

@@ -291,6 +291,13 @@ return function(Model, Diagnostics, Names, Operators)
     !]]
     function Validation.members(tClass)
         tClass.AbstractMembers, tClass.Aliases, tClass.PrivateNames, tClass.Operators = {}, {}, {}, {};
+        local tSeen = {};
+        for _, tMember in ipairs(tClass.Members) do
+            if (tSeen[tMember.Name] or tClass.Nested[tMember.Name]) then
+                error(Diagnostics.format(tMember, 'Duplicate member: '..tMember.Name), 0);
+            end
+            tSeen[tMember.Name] = true;
+        end
         if (tClass.Parent) then
             for k, v in pairs(tClass.Parent.AbstractMembers) do tClass.AbstractMembers[k] = v; end
             for k, v in pairs(tClass.Parent.Aliases) do tClass.Aliases[k] = v; end
@@ -320,6 +327,7 @@ return function(Model, Diagnostics, Names, Operators)
     @vis internal
     !]]
     function Validation.constructors(tClass)
+        assert(not tClass.DuplicateConstructor, 'Duplicate constructor.');
         for _, sKey in ipairs({'Constructor', 'StaticConstructor'}) do
             local tConstructor = tClass[sKey];
             if (tConstructor) then

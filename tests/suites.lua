@@ -11,6 +11,8 @@ end
 
 tSuites[#tSuites + 1] = {name = "load-options", file = "tests/load_regression.lua", level = "options"};
 
+tSuites[#tSuites + 1] = {name = "io-discovery", file = "tests/io_discovery_regression.lua", level = "native"};
+
 for _, tCase in ipairs({
     {"collections", "collections_regression.lua"},
     {"class-scope", "class_scope_regression.lua"},
@@ -19,6 +21,7 @@ for _, tCase in ipairs({
     {"metahook", "metahook_regression.lua"},
     {"primitives", "primitive_copy_regression.lua"},
     {"stringhook", "stringhook_regression.lua"},
+    {"string-runtime", "string_runtime_regression.lua"},
     {"xml", "xml_regression.lua"},
     {"prettylua", "prettylua_regression.lua"},
     {"serializer", "cog_serializer_contract.lua"},

@@ -255,7 +255,7 @@ local function init(...)
         strata                  =   require("LuaEx.lib.strata");
         envrepo			        = 	require("LuaEx.lib.envrepo");
         eventrix    	        = 	require("LuaEx.lib.eventrix");
-        schema                  =  	require("LuaEx.extlib.schema");
+        schema                  =  	require("LuaEx.libext.schema");
         local tStruct           = 	require("LuaEx.lib.struct");
         struct                  =   tStruct.struct;
         structfactory           =   tStruct.structfactory;
@@ -345,6 +345,17 @@ local function init(...)
             ╚██████╗███████╗██║  ██║███████║███████║███████╗███████║
              ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚══════╝
         ]]
+        -- LXE and LXC share one initialization batch so inline declarations are
+        -- parsed once and every enum is ready before class static initialization.
+        lxe = require("LuaEx.lib.lxe");
+
+        -- One authority scans all approved declarations once for this load batch.
+        -- Include bundled class roots even when package.path does not name them.
+        local SourceDiscovery = require("LuaEx.lib.SourceDiscovery");
+        local pFrameworkRoot = pSourceDirectory.."/classes";
+        local tDiscovery = SourceDiscovery.scan(sOriginalPackagePath,
+            _tClassLoadValues[_nClassSystem] and {pFrameworkRoot} or nil);
+
         -- LXC owns class loading; baseline primitives remain ordinary Lua modules.
         if (_tClassLoadValues[_nClassSystem]) then
             local LXC = require("LuaEx.lib.lxc");
@@ -367,11 +378,15 @@ local function init(...)
 
             -- Identify bundled source groups before merging application discovery.
             -- Disabled framework groups must not enter through an overlapping root.
-            for _, pFile in ipairs(LXC.discover(pSourceDirectory.."/classes/?.lua")) do
+            local pFramework = tDiscovery.Roots[pFrameworkRoot];
+            local sFrameworkPrefix = pFramework and fPathKey(pFramework):gsub("/+$", "").."/";
+            for _, pFile in ipairs(tDiscovery.ByExtension.lxc) do
                 local pKey = fPathKey(pFile);
-                local nGroup = pKey:find("/component/", 1, true) and _nComponentClasses or
-                    (pKey:find("/util/", 1, true) and _nUtilClasses or _nBasicClasses);
-                tFramework[pKey] = {Path = pFile, Group = nGroup};
+                if (sFrameworkPrefix and pKey:sub(1, #sFrameworkPrefix) == sFrameworkPrefix) then
+                    local nGroup = pKey:find("/component/", 1, true) and _nComponentClasses or
+                        (pKey:find("/util/", 1, true) and _nUtilClasses or _nBasicClasses);
+                    tFramework[pKey] = {Path = pFile, Group = nGroup};
+                end
             end
 
             local function fInclude(pFile)
@@ -384,7 +399,7 @@ local function init(...)
             end
 
             for _, tFile in pairs(tFramework) do fInclude(tFile.Path); end
-            for _, pFile in ipairs(LXC.discover(sOriginalPackagePath)) do fInclude(pFile); end
+            for _, pFile in ipairs(tDiscovery.Files) do fInclude(pFile); end
             table.sort(tPaths);
             local tNames = LXC.loadFiles(tPaths, _G);
             LXC.publishFrameworkAliases(tNames, _G);
@@ -408,6 +423,10 @@ local function init(...)
             ██║     ██║██║ ╚████║██║███████║██║  ██║
             ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝╚══════╝╚═╝  ╚═╝
         ]]
+        -- Core-only users can load standalone enums without enabling classes.
+        if (not _tClassLoadValues[_nClassSystem]) then
+            lxe.loadFiles(tDiscovery.ByExtension.lxe, _G);
+        end
         -- FINALIZE: publish the success flag only after every requested module loads.
 
         unpack = unpack or table.unpack;
@@ -427,3 +446,4 @@ local function init(...)
 end
 
 return init;
+

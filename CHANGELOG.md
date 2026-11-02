@@ -6,6 +6,11 @@
 ## [**v0.62**] (*in progress*)
 
 ### Added
+- Linux and macOS native I/O binaries for x64 and ARM64, cross-built with target runtime testing pending.
+
+- Shell-free native I/O with automatic platform selection; LXC/LXE still discover sources through package.path.
+- In-process ZIP handling and native filesystem regression checks.
+
 - Native **lua tests/run.lua** core regression runner with isolated processes, loader-level checks, collection models, formatting corpus, explicit unavailable legacy coverage, and nonzero failure status.
 - **eventrix** serialization and **eventrix.deserialize** with versioned state, callback order and activation preservation, empty-event restoration, independent runtime containers, and named external environment bindings. Shared callbacks and captured state use the existing graph serializer.
 - **XML** class for parsing UTF-8 XML documents, including elements, attributes, text, CDATA, comments, and processing instructions.
@@ -22,6 +27,9 @@
 - Standalone public-boolean class reproduction in **EDITED/BUG TEST/class.lua**.
 
 ### Changed
+- Replaced shell-backed I/O helpers; native binaries live in LuaEx/bin and source in the root Native IO folder.
+- Renamed extlib to libext and updated the loader, test corpus and example paths.
+
 - Aligned the runtime and README version with **v0.62**. Corrected the current one-argument loader documentation and separated verified Lua 5.4 configurations from unverified versions and hosts.
 - Updated collection tutorials to verify repaired behavior and documented the supported global serialization path and remaining 1.0 readiness blockers.
 - Replaced public **class.getparent**, **getbase**, and **getchildren** with **getparentname**, **getbasename**, and **getchildnames**, returning names instead of class objects. Child-name lists are independent and alphabetically sorted.

@@ -1,34 +1,37 @@
+-- LuaEx I/O API backed by its own native filesystem library.
+-- The standard io functions remain installed; only LuaEx extensions are added.
+local io        = io;
 local string    = string;
 local table     = table;
-local execute   = os.execute;
-local io        = io;
 local type      = type;
 local rawtype   = rawtype;
 local pcall     = pcall;
 local tostring  = tostring;
+local _bOSIsWindows = package.config:sub(1, 1) == "\\";
+local _pLuaEx = assert(debug.getinfo(1, "S").source:match("^@(.+)[/\\]hook[/\\]iohook%.lua$"),
+    "Unable to resolve the LuaEx I/O library directory.");
+local _sLuaMajor, _sLuaMinor = _VERSION:match("Lua (%d+)%.(%d+)");
+local _pNative = _pLuaEx.."/bin/luaex_io-lua".._sLuaMajor.._sLuaMinor.."-";
+local _tSystems = _bOSIsWindows and {"windows-x64", "windows-arm64"} or
+    {"linux-x64", "linux-arm64", "macos-x64", "macos-arm64"};
+local _sExtension = _bOSIsWindows and ".dll" or ".so";
+local _tNative;
+local _tReasons = {};
 
--- Define the os type
-local _         = package.config:sub(1, 1);
-local __        = _ == "/" and "\\" or "/";
-local _sOSType  = _ == "\\" and "windows" or (_ == "/" and "unix" or "unknown");
+-- Loading the native module performs no directory scan and starts no process.
+for _, sSystem in ipairs(_tSystems) do
+    local pLibrary = _pNative..sSystem.._sExtension;
+    local fOpen, sReason = package.loadlib(pLibrary, "luaopen_luaex_io");
 
--- Determine the operating system type
-local _bOSIsWindows     = _sOSType == "windows";
-local _bOSIsUnix        = _sOSType == "unix";
-local _bOSIsUnknown     = _sOSType == "unknown";
-local _sParent          = "..";
-local _pRoot            = ".";
-
-
---[[
-██╗      ██████╗  ██████╗ █████╗ ██╗         ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-██║     ██╔═══██╗██╔════╝██╔══██╗██║         ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-██║     ██║   ██║██║     ███████║██║         █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-██║     ██║   ██║██║     ██╔══██║██║         ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-███████╗╚██████╔╝╚██████╗██║  ██║███████╗    ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-]]
-
+    if (fOpen) then
+        _tNative = fOpen();
+        assert(type(_tNative) == "table" and _tNative.Version == 1, "Unsupported LuaEx I/O native ABI.");
+        break;
+    end
+    _tReasons[#_tReasons + 1] = pLibrary..": "..tostring(sReason);
+end
+assert(_tNative, "No compatible LuaEx I/O library for ".._VERSION..". Build/install the native module.\n"..
+    table.concat(_tReasons, "\n"));
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.splitpath
@@ -173,656 +176,6 @@ local function splitpath(sPath);
     return tRet;
 end
 
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.Private.readListingPipe
-    @scope local
-    @desc Opens a directory-listing process, consumes it through the supplied reader
-    and attempts closure exactly once even when iteration or a callback throws.
-    Opening, reading and reported process-exit failures return nil and a reason;
-    partial results are discarded. Runtimes without an exit status can report only
-    the success/failure available from file.close.
-    @param string sCommand Native listing command.
-    @param string sCaller Public operation name used in diagnostics.
-    @param function fReader Receives the open pipe and returns the collected list.
-    @ret table tItems Complete list, or nil followed by a failure reason.
-!]]
-local function readListingPipe(sCommand, sCaller, fReader)
-    local bOpened, uPipe, sOpenReason = pcall(io.popen, sCommand);
-
-    if (not bOpened or not uPipe) then
-        return nil, sCaller..": unable to open listing process: "..tostring(bOpened and sOpenReason or uPipe);
-    end
-
-    local bRead, vResult = pcall(fReader, uPipe);
-    local bClosed, vStatus, sExitKind, nExitCode = pcall(function()
-        return uPipe:close();
-    end);
-
-    if (not bRead) then
-        return nil, sCaller..": listing failed: "..tostring(vResult);
-    end
-
-    local bSucceeded = vStatus == true or (rawtype(vStatus) == "number" and vStatus == 0);
-
-    if (not bClosed or not bSucceeded or sExitKind == "signal" or
-        (sExitKind == "exit" and nExitCode ~= nil and nExitCode ~= 0)) then
-        return nil, sCaller..": listing process did not close successfully: "..tostring(vStatus);
-    end
-
-    return vResult;
-end
-
-
--- Windows file enumeration excludes the directories collected by this helper.
--- Forward declaration keeps that dependency local rather than using public io.
-local listdirs;
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.listfiles
-    @pulsarlua function io.listfiles
-    @desc Lists all files in a given path (optionally recursively).
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- If <code>bRecursive</code> is provided, it must be a boolean.
-    <br>- If <code>fCallback</code> is provided, it must be a function.
-    <br>- Rejects <code>sPath</code> containing double quotes or CR/LF characters.
-    <br>- Optional filetype filters may be provided as additional string arguments (extensions without dots).
-    <br>- When filters are provided, only files whose extension matches (case-insensitive) are returned.
-    <br>- On Windows, enumerates <code>dir /b /a</code> and excludes the directory
-    paths from a separate successful directory listing. This preserves successful
-    empty file lists: <code>dir /a-d</code> may report a failing exit status when
-    there are no matching files. Optional <code>/s</code> enables recursion.
-    <br>- On Unix-like systems, executes <code>find</code> with <code>-type f</code> and optional <code>-maxdepth 1</code>.
-    <br>- When not recursive on Windows, results are prefixed with <code>sPath</code>.
-    <br>- If a callback is provided, it is invoked as <code>fCallback(pFile, true)</code> for each included file.
-    @param string sPath The path which to search for files.
-    @param boolean|nil bRecursive Whether to recurse through subdirectories.
-    @param function|nil fCallback Optional callback invoked per included file.
-    @param string ... Optional file extension filters (without dots), e.g. <code>"exe"</code>, <code>"png"</code>.
-    @ret table tFiles A numerically-indexed table of full file paths. An empty table
-    means a successful listing with no matches. Process, iteration and callback
-    failures return nil followed by a reason; the pipe is closed on error.
-    @ex
-    local function printfile(pFile)
-        print(pFile);
-    end
-
-    local tFiles = io.listfiles("C:\\Windows\\System32", false, printfile, "exe");
-    @note <strong>On Windows</strong>: if your host process is 32-bit, Windows <em>may</em> redirect System32 → SysWOW64, so total file count can differ from Explorer's count. Use 'Sysnative' instead of 'System32' in your path if you need the real 64-bit System32.
-!]]
-local function listfiles(sPath, vRecursive, fCallback, ...);
-    local tRet          = {};
-    local sCmd          = "";
-    local tTypes        = {...};
-    local bCheckTypes   = false;
-    local bHasCallback  = false;
-    local bRecursive    = rawtype(vRecursive) == "boolean" and vRecursive or false;
-    local sRecurse      = "";
-    local tDirectorySet = {};
-
-    if not (rawtype(sPath) == "string") then
-        error("io.listfiles: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.listfiles: path cannot be empty.", 2);
-    end
-
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.listfiles: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (fCallback ~= nil and rawtype(fCallback) ~= "function") then
-        error("io.listfiles: callback must be of type function or nil. Got "..rawtype(fCallback)..".", 2);
-    end
-
-    bHasCallback = rawtype(fCallback) == "function";
-    bCheckTypes  = rawtype(tTypes) == "table" and #tTypes > 0;
-
-    if (bCheckTypes) then
-
-        for i = 1, #tTypes do
-
-            if not (rawtype(tTypes[i]) == "string") then
-                error("io.listfiles: filetype at index "..i.." must be of type string. Got "..rawtype(tTypes[i])..".", 2);
-            end
-
-            if (tTypes[i] == "") then
-                error("io.listfiles: filetype at index "..i.." cannot be empty.", 2);
-            end
-
-            if (tTypes[i]:find('[\r\n".]', 1, false)) then
-                error('io.listfiles: filetype filters cannot contain CR/LF, double quotes ("), or dots (.).', 2);
-            end
-
-        end
-
-    end
-
-    if (_bOSIsWindows) then
-
-        sRecurse = bRecursive and " /s" or "";
-        sCmd     = 'dir "'..sPath..'" /b /a'..sRecurse..' 2>nul';
-        local tDirectories, sReason = listdirs(sPath, bRecursive);
-        if (not tDirectories) then return nil, sReason; end
-
-        for _, pDirectory in ipairs(tDirectories) do
-            tDirectorySet[pDirectory] = true;
-        end
-
-    elseif (_bOSIsUnix) then
-
-        sRecurse = bRecursive and "" or " -maxdepth 1";
-        sCmd     = 'find "'..sPath..'"'..sRecurse..' -type f 2>/dev/null';
-
-    else
-        error("io.listfiles: unsupported operating system.", 2);
-    end
-
-    return readListingPipe(sCmd, "io.listfiles", function(uPipe)
-
-        for sLine in uPipe:lines() do
-
-            local pFile     = nil;
-            local bInclude;
-
-            if (_bOSIsWindows and not bRecursive) then
-                pFile = sPath.._..sLine:gsub(__, _);
-            else
-                pFile = _bOSIsWindows and sLine:gsub(__, _) or sLine;
-            end
-
-            local bDirectory = tDirectorySet[pFile] == true;
-            bInclude = not bDirectory and not bCheckTypes;
-
-            if (not bDirectory and not bInclude) then
-
-                local tParts    = splitpath(pFile);
-                local sExt      = (rawtype(tParts) == "table" and rawtype(tParts.extension) == "string") and tParts.extension:lower() or "";
-
-                for i = 1, #tTypes do
-                    if (tTypes[i]:lower() == sExt) then
-                        bInclude = true;
-                        break;
-                    end
-                end
-
-            end
-
-            if (bInclude) then
-
-                tRet[#tRet + 1] = pFile;
-
-                if (bHasCallback) then
-                    fCallback(pFile, true);
-                end
-
-            end
-
-        end
-
-        return tRet;
-    end);
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.listdirs
-    @pulsarlua function io.listdirs
-    @desc Lists all directories in a given path (optionally recursively).
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- If <code>bRecursive</code> is provided, it must be a boolean.
-    <br>- If <code>fCallback</code> is provided, it must be a function.
-    <br>- Rejects <code>sPath</code> containing double quotes or CR/LF characters.
-    <br>- On Windows, executes <code>dir /b /ad</code> with optional <code>/s</code>.
-    <br>- On Unix-like systems, executes <code>find</code> with <code>-type d</code> and optional <code>-maxdepth 1</code>.
-    <br>- Returned directory paths have trailing separators removed.
-    <br>- When not recursive, Windows results are prefixed with <code>sPath</code>.
-    <br>- If a callback is provided, it is invoked as <code>fCallback(pDir, false)</code> for each found directory.
-    @param string sPath The path which to search for directories.
-    @param boolean|nil bRecursive Whether to recurse through subdirectories.
-    @param function|nil fCallback Optional callback invoked per directory found.
-    @ret table tDirectories A numerically-indexed table of full directory paths.
-    An empty table means a successful listing with no matches. Process, iteration
-    and callback failures return nil followed by a reason; the pipe is closed on error.
-    @ex
-    local function printdir(pDir)
-        print(pDir);
-    end
-
-    local tDirectories = io.listdirs("C:\\Windows\\System32\\Speech", true, printdir);
-!]]
-listdirs = function(sPath, vRecursive, fCallback);
-
-    local tRet          = {};
-    local sCmd          = "";
-    local bHasCallback  = false;
-    local bRecursive    = rawtype(vRecursive) == "boolean" and vRecursive or false;
-    local sRecurse      = "";
-
-    if not (rawtype(sPath) == "string") then
-        error("io.listdirs: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.listdirs: path cannot be empty.", 2);
-    end
-
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.listdirs: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (fCallback ~= nil and rawtype(fCallback) ~= "function") then
-        error("io.listdirs: callback must be of type function or nil. Got "..rawtype(fCallback)..".", 2);
-    end
-
-    bHasCallback = rawtype(fCallback) == "function";
-
-    if (_bOSIsWindows) then
-
-        sRecurse = bRecursive and "/s" or "";
-        sCmd     = 'dir "'..sPath..'" /b /ad '..sRecurse..' 2>nul';
-
-    elseif (_bOSIsUnix) then
-
-        sRecurse = bRecursive and "" or " -maxdepth 1";
-        sCmd     = 'find "'..sPath..'" -type d'..sRecurse..' 2>/dev/null';
-
-    else
-        error("io.listdirs: unsupported operating system.", 2);
-    end
-
-    return readListingPipe(sCmd, "io.listdirs", function(uPipe)
-
-        for sLine in uPipe:lines() do
-
-            local pDir;
-
-            -- Normalize path separators for Windows
-            pDir = _bOSIsWindows and sLine:gsub(__, _) or sLine;
-
-            -- Remove the trailing path separator if present
-            pDir = pDir:gsub("[/\\]+$", "");
-
-            -- When not recursive on Windows, the output is relative; prefix with base path.
-            if (_bOSIsWindows and not bRecursive) then
-                pDir = sPath.._..pDir;
-            end
-
-            tRet[#tRet + 1] = pDir;
-
-            if (bHasCallback) then
-                fCallback(pDir, false);
-            end
-
-        end
-
-        return tRet;
-    end);
-end
-
-
---[[
-██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗         ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║         ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-██║  ███╗██║     ██║   ██║██████╔╝███████║██║         █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║         ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗    ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝    ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-]]
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.chmod
-    @pulsarlua function io.chmod
-    @desc Modifies filesystem permissions for a file or directory using the native OS command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPermission</code> to be a non-empty string.
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- Rejects permission or path values containing double quotes or CR/LF characters.
-    <br>- On Windows, executes <code>icacls</code> with <code>/grant:r</code>.
-    <br>- On Unix-like systems, executes <code>chmod</code>.
-    <br>- Does not translate or normalize permission formats between operating systems.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sPermission The permission string passed directly to the underlying OS command.
-    @param string sPath The filesystem path whose permissions are modified.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.chmod("755", "/usr/local/bin/tool");
-    io.chmod("Users:(RX)", "C:\\Program Files\\MyApp");
-!]]
-function io.chmod(sPermission, sPath);
-
-    if not (rawtype(sPermission) == "string") then
-        error("io.chmod: permission must be of type string. Got "..rawtype(sPermission)..".", 2);
-    end
-
-    if (sPermission == "") then
-        error("io.chmod: permission cannot be empty.", 2);
-    end
-
-    if not (rawtype(sPath) == "string") then
-        error("io.chmod: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.chmod: path cannot be empty.", 2);
-    end
-
-    -- Safety: quoted shell args.
-    if (sPermission:find('[\r\n"]', 1, false)) then
-        error('io.chmod: permission cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.chmod: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (_bOSIsWindows) then
-        -- Windows note: permission must be an icacls grant expression fragment (no quotes).
-        -- Example: 'Users:(RX)' or 'Everyone:(F)' or 'USERNAME:(M)'
-        return execute('icacls "'..sPath..'" /grant:r '..sPermission..' 1>nul 2>nul');
-    elseif (_bOSIsUnix) then
-        -- Unix: permission may be symbolic ("u+rwx") or octal ("755"), per chmod.
-        return execute('chmod '..sPermission..' "'..sPath..'" 1>/dev/null 2>/dev/null');
-    end
-
-    error("io.chmod: unsupported operating system.", 2);
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.copy
-    @pulsarlua function io.copy
-    @desc Copies a file from a source path to a destination path using the native system command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sSource</code> to be a non-empty string.
-    <br>- Requires <code>sDestination</code> to be a non-empty string.
-    <br>- Rejects source or destination paths containing double quotes or CR/LF characters.
-    <br>- Executes the Windows <code>copy</code> command directly.
-    <br>- This function is supported on Windows systems only.
-    <br>- Does not verify file existence, overwrite behavior, or destination accessibility.
-    <br>- Does not recurse directories.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sSource The source file path.
-    @param string sDestination The destination file path.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.copy("input.txt", "backup\\input.txt");
-!]]
-function io.copy(sSource, sDestination);
-    local sCmd;
-    local vRet;
-
-    if not (rawtype(sSource) == "string") then
-        error("io.copy: source must be of type string. Got "..rawtype(sSource)..".", 2);
-    end
-
-    if (sSource == "") then
-        error("io.copy: source cannot be empty.", 2);
-    end
-
-    if not (rawtype(sDestination) == "string") then
-        error("io.copy: destination must be of type string. Got "..rawtype(sDestination)..".", 2);
-    end
-
-    if (sDestination == "") then
-        error("io.copy: destination cannot be empty.", 2);
-    end
-
-    -- Safety: quoted shell args
-    if (sSource:find('[\r\n"]', 1, false)) then
-        error('io.copy: source cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (sDestination:find('[\r\n"]', 1, false)) then
-        error('io.copy: destination cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if not (_bOSIsWindows) then
-        error("io.copy: unsupported operating system (Windows only).", 2);
-    end
-
-    sCmd = 'copy "'..sSource..'" "'..sDestination..'" 1>nul 2>nul';
-    vRet = execute(sCmd);
-
-    return vRet;
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.delete
-    @pulsarlua function io.delete
-    @desc Deletes a file using the native system command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- Rejects path values containing double quotes or CR/LF characters.
-    <br>- Executes the Windows <code>del</code> command with <code>/f</code> and <code>/q</code>.
-    <br>- Supported on Windows systems only.
-    <br>- Does not delete directories or perform recursive removal.
-    <br>- Does not verify file existence or permissions before execution.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sPath The file path to delete.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.delete("temp\\old_file.tmp");
-!]]
-function io.delete(sPath);
-
-    local sCmd;
-    local vRet;
-
-    if not (rawtype(sPath) == "string") then
-        error("io.delete: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.delete: path cannot be empty.", 2);
-    end
-
-    -- Safety: quoted shell arg
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.delete: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if not (_bOSIsWindows) then
-        error("io.delete: unsupported operating system (Windows only).", 2);
-    end
-
-    -- /f = force, /q = quiet (matches your suppression style elsewhere)
-    sCmd = 'del /f /q "'..sPath..'" 1>nul 2>nul';
-    vRet = execute(sCmd);
-
-    return vRet;
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.exists
-    @pulsarlua function io.exists
-    @desc Returns true if the given path exists (file or directory), otherwise false.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- Rejects <code>sPath</code> containing double quotes or CR/LF characters.
-    <br>- Uses <code>os.rename</code> as a fast existence probe.
-    <br>- Treats "permission denied" as existing.
-    @param string sPath The filesystem path to test.
-    @ret boolean bExists True if the path exists (file or directory).
-!]]
-function io.exists(sPath);
-
-    if not (rawtype(sPath) == "string") then
-        error("io.exists: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.exists: path cannot be empty.", 2);
-    end
-
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.exists: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    local ok, _, code = os.rename(sPath, sPath);
-
-    if (ok) then
-        return true;
-    end
-
-    -- Windows: 13 is commonly "permission denied" (treat as exists).
-    -- Some environments return nil,"Permission denied",13.
-    if (code == 13) then
-        return true;
-    end
-
-    return false;
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.findfile
-    @pulsarlua function io.findfile
-    @desc Searches the filesystem for a file by name and returns its location.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sFilename</code> to be a non-empty string.
-    <br>- Rejects filenames containing double quotes or CR/LF characters.
-    <br>- Searches the filesystem recursively for a regular file with an exact name match.
-    <br>- On Windows, uses <code>dir /s /b /a-d</code> starting from the current drive root.
-    <br>- On Unix, uses <code>find / -type f -name</code> starting from the filesystem root.
-    <br>- Stops searching after the first match is found.
-    <br>- Does not query file metadata or verify accessibility beyond what the underlying command returns.
-    @param string sFilename The exact filename to search for.
-    @ret string|nil pPath The full path to the first matching file, or <code>nil</code> if no match is found.
-    @ex
-    local p = io.findfile("notepad.exe");
-    if (p) then
-        print("Found at:", p);
-    end
-!]]
-function io.findfile(sFilename);
-
-    local sCmd    = "";
-    local pRet    = nil;
-    local uPipe   = nil;
-    local sResult = nil;
-
-    if not (rawtype(sFilename) == "string") then
-        error("io.findfile: filename must be of type string. Got "..rawtype(sFilename)..".", 2);
-    end
-
-    if (sFilename == "") then
-        error("io.filefind: filename cannot be empty.", 2);
-    end
-
-    -- Safety: quoted shell arg
-    if (sFilename:find('[\r\n"]', 1, false)) then
-        error('io.findfile: filename cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (_bOSIsWindows) then
-        -- /s  = recurse
-        -- /b  = bare format
-        -- /a-d = files only
-        -- Searches from current drive root
-        sCmd = 'dir "\\'..sFilename..'" /s /b /a-d 2>nul';
-    elseif (_bOSIsUnix) then
-        -- /     = filesystem root
-        -- -type f = regular files only
-        -- -name   = exact filename match
-        -- -print -quit = first hit only
-        sCmd = 'find / -type f -name "'..sFilename..'" -print -quit 2>/dev/null';
-    else
-        error("io.findfile: unsupported operating system.", 2);
-    end
-
-    uPipe = io.popen(sCmd);
-    if (uPipe) then
-        sResult = uPipe:read("*l");
-        uPipe:close();
-
-        if (rawtype(sResult) == "string" and sResult ~= "") then
-            pRet = sResult;
-        end
-    end
-
-    return pRet;
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.findstr
-    @pulsarlua function io.findstr
-    @desc Executes the native <code>findstr</code> command with validated arguments.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sText</code> to be a non-empty string; otherwise throws an error.
-    <br>- Rejects <code>sText</code> containing double quotes or CR/LF characters.
-    <br>- If <code>sPath</code> is <code>nil</code>, executes <code>findstr "&lt;sText&gt;"</code>.
-    <br>- If <code>sPath</code> is provided, it must be a non-empty string.
-    <br>- Rejects <code>sPath</code> containing double quotes or CR/LF characters.
-    <br>- Executes the constructed command via <code>os.execute</code>.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sText The text string passed directly to <code>findstr</code>.
-    @param string|nil sPath Optional path argument passed directly to <code>findstr</code>.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.findstr("ERROR", "C:\\Logs\\app.log");
-    io.findstr("TODO");
-!]]
-function io.findstr(sText, sPath);
-
-    local sCmd  = "";
-    local vRet  = nil;
-
-    if not (rawtype(sText) == "string") then
-        error("io.findstr: text must be of type string. Got "..rawtype(sText)..".", 2);
-    end
-
-    if (sText == "") then
-        error("io.findstr: text cannot be empty.", 2);
-    end
-
-    -- Safety: this wrapper uses quoted args; reject quote/newline to avoid malformed commands.
-    if (sText:find('[\r\n"]', 1, false)) then
-        error('io.findstr: text cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (sPath ~= nil) then
-
-        if not (rawtype(sPath) == "string") then
-            error("io.findstr: path must be a string or nil. Got "..rawtype(sPath)..".", 2);
-        end
-
-        if (sPath == "") then
-            error("io.findstr: path cannot be empty when provided.", 2);
-        end
-
-        if (sPath:find('[\r\n"]', 1, false)) then
-            error('io.findstr: path cannot contain CR/LF or double quotes (").', 2);
-        end
-
-        sCmd = 'findstr "'..sText..'" "'..sPath..'"';
-
-    else
-        sCmd = 'findstr "'..sText..'"';
-    end
-
-    vRet = execute(sCmd);
-
-    return vRet;
-end
-
-
 --[[!
     @fqxn LuaEx.Lua Hooks.io.getenddir
     @pulsarlua function io.getenddir
@@ -941,6 +294,50 @@ function io.getenddirOLD(vPath);
     return sRet;
 end
 
+function io.getenddirOLD(vPath);
+    local sRet  = "";
+
+    if not (rawtype(vPath) == "string") then
+        error("io.getenddir: path must be of type string. Got "..rawtype(vPath)..".", 2);
+    end
+
+    if (vPath == "") then
+        error("io.getenddir: path cannot be empty.", 2);
+    end
+
+    -- Trim trailing separators (both styles).
+    local sPath = vPath:gsub("[/\\]+$", "");
+
+    if (sPath == "") then
+        -- Path was only separators ("/", "////", "\\", etc.)
+        sRet = "";
+    elseif (_bOSIsWindows and sPath:match("^[A-Za-z]:$")) then
+        -- Windows root like "C:\" becomes "C:" after trim.
+        sRet = "";
+    else
+
+        local tParts = splitpath(sPath);
+
+        if not (rawtype(tParts) == "table") then
+            error("io.getenddir: splitpath failed to return a table.", 2);
+        end
+
+        -- If it looks like a file path (has an extension), return the last folder from the directory portion.
+        if (rawtype(tParts.extension) == "string" and tParts.extension ~= "") then
+
+            local sDir = rawtype(tParts.directory) == "string" and tParts.directory or "";
+            sDir = sDir:gsub("[/\\]+$", "");
+            sRet = sDir:match("([^/\\]+)$") or "";
+
+        else
+            -- Otherwise treat it as a directory path; return the last segment.
+            sRet = sPath:match("([^/\\]+)$") or "";
+        end
+
+    end
+
+    return sRet;
+end
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.getuserdir
@@ -973,92 +370,6 @@ function io.getuserdir();
 
     return sHome;
 end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.grep
-    @pulsarlua function io.grep
-    @desc Executes the native <code>grep</code> command with the provided arguments.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Validates that <code>sPattern</code> is of type string; otherwise throws an error.
-    <br>- If <code>sPath</code> is a string, executes <code>grep "&lt;sPattern&gt;" "&lt;sPath&gt;"</code>.
-    <br>- If <code>sPath</code> is not a string, executes <code>grep "&lt;sPattern&gt;"</code>.
-    <br>- Does not perform escaping or sanitization of arguments.
-    <br>- Does not add any command-line flags.
-    <br>- Returns the result of <code>os.execute</code> when <code>sPath</code> is not a string.
-    <br>- When <code>sPath</code> <em>is</em> a string, the command result is assigned to a local
-    <br>variable but not explicitly returned (implicit <code>nil</code> return).
-    @param string sPattern The pattern passed directly to <code>grep</code>.
-    @param string|any sPath Optional path argument passed directly to <code>grep</code>.
-    @ret any vResult The return value of <code>os.execute</code>, or <code>nil</code> depending on control flow.
-    @ex
-    io.grep("TODO", "/var/log/syslog");
-    io.grep("error");
-!]]
-function io.grep(sPattern, sPath)
-    local vRet;
-
-    if not (rawtype(sPattern) == "string") then
-        error("io.grep: ".."Pattern must be of type string. Got "..rawtype(sPattern)..'.');
-    end
-
-    if (rawtype(sPath) == "string") then
-        vRet = execute('grep "'..sPattern..'" "'..sPath..'"');
-    else
-        vRet = execute('grep "'..sPattern..'"');
-    end
-
-    return vRet;
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.isdir
-    @pulsarlua function io.isdir
-    @desc Returns true if the given path exists and is a directory.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- Rejects <code>sPath</code> containing double quotes or CR/LF characters.
-    <br>- Uses OS-native checks:
-    <br>  - Windows: <code>if exist "path\NUL"</code>
-    <br>  - Unix: <code>test -d "path"</code>
-    @param string sPath The filesystem path to test.
-    @ret boolean bIsDir True if the path is a directory.
-!]]
-function io.isdir(sPath);
-
-    if not (rawtype(sPath) == "string") then
-        error("io.isdir: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.isdir: path cannot be empty.", 2);
-    end
-
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.isdir: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    local vOK;
-
-    if (_bOSIsWindows) then
-        -- A trailing separator distinguishes directories from regular files.
-        vOK = os.execute('cmd /c if exist "'..sPath..'\\" (exit /b 0) else (exit /b 1)');
-    elseif (_bOSIsUnix) then
-        vOK = os.execute('test -d "'..sPath..'"');
-    else
-        error("io.isdir: unsupported operating system.", 2);
-    end
-
-    -- Lua 5.3: vOK can be true/false OR (status,"exit",code) depending on platform.
-    if (vOK == true) then return true end
-    if (type(vOK) == "number") then return vOK == 0 end
-
-    return false;
-end
-
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.isdirectchild
@@ -1117,210 +428,6 @@ function io.isdirectchild(pParent, pChild)
     -- STRICT equality
     return parentPart == pParent
 end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.isfile
-    @pulsarlua function io.isfile
-    @desc Returns true if the given path exists and is a regular file.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- Rejects <code>sPath</code> containing double quotes or CR/LF characters.
-    <br>- Uses OS-native checks:
-    <br>  - Windows: exists AND NOT a directory via <code>path\NUL</code> test.
-    <br>  - Unix: <code>test -f "path"</code>
-    @param string sPath The filesystem path to test.
-    @ret boolean bIsFile True if the path is a regular file.
-!]]
-function io.isfile(sPath);
-
-    if not (rawtype(sPath) == "string") then
-        error("io.isfile: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.isfile: path cannot be empty.", 2);
-    end
-
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.isfile: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    local vOK;
-
-    if (_bOSIsWindows) then
-        vOK = os.execute('cmd /c if exist "'..sPath..'" (if exist "'..sPath..'\\NUL" (exit /b 1) else (exit /b 0)) else (exit /b 1)');
-    elseif (_bOSIsUnix) then
-        vOK = os.execute('test -f "'..sPath..'"');
-    else
-        error("io.isfile: unsupported operating system.", 2);
-    end
-
-    if (vOK == true) then return true end
-    if (type(vOK) == "number") then return vOK == 0 end
-
-    return false;
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.list
-    @pulsarlua function io.list
-    @desc Lists all files and directories in a given path (optionally recursively).
-    @param string sPath The path which to search for files and directories.
-    @param boolean|nil bRecursive Whether to recurse through subdirectories.
-    @param function|nil fCallback The function to call when a file or directory is found.
-    <br>This function must accept a string as its first argument which will be the full path to the item found.
-    <br>This function must accept a boolean as its second argument which indicates whether the item found is a file (true if a file) or a directory (false if a directory).
-    @ret table tItems A table whose keys are strings (directories, files) whose values are numerically-indexed table whose values are full paths of the found files and directories.
-    Returns nil and a reason if either listing fails; partial results are not
-    returned. Callbacks may already have run before a later listing failure.
-    @ex
-    local function printitem(pFile, bIsFile)
-        print("Is File: "..tostring(bIsFile), pFile);
-    end
-
-    local tItems = io.list("C:\\Windows\\System32", true, printitem, "exe");
-    --\[\[ Output->
-    Is File: false	C:\Windows\System32\0409
-    Is File: false	C:\Windows\System32\AdvancedInstallers
-    Is File: false	C:\Windows\System32\am-et
-    Is File: false	C:\Windows\System32\AppLocker
-    ...
-    Is File: true	C:\Windows\System32\agentactivationruntimestarter.exe
-    Is File: true	C:\Windows\System32\AgentService.exe
-    Is File: true	C:\Windows\System32\AggregatorHost.exe
-    Is File: true	C:\Windows\System32\aitstatic.exe
-    ...
-    \]\]
-!]]
-function io.list(sPath, bRecursive, fCallback, ...)
-    local tDirectories, sReason = listdirs(sPath, bRecursive, fCallback);
-    if (not tDirectories) then return nil, sReason; end
-    local tFiles;
-    tFiles, sReason = listfiles(sPath, bRecursive, fCallback, ...);
-    if (not tFiles) then return nil, sReason; end
-
-    return {
-        directories = tDirectories,
-        files       = tFiles,
-    };
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.mkdir
-    @pulsarlua function io.mkdir
-    @desc Creates a directory at the specified path using the native system command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- Rejects path values containing double quotes or CR/LF characters.
-    <br>- On Windows, executes the <code>mkdir</code> command.
-    <br>- On Unix-like systems, executes <code>mkdir -p</code>.
-    <br>- Parent directories are created as needed.
-    <br>- Does not verify path existence or permissions before execution.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sPath The directory path to create.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.mkdir("output\\logs");
-!]]
-function io.mkdir(sPath);
-
-    local sCmd;
-    local vRet;
-
-    if not (rawtype(sPath) == "string") then
-        error("io.mkdir: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.mkdir: path cannot be empty.", 2);
-    end
-
-    -- Safety: quoted shell arg
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.mkdir: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (_bOSIsWindows) then
-        -- mkdir on Windows creates intermediate directories automatically
-        sCmd = 'mkdir "'..sPath..'" 1>nul 2>nul';
-    elseif (_bOSIsUnix) then
-        -- -p mirrors Windows mkdir behavior (create parents, no error if exists)
-        sCmd = 'mkdir -p "'..sPath..'" 1>/dev/null 2>/dev/null';
-    else
-        error("io.mkdir: unsupported operating system.", 2);
-    end
-
-    vRet = execute(sCmd);
-
-    return vRet;
-end
-
-
---[[!
-    @fqxn LuaEx.Lua Hooks.io.move
-    @pulsarlua function io.move
-    @desc Moves or renames a file using the native system command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sSource</code> to be a non-empty string.
-    <br>- Requires <code>sDestination</code> to be a non-empty string.
-    <br>- Rejects source or destination paths containing double quotes or CR/LF characters.
-    <br>- Executes the Windows <code>move</code> command directly.
-    <br>- Supported on Windows systems only.
-    <br>- Does not verify file existence, overwrite behavior, or destination accessibility.
-    <br>- Does not perform recursive directory moves.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sSource The source file path.
-    @param string sDestination The destination file path.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.move("temp\\file.txt", "archive\\file.txt");
-!]]
-function io.move(sSource, sDestination);
-
-    local sCmd;
-    local vRet;
-
-    if not (rawtype(sSource) == "string") then
-        error("io.move: source must be of type string. Got "..rawtype(sSource)..".", 2);
-    end
-
-    if (sSource == "") then
-        error("io.move: source cannot be empty.", 2);
-    end
-
-    if not (rawtype(sDestination) == "string") then
-        error("io.move: destination must be of type string. Got "..rawtype(sDestination)..".", 2);
-    end
-
-    if (sDestination == "") then
-        error("io.move: destination cannot be empty.", 2);
-    end
-
-    -- Safety: quoted shell args
-    if (sSource:find('[\r\n"]', 1, false)) then
-        error('io.move: source cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (sDestination:find('[\r\n"]', 1, false)) then
-        error('io.move: destination cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if not (_bOSIsWindows) then
-        error("io.move: unsupported operating system (Windows only).", 2);
-    end
-
-    sCmd = 'move "'..sSource..'" "'..sDestination..'" 1>nul 2>nul';
-    vRet = execute(sCmd);
-
-    return vRet;
-end
-
 
 --[[!
     @fqxn LuaEx.Lua Hooks.io.normalizepath
@@ -1415,199 +522,294 @@ function io.normalizepath(sPath);
     return sRet;
 end
 
-
 --[[!
-    @fqxn LuaEx.Lua Hooks.io.rmdir
-    @pulsarlua function io.rmdir
-    @desc Removes a directory and its contents using the native system command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sPath</code> to be a non-empty string.
-    <br>- Rejects path values containing double quotes or CR/LF characters.
-    <br>- Removes the target directory recursively.
-    <br>- On Windows, executes <code>rmdir /s /q</code>.
-    <br>- On Unix-like systems, executes <code>rm -rf</code>.
-    <br>- Does not verify path existence or prompt for confirmation.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sPath The directory path to remove.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.rmdir("build\\temp");
+@fqxn LuaEx.Lua Hooks.io.listfiles
+@desc Lists child files through the native filesystem, optionally recursively.
+    Extensions are case-insensitive and omit the dot. Results are sorted canonical paths;
+    callbacks receive (path, true). Directory identities prevent link cycles.
+    Listing or callback errors return nil and a reason; empty success returns {}.
+@param string sPath Directory to inspect.
+@param boolean|nil bRecursive Whether to visit descendant directories.
+@param function|nil fCallback Per-result callback.
+@param string ... Optional extension filters.
+@ret table|nil tPaths Matching file paths.
+@ret string|nil sReason Failure description.
 !]]
-function io.rmdir(sPath);
-
-    local sCmd;
-    local vRet;
-
-    if not (rawtype(sPath) == "string") then
-        error("io.rmdir: path must be of type string. Got "..rawtype(sPath)..".", 2);
-    end
-
-    if (sPath == "") then
-        error("io.rmdir: path cannot be empty.", 2);
-    end
-
-    -- Safety: quoted shell arg
-    if (sPath:find('[\r\n"]', 1, false)) then
-        error('io.rmdir: path cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (_bOSIsWindows) then
-        -- /s = remove directory tree, /q = quiet
-        sCmd = 'rmdir /s /q "'..sPath..'" 1>nul 2>nul';
-    elseif (_bOSIsUnix) then
-        -- Recursive removal, no prompts
-        sCmd = 'rm -rf "'..sPath..'" 1>/dev/null 2>/dev/null';
-    else
-        error("io.rmdir: unsupported operating system.", 2);
-    end
-
-    vRet = execute(sCmd);
-
-    return vRet;
+local function pathArgument(sPath, sCaller)
+    assert(rawtype(sPath) == "string" and sPath ~= "" and not sPath:find("%z"),
+        sCaller..": expected a nonempty path without NUL bytes.");
+    return sPath;
 end
 
+local function listPaths(tRoots, bRecursive, fCallback, bFiles, bOptional, ...)
+    assert(bRecursive == nil or rawtype(bRecursive) == "boolean", "Recursive must be boolean or nil.");
+    assert(fCallback == nil or rawtype(fCallback) == "function", "Callback must be a function or nil.");
+    local tTypes, tPaths, tVisited, tFiles = {...}, {}, {}, {};
+    local tScan = {Roots = {}, Directories = 0};
+    local nTypes = select("#", ...);
+
+    for nIndex = 1, nTypes do
+        local sType = tTypes[nIndex];
+        assert(rawtype(sType) == "string" and sType ~= "" and not sType:find('[.%z]'),
+            "Extension filters must be nonempty strings without dots or NUL bytes.");
+    end
+    local function fVisit(pDirectory, nDepth, tInfo)
+        assert(nDepth < 1024, "Directory traversal exceeded its depth limit.");
+        local sIdentity = _bOSIsWindows and tInfo.Identity:lower() or tInfo.Identity;
+        if (tVisited[sIdentity]) then return; end
+        tVisited[sIdentity] = true;
+        tScan.Directories = tScan.Directories + 1;
+        local tEntries, sReason = _tNative.list(pDirectory, true);
+        assert(tEntries, sReason);
+        for _, tEntry in ipairs(tEntries) do
+            local tStatus = tEntry;
+            if (tStatus.Kind == "directory") then
+                if (not bFiles) then tPaths[#tPaths + 1] = tEntry.Path; end
+                if (bRecursive) then fVisit(tEntry.Path, nDepth + 1, tStatus); end
+            elseif (bFiles and tStatus.Kind == "file") then
+                local bInclude = nTypes == 0;
+                local sExtension = (tEntry.Name:match("%.([^%.]+)$") or ""):lower();
+                for _, sType in ipairs(tTypes) do
+                    if (sType:lower() == sExtension) then bInclude = true; break; end
+                end
+                local sFile = _bOSIsWindows and tStatus.Identity:lower() or tStatus.Identity;
+                if (bInclude and (not bOptional or not tFiles[sFile])) then
+                    tPaths[#tPaths + 1] = tStatus.Identity;
+                    tFiles[sFile] = true;
+                end
+            end
+        end
+    end
+    local bOK, sReason = pcall(function()
+        for _, pRoot in ipairs(tRoots) do
+            local tInfo, sError, nCode = _tNative.stat(pRoot);
+            if (not tInfo) then
+                local bMissing = nCode == 2 or nCode == 20 or _bOSIsWindows and (nCode == 3 or nCode == 267);
+                assert(bOptional and bMissing, sError);
+            elseif (tInfo.Kind ~= "directory") then
+                assert(bOptional, "Not a directory: "..pRoot);
+            else
+                tScan.Roots[pRoot] = tInfo.Identity;
+                fVisit(pRoot, 0, tInfo);
+            end
+        end
+        table.sort(tPaths);
+        if (fCallback) then
+            for _, pPath in ipairs(tPaths) do fCallback(pPath, bFiles); end
+        end
+    end);
+    if (not bOK) then return nil, tostring(sReason); end
+    return tPaths, nil, tScan;
+end
+
+function io.listfiles(sPath, bRecursive, fCallback, ...)
+    pathArgument(sPath, "io.listfiles");
+    local tPaths, sReason = listPaths({sPath}, bRecursive, fCallback, true, false, ...);
+    return tPaths, sReason;
+end
 
 --[[!
-    @fqxn LuaEx.Lua Hooks.io.zip
-    @pulsarlua function io.zip
-    @desc Creates a ZIP archive containing the specified files using the native system command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>tFiles</code> to be a non-empty table of file path strings.
-    <br>- Requires <code>sDestination</code> to be a non-empty string.
-    <br>- Rejects file paths or destination paths containing double quotes or CR/LF characters.
-    <br>- Does not verify file existence or accessibility before invoking the command.
-    <br>- Executes the <code>zip</code> command directly; availability depends on the system environment.
-    <br>- Does not recurse directories or expand wildcards.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param table tFiles A numerically-indexed table of file paths to include in the archive.
-    @param string sDestination The output ZIP file path.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.zip({ "file1.txt", "file2.txt" }, "archive.zip");
+@fqxn LuaEx.Lua Hooks.io.scanfiles
+@desc Recursively lists files across a dense array of roots with one shared
+    canonical-directory visited set. Relative, absolute, overlapping and linked
+    roots do not repeat a directory's contents. Canonical file paths are deduplicated
+    and sorted. Missing/non-directory optional roots are skipped; access/listing
+    failures return nil and a reason. Filters remain generic and case-insensitive.
+@param table tRoots Dense array of directory paths; an empty array succeeds.
+@param string ... Optional extension filters, without dots.
+@ret table|nil tPaths Matching canonical file paths.
+@ret string|nil sReason Failure reason, nil on success.
+@ret table|nil tScan Roots maps supplied paths to resolved directory identities;
+    Directories counts distinct directories enumerated during this call.
 !]]
-function io.zip(tFiles, sDestination);
-
-    local sCmd;
+function io.scanfiles(tRoots, ...)
+    assert(rawtype(tRoots) == "table" and getmetatable(tRoots) == nil, "io.scanfiles: roots must be a plain array.");
     local nCount = 0;
-    local sRet;
-
-    if not (rawtype(tFiles) == "table") then
-        error("io.zip: files must be of type table. Got "..rawtype(tFiles)..".", 2);
-    end
-
-    if not (rawtype(sDestination) == "string") then
-        error("io.zip: destination must be of type string. Got "..rawtype(sDestination)..".", 2);
-    end
-
-    if (sDestination == "") then
-        error("io.zip: destination cannot be empty.", 2);
-    end
-
-    if (sDestination:find('[\r\n"]', 1, false)) then
-        error('io.zip: destination cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    for i, v in ipairs(tFiles) do
-        if not (rawtype(v) == "string") then
-            error("io.zip: file at index "..i.." must be a string. Got "..rawtype(v)..".", 2);
-        end
-
-        if (v == "") then
-            error("io.zip: file at index "..i.." cannot be empty.", 2);
-        end
-
-        if (v:find('[\r\n"]', 1, false)) then
-            error('io.zip: file paths cannot contain CR/LF or double quotes (").', 2);
-        end
-
+    for nIndex, pRoot in pairs(tRoots) do
+        assert(rawtype(nIndex) == "number" and nIndex % 1 == 0 and nIndex >= 1 and nIndex <= #tRoots,
+            "io.scanfiles: roots must be a dense array.");
+        pathArgument(pRoot, "io.scanfiles");
         nCount = nCount + 1;
     end
-
-    if (nCount == 0) then
-        error("io.zip: files table cannot be empty.", 2);
-    end
-
-    if (_bOSIsWindows) then
-        -- Requires zip to be available in PATH (e.g. from Git, MSYS, Cygwin)
-        sCmd = 'zip "'..sDestination..'" "'..table.concat(tFiles, '" "')..'"';
-    elseif (_bOSIsUnix) then
-        sCmd = 'zip "'..sDestination..'" "'..table.concat(tFiles, '" "')..'"';
-    else
-        error("io.zip: unsupported operating system.", 2);
-    end
-
-    sRet = execute(sCmd);
-
-    return sRet;
+    assert(nCount == #tRoots, "io.scanfiles: roots must be a dense array.");
+    return listPaths(tRoots, true, nil, true, true, ...);
 end
-
 
 --[[!
-    @fqxn LuaEx.Lua Hooks.io.unzip
-    @pulsarlua function io.unzip
-    @desc Extracts the contents of a ZIP archive to a destination directory using the native system command.
-    <br>
-    <br><strong>Behavior notes (as implemented):</strong>
-    <br>- Requires <code>sArchive</code> to be a non-empty string.
-    <br>- Requires <code>sDestination</code> to be a non-empty string.
-    <br>- Rejects archive or destination paths containing double quotes or CR/LF characters.
-    <br>- Executes the <code>unzip</code> command directly; availability depends on the system environment.
-    <br>- Does not verify archive existence, format validity, or destination permissions.
-    <br>- Does not perform cleanup or conflict resolution.
-    <br>- Returns the result of <code>os.execute</code>.
-    @param string sArchive The ZIP archive file path.
-    @param string sDestination The directory path to extract files into.
-    @ret any vResult The return value of <code>os.execute</code> for the executed command.
-    @ex
-    io.unzip("archive.zip", "output_dir");
+@fqxn LuaEx.Lua Hooks.io.listdirs
+@desc Lists child directories; excludes the queried directory itself on every
+    platform. Recursive traversal follows directory links with cycle detection.
+    Callbacks receive (path, false); errors return nil and a reason.
+@param string sPath Directory to inspect.
+@param boolean|nil bRecursive Whether to visit descendants.
+@param function|nil fCallback Per-result callback.
+@ret table|nil tPaths Sorted directory paths.
+@ret string|nil sReason Failure description.
 !]]
-function io.unzip(sArchive, sDestination);
-
-    local sCmd;
-    local vRet;
-
-    if not (rawtype(sArchive) == "string") then
-        error("io.unzip: archive must be of type string. Got "..rawtype(sArchive)..".", 2);
-    end
-
-    if (sArchive == "") then
-        error("io.unzip: archive cannot be empty.", 2);
-    end
-
-    if not (rawtype(sDestination) == "string") then
-        error("io.unzip: destination must be of type string. Got "..rawtype(sDestination)..".", 2);
-    end
-
-    if (sDestination == "") then
-        error("io.unzip: destination cannot be empty.", 2);
-    end
-
-    if (sArchive:find('[\r\n"]', 1, false)) then
-        error('io.unzip: archive cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (sDestination:find('[\r\n"]', 1, false)) then
-        error('io.unzip: destination cannot contain CR/LF or double quotes (").', 2);
-    end
-
-    if (_bOSIsWindows or _bOSIsUnix) then
-        -- Requires "unzip" to be available in PATH
-        sCmd = 'unzip "'..sArchive..'" -d "'..sDestination..'"';
-    else
-        error("io.unzip: unsupported operating system.", 2);
-    end
-
-    vRet = execute(sCmd);
-
-    return vRet;
+function io.listdirs(sPath, bRecursive, fCallback)
+    pathArgument(sPath, "io.listdirs");
+    local tPaths, sReason = listPaths({sPath}, bRecursive, fCallback, false, false);
+    return tPaths, sReason;
 end
 
+function io.list(sPath, bRecursive, fCallback, ...)
+    local tDirectories, sReason = io.listdirs(sPath, bRecursive);
+    if (not tDirectories) then return nil, sReason; end
+    local tFiles;
+    tFiles, sReason = io.listfiles(sPath, bRecursive, nil, ...);
+    if (not tFiles) then return nil, sReason; end
+    if (fCallback ~= nil) then
+        assert(rawtype(fCallback) == "function", "Callback must be a function or nil.");
+        local bOK;
+        bOK, sReason = pcall(function()
+            for _, pDirectory in ipairs(tDirectories) do fCallback(pDirectory, false); end
+            for _, pFile in ipairs(tFiles) do fCallback(pFile, true); end
+        end);
+        if (not bOK) then return nil, tostring(sReason); end
+    end
+    for _, pFile in ipairs(tFiles) do tDirectories[#tDirectories + 1] = pFile; end
+    return tDirectories;
+end
 
--- proper integration of local functions
-io.listdirs     = listdirs;
-io.listfiles    = listfiles;
-io.splitpath    = splitpath;
+function io.exists(sPath)
+    pathArgument(sPath, "io.exists");
+    local tInfo, sReason, nCode = _tNative.stat(sPath);
+    return tInfo ~= nil, sReason, nCode;
+end
+function io.isdir(sPath)
+    pathArgument(sPath, "io.isdir");
+    local tInfo, sReason, nCode = _tNative.stat(sPath);
+    return tInfo ~= nil and tInfo.Kind == "directory", sReason, nCode;
+end
+function io.isfile(sPath)
+    pathArgument(sPath, "io.isfile");
+    local tInfo, sReason, nCode = _tNative.stat(sPath);
+    return tInfo ~= nil and tInfo.Kind == "file", sReason, nCode;
+end
 
+-- Native mutations return true or nil, reason, native error code. No command
+-- exit statuses, permission-expression injection, or command-line tools remain.
+io.mkdir  = _tNative.mkdir;
+io.copy   = _tNative.copy;
+io.move   = _tNative.move;
+io.delete = _tNative.delete;
+io.rmdir  = _tNative.rmdir;
+
+--[[!
+@fqxn LuaEx.Lua Hooks.io.chmod
+@desc Sets portable rwx mode bits. Accepts octal text such as "755", numeric
+    bits, or symbolic u/g/o/a clauses. Windows only represents limited mode bits;
+    this API does not interpret Windows ACL/icacls expressions.
+@param string|number vPermission Octal, numeric or symbolic mode.
+@param string sPath Target path.
+@ret boolean|nil bSuccess True on success.
+@ret string|nil sReason Failure description.
+!]]
+function io.chmod(vPermission, sPath)
+    pathArgument(sPath, "io.chmod");
+    local nMode = rawtype(vPermission) == "number" and vPermission or nil;
+    if (rawtype(vPermission) == "string") then
+        if (vPermission:match("^[0-7][0-7]?[0-7]?$") or vPermission:match("^0[0-7][0-7][0-7]$")) then
+            nMode = tonumber(vPermission, 8);
+        else
+            local tInfo, sReason = _tNative.stat(sPath);
+            if (not tInfo) then return nil, sReason; end
+            nMode = tInfo.Permissions;
+            local nClauses = 0;
+            for sClause in (vPermission..","):gmatch("([^,]*),") do
+                local sWho, sOperation, sBits = sClause:match("^([ugoa]*)([+=%-])([rwx]*)$");
+                if (not sOperation) then return nil, "Expected octal or symbolic rwx permissions; ACL expressions are unsupported."; end
+                local nBits = (sBits:find("r", 1, true) and 4 or 0) |
+                    (sBits:find("w", 1, true) and 2 or 0) | (sBits:find("x", 1, true) and 1 or 0);
+                local nMask, nValue = 0, 0;
+                for _, tGroup in ipairs({{"u", 6}, {"g", 3}, {"o", 0}}) do
+                    if (sWho == "" or sWho:find("a", 1, true) or sWho:find(tGroup[1], 1, true)) then
+                        nMask = nMask | (7 << tGroup[2]);
+                        nValue = nValue | (nBits << tGroup[2]);
+                    end
+                end
+                if (sOperation == "=") then nMode = (nMode & ~nMask) | nValue;
+                elseif (sOperation == "+") then nMode = nMode | nValue;
+                else nMode = nMode & ~nValue; end
+                nClauses = nClauses + 1;
+            end
+            if (nClauses == 0) then return nil, "Empty permissions."; end
+        end
+    end
+    assert(rawtype(nMode) == "number" and nMode % 1 == 0 and nMode >= 0 and nMode <= 511,
+        "Permissions must represent octal 000..777.");
+    return _tNative.chmod(sPath, nMode);
+end
+
+function io.findfile(sFilename, pRoot)
+    pathArgument(sFilename, "io.findfile");
+    assert(not sFilename:find("[/\\]"), "findfile expects a filename, not a path.");
+    pRoot = pRoot or assert(_tNative.root());
+    pathArgument(pRoot, "io.findfile");
+    local tVisited = {};
+    local function fFind(pDirectory)
+        local tInfo = _tNative.stat(pDirectory);
+        if (not tInfo or tInfo.Kind ~= "directory") then return; end
+        local sIdentity = _bOSIsWindows and tInfo.Identity:lower() or tInfo.Identity;
+        if (tVisited[sIdentity]) then return; end
+        tVisited[sIdentity] = true;
+        local tEntries = _tNative.list(pDirectory);
+        if (not tEntries) then return; end
+        for _, tEntry in ipairs(tEntries) do
+            local tStatus = _tNative.stat(tEntry.Path);
+            if (tStatus and tStatus.Kind == "file" and tEntry.Name == sFilename) then return tEntry.Path; end
+        end
+        for _, tEntry in ipairs(tEntries) do
+            local tStatus = _tNative.stat(tEntry.Path);
+            if (tStatus and tStatus.Kind == "directory") then
+                local pFound = fFind(tEntry.Path);
+                if (pFound) then return pFound; end
+            end
+        end
+    end
+    return fFind(pRoot);
+end
+
+local function searchText(sPattern, sPath, bLiteral)
+    assert(rawtype(sPattern) == "string" and sPattern ~= "", "Expected nonempty search text.");
+    local fLines;
+    if (sPath ~= nil) then
+        pathArgument(sPath, "io text search");
+        local sData, sReason = _tNative.read(sPath);
+        if (not sData) then return nil, sReason; end
+        local nPosition = 1;
+        fLines = function()
+            if (nPosition > #sData) then return; end
+            local nEnd = sData:find("\n", nPosition, true);
+            local sLine = sData:sub(nPosition, (nEnd or #sData + 1) - 1);
+            nPosition = nEnd and nEnd + 1 or #sData + 1;
+            return sLine;
+        end;
+    else
+        fLines = io.stdin:lines();
+    end
+    local nMatches = 0;
+    local bOK, sReason = pcall(function()
+        for sLine in fLines do
+            if (sLine:find(sPattern, 1, bLiteral)) then
+                assert(io.stdout:write(sLine.."\n"));
+                nMatches = nMatches + 1;
+            end
+        end
+    end);
+    if (not bOK) then return nil, tostring(sReason); end
+    return nMatches > 0, nMatches;
+end
+
+function io.findstr(sText, sPath) return searchText(sText, sPath, true); end
+function io.grep(sPattern, sPath) return searchText(sPattern, sPath, false); end
+
+function io.zip(tFiles, sDestination)
+    return require("LuaEx.lib.io.Archive").write(tFiles, sDestination, _tNative);
+end
+function io.unzip(sArchive, sDestination)
+    return require("LuaEx.lib.io.Archive").extract(sArchive, sDestination, _tNative);
+end
+
+io.splitpath = splitpath;
 return io;

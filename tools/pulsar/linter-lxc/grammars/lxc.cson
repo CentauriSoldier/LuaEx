@@ -48,6 +48,31 @@
     "keywords": {
       "patterns": [
         {
+          "captures": {
+            "1": {
+              "name": "storage.type.declaration.lxc"
+            },
+            "2": {
+              "name": "entity.name.type.enum.lxc"
+            }
+          },
+          "match": "\\b(enum)\\s+([A-Za-z_]\\w*)"
+        },
+        {
+          "captures": {
+            "1": {
+              "name": "storage.type.declaration.lxc"
+            },
+            "2": {
+              "name": "entity.name.type.enum.lxc"
+            },
+            "3": {
+              "name": "entity.name.function.extension.lxc"
+            }
+          },
+          "match": "\\b(extension)\\s+([A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)*)\\.([A-Za-z_]\\w*)"
+        },
+        {
           "match": "\\b(public|private|protected)\\b",
           "name": "storage.modifier.visibility.lxc"
         },
@@ -78,6 +103,18 @@
         {
           "match": "<<|>>|//|[&|~]",
           "name": "keyword.operator.lxc"
+        },
+        {
+          "name": "storage.type.declaration.lxc",
+          "match": "\\b(enum|extension)\\b"
+        },
+        {
+          "name": "keyword.other.ownership.lxc",
+          "match": "\\bwithin\\b"
+        },
+        {
+          "name": "support.variable.enum.lxc",
+          "match": "\\b(Value|Ordinal|Name|Parent)\\b"
         }
       ]
     },

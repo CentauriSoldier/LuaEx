@@ -1,0 +1,198 @@
+--[[!
+@fqxn LuaEx.Classes.Queue
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class Queue
+    {
+        --metamethods
+
+
+            --[[!
+            @fqxn LuaEx.Classes.Queue.Metamethods.__call
+            @scope public
+            @desc Creates an iterator function to iterate over the elements of the Queue.
+            @ret function An iterator function that returns each element of the Queue.
+            !]]
+        public __call()
+        {
+            local index = 0
+            local count = this.count
+
+            return function ()
+                index = index + 1
+
+                if index <= count then
+                    return this.values[index]
+                end
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Metamethods.__len
+        @scope public
+        @desc Returns the number of elements currently in the Queue.
+        @ret number The number of elements in the Queue.
+        !]]
+        public __len()
+        {
+            return this.count;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Metamethods.__tostring
+        @scope public
+        @desc Returns a string representing the items in the Queue.
+        @ret string A string representing the items in the Queue.
+        !]]
+        public __tostring()
+        {
+            local sRet = "";
+
+            for _, vItem in ipairs(this.values) do
+                sRet = sRet..tostring(vItem)..", ";
+            end
+
+            return "{"..sRet:sub(1, #sRet - 2).."}";
+        }
+
+        private count = 0;
+
+        private values = {};
+
+        --public
+            --[[!
+            @fqxn LuaEx.Classes.Queue.Methods.Queue
+            @pulsarlua function Queue
+            @scope public
+            @desc Constructs a new Queue object.
+            @param table|nil A numerically-indexed table of items to add to enQueue (optional).
+            @ret Queue A new Queue object.
+            !]]
+        public Queue(tItems)
+        {
+            if (type(tItems) == "table") then
+
+                for _, vItem in ipairs(tItems) do
+
+                    if (rawtype(vItem) ~= "nil") then
+                        table.insert(this.values, #this.values + 1, vItem);
+                        this.count = this.count + 1;
+                    end
+
+                end
+
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Methods.clear
+        @pulsarlua function Queue.clear
+        @scope public
+        @desc Removes all items from the Queue.
+        @ret Queue The Queue object after clearing all items.
+        !]]
+        public clear()
+        {
+            this.count  = 0;
+            this.values = {};
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Methods.enqueue
+        @pulsarlua function Queue.enqueue
+        @scope public
+        @desc Adds an element to the end of the Queue.
+        @param any vValue The value to enQueue.
+        @ret any The Queue object after enQueueing the item.
+        !]]
+        public enqueue(vValue)
+        {
+            if (rawtype(vValue) ~= "nil") then
+                table.insert(this.values, #this.values + 1, vValue);
+                this.count = this.count + 1;
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Methods.dequeue
+        @pulsarlua function Queue.dequeue
+        @scope public
+        @desc Adds an element to the end of the Queue.
+        @param any vValue The value to deQueue.
+        @ret any The value deQueue.
+        !]]
+        public dequeue()
+        {
+            local vRet = nil;
+
+            if (this.count > 0) then
+                vRet = table.remove(this.values, 1);
+                this.count = this.count - 1;
+            end
+
+            return vRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Methods.deserialize
+        @pulsarlua function Queue.deserialize
+        @scope public
+        @desc Deserializes the Queue object from a string.
+        !]]
+        public deserialize()
+        {
+            error("ERROR: Queue.deserialize method still in development.");
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Methods.peek
+        @pulsarlua function Queue.peek
+        @scope public
+        @desc Retrieves the next-in-line element from the Queue without removing it.
+        @ret any The next-in-line element in the Queue, or nil if the Queue is empty.
+        !]]
+        public peek()
+        {
+            -- Preserve false as a queued value instead of treating it as an empty slot.
+            return this.values[1];
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Methods.reverse
+        @pulsarlua function Queue.reverse
+        @scope public
+        @desc Reverses the order of elements in the Queue.
+        @ret Queue The Queue object after reversing the elements.
+        !]]
+        public reverse()
+        {
+            local values    = this.values
+            local count     = this.count
+
+            for x = 1, math.floor(count / 2) do
+                values[x], values[count - x + 1] = values[count - x + 1], values[x];
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Queue.Methods.size
+        @pulsarlua function Queue.size
+        @scope public
+        @desc Returns the number of elements currently in the Queue.
+        @ret number The number of elements in the Queue.
+        !]]
+        public size()
+        {
+            return this.count;
+        }
+
+    }
+}

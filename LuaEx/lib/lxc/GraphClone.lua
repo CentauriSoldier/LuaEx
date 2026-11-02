@@ -26,6 +26,18 @@ return function(Model, Context, Runtime, Hooks)
     local tSessions = setmetatable({}, {__mode = 'k'});
     local fCopy;
 
+    -- Constructor-created copies are checked after the hook finishes copying.
+    -- Keep ownership separate so a failed hook cannot invalidate preexisting data.
+    Runtime.DeferCompletion = function(tState)
+        local tSession = tSessions[coroutine.running()];
+        if (not tSession or not next(tSession.Active)) then return false; end
+        tSession.Owned[tState] = true;
+        tSession.Validate[#tSession.Validate + 1] = tState;
+        tSession.Queued[tState] = true;
+        return true;
+    end;
+    Context.internal(Runtime.DeferCompletion);
+
     
     --[[!
     @fqxn LuaEx.LXC.GraphClone.remember
@@ -66,7 +78,11 @@ return function(Model, Context, Runtime, Hooks)
         for n = #tSession.ActiveOrder, nActive + 1, -1 do
             tSession.Active[tSession.ActiveOrder[n]], tSession.ActiveOrder[n] = nil, nil;
         end
-        for n = #tSession.Validate, nValidators + 1, -1 do tSession.Validate[n] = nil; end
+        for n = #tSession.Validate, nValidators + 1, -1 do
+            local tState = tSession.Validate[n];
+            if (tSession.Owned[tState]) then tState.Failed, tState.Ready = true, false; end
+            tSession.Queued[tState], tSession.Validate[n] = nil, nil;
+        end
     end
 
     
@@ -117,6 +133,11 @@ return function(Model, Context, Runtime, Hooks)
             assert(not rawequal(oSource, oCopy), 'Instance clones require a distinct instance.');
             assert(not tSession.Seen[oSource] or rawequal(tSession.Seen[oSource], oCopy), 'Clone hook returned a different registered copy.');
             fRemember(tSession, oSource, oCopy);
+            local tCopy = tObjects[oCopy];
+            if (not tSession.Queued[tCopy]) then
+                tSession.Validate[#tSession.Validate + 1] = tCopy;
+                tSession.Queued[tCopy] = true;
+            end
             tSession.Active[oSource] = nil;
             return oCopy;
         end
@@ -124,6 +145,7 @@ return function(Model, Context, Runtime, Hooks)
         local tCopy = fAllocate(tState.Class);
         fRemember(tSession, oSource, tCopy.Object, tCopy);
         tSession.Validate[#tSession.Validate + 1] = tCopy;
+        tSession.Automatic[tCopy], tSession.Queued[tCopy], tSession.Owned[tCopy] = true, true, true;
         for tMember, tSlot in pairs(tState.Values) do
             tCopy.Values[tMember] = {Member = tMember, Type = tSlot.Type, Locked = tSlot.Locked,
                 Value = fCopy(tSlot.Value, tSession, tMember.Owner), State = tCopy};
@@ -183,7 +205,8 @@ return function(Model, Context, Runtime, Hooks)
         local tSession = tSessions[oThread];
         local bRoot = tSession == nil;
         if (bRoot) then
-            tSession = {Seen = {}, Active = {}, Validate = {}, Records = {}, ActiveOrder = {}, IgnoreMetatable = bIgnoreMetatable == true};
+            tSession = {Seen = {}, Active = {}, Validate = {}, Records = {}, ActiveOrder = {},
+                Automatic = {}, Queued = {}, Owned = {}, IgnoreMetatable = bIgnoreMetatable == true};
             tSessions[oThread] = tSession;
         end
         local nRecords, nActive, nValidators = #tSession.Records, #tSession.ActiveOrder, #tSession.Validate;
@@ -191,7 +214,10 @@ return function(Model, Context, Runtime, Hooks)
         if (bRoot) then
             if (bOK) then
                 bOK, vResult = pcall(function()
-                    for _, tState in ipairs(tSession.Validate) do Hooks.validate(tState); end
+                    for _, tState in ipairs(tSession.Validate) do
+                        if (tSession.Automatic[tState]) then Hooks.validate(tState); end
+                    end
+                    for _, tState in ipairs(tSession.Validate) do Runtime.complete(tState); end
                     for _, tState in ipairs(tSession.Validate) do tState.Ready = true; end
                     return vResult;
                 end);

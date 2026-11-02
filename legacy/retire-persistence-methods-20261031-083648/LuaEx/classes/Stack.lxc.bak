@@ -1,0 +1,226 @@
+--[[!
+@fqxn LuaEx.Classes.Stack
+@desc Native LXC migration; explicit instance access and private class helpers.
+!]]
+namespace LuaEx.Classes
+{
+    class Stack
+    {
+        --metamethods
+
+            --[[!
+            @fqxn LuaEx.Classes.Stack.Metamethods.__call
+            @scope public
+            @desc Creates an iterator function to iterate over the elements of the Stack.
+            @ret function An iterator function that returns each element of the Stack.
+            !]]
+        public __call()
+        {
+            local nIndex = 0
+            local nCount = this.count
+
+            return function()
+                nIndex = nIndex + 1
+
+                if nIndex <= nCount then
+                    return this.values[nIndex]
+                end
+
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Metamethods.__len
+        @scope public
+        @desc Returns the number of elements currently in the Stack.
+        @ret number The number of elements in the Stack.
+        !]]
+        public __len()
+        {
+            return this.count;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Metamethods.__tostring
+        @scope public
+        @desc Returns a string representing the items in the Stack.
+        @ret string A string representing the items in the Stack.
+        !]]
+        public __tostring()
+        {
+            --TODO clean up in Stack, set and queue
+                    local sRet = "";
+
+                    for _, vItem in ipairs(this.values) do
+                        sRet = sRet..tostring(vItem)..", ";
+                    end
+
+                    return "{"..sRet:sub(1, #sRet - 2).."}";
+        }
+
+        private count = 0;
+
+        private values = {};
+
+        --public
+            --[[!
+            @fqxn LuaEx.Classes.Stack.Methods.Stack
+            @pulsarlua function Stack
+            @scope public
+            @desc Constructs a new Stack object.
+            @param table|nil A numerically-indexed table of items to push onto the Stack (optional).
+            @ret Stack A new Stack object.
+            !]]
+        public Stack(tItems)
+        {
+            if (type(tItems) == "table") then
+
+                for nIndex, vItem in ipairs(tItems) do
+
+                    if (rawtype(vItem) ~= "nil") then
+                        table.insert(this.values, 1, vItem);
+                        this.count = this.count + 1;
+                    end
+
+                end
+
+            end
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.clear
+        @pulsarlua function Stack.clear
+        @scope public
+        @desc Removes all elements from the Stack.
+        @ret Stack The Stack object after clearing all items.
+        !]]
+        public clear()
+        {
+            this.count  = 0;
+            this.values = {};
+
+            return this;
+        }
+
+        --[[
+        clone = function(this, cdat)
+            local oRet  = Stack();
+            local ncdat = cdat.ins[oRet];
+
+            ncdat.values    = clone(cdat.values);
+            ncdat.count     = #ncdat.values;
+
+            return oRet;
+        end,
+        ]]
+
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.deserialize
+        @pulsarlua function Stack.deserialize
+        @scope public
+        @desc Deserializes the Stack object from a string.
+        !]]
+        --TODO complete serialization
+        public deserialize()
+        {
+            error("ERROR: Stack.deserialize method still in development.");
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.peek
+        @pulsarlua function Stack.peek
+        @scope public
+        @desc Retrieves the next-in-line element from the Stack without removing it.
+        @ret any The next-in-line element in the Stack, or nil if the Stack is empty.
+        !]]
+        public peek()
+        {
+            -- An occupied slot may contain false; only an absent slot returns nil.
+            return this.values[1];
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.pop
+        @pulsarlua function Stack.pop
+        @scope public
+        @desc Removes and returns the top element of the Stack.
+        @ret any The removed element from the Stack.
+        !]]
+        public pop()
+        {
+            -- Keep empty-pop results independent of other stacks and global variables.
+            local vRet;
+
+            if (rawtype(this.values[1]) ~= "nil") then
+                vRet = table.remove(this.values, 1);
+                this.count = this.count - 1;
+            end
+
+            return vRet;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.push
+        @pulsarlua function Stack.push
+        @scope public
+        @desc Adds a new element to the top of the Stack.
+        @param any vValue The value to be added to the Stack.
+        @ret Stack The Stack object after pushing the value.
+        !]]
+        public push(vValue)
+        {
+            if (rawtype(vValue) ~= "nil") then
+                table.insert(this.values, 1, vValue);
+                this.count = this.count + 1;
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.reverse
+        @pulsarlua function Stack.reverse
+        @scope public
+        @desc Reverses the order of elements in the Stack.
+        @ret Stack The Stack object after reversing the elements.
+        !]]
+        public reverse()
+        {
+            local values    = this.values
+            local count     = this.count
+
+            for x = 1, math.floor(count / 2) do
+                values[x], values[count - x + 1] = values[count - x + 1], values[x];
+            end
+
+            return this;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.serialize
+        @pulsarlua function Stack.serialize
+        @scope public
+        @desc Serializes the Stack object to a string.
+        @ret string A string representing the Stack object which can be stored and later deserialized.
+        !]]
+        public serialize()
+        {
+            --TODO complete this
+                   return "ERROR: Stack.serialize method still in development.";
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Stack.Methods.size
+        @pulsarlua function Stack.size
+        @scope public
+        @desc Returns the number of elements in the Stack.
+        @ret number The number of elements in the Stack.
+        !]]
+        public size()
+        {
+            return this.count;
+        }
+
+    }
+}

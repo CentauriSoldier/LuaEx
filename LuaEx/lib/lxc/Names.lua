@@ -7,11 +7,15 @@
 @vis internal
 @see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
+-- Keep runtime string operations independent of application replacements.
+local _gmatch, _match = string.gmatch, string.match;
+
+
 
 local Names = {};
 local _tReserved = {};
-for sName in ('and break do else elseif end false for function goto if in local nil not or repeat return then true until while '..
-    'namespace class public private protected final const this base abstract override static permits excludes using requires null operator'):gmatch('%S+') do
+for sName in _gmatch('and break do else elseif end false for function goto if in local nil not or repeat return then true until while '..
+    'namespace class public private protected final const this base abstract override static permits excludes using requires null operator enum extension within', '%S+') do
     _tReserved[sName] = true;
 end
 
@@ -25,8 +29,9 @@ end
 @vis internal
 !]]
 function Names.valid(sName)
-    return type(sName) == 'string' and string.match(sName, '^[%a_][%w_]*$') ~= nil and
-        not _tReserved[sName] and sName ~= '_ENV' and not string.match(sName, '^__lxc');
+    return type(sName) == 'string' and _match(sName, '^[%a_][%w_]*$') ~= nil and
+        not _tReserved[sName] and sName ~= '_ENV' and not _match(sName, '^__lxc');
 end
 
 return Names;
+

@@ -7,6 +7,10 @@
 @vis internal
 @see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
+-- Keep runtime string operations independent of application replacements.
+local _sub = string.sub;
+
+
 
 --[[!
 @fqxn LuaEx.LXC.Host.factory
@@ -145,14 +149,14 @@ return function(Model, Context, Runtime, Facades, Copy, Codec, Helpers, HostGrap
         !]]
         local fDeserialize = Context.internal(function(sSource, ...)
             local __lxc_guard <close> = nil;
-            if (type(sSource) == 'string' and string.sub(sSource, 1, #sStagedPrefix) == sStagedPrefix) then
-                return HostStaged.deserialize(string.sub(sSource, #sStagedPrefix + 1), Serializer);
+            if (type(sSource) == 'string' and _sub(sSource, 1, #sStagedPrefix) == sStagedPrefix) then
+                return HostStaged.deserialize(_sub(sSource, #sStagedPrefix + 1), Serializer);
             end
-            if (type(sSource) == 'string' and string.sub(sSource, 1, #sHostPrefix) == sHostPrefix) then
-                return HostGraph.deserialize(string.sub(sSource, #sHostPrefix + 1), Serializer);
+            if (type(sSource) == 'string' and _sub(sSource, 1, #sHostPrefix) == sHostPrefix) then
+                return HostGraph.deserialize(_sub(sSource, #sHostPrefix + 1), Serializer);
             end
-            if (type(sSource) == 'string' and string.sub(sSource, 1, #sPrefix) == sPrefix) then
-                return Codec.deserialize(string.sub(sSource, #sPrefix + 1));
+            if (type(sSource) == 'string' and _sub(sSource, 1, #sPrefix) == sPrefix) then
+                return Codec.deserialize(_sub(sSource, #sPrefix + 1));
             end
             return Serializer.deserialize(sSource, ...);
         end);
@@ -188,6 +192,25 @@ return function(Model, Context, Runtime, Facades, Copy, Codec, Helpers, HostGrap
             end
             return Cloner.registerFactory(oFactory, ...);
         end);
+
+        --[[!
+        @fqxn LuaEx.LXC.Host.staticSerialize
+        @desc Uses the existing staged graph protocol for static field maps.
+            Plain maps also carry the established staged marker so loadStatic can
+            distinguish host graphs from restricted standalone snapshots.
+        @param table tValues Caller-accessible mutable static values.
+        @ret string Caller-checked host graph snapshot.
+        @vis internal
+        !]]
+        Codec.StaticSerialize = Context.internal(function(tValues)
+            local __lxc_guard <close> = nil;
+            local sSource = HostStaged.serialize(tValues, Serializer);
+            if (_sub(sSource, 1, #sStagedPrefix) ~= sStagedPrefix) then
+                sSource = sStagedPrefix..sSource;
+            end
+            return sSource;
+        end);
+        Codec.StaticDeserialize = fDeserialize;
 
         local tCloneMethods = {clone = fClone, cloneIndependent = fCloneIndependent,
             registerCopy = fRegisterCopy, registerFactory = fRegisterFactory};
@@ -277,3 +300,4 @@ return function(Model, Context, Runtime, Facades, Copy, Codec, Helpers, HostGrap
 
     return Host;
 end;
+

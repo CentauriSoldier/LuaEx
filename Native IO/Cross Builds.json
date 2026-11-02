@@ -1,0 +1,70 @@
+{
+  "compiler": "Zig 0.15.2 (portable cross-compiler)",
+  "compiler_download": "https://ziglang.org/download/0.15.2/zig-x86_64-windows-0.15.2.zip",
+  "compiler_archive_sha256": "3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c",
+  "source": "Native IO/Filesystem.cpp",
+  "source_sha256": "6dc89a1bf65cd74e653d746a40ff8b84baba8285aa0af9e846c9336d406a53f4",
+  "lua_headers": "Lua 5.4.9; Lua 5.4 ABI, 64-bit integers and double numbers",
+  "runtime_testing": "Not executed on Linux or macOS. Cross-compilation and binary ABI inspection only.",
+  "artifacts": [
+    {
+      "file": "luaex_io-lua54-linux-arm64.so",
+      "format": "ELF64",
+      "bytes": 7320664,
+      "sha256": "8c62f343af38bd258ead578eb3da36ee50145846232a0b41016a6fd0759b2aec",
+      "minimum_target": "glibc 2.28 (GNU target; musl not covered)",
+      "system_libraries": [
+        "libpthread.so.0",
+        "libc.so.6",
+        "libdl.so.2"
+      ],
+      "lua_host_imports": 16,
+      "runtime_tested": false
+    },
+    {
+      "file": "luaex_io-lua54-linux-x64.so",
+      "format": "ELF64",
+      "bytes": 7157160,
+      "sha256": "269c3cfaafd23656398bce4f4ed106bce97b56089521573f637e276772bdc5b2",
+      "minimum_target": "glibc 2.28 (GNU target; musl not covered)",
+      "system_libraries": [
+        "libpthread.so.0",
+        "libc.so.6",
+        "libdl.so.2",
+        "ld-linux-x86-64.so.2"
+      ],
+      "lua_host_imports": 16,
+      "runtime_tested": false
+    },
+    {
+      "file": "luaex_io-lua54-macos-arm64.so",
+      "format": "Mach-O64",
+      "bytes": 697664,
+      "sha256": "4d3532b04b93e6a99b4849f13d83a3930fb46fdceacb788c9b84493175a096b7",
+      "minimum_target": "macOS 11.0.0",
+      "system_libraries": [
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      "lua_host_imports": 16,
+      "runtime_tested": false
+    },
+    {
+      "file": "luaex_io-lua54-macos-x64.so",
+      "format": "Mach-O64",
+      "bytes": 635152,
+      "sha256": "7636b0e3cd3b17823a8e1ea4c67df57152cad5020300e9405a6d345c44b515c6",
+      "minimum_target": "macOS 10.15.0",
+      "system_libraries": [
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      "lua_host_imports": 16,
+      "runtime_tested": false
+    }
+  ],
+  "windows_build": {
+    "compiler": "MSVC 19.50.35725.0, x64 Release, C++17, /W4 /WX, static MSVC runtime",
+    "file": "luaex_io-lua54-windows-x64.dll",
+    "sha256": "b76ac2dfa325f921fbfaf2f17ba2a84000ae4dcc06539b02eed10373783740a3",
+    "runtime_tested": true
+  }
+}

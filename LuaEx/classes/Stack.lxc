@@ -116,18 +116,6 @@ namespace LuaEx.Classes
 
 
         --[[!
-        @fqxn LuaEx.Classes.Stack.Methods.deserialize
-        @pulsarlua function Stack.deserialize
-        @scope public
-        @desc Deserializes the Stack object from a string.
-        !]]
-        --TODO complete serialization
-        public deserialize()
-        {
-            error("ERROR: Stack.deserialize method still in development.");
-        }
-
-        --[[!
         @fqxn LuaEx.Classes.Stack.Methods.peek
         @pulsarlua function Stack.peek
         @scope public
@@ -195,19 +183,6 @@ namespace LuaEx.Classes
             end
 
             return this;
-        }
-
-        --[[!
-        @fqxn LuaEx.Classes.Stack.Methods.serialize
-        @pulsarlua function Stack.serialize
-        @scope public
-        @desc Serializes the Stack object to a string.
-        @ret string A string representing the Stack object which can be stored and later deserialized.
-        !]]
-        public serialize()
-        {
-            --TODO complete this
-                   return "ERROR: Stack.serialize method still in development.";
         }
 
         --[[!

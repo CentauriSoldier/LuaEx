@@ -920,8 +920,11 @@ public override Describe() { return base.Describe(); }
 @see <a href="#LuaEx.LXC.Persistence.Guide">Copying and saving</a>
 !]]
 
-local _pSource = debug.getinfo(1, 'S').source:sub(2):gsub('\\', '/');
-local _pRoot = _pSource:match('^(.*)/[^/]+$') or '.';
+-- Keep runtime string operations independent of application replacements.
+local _gsub, _match, _sub = string.gsub, string.match, string.sub;
+
+local _pSource = _gsub(_sub(debug.getinfo(1, 'S').source, 2), '\\', '/');
+local _pRoot = _match(_pSource, '^(.*)/[^/]+$') or '.';
 
 -- Freeze trusted runtime dependencies before application code can replace
 -- globals such as assert/rawget or table/string operations. Application bodies

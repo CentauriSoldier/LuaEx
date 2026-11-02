@@ -182,6 +182,7 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
     end
 
     local Validation = ValidationFactory(Model, Diagnostics, Names, Operators);
+    local Directives = require('LuaEx.lib.lxc.Directives')(Model, Diagnostics);
 
     
     --[[!
@@ -224,9 +225,22 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
             if (tClass.Parent) then Validation.parent(tClass); end
             local tDependencies = {};
             for _, sName in ipairs(tClass.requires or {}) do
-                local tRequired = assert(tBatch[sName] or Model.Classes[sName], 'Missing required class: '..sName);
-                assert(Model.visible(tRequired, tClass), 'Inaccessible dependency: '..sName);
-                tDependencies[#tDependencies + 1] = tRequired;
+                local tRequired = tBatch[sName] or Model.Classes[sName];
+                local tEnum = tClass.EnumBatch and tClass.EnumBatch[sName];
+                if (tRequired) then
+                    assert(Model.visible(tRequired, tClass), 'Inaccessible dependency: '..sName);
+                    tDependencies[#tDependencies + 1] = tRequired;
+                else
+                    assert(tEnum or (tClass.PublicEnumExists and tClass.PublicEnumExists(sName)), 'Missing required class or enum: '..sName);
+                    -- LXE preflights and initializes every enum before any class.
+                    -- Its owning class still controls enum accessibility.
+                    local tRoot = tEnum and tEnum.Root;
+                    if (tRoot and tRoot.Within) then
+                        local tOwner = tBatch[tRoot.Within] or Model.Classes[tRoot.Within];
+                        assert(tOwner and Model.allowed(tRoot.Flags.Visibility or 'public', tOwner, tClass),
+                            'Inaccessible dependency: '..sName);
+                    end
+                end
             end
             return tDependencies;
         end
@@ -300,7 +314,10 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
                 end
             end
         end
+        Directives.resolve(tOrder, tBatch);
         return tOrder;
     end
     return Model;
 end;
+
+

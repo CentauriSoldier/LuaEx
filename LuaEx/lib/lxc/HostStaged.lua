@@ -18,7 +18,7 @@
 @ret table Service returned by this module.
 @vis internal
 !]]
-return function(Context, Runtime, Codec)
+return function(Context, Runtime, Codec, EnumGraphAccess)
     local HostStaged = {};
     local _, tObjects = Runtime.services();
 
@@ -177,7 +177,19 @@ return function(Context, Runtime, Codec)
         function tAdapter.checkGraph(tGraph, tSources)
             -- Version one has no class nodes, but function checks still apply
             -- while encoding ordinary/foreign callbacks in the same transaction.
-            if (tGraph.version == 2) then Codec.checkGraph(fGraph(tGraph, tSources), tCaller); end
+            local tAccessGraph = fGraph(tGraph, tSources);
+            if (tGraph.version == 2) then Codec.checkGraph(tAccessGraph, tCaller); end
+            if (HostStaged.EnumInspect) then
+                local tNodes, tDefinitions = HostStaged.EnumInspect(tGraph);
+                for nID, sName in pairs(tNodes) do
+                    tAccessGraph.Nodes[nID] = {Kind = 'class', Class = sName};
+                end
+                -- Reuse LXC's existing ownership/escape analysis: private enum
+                -- values inside private instance storage may persist, but a root
+                -- alias must not expose those references to an unrelated caller.
+                local bAllowed, sError = pcall(EnumGraphAccess.validate, tAccessGraph, tCaller, tDefinitions);
+                assert(bAllowed, 'Inaccessible class-owned enum reference: '..tostring(sError));
+            end
         end
 
         --[[!
@@ -271,9 +283,14 @@ return function(Context, Runtime, Codec)
     !]]
     function HostStaged.serialize(vValue, Serializer)
         local __lxc_guard <close> = nil;
-        local tAdapter = fAdapter(Context.caller());
-        local sSource = Serializer.serializeStaged(vValue, tAdapter);
-        return tAdapter.Used and '--LXC:3\n'..sSource or sSource;
+        local tCaller = Context.caller();
+        local tAdapter = fAdapter(tCaller);
+        local sSource, bEnums;
+        if (HostStaged.EnumTransaction) then
+            sSource, bEnums = HostStaged.EnumTransaction(tCaller, Serializer.serializeStaged, vValue, tAdapter);
+        else sSource = Serializer.serializeStaged(vValue, tAdapter); end
+        -- Enum-only graphs need the same caller-bound restoration path as classes.
+        return (tAdapter.Used or bEnums) and '--LXC:3\n'..sSource or sSource;
     end
 
     
@@ -289,11 +306,17 @@ return function(Context, Runtime, Codec)
     !]]
     function HostStaged.deserialize(sSource, Serializer)
         local __lxc_guard <close> = nil;
-        local tAdapter = fAdapter(Context.caller());
-        local bOK, vValue = pcall(Serializer.deserializeStaged, sSource, tAdapter);
+        local tCaller = Context.caller();
+        local tAdapter = fAdapter(tCaller);
+        local bOK, vValue;
+        if (HostStaged.EnumTransaction) then
+            bOK, vValue = pcall(HostStaged.EnumTransaction, tCaller, Serializer.deserializeStaged, sSource, tAdapter);
+        else bOK, vValue = pcall(Serializer.deserializeStaged, sSource, tAdapter); end
         if (not bOK) then tAdapter.abort(); error(vValue, 0); end
         return vValue;
     end
     Context.internal(HostStaged.serialize); Context.internal(HostStaged.deserialize);
     return HostStaged;
 end;
+
+

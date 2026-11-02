@@ -22,6 +22,25 @@ async function lint(sources, mode = 'lxc', options = {}) {
         'Human.lxc': 'namespace P { class Human : Creature { public override describe() { return base.describe(); } } }',
         'Soldier.lxc': 'namespace P { class Soldier : Human {} }'
     })).length === 0);
+    check('standalone LXE enum declarations', (await lint({
+        'Enums.lxe': 'namespace P { enum E { A = 2; B = 3; } extension E.test(this) { return this == E.A; } }'
+    })).length === 0);
+    check('inline enum with explicit owner', (await lint({
+        'Owner.lxc': 'namespace P { class Owner { public enum E within P.Owner { A; B; } } }'
+    })).length === 0);
+    check('mixed enum dependencies and classes', (await lint({
+        'Enums.lxe': 'namespace P { enum E { A; } }',
+        'Owner.lxc': 'namespace P { class Owner requires(P.E) { public static Selected = E.A; } }'
+    })).length === 0);
+    check('missing LXE dependency diagnosed', (await lint({
+        'Bad.lxe': 'namespace P { enum E requires(P.Missing) { A; } }'
+    })).some(item => /Missing required enum/.test(item.message)));
+    check('enum payload code is never executed', (await lint({
+        'Safe.lxe': 'namespace P { enum E { A = error("must not run"); } }'
+    })).length === 0);
+    check('extension collisions diagnosed', (await lint({
+        'Bad.lxe': 'namespace P { enum E { A; } extension E.A(this) { return true; } }'
+    })).some(item => /collision/.test(item.message)));
     let result = await lint({'bad.lxc':'namespace P {\n class X { public public value = 1; }\n}'});
     check('declaration syntax line', result.length === 1 && result[0].file === 'bad.lxc' && result[0].line === 2);
     result = await lint({'a.lxc':'namespace P { final class A {} }','b.lxc':'namespace P { class B : A {} }'});
@@ -61,7 +80,7 @@ async function lint(sources, mode = 'lxc', options = {}) {
         fs.writeFileSync(active, 'namespace P { class Broken : Missing {} }');
         const batch = project.collect(active, 'namespace P { class A {} }', root, temporary);
         check('active unsaved source overrides saved file', batch.find(item => project.key(item.file) === project.key(active)).source.includes('class A'));
-        check('framework dependency sources are included', batch.some(item => /classes[\\/]Queue.lxc$/.test(item.file)));
+        check('framework dependency sources are included', batch.some(item => /classes.*[\\/]Queue.lxc$/.test(item.file)));
         const repositoryBatch = project.collect(path.join(root,'LuaEx/Creature.lxc'), fs.readFileSync(path.join(root,'LuaEx/Creature.lxc'),'utf8'), root, root);
         result = await runner.lint({root,mode:'lxc',files:repositoryBatch});
         check('all current framework and playground classes lint', result.length === 0);
@@ -98,3 +117,4 @@ async function lint(sources, mode = 'lxc', options = {}) {
     check('wrong Lua runtime is rejected clearly', rejected);
     console.log('PASS linter-lxc: ' + checks + ' checks; real Lua 5.4 backend and mocked Pulsar lifecycle.');
 })().catch(error => { console.error(error); process.exitCode=1; }).finally(() => {runner.dispose(); if(main.active)main.deactivate();});
+

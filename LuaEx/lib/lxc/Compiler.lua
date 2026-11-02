@@ -55,6 +55,7 @@ return function(Tokens, Model, LuaScope)
                 Model.resolve(tToken.Text, tMember.Owner, tMember.Owner.Batch);
             end
             if (bAccessor and tToken.Text == 'field' and tReference.Initial) then
+                tMember.UsesBacking = true;
                 tEdits[#tEdits + 1] = {Start = tToken.Start, Stop = tToken.Stop, Text = '__lxc_field.value'};
             elseif (not tReference.Definition and (tTokens[n + 1].Text == '.' or tTokens[n + 1].Text == '[')) then
                 tEdits[#tEdits + 1] = {Start = tToken.Start, Stop = tToken.Stop,
@@ -211,6 +212,13 @@ return function(Tokens, Model, LuaScope)
     @vis internal
     !]]
     function Compiler.initializer(tMember, tScope)
+        -- Enum payloads are already built by LXE. Keep their initializer private
+        -- and let normal static const storage enforce visibility and assignment.
+        if (tMember.EnumDefinition) then
+            tMember.Initialize = function() return tMember.EnumDefinition.Object; end;
+            tMember.ConstValue = tMember.EnumDefinition.Object;
+            return;
+        end
         if (tMember.Initializer) then
             local sBody = fRewrite(tMember.Initializer, tMember.Owner.File, false, tMember, true);
             tMember.Initialize = assert(load('return function(this) local __lxc_context = _ENV; local __lxc_guard <close> = nil; return '..
@@ -232,8 +240,15 @@ return function(Tokens, Model, LuaScope)
                 tMember.DeclaredType = fDirectInitializerType(tLiteral, tMember);
             end
             if (tMember.Flags.const) then tMember.ConstValue = vLiteral; end
+            local tContract, zInferred = tMember.TypeContract, tMember.DeclaredType;
+            if (tContract and zInferred) then
+                local bCompatible = tContract.Class and type(zInferred) == 'table' and Model.descends(zInferred, tContract.Class) or
+                    not tContract.Class and zInferred == tContract.Name;
+                assert(bCompatible, 'Initializer conflicts with @type '..tContract.Name..'.');
+            end
         end
     end
 
     return Compiler;
 end;
+

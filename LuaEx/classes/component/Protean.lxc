@@ -592,6 +592,24 @@ namespace LuaEx.Classes
         }
 
         --[[!
+        @fqxn LuaEx.Classes.Protean.isLimitMinEnabled
+        @desc Reports whether the minimum limit is applied during calculation.
+        @ret boolean bEnabled Whether the minimum limiter is enabled.
+        !]]
+        public isLimitMinEnabled() {
+            return this.limitMin;
+        }
+
+        --[[!
+        @fqxn LuaEx.Classes.Protean.isLimitMaxEnabled
+        @desc Reports whether the maximum limit is applied during calculation.
+        @ret boolean bEnabled Whether the maximum limiter is enabled.
+        !]]
+        public isLimitMaxEnabled() {
+            return this.limitMax;
+        }
+
+        --[[!
         @fqxn LuaEx.Classes.Protean.Methods.lockCallback
         @pulsarlua function Protean.lockCallback
         @desc Permanently prevents setCallback() from replacing or clearing this instance's callback. Activation remains independently controlled by the toggle lock.

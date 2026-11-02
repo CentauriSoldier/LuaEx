@@ -22,6 +22,8 @@
 !]]
 return function(Tokens, Names, Operators)
     local Parser = {};
+    local EnumParser = require('LuaEx.lib.lxe.Parser');
+    local Directives = require('LuaEx.lib.directives');
     local tModifiers = {public = true, private = true, protected = true,
         static = true, final = true, const = true, abstract = true, override = true};
 
@@ -38,7 +40,8 @@ return function(Tokens, Names, Operators)
     @vis internal
     !]]
     function Parser.parse(sSource, pFile)
-        local tTokens, nIndex, tClasses, tImports = Tokens.scan(sSource, pFile), 1, {}, {};
+        local tTokens, nIndex, tClasses, tImports, tEnums = Tokens.scan(sSource, pFile), 1, {}, {}, {};
+        local Annotations = Directives.Parser.create(sSource, pFile, tTokens);
 
         --[[!
         @fqxn LuaEx.LXC.Parser.parse.fail
@@ -107,6 +110,7 @@ return function(Tokens, Names, Operators)
         !]]
         local function fModifiers()
             local tResult = {};
+            local tAnnotations = Annotations.take(nIndex);
             while (tModifiers[fPeek()]) do
                 local sModifier = fTake();
                 if (tResult[sModifier]) then fFail('Duplicate modifier: '..sModifier); end
@@ -116,7 +120,7 @@ return function(Tokens, Names, Operators)
                     tResult.Visibility = sModifier;
                 end
             end
-            return tResult;
+            return tResult, tAnnotations;
         end
 
         --[[!
@@ -201,6 +205,26 @@ return function(Tokens, Names, Operators)
             return tParameters, bVariadic;
         end
 
+        --[[!
+        @fqxn LuaEx.LXC.Parser.parse.enumDeclaration
+        @desc Delegates enum/extension declarations to LXE using this file's
+            existing tokens. Records ownership without building runtime objects.
+        @param string sNamespace Current namespace.
+        @param table|nil tOuter Enclosing class.
+        @param table tFlags Declaration modifiers.
+        !]]
+        local function fEnum(sNamespace, tOuter, tFlags, tAnnotations)
+            local tRecord;
+            tRecord, nIndex = EnumParser.read({Source = sSource, File = pFile,
+                Tokens = tTokens, Index = nIndex, Namespace = sNamespace,
+                Imports = tImports, Outer = tOuter, Flags = tFlags,
+                AnnotationReader = Annotations, Annotations = tAnnotations});
+            if (tRecord.Kind == 'enum' and tOuter and not tRecord.Flags.Visibility) then
+                tRecord.Flags.Visibility = 'private';
+            end
+            tEnums[#tEnums + 1] = tRecord;
+        end
+
         local fClass;
         --[[!
         @fqxn LuaEx.LXC.Parser.parse.class
@@ -212,17 +236,18 @@ return function(Tokens, Names, Operators)
         @ret table tClass New definition also added to the flat output.
         @vis internal
         !]]
-        fClass = function(sNamespace, tOuter, tFlags)
+        fClass = function(sNamespace, tOuter, tFlags, tAnnotations)
             fTake('class');
             local sName = fName();
             local tClass = {Name = sName, Namespace = sNamespace, Outer = tOuter, Flags = tFlags,
                 FullName = (tOuter and tOuter.FullName or sNamespace)..'.'..sName,
                 Members = {}, ByName = {}, Nested = {}, Imports = {}, File = pFile, Line = tTokens[nIndex - 1].Line,
                 Visibility = tFlags.Visibility or (tOuter and 'private' or 'public')};
+            Directives.Registry.attach(tAnnotations, tClass, 'class');
             for n, sImport in ipairs(tImports) do tClass.Imports[n] = sImport; end
             tClasses[#tClasses + 1] = tClass;
             if (tOuter) then
-                if (tOuter.Nested[sName] or tOuter.ByName[sName]) then fFail('Duplicate nested member: '..sName); end
+                -- Selection rebuilds this map before selected-member validation.
                 tOuter.Nested[sName] = tClass;
             end
             if (fPeek() == ':') then fTake(); tClass.ParentName = fQualified(); end
@@ -239,9 +264,11 @@ return function(Tokens, Names, Operators)
             end
             fTake('{');
             while (fPeek() ~= '}') do
-                local tFlags = fModifiers();
-                if (fPeek() == 'class') then
-                    fClass(sNamespace, tClass, tFlags);
+                local tFlags, tAnnotations = fModifiers();
+                if (fPeek() == 'enum' or fPeek() == 'extension') then
+                    fEnum(sNamespace, tClass, tFlags, tAnnotations);
+                elseif (fPeek() == 'class') then
+                    fClass(sNamespace, tClass, tFlags, tAnnotations);
                 else
                     local sName, sOperator;
                     if (fPeek() == 'operator') then
@@ -271,7 +298,8 @@ return function(Tokens, Names, Operators)
                         tMember.Kind, tMember.Accessors = 'property', {};
                         fTake('{');
                         while (fPeek() ~= '}') do
-                            local tAccessFlags = fModifiers();
+                            local tAccessFlags, tAccessAnnotations = fModifiers();
+                            Directives.Registry.attach(tAccessAnnotations, {}, 'accessor');
                             local sAccess = fTake();
                             if (sAccess ~= 'get' and sAccess ~= 'set') then fFail('Expected get or set.'); end
                             if (tMember.Accessors[sAccess]) then fFail('Duplicate accessor.'); end
@@ -293,6 +321,7 @@ return function(Tokens, Names, Operators)
                             else tAccessor.Body, tAccessor.Line = fBody(); end
                             tMember.Accessors[sAccess] = tAccessor;
                         end
+                        Annotations.reject(nIndex);
                         fTake('}');
                         if (fPeek() == '=') then tMember.Initializer = fInitializer();
                         elseif (fPeek() == ';') then fTake(); end
@@ -300,40 +329,56 @@ return function(Tokens, Names, Operators)
                         tMember.Kind = 'field';
                         if (fPeek() == '=') then tMember.Initializer = fInitializer(); else fTake(';'); end
                     end
-                    if (sName == tClass.Name and tMember.Kind == 'method') then
+                    local bConstructor = sName == tClass.Name and tMember.Kind == 'method';
+                    Directives.Registry.attach(tAnnotations, tMember, bConstructor and 'constructor' or tMember.Kind);
+                    if (bConstructor) then
                         local sKey = tFlags.static and 'StaticConstructor' or 'Constructor';
-                        if (tClass[sKey]) then fFail('Duplicate constructor.'); end
+                        if (tClass[sKey]) then tClass.DuplicateConstructor = true; end
                         tClass[sKey] = tMember;
                     else
-                        if (tClass.ByName[sName] or tClass.Nested[sName]) then fFail('Duplicate member: '..sName); end
+                        -- Retain candidates; discarded class bodies have no semantic effect.
                         tClass.ByName[sName], tClass.Members[#tClass.Members + 1] = tMember, tMember;
                     end
                 end
             end
+            Annotations.reject(nIndex);
             fTake('}');
             return tClass;
         end;
 
         while (fPeek() ~= '<eof>') do
             if (fPeek() == 'using') then
+                Annotations.reject(nIndex);
                 fTake(); tImports[#tImports + 1] = fQualified(); fTake(';');
+            elseif (fPeek() == 'extension') then
+                fEnum('', nil, {}, Annotations.take(nIndex));
             else
+                Annotations.reject(nIndex);
                 fTake('namespace'); local sNamespace = fQualified(); fTake('{');
                 local tFileImports = tImports;
                 tImports = {}; for n, sImport in ipairs(tFileImports) do tImports[n] = sImport; end
                 local bDeclared = false;
                 while (fPeek() ~= '}') do
                     if (fPeek() == 'using') then
+                        Annotations.reject(nIndex);
                         if (bDeclared) then fFail('using declarations must precede classes.'); end
                         fTake(); tImports[#tImports + 1] = fQualified(); fTake(';');
-                    else bDeclared = true; fClass(sNamespace, nil, fModifiers()); end
+                    else
+                        bDeclared = true;
+                        local tFlags, tAnnotations = fModifiers();
+                        if (fPeek() == 'enum' or fPeek() == 'extension') then fEnum(sNamespace, nil, tFlags, tAnnotations);
+                        else fClass(sNamespace, nil, tFlags, tAnnotations); end
+                    end
                 end
+                Annotations.reject(nIndex);
                 fTake('}');
                 tImports = tFileImports;
             end
         end
-        return tClasses;
+        Annotations.reject(nIndex);
+        return tClasses, tEnums;
     end
 
     return Parser;
 end;
+

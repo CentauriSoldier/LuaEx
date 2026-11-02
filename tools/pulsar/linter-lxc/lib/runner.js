@@ -27,9 +27,9 @@ class Runner {
         ].filter(Boolean);
         for (const candidate of candidates) {
             const version = await new Promise(resolve => {
-                execFile(candidate, ['-e', 'io.write(_VERSION)'],
+                try { execFile(candidate, ['-e', 'io.write(_VERSION)'],
                     {encoding: 'utf8', timeout: 2000, windowsHide: true},
-                    (error, stdout) => resolve(error ? '' : stdout.trim()));
+                    (error, stdout) => resolve(error ? '' : stdout.trim())); } catch (_) { resolve(''); }
             });
             if (version === 'Lua 5.4') { this.executables.set(configured, candidate); return candidate; }
         }
@@ -79,3 +79,4 @@ class Runner {
     dispose() { this.disposed = true; for (const child of this.jobs) child.kill(); this.jobs.clear(); this.executables.clear(); }
 }
 module.exports = {Runner, request};
+

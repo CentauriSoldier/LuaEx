@@ -73,7 +73,10 @@ local function main()
         return;
     end
     assert(arg[2] == 'lxc', 'Unknown lint mode.');
-    local pModules = arg[1]..'/LuaEx/lxc/modules/';
+    package.path = arg[1]..'/?.lua;'..package.path;
+    local pModules = arg[1]..'/LuaEx/lib/lxc/';
+    local EnumParser = require('LuaEx.lib.lxe.Parser');
+    local EnumValidation = require('LuaEx.lib.lxe.Validation');
     local function fModule(sName)
         return assert(loadfile(pModules..sName..'.lua', 't', _G))();
     end
@@ -82,12 +85,17 @@ local function main()
     local Parser = fModule('Parser')(Tokens, Names, Operators);
     local Model = fModule('Model')(fModule('Validation'), Diagnostics, Names, Operators);
     local Compiler = fModule('Compiler')(Tokens, Model, fModule('LuaScope')(Tokens));
-    local tBatch = {};
+    local tBatch, tEnumRecords = {}, {};
 
     for _, tFile in ipairs(_tFiles) do
-        local bOK, tClasses = pcall(Parser.parse, tFile.Source, tFile.File);
+        local bOK, tClasses, tEnums;
+        if (tFile.File:lower():match('%.lxe$')) then
+            bOK, tEnums = pcall(EnumParser.parse, tFile.Source, tFile.File);
+            tClasses = bOK and {} or tEnums;
+        else bOK, tClasses, tEnums = pcall(Parser.parse, tFile.Source, tFile.File); end
         if (not bOK) then diagnostic(tClasses, 'LXC declaration syntax', nil, tFile.File);
         else
+            for _, tEnum in ipairs(tEnums) do tEnumRecords[#tEnumRecords + 1] = tEnum; end
             for _, tClass in ipairs(tClasses) do
                 _tClassNames[#_tClassNames + 1] = tClass.Name;
                 if (tBatch[tClass.FullName]) then
@@ -97,6 +105,25 @@ local function main()
         end
     end
     -- A broken dependency source must not create invented missing-parent errors.
+    if (#_tMessages > 0) then return; end
+    -- Compile-time validation only: never initialize LuaEx or evaluate payloads.
+    local bEnums, tEnumBatch, tEnumOrder = pcall(EnumValidation.prepare, tEnumRecords, {Definitions = {}});
+    if (not bEnums) then diagnostic(tEnumBatch, 'LXE declaration semantics', nil, _tFiles[1].File); return; end
+    for _, tEnum in ipairs(tEnumOrder) do
+        if (tEnum.Within) then
+            local tOwner = tBatch[tEnum.Within];
+            if (not tOwner or tOwner.ByName[tEnum.Name] or tOwner.Nested[tEnum.Name]) then
+                report(tEnum.File, tEnum.Line, 'LXE ownership', 'Missing enum owner or member collision: '..tEnum.FullName);
+            else
+                local tMember = {Name = tEnum.Name, Kind = 'field', Owner = tOwner,
+                    File = tEnum.File, Line = tEnum.Line, Visibility = tEnum.Flags.Visibility or 'public',
+                    Flags = {static = true, const = true}, Initializer = 'null', EnumDefinition = tEnum};
+                tOwner.ByName[tEnum.Name] = tMember;
+                tOwner.Members[#tOwner.Members + 1] = tMember;
+            end
+        end
+    end
+    for _, tClass in pairs(tBatch) do tClass.EnumBatch = tEnumBatch; end
     if (#_tMessages > 0) then return; end
     local bOK, tOrder = pcall(Model.validate, tBatch);
     if (not bOK) then diagnostic(tOrder, 'LXC declaration semantics', nil, _tFiles[1].File); return; end
@@ -128,3 +155,4 @@ end
 local _tNames = {};
 for _, sName in ipairs(_tClassNames) do _tNames[#_tNames + 1] = quoted(sName); end
 io.write('{"diagnostics":['..table.concat(_tOutput, ',')..'],"classNames":['..table.concat(_tNames, ',')..']}');
+

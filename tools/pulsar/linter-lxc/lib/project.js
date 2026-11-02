@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ignored = new Set(['.git', '.hg', '.svn', 'node_modules', '.cache']);
+const ignored = new Set(['.git', '.hg', '.svn', 'node_modules', '.cache', 'legacy', 'lxc-prototype']);
 const key = value => process.platform === 'win32' ? path.resolve(value).toLowerCase() : path.resolve(value);
 
 // Find the framework without initializing it or requiring application modules.
@@ -11,13 +11,13 @@ function frameworkRoot(file, configured) {
     for (const start of [path.dirname(file), __dirname]) {
         let directory = start;
         while (true) {
-            if (fs.existsSync(path.join(directory, 'LuaEx/lxc/modules/Parser.lua'))) return directory;
+            if (fs.existsSync(path.join(directory, 'LuaEx/lib/lxc/Parser.lua'))) return directory;
             const parent = path.dirname(directory);
             if (parent === directory) break;
             directory = parent;
         }
     }
-    throw new Error('Set linter-lxc.luaExRoot to the repository containing LuaEx/lxc/modules.');
+    throw new Error('Set linter-lxc.luaExRoot to the repository containing LuaEx/lib/lxc.');
 }
 
 function inside(file, directory) {
@@ -44,7 +44,7 @@ function collect(file, source, root, projectRoot, overlays = []) {
             if (entry.isSymbolicLink()) continue;
             const filename = path.join(directory, entry.name);
             if (entry.isDirectory() && !ignored.has(entry.name)) visit(filename);
-            else if (entry.isFile() && path.extname(entry.name).toLowerCase() === '.lxc') {
+            else if (entry.isFile() && ['.lxc', '.lxe'].includes(path.extname(entry.name).toLowerCase())) {
                 if (!files.has(key(filename))) {
                     const size = fs.statSync(filename).size;
                     if (size > 16 * 1024 * 1024) throw new Error('LXC source exceeds the lint batch limit: ' + filename);
@@ -56,7 +56,7 @@ function collect(file, source, root, projectRoot, overlays = []) {
     visit(path.join(root, 'LuaEx/classes'));
     visit(projectRoot);
     for (const overlay of overlays) {
-        if (path.extname(overlay.file).toLowerCase() === '.lxc' &&
+        if (['.lxc', '.lxe'].includes(path.extname(overlay.file).toLowerCase()) &&
             (inside(overlay.file, projectRoot) || inside(overlay.file, path.join(root, 'LuaEx/classes')))) {
             add(overlay.file, overlay.source);
         }
@@ -66,3 +66,4 @@ function collect(file, source, root, projectRoot, overlays = []) {
 }
 
 module.exports = {frameworkRoot, collect, inside, key};
+

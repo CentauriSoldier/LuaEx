@@ -1,4 +1,4 @@
-# LXC / Lua 5.4 linter for Pulsar
+# LXC / LXE / Lua 5.4 linter for Pulsar
 
 Pulsar package for `.lxc` declarations and ordinary `.lua` syntax. Uses the actual
 LuaEx lexer, parser, declaration validator and compiler from your configured
@@ -26,7 +26,7 @@ Settings under **linter-lxc**:
 - `luaExecutable`: Lua 5.4 interpreter path, not luac. Empty searches `LUA54`, the
   user's existing `Sync/Portable Apps/Libraries/Lua/5.4/lua54.exe`, then lua54,
   lua5.4 and lua on PATH. Candidates are version checked; Lua 5.3 is rejected.
-- `luaExRoot`: repository containing `LuaEx/lxc/modules`. Empty searches ancestors
+- `luaExRoot`: repository containing `LuaEx/lib/lxc`. Empty searches ancestors
   of the source file/package. Set this explicitly when linting copied application
   projects whose framework sits elsewhere.
 - `projectRoot`: recursively scanned application `.lxc` source root. Empty uses the
@@ -111,3 +111,25 @@ open editor. Visual diagnostic rendering was not independently observed.
 
 The service follows the installed Linter v2 provider contract and Pulsar's
 [community linting integration](https://docs.pulsar-edit.dev/ide-features/community-packages/).
+
+## LXE support (0.2.0)
+
+.lxe files use source.lxe; .lxc files retain source.lxc. Both highlight enum,
+extension and within, enum declaration names, qualified extension targets, and
+Value/Ordinal/Name/Parent metadata. Ordinary Lua grammar remains unchanged.
+
+The worker parses mixed source batches using the current embedded modules under
+LuaEx/lib/lxc and LuaEx/lib/lxe. It validates enum structure, member/extension
+name collisions, ownership, dependencies/cycles and Lua expression/body syntax.
+It never evaluates payloads or extension bodies. Value-dependent checks (nil
+results, duplicate evaluated values and runtime contracts) remain loader checks.
+Project discovery ignores legacy and lxc-prototype directories.
+
+This update does not implement hover type inference, signature help, or the
+deferred shared-directive system. Those remain separate work.
+
+Verification: native Lua 5.4 worker checks passed for standalone LXE, inline
+enums, missing dependencies, extension collisions and payload non-execution.
+JavaScript syntax is checked separately. The full subprocess test runner could
+not start a usable Lua executable in this sandbox; a live Pulsar reload/session
+has not been verified here.

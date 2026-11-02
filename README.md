@@ -44,6 +44,13 @@ class.getparentname("Player");       -- parent name, or nil
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
 **LuaEx requires Lua 5.4.** Its LXC class runtime uses Lua 5.4 syntax.
 
+LuaEx's I/O extensions now use its own native filesystem library. Keep the matching
+platform build in `LuaEx/bin/` alongside `lib/`; LuaEx selects it automatically.
+Discovery through `package.path` launches no shell processes. Native source, build
+instructions, platform status and I/O contracts are in [Native IO](Native%20IO/README.md).
+The external schema module now resides in `LuaEx/libext/`.
+
+
 To push **LuaEx** into the global environment, place the **LuaEx** folder into your package path and add the following line of code to your project:
 ```lua
 local init = require("LuaEx.load");
@@ -217,8 +224,9 @@ While I develop **LuaEx** for my own projects, it's also designed to be used by 
 For their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
 
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
-**LuaEx requires Lua 5.4**, including its LXC class runtime. Native **Lua 5.4.2** on Windows and the
-bundled **Lua 5.4 / Wasmoon 1.16.0** runtime are the verified configurations.
+**LuaEx requires Lua 5.4**, including its LXC class runtime. The current native I/O build
+is verified on **Windows x64 / Lua 5.4.9**. Earlier Lua 5.4.2 and Wasmoon checks
+refer to previous builds; the current native filesystem module is not a browser module.
 Lua 5.3 and earlier are not supported; LuaJIT compatibility is not claimed.
 Platform-specific filesystem behavior also requires testing
 on its actual host; simulated path tests are not equivalent to Linux/macOS validation.

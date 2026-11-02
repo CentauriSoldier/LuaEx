@@ -7,6 +7,10 @@
 @vis internal
 @see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
+-- Keep runtime string operations independent of application replacements.
+local _gmatch, _match, _sub = string.gmatch, string.match, string.sub;
+
+
 
 --[[!
 @fqxn LuaEx.LXC.Environment.factory
@@ -37,6 +41,49 @@ return function(Model, Context, Facades)
     !]]
     function Environment.create(tClass, tBatch, tHost, tBindings, fCheckClass)
         local tNamespaceCache = {};
+        local tEnums = tClass.EnumBatch or {};
+
+        --[[!
+        @fqxn LuaEx.LXC.Environment.enum
+        @desc Resolves a prepared enum without publishing it early. Class-owned
+            roots use the declaring class's existing visibility rules.
+        @param string sFull Qualified enum name.
+        @ret table|nil Canonical enum object.
+        !]]
+        local function fEnum(sFull)
+            local tEnum = tEnums[sFull];
+            if (not tEnum) then
+                -- Resolve already-published public enums through namespace tables.
+                -- Do not turn qualified class paths into an access bypass.
+                local vValue = tHost;
+                for sPart in _gmatch(sFull, '[^.]+') do
+                    if (type(vValue) ~= 'table') then return; end
+                    vValue = vValue[sPart];
+                end
+                local LXE = rawget(_G, 'lxe') or package.loaded['LuaEx.lib.lxe'];
+                if (LXE and LXE.isEnum(vValue)) then return vValue; end
+                return;
+            end
+            local tRoot = tEnum.Root;
+            if (tRoot.Within) then
+                local tOwner = tBatch[tRoot.Within] or Model.Classes[tRoot.Within];
+                assert(tOwner and Model.allowed(tRoot.Flags.Visibility or 'public', tOwner, tClass),
+                    'Inaccessible enum: '..sFull);
+            end
+            assert(tEnum.Object and not tRoot.Failed, 'Enum is not ready: '..sFull);
+            return tEnum.Object;
+        end
+
+        -- Existing public host enums remain visible through namespace views even
+        -- when a class in that namespace causes LXC to create a scoped view.
+        local function fHostPath(sPath)
+            local vValue = tHost;
+            for sPart in _gmatch(sPath, '[^.]+') do
+                if (vValue == nil) then return; end
+                vValue = vValue[sPart];
+            end
+            return vValue;
+        end
 
         -- Namespace views are cached only within this declaring class's scope.
         -- Each lookup still checks the current using scope before yielding a class.
@@ -72,11 +119,18 @@ return function(Model, Context, Facades)
                     end
 
                     for sName in pairs(tBatch) do
-                        if (string.sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
+                        if (_sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
                     end
                     for sName in pairs(Model.Classes) do
-                        if (string.sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
+                        if (_sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
                     end
+                    local oEnum = fEnum(sFull);
+                    if (oEnum) then return oEnum; end
+                    for sName in pairs(tEnums) do
+                        if (_sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
+                    end
+                    local vHostValue = fHostPath(sFull);
+                    if (vHostValue ~= nil) then return vHostValue; end
                     error('Unknown namespace member: '..sFull);
                 end),
                 --[[!
@@ -113,10 +167,20 @@ return function(Model, Context, Facades)
                     return tFound.Object;
                 end
                 for sName in pairs(tBatch) do
-                    if (string.match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
+                    if (_match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
                 end
                 for sName in pairs(Model.Classes) do
-                    if (string.match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
+                    if (_match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
+                end
+                local oEnum = fEnum(sKey) or fEnum(tClass.Namespace..'.'..sKey);
+                for _, sImport in ipairs(tClass.Imports) do
+                    local oOther = fEnum(sImport..'.'..sKey);
+                    assert(not oOther or not oEnum or rawequal(oEnum, oOther), 'Ambiguous enum: '..sKey);
+                    oEnum = oEnum or oOther;
+                end
+                if (oEnum) then return oEnum; end
+                for sName in pairs(tEnums) do
+                    if (_match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
                 end
                 return tHost[sKey];
             end),
@@ -135,3 +199,5 @@ return function(Model, Context, Facades)
 
     return Environment;
 end;
+
+

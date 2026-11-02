@@ -15,7 +15,7 @@ function position(text, line) {
 module.exports = {
     config: {
         luaExecutable: {type: 'string', default: installation.luaExecutable || '', description: 'Lua 5.4 executable. Empty searches LUA54, the local portable Lua 5.4 folder, and PATH.'},
-        luaExRoot: {type: 'string', default: installation.luaExRoot || '', description: 'Repository containing LuaEx/lxc/modules. Empty searches ancestors of the file/package.'},
+        luaExRoot: {type: 'string', default: installation.luaExRoot || '', description: 'Repository containing LuaEx/lib/lxc. Empty searches ancestors of the file/package.'},
         projectRoot: {type: 'string', default: '', description: 'LXC source root. Empty uses the Pulsar project root, limited to the LuaEx repository for files inside it.'},
         delegateLua: {type: 'boolean', default: true, description: 'Let active linter-lua handle ordinary .lua files. Disable to use this package\'s Lua 5.4 syntax checks instead.'}
     },
@@ -26,15 +26,15 @@ module.exports = {
     provideLinter() {
         if (!this.runner) this.activate();
         return {
-            name: 'LXC / Lua 5.4', scope: 'file', lintsOnChange: true,
-            grammarScopes: ['source.lxc', 'source.lua', 'text.plain'],
+            name: 'LXC / LXE / Lua 5.4', scope: 'file', lintsOnChange: true,
+            grammarScopes: ['source.lxc', 'source.lxe', 'source.lua', 'text.plain'],
             lint: editor => this.lint(editor)
         };
     },
 
     async lint(editor) {
         const file = editor.getPath();
-        if (!file || !/\.(lua|lxc)$/i.test(file)) return [];
+        if (!file || !/\.(lua|lxc|lxe)$/i.test(file)) return [];
         const lua = path.extname(file).toLowerCase() === '.lua';
         if (lua && atom.config.get('linter-lxc.delegateLua') && atom.packages.isPackageActive('linter-lua')) return [];
         const source = editor.getText();
@@ -59,7 +59,7 @@ module.exports = {
                 mode: lua ? 'lua' : 'lxc', files
             });
             if (!current()) return null;
-            if (!lua) highlight.apply(editor, diagnostics.classNames);
+            if (!lua && path.extname(file).toLowerCase() === '.lxc') highlight.apply(editor, diagnostics.classNames);
             return diagnostics.map(item => {
                 const same = project.key(item.file) === project.key(file);
                 const message = {
@@ -80,3 +80,5 @@ module.exports = {
     },
     position
 };
+
+
