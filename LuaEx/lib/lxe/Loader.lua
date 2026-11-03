@@ -160,7 +160,7 @@ function Loader.create(oNull, Serializer)
 
     --[[!
     @fqxn LuaEx.LXE.loadSources
-    @desc Parses a filename/text map, selects @default candidates and validates the
+    @desc Parses a filename/text map, selects &#64;default candidates and validates the
         whole dependency batch before loading. Extensions may target an enum in
         another source file in this batch. Does not implicitly locate requires.
     @param table tSources Plain filename-to-source map.

@@ -1,0 +1,22 @@
+-- Same parser/compiler input for both backends. No C-specific class syntax.
+namespace NativePrototype {
+    final class Counter {
+        private value = 0;
+        public Label = "counter";
+        public Enabled = false;
+
+        public Counter(initial) { this.value = initial; }
+        public read() { return this.value; }
+        public assign(value) { this.value = value; }
+        public increment() { this.value = this.value + 1; return this.value; }
+        public echo(value) { return value; }
+        public sum(count) {
+            local total = 0;
+            for index = 1, count do total = total + this.value; end
+            return total;
+        }
+        public multiple(...) { return ...; }
+        public callback() { return function() return this.value; end; }
+        public otherRead(other) { return other.value; }
+    }
+}

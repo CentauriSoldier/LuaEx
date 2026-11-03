@@ -1,7 +1,7 @@
 --[[!
 @fqxn LuaEx.Directives.Selection
 @desc Selects one declaration before semantic validation or initialization.
-    An ordinary declaration replaces one @default candidate; every other
+    An ordinary declaration replaces one &#64;default candidate; every other
     duplicate combination is an error. Lexical children of losing classes vanish.
 !]]
 local Diagnostics = require("LuaEx.lib.directives.Diagnostics");

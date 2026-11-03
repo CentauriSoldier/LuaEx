@@ -1,3 +1,53 @@
+--[[!
+@fqxn LuaEx.Libraries.eventrix.Persistence
+@desc <h3>Saving dispatchers and callback identities</h3>
+    <p>Use the normal serialize/deserialize functions. Saves preserve event identifiers,
+    event/hook activation, callback registration order and events whose final hook was removed.
+    Loading rebuilds independent tables and ordinal indexes without firing callbacks. Shared
+    dispatcher references stay shared within one load; separate loads have independent state.</p>
+    <p>Include a private event enum and external callback reference in the same graph when the
+    application needs to query, remove or toggle them after loading. Use the restored identities,
+    not identities from another independent restoration. Lua callback closures follow the
+    general serializer's rules for bytecode, captures and shared upvalue cells. Dispatcher
+    environment bindings do not rewrite a callback's lexical environment.</p>
+    <p>Environments are external envrepo bindings saved by registered name, not copied tables.
+    Register those names before restoration. A missing binding fails rather than falling back.
+    The alphabetically first non-default alias is preferred; the default alias is used only
+    when no other name exists. The original global environment has its own false marker and
+    reconnects to the restoring runtime's globals even if envrepo's default changes.</p>
+    <p>Serialized input is trusted Lua data and bytecode requires a compatible runtime. Native
+    C callbacks, unsupported captures and eager cycles through the Eventrix serialization hook
+    fail explicitly. A callback capturing its owning dispatcher can form such a cycle; callbacks
+    are not silently discarded to make that graph save.</p>
+@ex local sSaved = serialize({dispatcher = kEventrix, hook = onDamage, event = eDamage});
+local tLoaded = deserialize(sSaved);
+tLoaded.dispatcher.setHookActive(tLoaded.event, tLoaded.hook, false);
+!]]
+
+--[[!
+@fqxn LuaEx.Libraries.eventrix.Persistence.State
+@desc <h3>Direct version-one state restoration</h3>
+    <p>eventrix.deserialize accepts state produced by its serialization hook. Containers must
+    be ordinary tables; event and hook arrays must be dense. Unknown fields, invalid or duplicate
+    event identifiers, duplicate callbacks within an event, invalid activation flags and
+    unavailable environment names fail validation. Containers are copied; supplied callback and
+    enum references retain identity, as they do when supplied by the graph decoder.</p>
+    <p>Run lua tests/run.lua --suite eventrix for activation, ordering, graph identity,
+    external environment binding, validation and independent-load coverage.</p>
+@ex local tState = {
+    version = 1,
+    environment = false, -- Original global binding, or a registered envrepo name.
+    events = {
+        {
+            id = eEvent,
+            active = true,
+            hooks = {
+                {callback = onEvent, active = false, environment = "GameEvents"},
+            },
+        },
+    },
+};
+!]]
 constant("EVENTRIX_NIL", "EVENTRIX_NIL");
 --[[!
 @fqxn LuaEx.Libraries.eventrix

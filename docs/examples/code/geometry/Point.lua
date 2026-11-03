@@ -1,0 +1,30 @@
+-- Locate the shared bootstrap relative to this tutorial, regardless of cwd.
+local pSource = debug.getinfo(1, "S").source:sub(2):gsub("\\", "/");
+local pExamples = assert(pSource:match("^(.*)/code/[^/]+/[^/]+%.lua$"));
+local tPaths = dofile(pExamples.."/support/bootstrap.lua");
+local pDocs = tPaths.docs;
+
+local D = require("examples.support.tutorial").new("Point", "Finite coordinates, validated mutation, independent copies and native snapshots.");
+D.section("Construction", "The point primitive stores x and y; omitted coordinates default to zero.");
+local oPoint = point(-3.5, 4);
+D.equal("X", oPoint.x, -3.5); D.equal("Y", oPoint.y, 4);
+D.equal("Default X", point().x, 0);
+D.section("Coordinate writes", "Write finite numeric coordinates directly through the protected proxy.");
+oPoint.x = 2; oPoint.y = -6;
+D.equal("Updated X", oPoint.x, 2); D.equal("Updated Y", oPoint.y, -6);
+D.section("Validation", "Invalid assignments raise before changing the stored coordinate.");
+D.reject("String coordinate", function() oPoint.x = "two"; end);
+D.reject("Infinite coordinate", function() oPoint.y = math.huge; end);
+D.equal("Rejected write preserved Y", oPoint.y, -6);
+D.section("Fields", "Only x and y are writable; the primitive is not a class instance.");
+D.reject("Unknown field", function() oPoint.z = 3; end);
+D.check("Primitive type", type(oPoint) == "primitive");
+D.section("Independent copies", "Cloning preserves coordinates in a separate mutable primitive.");
+local oCopy = clone(oPoint); oCopy.x = 99;
+D.equal("Original X", oPoint.x, 2); D.equal("Copy X", oCopy.x, 99);
+D.section("Persistence and composition", "Serialization restores coordinates; pass numeric coordinates into line.");
+local oRestored = deserialize(serialize(oPoint));
+D.equal("Restored X", oRestored.x, 2); D.equal("Restored Y", oRestored.y, -6);
+local oLine = line(oPoint.x, oPoint.y, 5, -2);
+D.equal("Line length", oLine.length, 5);
+D.finish();

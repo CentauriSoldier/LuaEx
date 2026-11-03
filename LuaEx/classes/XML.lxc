@@ -1,6 +1,53 @@
 --[[!
+@fqxn LuaEx.Classes.XML.Guide
+@desc <h3>Generic UTF-8 XML documents</h3>
+    <p>XML is loaded by LuaEx.init from LuaEx/classes/XML.lxc. It provides generic parsing
+    and queries without map, tileset or application-specific property semantics. Methods
+    are bound dot calls. XML() creates an unloaded document; supplying source parses it.</p>
+    <p>parse(source) and load(path) prepare replacement state and commit only after success,
+    returning the document for chaining. Malformed input raises a line/column diagnostic and
+    preserves the previous valid document. load uses standard Lua file reads.</p>
+    <p>getRoot returns an independent copied root or nil before parsing. getElements(name)
+    returns depth-first document-order matches, including the root when it matches; nil selects
+    all elements. getDocument returns top-level ordered content and declaration metadata.
+    Returned graphs preserve their own sharing but changing them does not edit the document.</p>
+@ex require("LuaEx.init");
+local oDocument = XML('<catalog><entry name="example">Some text</entry></catalog>');
+local tEntries = oDocument.getElements("entry");
+print(tEntries[1].attributes.name, tEntries[1].content[1]);
+local oCopy = clone(oDocument);
+local oRestored = deserialize(serialize(oDocument));
+!]]
+
+--[[!
+@fqxn LuaEx.Classes.XML.Records
+@desc <h3>Query record shapes</h3>
+    <p>An element record has kind="element", name, attributes, children and content.
+    Attributes remain strings. children contains element records only; content preserves
+    text/markup order and coalesces adjacent text and CDATA into strings. Comments have
+    kind="comment" and text. Processing instructions have kind="processingInstruction",
+    name and text. Namespace-qualified names remain literal rather than resolved names.</p>
+    <p>getSource and tostring(document) retain the original source, including formatting and
+    an optional BOM. Native serialization stores that source and rebuilds the parsed cache
+    during restore. There is no writer that generates changed XML from edited query records.</p>
+!]]
+
+--[[!
+@fqxn LuaEx.Classes.XML.Subset
+@desc <h3>Supported XML subset</h3>
+    <p>The parser accepts a UTF-8 XML 1.0 subset: Unicode names, quoted attributes, empty/nested
+    elements, comments, processing instructions, CDATA, predefined entities and decimal/hex
+    character references. Physical CR/CRLF endings normalize to LF in parsed content. Literal
+    attribute whitespace normalizes to spaces; character references preserve their characters.</p>
+    <p>Namespace resolution, DTD processing, custom/external entities, alternate encodings and
+    schema validation are not implemented. Unsupported declarations and encodings fail explicitly.
+    This is not a claim of a complete validating XML processor. Character/grammar rules follow
+    <a href="https://www.w3.org/TR/xml/">XML 1.0</a>. Run lua tests/run.lua --suite xml for
+    parsing, malformed-input, independent-copy and persistence regressions.</p>
+!]]
+--[[!
 @fqxn LuaEx.Classes.XML
-@desc Native LXC migration; explicit instance access and private class helpers.
+@desc Generic XML parsing with independent query records, atomic replacement and source-preserving persistence. See the Guide, Records and Subset entries below.
 !]]
 namespace LuaEx.Classes
 {

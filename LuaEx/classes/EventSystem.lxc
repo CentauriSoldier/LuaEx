@@ -26,9 +26,9 @@ namespace LuaEx.Classes
 
         --PUBLIC
             --[[!
-            @fqxn CoG.EventSystem.Methods.EventSystem
+            @fqxn LuaEx.Classes.EventSystem.Methods.EventSystem
             @desc The constructor for the EventSystem.
-            @param table|nil tEnv The default <a href="https://www.lua.org/manual/5.3/manual.html#2.2" target="_blank">environment</a> in which to fire event callbacks (if one is not specified during event registration). If nil, the current environment will be used as the default.
+            @param table|nil tEnv The default <a href="https://www.lua.org/manual/5.4/manual.html#2.2" target="_blank">environment</a> in which to fire event callbacks (if one is not specified during event registration). If nil, the current environment will be used as the default.
             @ex
             local tRestrictedEnv = {print = print, type = type, string = string};
             local oRestrictedEventSystem = EventSystem(tRestrictedEnv); -- creates an EventSystem with a restricted default env
@@ -41,14 +41,14 @@ namespace LuaEx.Classes
         }
 
         --[[!
-        @fqxn CoG.EventSystem.Methods.isActive
+        @fqxn LuaEx.Classes.EventSystem.Methods.isActive
         @desc Determines if the event callback is active.
-        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param non-nil vOwner The thing which is the owner of the callback. This can be any non-nil value.
         @param string sEvent The name of the event.
         @param function fCallback The callback function to check.
         @ret boolean bIsActive True if the event callback is active, false otherwise.
         @ex TODO
-        ]]
+        !]]
         public isActive(vOwner, sEvent, fCallback)
         {
             local pri       = this;
@@ -66,15 +66,15 @@ namespace LuaEx.Classes
         }
 
         --[[!
-        @fqxn CoG.EventSystem.Methods.register
+        @fqxn LuaEx.Classes.EventSystem.Methods.register
         @desc Registers a callback function with an owner and event.
-        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param non-nil vOwner The thing which is the owner of the callback. This can be any non-nil value.
         @param string sEvent The name of the event.
         @param function fCallback The callback function to check.
         @param table|nil tEnv The environment in which the callback will be fired. If nil, it will be set to the <b>EventSystem's</b> default environment.
         @ret EventSystem oEventSystem The EventSystem.
         @ex TODO
-        ]]
+        !]]
         public register(vOwner, sEvent, fCallback, tEnv)
         {
             local pri     = this;
@@ -111,15 +111,15 @@ namespace LuaEx.Classes
         }
 
         --[[!
-        @fqxn CoG.EventSystem.Methods.setActive
+        @fqxn LuaEx.Classes.EventSystem.Methods.setActive
         @desc Sets event callback(s) to active/inactive.
-        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param non-nil vOwner The thing which is the owner of the callback. This can be any non-nil value.
         @param string sEvent The name of the event.
         @param function|nil fCallback The callback function to set active/inactive. If this is nil, all callback functions for the event will be set active/inactive.
-        @param boolean bSetActive Whether to activate or deactivate the event callback.
+        @param boolean bFlag Whether to activate or deactivate the event callback.
         @ret EventSystem oEventSystem The EventSystem.
         @ex TODO
-        ]]
+        !]]
         public setActive(vOwner, sEvent, fCallback, bFlag)
         {
             local pri       = this;
@@ -149,14 +149,14 @@ namespace LuaEx.Classes
         }
 
         --[[!
-        @fqxn CoG.EventSystem.Methods.toggleActive
+        @fqxn LuaEx.Classes.EventSystem.Methods.toggleActive
         @desc Sets event callback(s) to active/inactive.
-        @param non-nil vAny The thing which is the owner of the callback. This can be any non-nil value.
+        @param non-nil vOwner The thing which is the owner of the callback. This can be any non-nil value.
         @param string sEvent The name of the event.
         @param function|nil fCallback The callback function to set active/inactive. If this is nil, all callback functions for the event will be set active/inactive.
         @ret EventSystem oEventSystem The EventSystem.
         @ex TODO
-        ]]
+        !]]
         public toggleActive(vOwner, sEvent, fCallback)
         {
             local pri       = this;
@@ -185,10 +185,13 @@ namespace LuaEx.Classes
         }
 
         --[[!
-        @fqxn CoG.EventSystem.Methods.
-        @desc
-        @ex
-        ]]
+        @fqxn LuaEx.Classes.EventSystem.Methods.unregister
+        @desc Removes an existing callback from an owner's event without removing the event record. Unknown owners, events and callbacks raise errors.
+        @param any vOwner Non-nil event owner.
+        @param string sEvent Registered event name.
+        @param function fCallback Exact callback identity to remove.
+        @ret EventSystem this The dispatcher for chaining.
+        !]]
         public unregister(vOwner, sEvent, fCallback)
         {
             --TODO FINISH

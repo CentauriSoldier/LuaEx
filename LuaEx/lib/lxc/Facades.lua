@@ -10,6 +10,7 @@
 
 local _tHandlers = setmetatable({}, {__mode = 'k'});
 local _getMeta = debug.getmetatable;
+local _tNative = require('LuaEx.lib.lxc.Native');
 -- Share trusted dispatch frames across loads without changing foreign threads.
 -- The registry is available only through the already privileged debug facility.
 local _tRegistry = debug.getregistry();
@@ -133,6 +134,12 @@ for _, sOperation in ipairs({'__index', '__newindex', '__call', '__len', '__pair
         local __lxc_guard <close> = nil;
         return dispatch(sOperation, oReference, ...);
     end;
+end
+
+-- Preserve the shared table metatable and all operator/callback boundaries.
+-- Native dispatch accelerates only ordinary indexing and assignment.
+if (_tNative.Available) then
+    _tMeta.__index, _tMeta.__newindex = _tNative.dispatchers(_tHandlers);
 end
 
 local Facades = {};

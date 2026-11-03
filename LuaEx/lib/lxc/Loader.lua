@@ -91,7 +91,7 @@ return function(module, oHostNull)
     @fqxn LuaEx.LXC.loadSources
     @desc Loads a plain filename-to-text map into a destination. Sorts filenames, validates the whole batch,
         compiles all classes and runs dependency-ordered static initialization before registry/namespace
-        publication. Selects one ordinary declaration over one @default candidate. Other duplicate classes,
+        publication. Selects one ordinary declaration over one &#64;default candidate. Other duplicate classes,
         reentrant loads and collisions fail. Failed initialization discards the
         batch but cannot undo application side effects.
     @param table tSources Plain filename-to-source-text map, or supplied host identity map for adapter
@@ -238,7 +238,7 @@ return function(module, oHostNull)
                 for _, tClass in ipairs(tOrder) do
                     if (tBatch[tClass.FullName]) then
                         tClass.Published = true;
-                        Model.Classes[tClass.FullName] = tClass;
+                        Model.publish(tClass);
                         tNames[#tNames + 1] = tClass.FullName;
                     end
                 end
@@ -266,7 +266,7 @@ return function(module, oHostNull)
         end);
         Runtime.Loading = false;
         if (not bOK) then
-            for _, tClass in pairs(tBatch) do tClass.Discarded = true; end
+            for _, tClass in pairs(tBatch) do Runtime.discard(tClass); end
             error(vError, 0);
         end
         return tNames;

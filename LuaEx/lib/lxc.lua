@@ -1,4 +1,92 @@
 --[[!
+@fqxn LuaEx.LXC.Access.Guide
+@desc <h3>Who may use a class or member?</h3>
+    <p>Namespace-level classes default to public; nested classes, members and explicit
+    constructors default to private. A generated constructor has its class's visibility.
+    Public members are usable through an existing instance. Private access belongs to the
+    declaring class and its lexical nested classes; protected access additionally admits
+    descendants. A derived protected access requires a receiver on that derived branch.</p>
+    <p>Nesting is not inheritance and supplies no implicit outer instance. Nested classes can
+    use enclosing private members through explicit references; outer classes and siblings do
+    not gain reciprocal access to a nested class's private state. A base-authored method keeps
+    base-private rights on a derived object without gaining access to derived-private state.</p>
+    <p>Authority follows the function's declaring class. External callbacks do not borrow their
+    invoker's rights; legitimate compiled closures retain lexical rights across calls. Holding
+    an inaccessible factory does not authorize construction or static access. A returned private
+    class instance may expose its public behavior without exposing its factory or private state.</p>
+    <p>Facades are empty Lua tables backed by hidden state. rawset can shadow a public lookup,
+    and existing raw keys bypass __newindex. Such entries do not replace hidden typed slots;
+    removing them restores checked lookup. Clone/persistence use registered backing state.
+    The unrestricted debug library is outside this protection boundary.</p>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Construction.Guide
+@desc <h3>Construction and static initialization order</h3>
+    <p>A class has one instance constructor, without overloads or constructor overriding.
+    Explicit base(...) must be the first statement; omission calls the immediate parent
+    without arguments. Parent construction completes before child fields and constructor body.
+    Field initializers run in declaration order and mutable initializer expressions are evaluated
+    independently for each instance. Parent arguments cannot read an unconstructed this/base.</p>
+    <p>Constructors cannot return replacement values. Failure invalidates the instance shell,
+    including leaked references. Missing arguments follow Lua's ordinary nil behavior; there
+    is no automatic call-time argument/return type checker.</p>
+    <p>Static storage initializes once, dependencies and parent first, then source-order fields,
+    then optional static ClassName(). That constructor accepts no arguments or visibility
+    modifier. Qualify static access with a class name; inherited statics retain one original
+    storage owner. Static methods cannot override or hide inherited static members.</p>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Persistence.Authority
+@desc <h3>Persistence is explicit host authority</h3>
+    <p>Instance snapshots contain private, protected and public stored state. Do not expose a
+    host codec to scripts that should not export it. Class-reference uses remain visibility
+    checked; private storage references retain their owner's authority without allowing a
+    hidden factory to escape into unrelated or publicly exposed storage.</p>
+    <p>Restoration validates schema, references, field identities, types and locks before
+    returning a usable graph. Constructors and initializers are not rerun. Declaration-known
+    constraints are checked, while dynamic initializer types/locks come from validated saved
+    slots. Snapshots are not authenticated proof of original state.</p>
+    <p>saveStatic/loadStatic are separate from instance persistence. They include caller-visible
+    mutable static fields, preserve inherited storage identity, and exclude const/final bindings.
+    The complete trial assignment plan validates before any static value changes. Application
+    side effects in serialization callbacks cannot be rolled back.</p>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Maintenance
+@desc <h3>Maintaining the class runtime</h3>
+    <p>Keep lexical scanning, declaration parsing, name/access validation, Lua compilation,
+    runtime storage, graph services and diagnostics separate. Factories inject explicit
+    dependencies and keep registries private. Facades shares dispatch infrastructure within
+    a Lua state; independent LXC instances retain independent definition registries.</p>
+    <p>Compiler lexical views enforce declaring-scope access. Context uses retained Lua 5.4
+    frames and registered environments rather than a global privilege stack. The nil-valued
+    to-be-closed guard declarations preserve frames across tail calls; they are intentional,
+    and removing them can change callback authority even though they close no resource.</p>
+    <p>Use the framework naming/spacing conventions, meaningful DOx comments and focused local
+    explanations. Preserve constructor/override/property/storage contracts, canonical identity,
+    callback boundaries and all-before-publication/restore validation when changing internals.</p>
+    <p>Current verification is lua tests/run.lua: initialization, real discovery, class scope,
+    collections, primitives, serialization, directives and enums run in fresh interpreters.
+    Historical prototype commands and benchmark totals are not maintained verification.</p>
+!]]
+
+--[[!
+@fqxn LuaEx.LXC.Limitations
+@desc <h3>Unsupported forms and proposals</h3>
+    <p>Interfaces, abstract properties, automatic runtime method argument/return checks and
+    default parameter values are not implemented. Parameter-default expression order and
+    override compatibility remain undecided; proposed syntax must not be treated as accepted
+    grammar. Recursive table locking is separate future work, not an automatic effect of
+    const/final. Those modifiers protect a table binding, not its contents.</p>
+    <p>LuaEx supports Lua 5.4+. Native filesystem binaries must match the host Lua ABI.
+    Passing tests on Windows Lua 5.4 does not establish every host, arbitrary graph size,
+    unlimited practical recursion depth or exhaustive resistance to non-debug intrusion.
+    Snapshot text/node limits and unsupported eager foreign-object cycles remain relevant.</p>
+!]]
+--[[!
 @fqxn LuaEx.LXC
 @desc <h3>LXC — classes written for Lua</h3><p>LXC adds a declaration language and a Lua 5.4 runtime to LuaEx.
     Write classes in .lxc source files using namespaces, access modifiers, constructors, methods and properties;
@@ -154,14 +242,14 @@ namespace Example.Syntax {
     namespace tables/class objects.</li></ol><p>Existing plain namespace tables can be reused; existing class
     leaves cannot be overwritten. Reentrant loading is forbidden. Initialization failure prevents publication
     and marks the batch discarded, but cannot undo side effects in application callbacks. The runtime keeps
-    published definitions for subsequent batches.</p><p>LuaEx.load binds the host, discovers bundled/application
+    published definitions for subsequent batches.</p><p>LuaEx.init binds the host, discovers bundled/application
     classes and adds short aliases for top-level LuaEx.Classes types. Standalone source-map loading needs no
-    io.listfiles; discover needs that filesystem service. Public APIs are read-only facade members.</p>
+    io.scanfiles; discover needs that filesystem service. Public APIs are read-only facade members.</p>
 @ex -- Direct source-file loading, after choosing the source paths:
 local LXC = require("LuaEx.lib.lxc");
 local tEnvironment = setmetatable({}, {__index = _G});
 -- local tNames = LXC.loadFiles({"MyProject/Counter.lxc"}, tEnvironment);
--- Discovery requires LuaEx's io.listfiles (or a compatible host service):
+-- Discovery requires LuaEx's io.scanfiles (or a compatible host service):
 -- local tPaths = LXC.discover("MyProject/?.lua");
 !]]
 --[[!

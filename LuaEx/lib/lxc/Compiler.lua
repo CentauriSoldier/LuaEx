@@ -24,9 +24,10 @@ return function(Tokens, Model, LuaScope)
     
     --[[!
     @fqxn LuaEx.LXC.Compiler.rewrite
-    @desc Resolves free class names before static execution, rewrites accessor field references and wraps member
-        receivers in a lexical view. Edits run backwards by source offset. Nested functions retain their class
-        environment and a Lua 5.4 frame guard.
+    @desc Resolves free class names before static execution and selects accessible this-field descriptors
+        for direct runtime reads. Assignment targets retain checked writes; properties, dynamic names and
+        other receivers use lexical views. Edits run backwards by source offset. Nested functions retain
+        their class environment and a Lua 5.4 frame guard.
     @param string sBody Uncompiled Lua method body or initializer text.
     @param string pFile Diagnostic source filename; source-map loads do not require a physical file.
     @param boolean bAccessor Whether field denotes accessor backing storage.
@@ -41,6 +42,19 @@ return function(Tokens, Model, LuaScope)
         if (bAccessor) then tParameters[#tParameters + 1] = 'field'; end
         local tReferences, tTokens = LuaScope.references(sBody, pFile, tParameters, bExpression);
         local tEdits = {};
+        local bUsesThisView = false;
+        local bUsesDirectRead = false;
+        local bStableThis = not bExpression;
+        for _, tReference in ipairs(tReferences) do
+            local nIndex = tReference.Index;
+            if (tReference.Initial and tTokens[nIndex].Text == 'this' and
+                tTokens[nIndex + 1].Text ~= '.' and tTokens[nIndex + 1].Text ~= '[') then
+                -- A bare parameter use may assign or capture a reassigned this.
+                -- Keep the original per-access path when stability is uncertain.
+                bStableThis = false;
+                break;
+            end
+        end
         for _, tReference in ipairs(tReferences) do
             local n = tReference.Index;
             local tToken = tTokens[n];
@@ -58,8 +72,35 @@ return function(Tokens, Model, LuaScope)
                 tMember.UsesBacking = true;
                 tEdits[#tEdits + 1] = {Start = tToken.Start, Stop = tToken.Stop, Text = '__lxc_field.value'};
             elseif (not tReference.Definition and (tTokens[n + 1].Text == '.' or tTokens[n + 1].Text == '[')) then
-                tEdits[#tEdits + 1] = {Start = tToken.Start, Stop = tToken.Stop,
-                    Text = '__lxc_view('..tToken.Text..')'};
+                local tKnown = tReference.Initial and tToken.Text == 'this' and
+                    tTokens[n + 1].Text == '.' and Model.member(tMember.Owner, tMember.Owner, tTokens[n + 2].Text);
+                local sFollowing = tTokens[n + 3] and tTokens[n + 3].Text;
+                -- '=' and ',' can end an assignment target. Leave those on the
+                -- checked write path; bracket access and properties stay dynamic.
+                local bDirect = not bExpression and tKnown and tKnown.Kind == 'field' and
+                    not tKnown.Flags.static and sFollowing ~= '=' and sFollowing ~= ',' and
+                    Model.memberAllowed(tKnown, tMember.Owner, tMember.Owner);
+                if (bDirect) then
+                    local tOwner = tMember.Owner;
+                    tOwner.DirectReadMembers = tOwner.DirectReadMembers or {};
+                    tOwner.DirectReadIndexes = tOwner.DirectReadIndexes or {};
+                    local nSlot = tOwner.DirectReadIndexes[tKnown];
+                    if (not nSlot) then
+                        nSlot = #tOwner.DirectReadMembers + 1;
+                        tOwner.DirectReadMembers[nSlot] = tKnown;
+                        tOwner.DirectReadIndexes[tKnown] = nSlot;
+                    end
+                    bUsesDirectRead = true;
+                    tEdits[#tEdits + 1] = {Start = tToken.Start, Stop = tTokens[n + 2].Stop,
+                        Text = '__lxc_read(this,'..nSlot..')'};
+                else
+                    -- Reuse a stable receiver's lexical view on accesses that
+                    -- cannot use a compiler-selected field descriptor.
+                    local bThis = bStableThis and tReference.Initial and tToken.Text == 'this';
+                    bUsesThisView = bUsesThisView or bThis;
+                    tEdits[#tEdits + 1] = {Start = tToken.Start, Stop = tToken.Stop,
+                        Text = bThis and '__lxc_this' or '__lxc_view('..tToken.Text..')'};
+                end
             end
         end
         for n, tToken in ipairs(tTokens) do
@@ -78,6 +119,8 @@ return function(Tokens, Model, LuaScope)
         for _, tEdit in ipairs(tEdits) do
             sBody = string.sub(sBody, 1, tEdit.Start - 1)..tEdit.Text..string.sub(sBody, tEdit.Stop + 1);
         end
+        if (bUsesThisView) then sBody = 'local __lxc_this = __lxc_view(this); '..sBody; end
+        if (bUsesDirectRead) then sBody = 'local __lxc_read = __lxc_read; '..sBody; end
         return sBody;
     end
 
@@ -100,9 +143,77 @@ return function(Tokens, Model, LuaScope)
         local sBody = fRewrite(tMember.Body, tMember.Owner.File, tMember.Kind == 'accessor', tMember, false);
         -- A nil to-be-closed local keeps Lua 5.4 from eliminating this lexical
         -- frame in return Class() / return callback() tail calls. No __close runs.
-        local sCode = 'return function('..table.concat(tParameters, ',')..') local __lxc_context = _ENV; local __lxc_guard <close> = nil; '..
+        local sHelpers = 'local __lxc_view = __lxc_view; local __lxc_read = __lxc_read; ';
+        local sCode = sHelpers..'return function('..table.concat(tParameters, ',')..') local __lxc_context = _ENV; local __lxc_guard <close> = nil; '..
             string.rep('\n', (tMember.Line or 1) - 1)..sBody..'\nend';
         tMember.Function = assert(load(sCode, '@'..tMember.Owner.File, 't', tScope))();
+
+        --[[!
+        @fqxn LuaEx.LXC.Compiler.publicBoundMethod
+        @desc Emits an instance-bound public body without the generic invocation
+            trampoline. Hidden receiver/base/storage bindings are private upvalues;
+            this remains a fresh local per call so reassignment cannot persist.
+            Restricted/static methods, properties and operators retain their checked
+            invocation paths. Every bound call rejects failed/discarded state.
+        @vis internal
+        !]]
+        if (tMember.Kind == 'method' and tMember.Visibility == 'public' and not tMember.Flags.static) then
+            -- Select only a complete one-parameter assignment to mutable instance
+            -- storage. All bodies are compiled above before native selection.
+            if (not tMember.Variadic and #tMember.Parameters == 1 and
+                tMember.Parameters[1] ~= 'this' and tMember.Parameters[1] ~= 'base') then
+                local tTokens = Tokens.scan(tMember.Body, tMember.Owner.File);
+                local bComplete = (#tTokens == 6 and tTokens[6].Text == '<eof>') or
+                    (#tTokens == 7 and tTokens[6].Text == ';' and tTokens[7].Text == '<eof>');
+                if (bComplete and tTokens[1].Text == 'this' and tTokens[2].Text == '.' and
+                    tTokens[4].Text == '=' and tTokens[5].Text == tMember.Parameters[1]) then
+                    local tField = Model.member(tMember.Owner, tMember.Owner, tTokens[3].Text);
+                    if (tField and tField.Kind == 'field' and not tField.Flags.static and
+                        not tField.Flags.const and not tField.Flags.final and
+                        Model.memberAllowed(tField, tMember.Owner, tMember.Owner)) then
+                        tMember.SetterRoot = tField.Slot or tField;
+                    end
+                end
+            end
+            local tArguments = {};
+            for _, sName in ipairs(tMember.Parameters or {}) do tArguments[#tArguments + 1] = sName; end
+            if (tMember.Variadic) then tArguments[#tArguments + 1] = '...'; end
+            local sBoundBody = sBody;
+            local sField, sTail = string.match(tMember.Body, '^%s*return%s+this%.([%a_][%w_]*)([%.%w_]*)%s*;?%s*$');
+            local tGetter = sField and Model.member(tMember.Owner, tMember.Owner, sField);
+            if (tGetter and tGetter.Kind == 'field' and not tGetter.Flags.static and
+                Model.memberAllowed(tGetter, tMember.Owner, tMember.Owner)) then
+                -- A single-return getter executes no user code before its field
+                -- read. Its entry guard covers the read; use live storage directly
+                -- rather than repeating receiver checks in the general read helper.
+                tMember.GetterRoot = tGetter.Slot or tGetter;
+                sBoundBody = 'local __lxc_slot = __lxc_live.Values[__lxc_root]; '..
+                    'if not __lxc_slot then error("Field read before initialization: '..tGetter.Name..'"); end; '..
+                    'return __lxc_slot.Value'..sTail..';';
+
+                --[[!
+                @fqxn LuaEx.LXC.Compiler.slotGetter
+                @desc Binds an already allocated instance field's current value for a
+                    single-return getter. Validated writes publish new values through
+                    a private updater; table contents remain live references. Failed
+                    instance/class checks remain on every call; the global error
+                    reference also retains the declaring environment for Context.
+                    Runtime uses the ordinary bound body if storage is not ready.
+                @vis internal
+                !]]
+                local sGetter = 'return function(__lxc_live,__lxc_value) return function('..
+                    table.concat(tArguments, ',')..') '..
+                    'if __lxc_live.Failed then error("Instance belongs to a failed load or construction."); end; '..
+                    'return __lxc_value'..sTail..'; end, function(__lxc_new) __lxc_value = __lxc_new; end end';
+                tMember.SlotGetterFactory = assert(load(sGetter, '@'..tMember.Owner.File, 't', tScope))();
+            end
+            local sBound = sHelpers..'return function(__lxc_receiver,__lxc_parent,__lxc_live,__lxc_root) return function('..
+                table.concat(tArguments, ',')..') local __lxc_context = _ENV; local __lxc_guard <close> = nil; '..
+                'if __lxc_live.Failed or __lxc_live.Class.Discarded then error("Instance belongs to a failed load or construction."); end; '..
+                'local this = __lxc_receiver; local base = __lxc_parent; local __lxc_field; '..
+                string.rep('\n', (tMember.Line or 1) - 1)..sBoundBody..'\nend end';
+            tMember.BoundFactory = assert(load(sBound, '@'..tMember.Owner.File, 't', tScope))();
+        end
     end
 
     

@@ -8,7 +8,7 @@
 @see <a href="#LuaEx.LXC.Modules">Module map</a>
 !]]
 -- Keep runtime string operations independent of application replacements.
-local _gmatch, _match, _sub = string.gmatch, string.match, string.sub;
+local _gmatch, _find, _sub = string.gmatch, string.find, string.sub;
 
 
 
@@ -24,6 +24,33 @@ local _gmatch, _match, _sub = string.gmatch, string.match, string.sub;
 !]]
 return function(Model, Context, Facades)
     local Environment = {};
+    local tNamespaceIndexes = setmetatable({}, {__mode = 'k'});
+
+    --[[!
+    @fqxn LuaEx.LXC.Environment.indexNamespaces
+    @desc Indexes all dotted prefixes once for an immutable declaration batch.
+        The weak-key cache does not retain otherwise unreachable batches.
+    @param table tDeclarations Class or enum definitions keyed by qualified name.
+    @ret table tPaths Set of namespace prefixes.
+    @vis internal
+    !]]
+    local function indexNamespaces(tDeclarations)
+        local tPaths = tNamespaceIndexes[tDeclarations];
+        if (tPaths) then return tPaths; end
+
+        tPaths = {};
+        for sName in pairs(tDeclarations) do
+            local nDot = _find(sName, '.', 1, true);
+            if (not nDot) then tPaths[sName] = true; end
+            while (nDot) do
+                tPaths[_sub(sName, 1, nDot - 1)] = true;
+                nDot = _find(sName, '.', nDot + 1, true);
+            end
+        end
+
+        tNamespaceIndexes[tDeclarations] = tPaths;
+        return tPaths;
+    end
 
     
     --[[!
@@ -42,6 +69,35 @@ return function(Model, Context, Facades)
     function Environment.create(tClass, tBatch, tHost, tBindings, fCheckClass)
         local tNamespaceCache = {};
         local tEnums = tClass.EnumBatch or {};
+        local tBatchNamespaces = indexNamespaces(tBatch);
+        local tEnumNamespaces = indexNamespaces(tEnums);
+        local tResolvedClasses = {};
+        local nRevision = Model.Revision;
+
+        --[[!
+        @fqxn LuaEx.LXC.Environment.resolveClass
+        @desc Caches class-resolution hits and misses for this declaring scope.
+            A published class invalidates both: later declarations can introduce
+            a match, change lexical precedence or make imported names ambiguous.
+            Host values and enum bindings are deliberately not stored here.
+        @param string sName Class name to resolve.
+        @ret table|nil tFound Internal definition, still checked by the caller.
+        @vis internal
+        !]]
+        local function fResolveClass(sName)
+            if (nRevision ~= Model.Revision) then
+                tResolvedClasses = {};
+                nRevision = Model.Revision;
+            end
+
+            local vFound = tResolvedClasses[sName];
+            if (vFound == nil) then
+                vFound = Model.resolve(sName, tClass, tBatch) or false;
+                tResolvedClasses[sName] = vFound;
+            end
+
+            return vFound or nil;
+        end
 
         --[[!
         @fqxn LuaEx.LXC.Environment.enum
@@ -118,17 +174,10 @@ return function(Model, Context, Facades)
                         return tFound.Object;
                     end
 
-                    for sName in pairs(tBatch) do
-                        if (_sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
-                    end
-                    for sName in pairs(Model.Classes) do
-                        if (_sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
-                    end
+                    if (tBatchNamespaces[sFull] or Model.NamespacePaths[sFull]) then return fNamespace(sFull); end
                     local oEnum = fEnum(sFull);
                     if (oEnum) then return oEnum; end
-                    for sName in pairs(tEnums) do
-                        if (_sub(sName, 1, #sFull + 1) == sFull..'.') then return fNamespace(sFull); end
-                    end
+                    if (tEnumNamespaces[sFull]) then return fNamespace(sFull); end
                     local vHostValue = fHostPath(sFull);
                     if (vHostValue ~= nil) then return vHostValue; end
                     error('Unknown namespace member: '..sFull);
@@ -161,17 +210,12 @@ return function(Model, Context, Facades)
                 local __lxc_guard <close> = nil;
                 if (tBindings[sKey] ~= nil) then return tBindings[sKey]; end
 
-                local tFound = Model.resolve(sKey, tClass, tBatch);
+                local tFound = fResolveClass(sKey);
                 if (tFound) then
                     fCheckClass(tFound, tClass);
                     return tFound.Object;
                 end
-                for sName in pairs(tBatch) do
-                    if (_match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
-                end
-                for sName in pairs(Model.Classes) do
-                    if (_match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
-                end
+                if (tBatchNamespaces[sKey] or Model.NamespacePaths[sKey]) then return fNamespace(sKey); end
                 local oEnum = fEnum(sKey) or fEnum(tClass.Namespace..'.'..sKey);
                 for _, sImport in ipairs(tClass.Imports) do
                     local oOther = fEnum(sImport..'.'..sKey);
@@ -179,9 +223,7 @@ return function(Model, Context, Facades)
                     oEnum = oEnum or oOther;
                 end
                 if (oEnum) then return oEnum; end
-                for sName in pairs(tEnums) do
-                    if (_match(sName, '^([^.]+)') == sKey) then return fNamespace(sKey); end
-                end
+                if (tEnumNamespaces[sKey]) then return fNamespace(sKey); end
                 return tHost[sKey];
             end),
             --[[!

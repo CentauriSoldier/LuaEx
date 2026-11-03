@@ -42,7 +42,7 @@ class.getparentname("Player");       -- parent name, or nil
 
 
 ## 🅶🅴🆃🆃🅸🅽🅶 🆂🆃🅰🆁🆃🅴🅳 🚀
-**LuaEx requires Lua 5.4.** Its LXC class runtime uses Lua 5.4 syntax.
+**LuaEx supports Lua 5.4 and later (5.4+). Lua 5.3 and earlier are not supported.**
 
 LuaEx's I/O extensions now use its own native filesystem library. Keep the matching
 platform build in `LuaEx/bin/` alongside `lib/`; LuaEx selects it automatically.
@@ -51,32 +51,25 @@ instructions, platform status and I/O contracts are in [Native IO](Native%20IO/R
 The external schema module now resides in `LuaEx/libext/`.
 
 
-To push **LuaEx** into the global environment, place the **LuaEx** folder into your package path and add the following line of code to your project:
+To initialize **LuaEx**, make the **LuaEx** directory reachable through `package.path` and add:
+
 ```lua
-local init = require("LuaEx.load");
-init();
+require("LuaEx.init");
 ```
 
-The loader accepts `init(classLoadLevel)`. Omitted or `nil` uses level **5**.
-The level must be a whole number from **0** through **5**. The former
-three-argument configuration API is not part of the current core.
+Requiring `LuaEx.init` immediately initializes the full framework in the global
+environment, including core factories, hooks, cloning, serialization, the class
+system, geometry primitives, collections, components and utilities. There is no
+separate initialization function or class load level selection.
 
-| Level | Includes previous levels, plus |
-| --- | --- |
-| 0 | Core hooks, factories, cloning and serialization |
-| 1 | Class system and interfaces |
-| 2 | Geometry primitives, collections, XML and ClassRegistry |
-| 3 | Potentiometer and Protean components |
-| 4 | Ini, BaseLog and VFS utilities |
-| 5 | Reserved geometry-class group; currently no additional classes |
+LuaEx exposes `luaex` and its public framework bindings globally. The initializer
+returns no framework value. Lua caches successful `require` calls, and an
+initialization guard also prevents repeated initialization when the file is
+executed directly.
 
-CoG and Dox implementation modules are absent from this checkout. Their
-historical changelog entries and legacy examples are retained for reference.
-
-Requiring `LuaEx.load` does not initialize the framework. After initialization,
-further calls return the existing `luaex` environment without changing its settings.
-From here on out, all modules of **LuaEx** will be available in the global environment.
-
+CoG and Dox implementation modules and examples live in their own repositories.
+Each repository has a docs/Examples.html page; [LuaEx examples](docs/Examples.html)
+contain only LuaEx tutorials. Historical changelog entries remain for reference.
 
 ## 🆅🅴🆁🆂🅸🅾🅽 ⚗s
 #### Current Version: Beta v0.62 (in progress)
@@ -89,6 +82,9 @@ From the repository root, run:
 ```text
 lua tests/run.lua
 ```
+
+The test runner and shared bootstrap still reference the former `LuaEx.load` API
+and class load levels; they need updating for the `LuaEx.init` entry point.
 
 Every configured case runs in a fresh native Lua process. Failures produce a
 nonzero exit status. CoG/Dox coverage is explicitly excluded rather than counted
@@ -224,10 +220,11 @@ While I develop **LuaEx** for my own projects, it's also designed to be used by 
 For their benefit and my own, I take user feedback seriously and address and appreciate submitted issues and pull requests.
 
 ## 🅲🅾🅼🅿🅰🆃🅸🅱🅸🅻🅸🆃🆈 ❤
-**LuaEx requires Lua 5.4**, including its LXC class runtime. The current native I/O build
+**LuaEx supports Lua 5.4 and later (5.4+)**, including its LXC class runtime. The current native I/O build
 is verified on **Windows x64 / Lua 5.4.9**. Earlier Lua 5.4.2 and Wasmoon checks
 refer to previous builds; the current native filesystem module is not a browser module.
 Lua 5.3 and earlier are not supported; LuaJIT compatibility is not claimed.
+Native I/O binaries must match the host Lua ABI; bundled `lua54` binaries are for Lua 5.4.
 Platform-specific filesystem behavior also requires testing
 on its actual host; simulated path tests are not equivalent to Linux/macOS validation.
 
@@ -333,8 +330,7 @@ print(k)            --> null
 ---
 
 ##### Constants ♾️
-While **Lua 5.4** offers constants natively, previous versions don't.  
-LuaEx provides its own constant bindings alongside Lua 5.4's local constant attributes. They may be of any non-nil type (*though ***null*** [or ***NULL***] should **never** be set as a constant, as it already is*).
+LuaEx provides its own constant bindings alongside the local constant attributes available in Lua 5.4+. They may be of any non-nil type (*though ***null*** [or ***NULL***] should **never** be set as a constant, as it already is*).
 
 <details>
 <summary>🆅🅸🅴🆆 🅴🆇🅰🅼🅿🅻🅴</summary>

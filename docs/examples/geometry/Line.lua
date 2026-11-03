@@ -1,0 +1,33 @@
+-- Locate the shared bootstrap relative to this tutorial, regardless of cwd.
+local pSource = debug.getinfo(1, "S").source:sub(2):gsub("\\", "/");
+local pExamples = assert(pSource:match("^(.*)/[^/]+/[^/]+%.lua$"));
+local tPaths = dofile(pExamples.."/support/bootstrap.lua");
+local pDocs = tPaths.docs;
+
+local D = require("examples.support.tutorial").new("Line", "Numeric endpoints, cached geometry, protected endpoint proxies and native snapshots.");
+D.section("Construction", "line takes four finite numbers, rather than point objects.");
+local oLine = line(0, 0, 3, 4);
+D.equal("Length", oLine.length, 5); D.equal("Delta Y", oLine.deltaY, 4);
+D.section("Derived geometry", "Length, slope and midpoint are read-only derived properties.");
+D.equal("Slope", oLine.slope, 4/3);
+D.equal("Midpoint X", oLine.midpoint.x, 1.5); D.equal("Midpoint Y", oLine.midpoint.y, 2);
+D.section("Endpoint mutation", "Endpoint writes and setStop recalculate geometry.");
+oLine.stop.x = 6; oLine.stop.y = 8;
+D.equal("New length", oLine.length, 10);
+oLine.setStop(3, 4); D.equal("Setter length", oLine.length, 5);
+D.section("Validation", "Reject invalid endpoints and writes to derived values.");
+D.reject("Infinite endpoint", function() oLine.stop.x = math.huge; end);
+D.reject("Derived length write", function() oLine.length = 10; end);
+D.equal("Rejected write preserves length", oLine.length, 5);
+D.section("Vertical and degenerate lines", "A zero delta X makes slope undefined, including coincident endpoints.");
+local oVertical = line(2, -3, 2, 5);
+D.check("Undefined vertical slope", oVertical.slopeIsUndefined);
+D.equal("Vertical length", oVertical.length, 8);
+D.equal("Coincident length", line(1, 1, 1, 1).length, 0);
+D.section("Copies and persistence", "Each restored line owns independent endpoint proxies.");
+local oCopy = clone(oLine); oCopy.stop.x = 9;
+D.equal("Original endpoint", oLine.stop.x, 3);
+local oRestored = deserialize(serialize(oLine));
+D.equal("Restored length", oRestored.length, 5);
+oRestored.start.x = -3; D.equal("Original start", oLine.start.x, 0);
+D.finish();

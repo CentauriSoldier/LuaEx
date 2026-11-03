@@ -1,0 +1,33 @@
+{
+  "name": "luaex-tools",
+  "version": "0.1.0",
+  "description": "LuaEx LXC/LXE diagnostics, annotations, hover, completion and signature help for Pulsar.",
+  "main": "./lib/main.js",
+  "license": "Unlicense",
+  "keywords": [
+    "linter",
+    "lua",
+    "luaex",
+    "lxc",
+    "lxe"
+  ],
+  "engines": {
+    "atom": ">=1.60.0 <3.0.0"
+  },
+  "providedServices": {
+    "linter": {
+      "versions": {
+        "2.0.0": "provideLinter"
+      }
+    },
+    "autocomplete.provider": {
+      "versions": {
+        "2.0.0": "provideAutocomplete"
+      }
+    }
+  },
+  "scripts": {
+    "test": "node test/run.js",
+    "test:compiler": "node test/run.js --compiler"
+  }
+}

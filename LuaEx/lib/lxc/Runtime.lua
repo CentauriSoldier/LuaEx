@@ -32,6 +32,9 @@
 return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHostNull, Operators)
     local __lxc_guard <close> = nil;
     local Runtime = {};
+    local Native = require('LuaEx.lib.lxc.Native');
+    -- Freeze entry points before application code can replace module table keys.
+    local bNative, fNativeSetter = Native.Available, Native.setter;
     local Directives = require('LuaEx.lib.lxc.Directives')(Model, Diagnostics);
     local tClasses, tObjects = setmetatable({}, {__mode = 'k'}), setmetatable({}, {__mode = 'k'});
     local oNull = oHostNull or Facades.create({
@@ -161,7 +164,8 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
     @fqxn LuaEx.LXC.Runtime.write
     @desc Rejects nil, binding-lock violations and type changes. Null is allowed only before a type is
         established. First non-null assignment fixes a primitive/class/instance-ancestry contract; const/final
-        then lock. Deferred finals require their declaring constructor context.
+        then lock. Deferred finals require their declaring constructor context. Repeated number/string/boolean
+        writes compare captured native Lua types directly; class/enum/foreign values retain full identity checks.
     @param table tSlot Private storage record with Member, Value, Type and Locked fields.
     @param any vValue Value to inspect, assign, copy or serialize.
     @param boolean bInitialize True for declaration initialization/validated restore; false for assignment.
@@ -170,32 +174,51 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
     !]]
     local function fWrite(tSlot, vValue, bInitialize)
         local __lxc_guard <close> = nil;
-        assert(vValue ~= nil, 'Declared fields cannot be nil.');
-        assert(not tSlot.Locked, 'Cannot reassign const/final field: '..tSlot.Member.Name);
-        assert(not tSlot.Member.Flags.const or bInitialize, 'Const initialized outside declaration.');
-        if (tSlot.Member.Flags.final and not tSlot.Type and not bInitialize) then
-            local tOwner = tSlot.Member.Owner;
-            local bConstructing = tSlot.Member.Flags.static and tOwner.StaticRunning or
+        local tMember = tSlot.Member;
+        local tFlags = tMember.Flags;
+        -- Format diagnostics only on failure, rather than allocating qualified
+        -- error strings on every successful assignment.
+        if (vValue == nil) then error('Declared fields cannot be nil.'); end
+        if (tSlot.Locked) then error('Cannot reassign const/final field: '..tMember.Name); end
+        if (tFlags.const and not bInitialize) then error('Const initialized outside declaration.'); end
+        if (tFlags.final and not tSlot.Type and not bInitialize) then
+            local tOwner = tMember.Owner;
+            local bConstructing = tFlags.static and tOwner.StaticRunning or
                 (tSlot.State and tSlot.State.Constructing == tOwner);
             assert(bConstructing and Model.allowed('private', tOwner, Context.caller()),
                 'Final initialization requires declaring constructor.');
         end
-        if (rawequal(vValue, oNull)) then
+        -- The runtime's type function is captured native Lua type. Canonical
+        -- class/enum identities are facade objects, never these scalar values.
+        -- Mismatches still use the original classifier and diagnostic path.
+        local sNativeType = type(vValue);
+        local bTypedScalar = tSlot.Type == sNativeType and
+            (sNativeType == 'number' or sNativeType == 'string' or sNativeType == 'boolean');
+        if (bTypedScalar) then
+            tSlot.Locked = tFlags.const or tFlags.final or false;
+        elseif (rawequal(vValue, oNull)) then
             assert(not tSlot.Type, 'Typed field cannot return to null.');
-            assert(not tSlot.Member.Flags.const, 'Const cannot start null.');
+            assert(not tFlags.const, 'Const cannot start null.');
         else
             local tObject = tObjects[vValue];
             -- LXE supplies canonical type identity through the private connector.
             -- This extends the existing slot check without trusting public metadata.
             local zForeign = Runtime.ForeignType and Runtime.ForeignType(vValue);
-            local zType = tObject and tObject.Class or (tClasses[vValue] and 'class' or zForeign or type(vValue));
+            local zType = tObject and tObject.Class or (tClasses[vValue] and 'class' or zForeign or sNativeType);
             if (tSlot.Type) then
-                assert((type(tSlot.Type) == 'table' and tObject and Model.descends(tObject.Class, tSlot.Type)) or
-                    tSlot.Type == zType, 'Field type mismatch: '..tSlot.Member.Owner.FullName..'.'..tSlot.Member.Name);
+                if (not ((type(tSlot.Type) == 'table' and tObject and Model.descends(tObject.Class, tSlot.Type)) or
+                    tSlot.Type == zType)) then
+                    error('Field type mismatch: '..tMember.Owner.FullName..'.'..tMember.Name);
+                end
             else tSlot.Type = zType; end
-            tSlot.Locked = tSlot.Member.Flags.const or tSlot.Member.Flags.final or false;
+            tSlot.Locked = tFlags.const or tFlags.final or false;
         end
         tSlot.Value = vValue;
+        -- Bound getter values are updated only after validation and the storage
+        -- commit. These private runtime callbacks execute no application code.
+        if (tSlot.GetterUpdates) then
+            for _, fUpdate in ipairs(tSlot.GetterUpdates) do fUpdate(vValue); end
+        end
     end
     fInternal(fWrite);
 
@@ -398,8 +421,9 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
     
     --[[!
     @fqxn LuaEx.LXC.Runtime.method
-    @desc Caches a bound dot-call closure: user supplies declared arguments, Runtime supplies this. Every
-        invocation rechecks access/failed state, so saved restricted methods do not bypass rules.
+    @desc Caches a bound dot-call closure: user supplies declared arguments, Runtime supplies this.
+        Public access is fixed by the validated contract. Restricted invocations still check their caller,
+        and every invocation checks failed state, so saved restricted methods do not bypass rules.
     @param table tState Private live state containing Class, Object and storage maps.
     @param table tMember Member definition with Owner, Flags and source metadata.
     @ret function fMethod Checked bound closure.
@@ -409,10 +433,38 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
         local __lxc_guard <close> = nil;
         tState.Methods = tState.Methods or {};
         if (not tState.Methods[tMember]) then
+            -- Public instance bodies can bind their hidden arguments once.
+            -- Their compiled entry guard runs on every call; the actual body
+            -- retains its declaring _ENV for private access and nested callbacks.
+            if (tMember.BoundFactory) then
+                -- Native setters share production slots and the original checked
+                -- writer. Final/const/property/complex bodies keep their Lua frames.
+                local tSetter = bNative and tMember.SetterRoot and tState.Values[tMember.SetterRoot];
+                if (tSetter) then
+                    tState.Methods[tMember] = fInternal(fNativeSetter(tState, tSetter, fWrite));
+                    return tState.Methods[tMember];
+                end
+                -- Instance slots are allocated once. Constructors, clone and
+                -- restoration each create their own records; writes change Value.
+                -- Early binding before a field exists must keep the live lookup.
+                local tSlot = tMember.GetterRoot and tState.Values[tMember.GetterRoot];
+                if (tSlot and tMember.SlotGetterFactory) then
+                    local fGetter, fUpdate = tMember.SlotGetterFactory(tState, tSlot.Value);
+                    tSlot.GetterUpdates = tSlot.GetterUpdates or {};
+                    tSlot.GetterUpdates[#tSlot.GetterUpdates + 1] = fInternal(fUpdate);
+                    tState.Methods[tMember] = fGetter;
+                    return tState.Methods[tMember];
+                end
+                tState.Methods[tMember] = tMember.BoundFactory(tState.Object, fBaseView(tState, tMember.Owner), tState, tMember.GetterRoot);
+                return tState.Methods[tMember];
+            end
+            -- A public access contract is independent of the calling class.
+            -- Resolve overrides once; restricted contracts retain runtime checks.
+            local bPublic = Model.memberAllowed(tMember, nil, tState.Class);
             --[[!
             @fqxn LuaEx.LXC.Runtime.method.invokeBound
             @desc Caches a bound dot-call closure: user supplies declared arguments, Runtime supplies this.
-                Every invocation rechecks access/failed state, so saved restricted methods do not bypass rules.
+                Restricted invocations recheck caller access; all invocations check failed state.
             @param any ... Additional arguments forwarded in order.
             @ret function fMethod Checked bound closure.
             @vis internal
@@ -422,7 +474,7 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
                 local tCaller;
                 if (tMember.Visibility ~= 'public' or tMember.Flags.static) then tCaller = Context.caller(); end
                 assert(not tState.Class.Discarded and not tState.Failed, 'Instance belongs to a failed load or construction.');
-                fCheck(tMember, tCaller, tState.Class);
+                if (not bPublic) then fCheck(tMember, tCaller, tState.Class); end
                 if (tMember.Flags.static) then fCheckClass(tMember.Owner, tCaller); end
                 return fInvoke(tState, tMember, ...);
             end);
@@ -558,18 +610,48 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
     local function fAllocate(tClass)
         local __lxc_guard <close> = nil;
         local tState = {Class = tClass, Values = {}, Methods = {}};
+        -- Failure propagation owns the shared lifetime guard used by bound
+        -- getters. Weak state keys do not keep otherwise unreachable objects alive.
+        tClass.InstanceStates = tClass.InstanceStates or setmetatable({}, {__mode = 'k'});
+        tClass.InstanceStates[tState] = true;
+        local tPublicMethods = {};
+        local tPublicFields = bNative and (tClass.NativePublicFields or {});
+        if (bNative) then tClass.NativePublicFields = tPublicFields; end
         local oObject;
         oObject = Facades.create({
+            NativeState = bNative and tState or nil,
+            NativeMethods = bNative and tPublicMethods or nil,
+            NativeFields = tPublicFields,
             --[[!
             @fqxn LuaEx.LXC.Runtime.allocate.read
-            @desc Delegates an instance facade read to checked lookup on its concrete class.
+            @desc Checks the first concrete-class lookup and reuses unambiguous public methods.
+                Private-name-sensitive lookups stay lexical; values/properties are never cached.
+                Cached reads still reject failed/discarded instances.
             @param string sName Name/path to resolve or inspect under the lookup rules described above.
             @ret any vValue Instance member or bound method.
             @vis internal
             !]]
             __index = fInternal(function(sName)
                 local __lxc_guard <close> = nil;
-                return fRead(tState, tClass, sName, false);
+                local fKnown = tPublicMethods[sName];
+                if (fKnown) then
+                    assert(not tClass.Discarded and not tState.Failed,
+                        'Instance belongs to a failed load or construction.');
+                    return fKnown;
+                end
+                local vValue = fRead(tState, tClass, sName, false);
+                if (not tClass.PrivateNames[sName]) then
+                    local tMember = Model.member(tClass, nil, sName);
+                    if (tMember and tMember.Kind == 'method' and tMember.Visibility == 'public' and not tMember.Flags.static) then
+                        tPublicMethods[sName] = vValue;
+                    elseif (bNative and tMember and tMember.Kind == 'field' and
+                        tMember.Visibility == 'public' and not tMember.Flags.static) then
+                        -- Cache declaration identity, never a value or a storage
+                        -- record that constructor-free restoration could replace.
+                        tPublicFields[sName] = fSlotOwner(tMember);
+                    end
+                end
+                return vValue;
             end),
             --[[!
             @fqxn LuaEx.LXC.Runtime.allocate.write
@@ -581,6 +663,14 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
             !]]
             __newindex = fInternal(function(sName, vValue)
                 local __lxc_guard <close> = nil;
+                if (bNative and not tClass.PrivateNames[sName]) then
+                    local tMember = Model.member(tClass, nil, sName);
+                    if (tMember and tMember.Kind == 'field' and tMember.Visibility == 'public' and not tMember.Flags.static) then
+                        fAssign(tState, tClass, sName, vValue, false);
+                        tPublicFields[sName] = fSlotOwner(tMember);
+                        return;
+                    end
+                end
                 return fAssign(tState, tClass, sName, vValue, false);
             end),
             --[[!
@@ -733,18 +823,43 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
         tState.LexicalViews = tState.LexicalViews or {};
         if (not tState.LexicalViews[tOwner]) then
             local bStatic = tClass ~= nil;
+            local tReads = {};
             tState.LexicalViews[tOwner] = Facades.create({
                 --[[!
                 @fqxn LuaEx.LXC.Runtime.lexicalView.read
-                @desc Reads an LXC reference with the source's explicit declaring owner, preserving lexical
-                    private-name selection.
+                @desc Reads with the source's explicit declaring owner. Successful field/method resolution
+                    is retained for this receiver/owner pair; fields still read live storage and bound
+                    methods still enforce invocation access. Properties and dynamic indexers use read.
                 @param string sName Name/path to resolve or inspect under the lookup rules described above.
                 @ret any vValue Lexically selected member.
                 @vis internal
                 !]]
                 __index = fInternal(function(sName)
                     local __lxc_guard <close> = nil;
-                    return fRead(tState, tState.Class, sName, bStatic, false, tOwner);
+                    local fReadKnown = tReads[sName];
+                    if (fReadKnown) then return fReadKnown(); end
+
+                    -- Establish ordinary lookup, qualification and access first.
+                    -- Only immutable member selection is cached, never its value.
+                    local vValue = fRead(tState, tState.Class, sName, bStatic, false, tOwner);
+                    local tMember = Model.member(tState.Class, tOwner, sName);
+                    local tNested = bStatic and tState.Class;
+                    local bNested = false;
+                    while (tNested) do
+                        if (tNested.Nested[sName]) then bNested = true; break; end
+                        tNested = tNested.Parent;
+                    end
+                    if (not bNested and tMember and (tMember.Kind == 'field' or tMember.Kind == 'method') and
+                        not not tMember.Flags.static == bStatic) then
+                        tReads[sName] = fInternal(function()
+                            assert(not tState.Class.Discarded and not tState.Failed,
+                                'Instance belongs to a failed load or construction.');
+                            if (bStatic) then fCheckClass(tState.Class, tOwner); end
+                            if (tMember.Kind == 'method') then return vValue; end
+                            return fGetSlot(tState, tMember).Value;
+                        end);
+                    end
+                    return vValue;
                 end),
                 --[[!
                 @fqxn LuaEx.LXC.Runtime.lexicalView.write
@@ -902,6 +1017,28 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
             @vis internal
             !]]
             __lxc_view = function(vValue) return fLexicalView(vValue, tClass); end,
+            --[[!
+            @fqxn LuaEx.LXC.Runtime.compiledRead
+            @desc Reads a compiler-selected instance field directly from live storage.
+                The compiler proves lexical access; the runtime checks receiver ancestry
+                and failed state. Reassigned foreign receivers use ordinary lookup.
+            @param any vReceiver Current this value, including a reassigned parameter.
+            @param number nSlot Private compiler field-descriptor index.
+            @ret any vValue Current field value.
+            @vis internal
+            !]]
+            __lxc_read = function(vReceiver, nSlot)
+                local tMember = tClass.DirectReadMembers[nSlot];
+                local tState = tObjects[vReceiver];
+                if (not tState or not Model.descends(tState.Class, tClass)) then
+                    return fLexicalView(vReceiver, tClass)[tMember.Name];
+                end
+                assert(not tState.Class.Discarded and not tState.Failed,
+                    'Instance belongs to a failed load or construction.');
+                local tRoot = tMember.Slot or tMember;
+                local tSlot = assert(tState.Values[tRoot], 'Field read before initialization: '..tRoot.Name);
+                return tSlot.Value;
+            end,
         }, fCheckClass);
 
         for _, tMember in ipairs(tClass.Members) do
@@ -935,6 +1072,21 @@ return function(Model, Context, Facades, Compiler, Environment, Diagnostics, oHo
         for _, tClass in ipairs(tOrder) do fDefineClass(tClass); end
         for _, tClass in ipairs(tOrder) do fCompileClass(tClass, tBatch, tEnvironment); end
         Directives.prepare(tOrder);
+    end
+
+    --[[!
+    @fqxn LuaEx.LXC.Runtime.discard
+    @desc Invalidates a failed class batch and every instance allocated from its
+        definitions, including constructor-free clones/restores. Propagation keeps
+        prebound getter failure checks to one live instance flag without allowing
+        captured objects or callbacks from a failed static initializer to survive.
+    @param table tClass Definition belonging to the failed batch.
+    @vis internal
+    !]]
+    function Runtime.discard(tClass)
+        tClass.Discarded = true;
+        if (tClass.State) then tClass.State.Failed = true; end
+        for tState in pairs(tClass.InstanceStates or {}) do tState.Failed = true; end
     end
     
     --[[!

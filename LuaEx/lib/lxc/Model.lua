@@ -22,7 +22,30 @@
 @vis internal
 !]]
 return function(ValidationFactory, Diagnostics, Names, Operators)
-    local Model = {Classes = {}};
+    local Model = {Classes = {}, NamespacePaths = {}, Revision = 0};
+
+    --[[!
+    @fqxn LuaEx.LXC.Model.publish
+    @desc Registers one published definition, indexes its namespace prefixes and
+        advances the revision used by declaring-class lookup caches. Definitions
+        remain subject to the runtime's visibility and failed-load checks.
+    @param table tClass Published class definition.
+    @vis internal
+    !]]
+    function Model.publish(tClass)
+        Model.Classes[tClass.FullName] = tClass;
+
+        -- Include every prefix, including an enclosing class path. Namespace
+        -- views historically recognize any prefix containing a class below it.
+        local nDot = string.find(tClass.FullName, '.', 1, true);
+        if (not nDot) then Model.NamespacePaths[tClass.FullName] = true; end
+        while (nDot) do
+            Model.NamespacePaths[string.sub(tClass.FullName, 1, nDot - 1)] = true;
+            nDot = string.find(tClass.FullName, '.', nDot + 1, true);
+        end
+
+        Model.Revision = Model.Revision + 1;
+    end
 
     
     --[[!
@@ -114,7 +137,9 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
     --[[!
     @fqxn LuaEx.LXC.Model.member
     @desc Selects a lexical owner's private declaration on a compatible receiver before ordinary most-derived
-        lookup, preserving distinct same-name parent/child private members.
+        lookup, preserving distinct same-name parent/child private members. After validation, successful
+        selections are cached by receiver class, declaring caller and member name. Access checks still run
+        when the runtime uses the selected definition; live field/property values are never cached here.
     @param table tClass Internal class definition with names, flags, members and resolved ancestry.
     @param table|nil tCaller Calling class definition; nil means external unregistered code.
     @param string sName Name/path to resolve or inspect under the lookup rules described above.
@@ -122,14 +147,33 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
     @vis internal
     !]]
     function Model.member(tClass, tCaller, sName)
+        -- Validation finishes every inheritance/member map before enabling this
+        -- cache. Caller identity stays part of the key: a lexical private member
+        -- must never become the result of an external or sibling-class lookup.
+        local tCache = tClass.MemberCache;
+        local tNames;
+        if (tCache) then
+            local vCaller = tCaller or false;
+            tNames = tCache[vCaller];
+            if (not tNames) then tNames = {}; tCache[vCaller] = tNames; end
+            if (tNames[sName]) then return tNames[sName]; end
+        end
+
         local tScope = tCaller;
         while (tScope) do
             local tOwn = tScope.ByName[sName];
-            if (Model.descends(tClass, tScope) and tOwn and tOwn.Visibility == 'private') then return tOwn; end
+            if (Model.descends(tClass, tScope) and tOwn and tOwn.Visibility == 'private') then
+                if (tNames) then tNames[sName] = tOwn; end
+                return tOwn;
+            end
             tScope = tScope.Outer;
         end
         while (tClass) do
-            if (tClass.ByName[sName]) then return tClass.ByName[sName]; end
+            if (tClass.ByName[sName]) then
+                local tMember = tClass.ByName[sName];
+                if (tNames) then tNames[sName] = tMember; end
+                return tMember;
+            end
             tClass = tClass.Parent;
         end
     end
@@ -315,6 +359,13 @@ return function(ValidationFactory, Diagnostics, Names, Operators)
             end
         end
         Directives.resolve(tOrder, tBatch);
+
+        -- Member maps are immutable after this point. Cache successful selections
+        -- only; arbitrary missing keys (including custom indexer inputs) are not
+        -- retained. Weak caller keys do not keep failed later batches alive.
+        for _, tClass in ipairs(tOrder) do
+            tClass.MemberCache = tClass.MemberCache or setmetatable({}, {__mode = 'k'});
+        end
         return tOrder;
     end
     return Model;
